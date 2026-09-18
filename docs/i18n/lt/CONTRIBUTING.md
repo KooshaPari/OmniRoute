@@ -127,313 +127,267 @@ Numatytieji URL:
 
 ---
 
-## Git darbo eiga
-
-> ⚠️ **NIEKADA neįrašykite pakeitimų tiesiogiai į `main`.** Visada naudokite funkcionalumo šakas.
->
-> **PR bazė:** pasirinkite aktyvią `release/vX.Y.Z` šaką (ne `main`). Išleidimo šakų ir
-> išleidimo metu kuriamų žymų modelis aprašytas
-> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md).
+## Running Tests
 
 ```bash
-# Sukurkite šaką nuo aktyvios leidimo šakos viršūnės (pavyzdys: release/v3.8.49)
-git fetch origin
-git checkout -b feat/your-feature-name origin/release/v3.8.49
-# ... atlikite pakeitimus ...
-git commit -m "feat: describe your change"
-git push -u origin feat/your-feature-name
-# Atidarykite Pull Request, kurio bazė = release/v3.8.49
-```
-
-### Šakų pavadinimai
-
-| Priešdėlis  | Paskirtis                      |
-| ----------- | ------------------------------ |
-| `feat/`     | Naujos funkcijos               |
-| `fix/`      | Klaidų taisymai                |
-| `refactor/` | Kodo pertvarkymas              |
-| `docs/`     | Dokumentacijos pakeitimai      |
-| `test/`     | Testų papildymai ir pataisymai |
-| `chore/`    | Įrankiai, CI, priklausomybės   |
-
-### Įrašų pranešimai
-
-Laikykitės [„Conventional Commits“](https://www.conventionalcommits.org/) standarto:
-
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update SECURITY.md with PII protection
-test: add observability unit tests
-refactor(db): consolidate rate limit tables
-```
-
-Sritys (v3.8): `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`, `cloud-agent`, `guardrails`, `compression`, `auto-combo`, `resilience`, `providers`, `executors`, `translator`, `domain`, `authz`.
-
----
-
-## Testų vykdymas
-
-```bash
-# Visi testai (modulių + vitest + ekosistemos + e2e)
+# All tests (unit + vitest + ecosystem + e2e)
 npm run test:all
 
-# Vienas testo failas (savasis Node.js testų vykdiklis — jį naudoja dauguma testų)
+# Single test file (Node.js native test runner — most tests use this)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Tik jūsų pakeitimo paveikti modulių testai (tas pats TIA parinkiklis kaip ir CI patikroje, #8084)
-npm run test:scoped            # paskutinio įrašo (arba darbinio medžio) pakeitimai
-npm run test:scoped:staged     # tik parengti pakeitimai — patogu naudoti prieš įrašant pakeitimus
-npm run test:scoped:full       # pirmiausia iš naujo sukurti importų grafo žemėlapį (pridėjus ar perkėlus failus)
-# Exit 1 + „paleiskite visą rinkinį“ reiškia, kad pasikeitė centrinis failas (tsconfig, package.json, …) arba
-# nesusietas pirminio kodo failas — parinkiklis saugiai nutraukia darbą ir niekada tyliai nepraleidžia testų.
+# Only the unit tests impacted by your change (same TIA selector as the CI gate, #8084)
+npm run test:scoped            # changes in the last commit (or the working tree)
+npm run test:scoped:staged     # staged changes only — pairs well with a pre-commit run
+npm run test:scoped:full       # rebuild the import-graph map first (after adding/moving files)
+# Exit 1 + "run the full suite" means a hub file (tsconfig, package.json, …) or an
+# unmapped source changed — the selector fails safe, it never silently skips.
 
-# Vitest (MCP serveris, autoCombo, podėlis)
+# Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
 
-# E2E testai (reikalingas Playwright)
+# E2E tests (requires Playwright)
 npm run test:e2e
 
-# Protokolų klientų E2E testai (MCP transportai, A2A)
+# Protocol clients E2E (MCP transports, A2A)
 npm run test:protocols:e2e
 
-# Ekosistemos suderinamumo testai
+# Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Aprėpties riba: 60% sakinių / eilučių / funkcijų / šakų
+# Coverage gate: 60% statements/lines/functions/branches
 npm run test:coverage
 npm run coverage:report
 
-# Lint ir formatavimo patikra
+# Lint + format check
 npm run lint
 npm run check
 
-# Sąlygine prieiga apsaugotas bazinis combo testas su tikrais išoriniais tiekėjais (reikalinga prieiga prie VPS ir tikrų tiekėjų kreditai)
-# Kreipiamasi į TIKRUS tiekėjus — tai šiek tiek kainuoja. NIEKADA nevykdoma CI. Be prieigos sąlygos tvarkingai praleidžiama.
-# Reikalinga: ssh root@192.168.0.15 prieiga (iš VPS gaunama tik skaitoma DB momentinė kopija).
+# Gated real-upstream combo smoke (requires VPS access + real provider credits)
+# Hits REAL providers — costs a little. NEVER runs in CI. Skips cleanly without the gate.
+# Needs: ssh root@192.168.0.15 access (sources a read-only DB snapshot from the VPS).
 RUN_COMBO_LIVE=1 npm run test:combo:live
 
-# 3-iojo etapo bazinis testas veikiančiame VPS — paprasti Node ESM scenarijai, tiesiogiai pasiekiantys veikiantį .15 serverį.
-# Reikalinga: ssh root@192.168.0.15 prieiga (combos sukuriami ir pašalinami per SSH sqlite).
-# Kreipiamasi į TIKRUS tiekėjus (nedidelė kaina). Sukuriami ir pašalinami tik __live_test__* combos. NIEKADA nevykdoma CI.
-# .15 serveryje REQUIRE_API_KEY=false, todėl API rakto nereikia, tačiau, jei nustatyti, naudojami COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY.
-npm run test:combo:live:vps              # 7 HTTP scenarijai (prioritetas / ciklinis / svertinis / kaina / sujungimas / automatinis + būklė)
-npm run test:combo:live:vps:failover     # pridedamas tikras perjungimo tarp tiekėjų scenarijus (iš viso 8)
+# Phase-3 VPS live smoke — plain Node ESM scripts, hit the live .15 server directly.
+# Requires: ssh root@192.168.0.15 access (combos created/torn down via SSH sqlite).
+# Hits REAL providers (small cost). Creates/deletes only __live_test__* combos. NEVER runs in CI.
+# REQUIRE_API_KEY=false on .15 so no API key needed, but honors COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY if set.
+npm run test:combo:live:vps              # 7 HTTP scenarios (priority/round-robin/weighted/cost/fusion/auto + health)
+npm run test:combo:live:vps:failover     # adds a real cross-provider failover scenario (8 total)
 ```
 
-Aprėpties pastabos:
+Coverage notes:
 
-- `npm run test:coverage` matuoja pagrindinio modulių testų rinkinio pirminio kodo aprėptį, neįtraukia `tests/**` ir įtraukia `open-sse/**`
-- Pull request turi išlaikyti **60%+** sakinių / eilučių / funkcijų / šakų aprėpties ribą
-- Jei PR pakeičia produkcinį kodą kataloguose `src/`, `open-sse/`, `electron/` arba `bin/`, tame pačiame PR turi būti pridėti arba atnaujinti automatiniai testai
-- `npm run coverage:report` išspausdina išsamią naujausio aprėpties vykdymo ataskaitą pagal failus
-- `npm run test:coverage:legacy` išsaugo senesnį rodiklį istoriniam palyginimui
-- Etapinis aprėpties gerinimo planas pateiktas `docs/ops/COVERAGE_PLAN.md`
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the coverage gate at **60%+** statements/lines/functions/branches
+- If a PR changes production code in `src/`, `open-sse/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-### Pull Request reikalavimai
+### Pull Request Requirements
 
-Prieš atidarydami PR, vadovaukitės
-[rekomenduojama pakeitimų pateikimo seka](docs/ops/CONTRIBUTION_GOLDEN_PATH.md), kad atliktumėte tikslinį
-pakeistos dalies patikrų ciklą. Už visą modulių testų rinkinį (4 CI dalys), Vitest, **60%+**
-aprėpties ribą ir produkcinį komponavimą atsakinga CI — vykdant juos vietoje negaunama jokios
-papildomos informacijos, kurios jau nepateiktų PR patikros, o mažesniuose kompiuteriuose gali būti
-išnaudoti visi pagrindinio kompiuterio ištekliai (#8084):
+Before opening a PR, use the
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) to run the focused loop for
+what you changed. The full unit suite (4 CI shards), Vitest, the **60%+** coverage gate, and
+the production build are CI's responsibility — running them locally adds no signal the PR
+checks will not already give you, and on smaller machines it can saturate the host (#8084):
 
-- Paleiskite jūsų pakeitimą tikrinančius testų failus: `node --import tsx/esm --test tests/unit/<file>.test.ts`
-- Paleiskite `npm run lint`
-- Pakeitę produkcinį kodą, tame pačiame PR pridėkite arba atnaujinkite automatinius testus
-- Jei pasikeitė produkcinis kodas, PR apraše nurodykite pakeistus arba pridėtus testų failus
-- Kai projekto slaptieji duomenys sukonfigūruoti CI, patikrinkite PR SonarQube rezultatą
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-Dabartinė testų būsena: **122 modulių testų failai**, apimantys:
+Current test status: **122 unit test files** covering:
 
-- Tiekėjų vertiklius ir formatų konvertavimą
-- Užklausų dažnio ribojimą, grandinės pertraukiklį ir atsparumą
-- Semantinį podėlį, idempotentiškumą ir eigos stebėjimą
-- Duomenų bazės operacijas ir schemą (21 DB modulis)
-- OAuth eigas ir autentifikavimą
-- API galinių taškų tikrinimą (Zod v4)
-- MCP serverio įrankius ir sričių apribojimų užtikrinimą
-- Memory ir Skills sistemas
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
 
 ---
 
-## Kodo stilius
+## Code Style
 
-- **ESLint** — prieš patvirtindami pakeitimus paleiskite `npm run lint`
-- **Prettier** — patvirtinant pakeitimus automatiškai formatuojama per `lint-staged` (2 tarpai, kabliataškiai, dvigubos kabutės, 100 simbolių eilutės plotis, es5 baigiamieji kableliai)
-- **TypeScript** — visas `src/` kodas naudoja `.ts`/`.tsx`; `open-sse/` naudoja `.ts`/`.js`; dokumentuokite naudodami TSDoc (`@param`, `@returns`, `@throws`)
-- **Jokio `eval()`** — ESLint užtikrina `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validavimas** — visų API įvesčių validavimui naudokite Zod v4 schemas
-- **Pavadinimai**: failai = camelCase/kebab-case, komponentai = PascalCase, konstantos = UPPER_SNAKE
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
 
-### Klaidų apdorojimas / tušti catch blokai
+### Error handling / empty catch blocks
 
-Niekada nepalikite `catch` be paaiškinimo. Priskirkite jį vienai iš dviejų kategorijų (taip praktiškai
-įgyvendinama griežta taisyklė „SSE srautuose niekada tyliai nepraleisti klaidų“):
+Never leave a `catch` unexplained. Classify it into one of two buckets (operationalizes
+the hard rule "never silently swallow errors in SSE streams"):
 
-- **Tyčinis (mūsų pačių neprivalomas valymas / telemetrija)** — gedimas čia yra tikėtinas ir
-  nekenksmingas; pridėkite vienos eilutės paaiškinamąjį komentarą, bet neregistruokite žurnale (registravimas
-  kiekvienai užklausai sukeltų triukšmą, kurio šiuo susitarimu siekiama išvengti).
+- **Intentional (our own best-effort cleanup/telemetry)** — a failure here is expected and
+  harmless; add a one-line rationale comment, no logging (logging on every request is the
+  noise this convention avoids).
 
   ```ts
-  } catch {} // po kliento atsijungimo tikėtina, kad bus uždaromas jau uždarytas valdiklis
+  } catch {} // closing an already-closed controller after client disconnect is expected
   ```
 
-- **Reikėtų registruoti žurnale (išorinis / kvietėjo pateiktas kodas arba klaidos praleidimas pakeičia valdymo eigą)** — palikite
-  catch bloką (niekada neleiskite jam nutraukti srauto), bet pateikite kontekstinį `console.debug`/`warn`, kad
-  gedimą būtų galima aptikti.
+- **Should log (external/caller-supplied code, or the swallow changes control flow)** — keep
+  the catch (never let it break the stream) but emit a contextual `console.debug`/`warn` so the
+  failure is discoverable.
 
   ```ts
   } catch (e) {
-    console.debug("[STREAM] onFailure callback klaida:", e);
+    console.debug("[STREAM] onFailure callback error:", e);
   }
   ```
 
-Pritaikymo pavyzdžių rasite `open-sse/utils/stream.ts` ir `open-sse/utils/streamHandler.ts`.
+See `open-sse/utils/stream.ts` and `open-sse/utils/streamHandler.ts` for applied examples.
 
 ---
 
-## Projekto struktūra
+## Project Structure
 
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Valdymo skydelio puslapiai (23 skyriai)
-│   ├── api/                # API maršrutai (51 katalogas)
-│   └── login/              # Autentifikavimo puslapiai (.tsx)
-├── domain/                 # Politikų variklis (policyEngine, comboResolver, costRules ir kt.)
-├── lib/                    # Pagrindinė verslo logika (.ts)
-│   ├── a2a/                # Agent-to-Agent v0.3 protokolo serveris
-│   ├── acp/                # Agent Communication Protocol registras
-│   ├── compliance/         # Atitikties politikų variklis
-│   ├── db/                 # SQLite domeno moduliai ir 130 migracijų
-│   ├── memory/             # Išliekamoji pokalbių atmintis
-│   ├── oauth/              # OAuth teikėjai, paslaugos ir pagalbinės priemonės
-│   ├── skills/             # Išplečiama įgūdžių sistema
-│   ├── usage/              # Naudojimo stebėjimas ir kainos skaičiavimas
-│   └── localDb.ts          # Tik reeksportavimo sluoksnis — niekada čia nepridėkite logikos
-├── middleware/              # Užklausų tarpinė programinė įranga (promptInjectionGuard)
-├── mitm/                   # MITM tarpinis serveris (sertifikatai, DNS, paskirties maršruto parinkimas)
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # React komponentai (.tsx)
-│   ├── constants/          # Teikėjų apibrėžtys (329), MCP aprėptys, 19 maršruto parinkimo strategijų
-│   ├── utils/              # Grandinės pertraukiklis, išvalymo priemonė, autentifikavimo pagalbinės priemonės
-│   └── validation/         # Zod v4 schemos
-└── sse/                    # SSE tarpinio serverio konvejeris
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 19 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # @omniroute/open-sse darbo sritis
-├── executors/              # 89 vykdytojų realizavimo moduliai
-├── handlers/               # 11 užklausų apdorojimo programų (pokalbiai, atsakymai, įterpiniai, vaizdai ir kt.)
-├── mcp-server/             # MCP serveris (110 unikalių įrankių, 3 transportai, 33 aprėptys)
-├── services/               # 178 aukščiausio lygio paslaugos (combo, autoCombo, rateLimitManager ir kt.)
-├── translator/             # Formatų vertikliai (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Responses API transformavimo priemonė
-└── utils/                  # 22 pagalbiniai moduliai (srautai, TLS, tarpinis serveris, žurnalų registravimas)
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 89 executor implementation modules
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron darbalaukio programa (kelioms platformoms)
+apps/desktop/               # Tauri 2 desktop app (cross-platform)
 
 tests/
-├── unit/                   # Node.js testų vykdyklė (1 574 testų failai)
-├── integration/            # Integraciniai testai
-├── e2e/                    # Playwright testai
-├── security/               # Saugumo testai
-├── translator/             # Vertikliui skirti testai
-└── load/                   # Apkrovos testai
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/
-├── adr/                     # Architektūrinių sprendimų įrašai
-├── architecture/            # Sistemos architektūra ir atsparumas
-├── comparison/              # OmniRoute palyginimas su alternatyvomis
-├── compression/             # Glaudinimo vadovai ir taisyklės
-├── dev/                     # Kūrimo vadovai
-├── diagrams/                # Architektūros diagramos
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
 ├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
-├── guides/                  # Naudotojo vadovas, Docker, sąranka, trikčių šalinimas
-├── i18n/                    # Internacionalizuoti README vertimai
-├── marketing/               # Rinkodaros medžiaga
-├── ops/                     # Diegimas, tarpinis serveris, aprėptis, leidimai
-├── providers/               # Konkretiems teikėjams skirta dokumentacija
-├── reference/               # API žinynas, aplinkos kintamieji, CLI įrankiai, nemokami planai
-├── releases/                # Leidimų pastabos
-├── routing/                 # Automatinio derinių sudarymo variklis, samprotavimo atkūrimas
-├── screenshots/             # Valdymo skydelio ekrano kopijos
-├── security/                # Apsaugos priemonės, atitiktis, maskavimas, prieigos raktai
-└── specs/                   # Projektavimo specifikacijos
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
 ---
 
-## Naujo teikėjo pridėjimas
+## Adding a New Provider
 
-### 1 veiksmas: užregistruokite teikėjo konstantas
+### Step 1: Register Provider Constants
 
-Pridėkite jas į `src/shared/constants/providers.ts` — įkeliant modulį jos patikrinamos naudojant Zod.
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-### 2 veiksmas: pridėkite vykdyklę (jei reikalinga pasirinktinė logika)
+### Step 2: Add Executor (if custom logic needed)
 
-Sukurkite vykdyklę faile `open-sse/executors/your-provider.ts`, išplėsdami bazinę vykdyklę.
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-### 3 veiksmas: pridėkite transformatorių (jei naudojamas ne OpenAI formatas)
+### Step 3: Add Translator (if non-OpenAI format)
 
-Sukurkite užklausų ir atsakymų transformatorius kataloge `open-sse/translator/`.
+Create request/response translators in `open-sse/translator/`.
 
-### 4 veiksmas: pridėkite OAuth konfigūraciją (jei naudojamas OAuth)
+### Step 4: Add OAuth Config (if OAuth-based)
 
-Pridėkite OAuth prisijungimo duomenis faile `src/lib/oauth/constants/oauth.ts`, o paslaugą — kataloge `src/lib/oauth/services/`.
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
 
-Jei pirminis teikėjas platina viešą OAuth `client_id` / paslaptį arba Firebase Web API raktą savo viešame CLI / naršyklės pakete, **neįterpkite** jo kaip eilutės literalo. Naudokite `resolvePublicCred()` iš `open-sse/utils/publicCreds.ts` ir pridėkite užmaskuotų baitų įrašą į `EMBEDDED_DEFAULTS`. Visa privaloma darbo eiga aprašyta dokumente [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
+If the upstream provider distributes a public OAuth client_id/secret or Firebase Web API key inside its public CLI / browser bundle, **do not** embed it as a string literal. Use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts` and add a masked byte entry to `EMBEDDED_DEFAULTS`. The full mandatory workflow is documented in [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
 
-Apdorojimo funkcijose / vykdyklėse klientą pasiekiantys klaidų pranešimai turi būti apdorojami naudojant `buildErrorBody()` / `sanitizeErrorMessage()` iš `open-sse/utils/error.ts` — niekada nedėkite neapdoroto `err.stack` ar `err.message` į Response turinį. Žr. [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
+Inside handlers/executors, error messages reaching the client must go through `buildErrorBody()` / `sanitizeErrorMessage()` from `open-sse/utils/error.ts` — never put raw `err.stack` or `err.message` in a Response body. See [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
 
-### 5 veiksmas: užregistruokite modelius
+### Step 5: Register Models
 
-Pridėkite modelių aprašus faile `open-sse/config/providerRegistry.ts`.
+Add model definitions in `open-sse/config/providerRegistry.ts`.
 
-### 6 veiksmas: pridėkite testus
+### Step 6: Add Tests
 
-Parašykite vienetinius testus kataloge `tests/unit/`, kurie apimtų bent:
+Write unit tests in `tests/unit/` covering at minimum:
 
-- Teikėjo registravimą
-- Užklausų / atsakymų transformavimą
-- Klaidų tvarkymą
-
----
-
-## Pull Request kontrolinis sąrašas
-
-- [ ] Testai sėkmingi (`npm test`)
-- [ ] Linting patikra sėkminga (`npm run lint`)
-- [ ] Kompiliavimas sėkmingas (`npm run build`)
-- [ ] Pridėti naujų viešųjų funkcijų ir sąsajų TypeScript tipai
-- [ ] Nėra kode įrašytų paslapčių ar atsarginių reikšmių
-- [ ] Vieši pirminio teikėjo prisijungimo duomenys įterpti naudojant `resolvePublicCred()` (žr. [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), o ne kaip literalai
-- [ ] Klaidų atsakymai apdorojami naudojant `buildErrorBody()` / `sanitizeErrorMessage()` — atsakymų turinyje nėra neapdorotų dėklo išklotinių (žr. [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Apvalkalo komandos (`exec` / `spawn`) vykdymo meto reikšmes perduoda per `env`, o ne naudodamos eilučių interpoliaciją
-- [ ] Visos įvestys patikrintos naudojant Zod schemas
-- [ ] Naudotojams matomiems pakeitimams pridėtas pakeitimų žurnalo **fragmentas** kataloge `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (žr. [`changelog.d/README.md`](./changelog.d/README.md)) — **neredaguokite** `CHANGELOG.md` tiesiogiai; fragmentai sujungiami leidimo metu ir niekada nesukelia konfliktų tarp PR
-- [ ] Dokumentacija atnaujinta (jei taikoma)
-- [ ] Neatsirado naujų CodeQL / Secret-Scanning įspėjimų arba kiekvienas iš jų atmestas pateikus techninį pagrindimą su nuoroda į atitinkamą `docs/security/` dokumentą
-- [ ] Maršrutai, paleidžiantys antrinius procesus (`/api/mcp/`, `/api/cli-tools/runtime/`), faile `src/server/authz/routeGuard.ts` klasifikuojami kaip `isLocalOnlyPath()` — žr. [Griežtąją taisyklę Nr. 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Įvykdymo pranešimuose nėra `Co-Authored-By` galinių eilučių — įvykdymai turi būti rodomi tik su saugyklos savininko Git tapatybe (Griežtoji taisyklė Nr. 16)
+- Provider registration
+- Request/response translation
+- Error handling
 
 ---
 
-## Leidimų publikavimas
+## Pull Request Checklist
 
-Leidimai valdomi naudojant `/generate-release` darbo eigą. Sukūrus naują GitHub leidimą, paketas per GitHub Actions **automatiškai publikuojamas npm**.
-
-Diegimams VPS aplinkoje naudokite `npm run build:release` (ne `npm run build`) — ši komanda atlieka švarų
-perkompiliavimą, suformuoja paketą kataloge `dist/` ir įrašo kontrolinį failą `dist/BUILD_SHA`.
-Tada naudokite `/deploy-vps-*-cc` įgūdžius, kurie per rsync nukopijuoja `dist/` į nuotolinį katalogą `app/`.
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] Public upstream credentials embedded via `resolvePublicCred()` (see [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), never as literals
+- [ ] Error responses route through `buildErrorBody()` / `sanitizeErrorMessage()` — no raw stack traces in response bodies (see [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) pass runtime values via `env`, not via string interpolation
+- [ ] All inputs validated with Zod schemas
+- [ ] Changelog **fragment** added under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for user-facing changes (see [`changelog.d/README.md`](./changelog.d/README.md)) — do **not** edit `CHANGELOG.md` directly; fragments are aggregated at release time and never conflict between PRs
+- [ ] Documentation updated (if applicable)
+- [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
+- [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
 
 ---
 
-## Pagalba
+## Releasing
 
-- **Architektūra**: žr. [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API dokumentacija**: žr. [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Saugumo dokumentai**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Eksploatavimo dokumentai**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Problemos**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: architektūrinių sprendimų įrašus rasite `docs/adr/`
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+For VPS deploys, use `npm run build:release` (not `npm run build`) — it performs a clean
+rebuild, assembles the bundle into `dist/`, and writes the `dist/BUILD_SHA` sentinel.
+Then use the `/deploy-vps-*-cc` skills which rsync `dist/` to the remote `app/` directory.
+
+---
+
+## Getting Help
+
+- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Security docs**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Ops docs**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

@@ -10,88 +10,150 @@ lastUpdated: 2026-08-23
 
 ---
 
-Bu kılavuz, OmniRoute'u sisteminizden nasıl temiz bir şekilde kaldıracağınızı kapsar.
+## Quick Uninstall (v3.6.2+)
 
----
+OmniRoute provides two built-in scripts for clean removal:
 
-## Hızlı Kaldırma (v3.6.2+)
-
-OmniRoute temiz kaldırma için iki yerleşik betik sunar:
-
-### Verilerinizi Koruyarak Kaldırma
+### Keep Your Data
 
 ```bash
 npm run uninstall
 ```
 
-Bu, OmniRoute uygulamasını kaldırır ancak `~/.omniroute/` içindeki veritabanınızı, yapılandırmalarınızı, API anahtarlarınızı ve sağlayıcı ayarlarınızı **korur**. Daha sonra yeniden yüklemeyi planlıyorsanız ve kurulumunuzu saklamak istiyorsanız bunu kullanın.
+This removes the OmniRoute application but **preserves** your database, configurations, API keys, and provider settings in `~/.omniroute/`. Use this if you plan to reinstall later and want to keep your setup.
 
-### Tam Kaldırma (Tüm Verileri Sil)
+### Full Removal
 
 ```bash
 npm run uninstall:full
 ```
 
-Bu, uygulamayı kaldırır **ve tüm verileri kalıcı olarak siler**:
+This removes the application **and permanently erases** all data:
 
-- Veritabanı (`storage.sqlite`)
-- Sağlayıcı yapılandırmaları ve API anahtarları
-- Yedekleme dosyaları
-- Günlük dosyaları
-- `~/.omniroute/` dizinindeki tüm dosyalar
+- Database (`storage.sqlite`)
+- Provider configurations and API keys
+- Backup files
+- Log files
+- All files in the `~/.omniroute/` directory
 
-> ⚠️ **Uyarı:** `npm run uninstall:full` işlemi geri alınamaz. Tüm sağlayıcı bağlantılarınız, kombolarınız, API anahtarlarınız ve kullanım geçmişiniz kalıcı olarak silinir.
+> ⚠️ **Warning:** `npm run uninstall:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
 
 ---
 
-## Manuel Kaldırma
+## Manual Uninstall
 
-### NPM Global Kurulumu
+### NPM Global Install
 
 ```bash
-# Global paketi kaldırın
+# Remove the global package
 npm uninstall -g omniroute
 
-# (İsteğe bağlı) Veri dizinini silin
+# (Optional) Remove data directory
+rm -rf ~/.omniroute
+```
+
+### pnpm Global Install
+
+```bash
+pnpm uninstall -g omniroute
 rm -rf ~/.omniroute
 ```
 
 ### Docker
 
 ```bash
-# Konteyneri durdurun ve silin
+# Stop and remove the container
 docker stop omniroute
 docker rm omniroute
 
-# Hacmi kaldırın (tüm verileri siler)
+# Remove the volume (deletes all data)
 docker volume rm omniroute-data
 
-# (İsteğe bağlı) İmajı silin
+# (Optional) Remove the image
 docker rmi diegosouzapw/omniroute:latest
 ```
 
 ### Docker Compose
 
 ```bash
-# Konteynerleri durdurun ve kaldırın
+# Stop and remove containers
 docker compose down
 
-# Hacimleri de kaldırın (tüm verileri siler)
+# Also remove volumes (deletes all data)
 docker compose down -v
 ```
 
-### Electron Masaüstü Uygulaması
-
-**macOS:**
-
-- `OmniRoute.app` uygulamasını `/Applications` dizininden Çöp Sepetine sürükleyin
-- Verileri silin: `rm -rf ~/Library/Application Support/omniroute`
+### Tauri Desktop App
 
 **Windows:**
 
-- `Ayarlar → Uygulamalar → OmniRoute → Kaldır`
+- Open `Settings → Apps → OmniRoute → Uninstall`
+- Or run the NSIS uninstaller from the install directory
+
+**macOS:**
+
+- Drag `OmniRoute.app` from `/Applications` to Trash
+- Remove data: `rm -rf ~/Library/Application Support/omniroute`
 
 **Linux:**
 
-- AppImage veya paket yöneticisi üzerinden kaldırın
-- Verileri silin: `rm -rf ~/.config/omniroute`
+- Remove the AppImage file
+- Remove data: `rm -rf ~/.omniroute`
+
+### Source Install (git clone)
+
+```bash
+# Remove the cloned directory
+rm -rf /path/to/omniroute
+
+# (Optional) Remove data directory
+rm -rf ~/.omniroute
+```
+
+---
+
+## Data Directories
+
+OmniRoute stores data in the following locations by default:
+
+| Platform      | Default Path                  | Override                  |
+| ------------- | ----------------------------- | ------------------------- |
+| Linux         | `~/.omniroute/`               | `DATA_DIR` env var        |
+| macOS         | `~/.omniroute/`               | `DATA_DIR` env var        |
+| Windows       | `%APPDATA%/omniroute/`        | `DATA_DIR` env var        |
+| Docker        | `/app/data/` (mounted volume) | `DATA_DIR` env var        |
+| XDG-compliant | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` env var |
+
+### Files in the data directory
+
+| File/Directory       | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| `storage.sqlite`     | Main database (providers, combos, settings, keys) |
+| `storage.sqlite-wal` | SQLite write-ahead log (temporary)                |
+| `storage.sqlite-shm` | SQLite shared memory (temporary)                  |
+| `call_logs/`         | Request payload archives                          |
+| `backups/`           | Automatic database backups                        |
+| `log.txt`            | Legacy request log (optional)                     |
+
+---
+
+## Verify Complete Removal
+
+After uninstalling, verify there are no remaining files:
+
+```bash
+# Check for global npm package
+npm list -g omniroute 2>/dev/null
+
+# Check for data directory
+ls -la ~/.omniroute/ 2>/dev/null
+
+# Check for running processes
+pgrep -f omniroute
+```
+
+If any process is still running, stop it:
+
+```bash
+pkill -f omniroute
+```

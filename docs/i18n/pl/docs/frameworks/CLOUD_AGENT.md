@@ -9,20 +9,20 @@ lastUpdated: 2026-06-28
 > **Source of truth:** `src/lib/cloudAgent/` and `src/app/api/v1/agents/tasks/`
 > **Last updated:** 2026-06-28 — v3.8.40 (frontmatter refresh; 4 agents incl. cursor-cloud)
 
-OmniRoute orkiestruje zewnętrznych, hostowanych w chmurze agentów kodujących (Codex Cloud, Cursor,
-Devin, Jules) jako długotrwałe taski. Każdy agent jest opakowany jednolitym interfejsem, dzięki czemu
-klienci mogą przesłać prompt + URL repozytorium i otrzymać wyniki bez kontaktu z
-API specyficznymi dla providera.
+OmniRoute orchestrates third-party cloud-hosted coding agents (Codex Cloud, Cursor,
+Devin, Jules) as long-running tasks. Each agent is wrapped behind a uniform interface so
+clients can submit a prompt + repo URL and receive results without dealing with
+provider-specific APIs.
 
-Task Cloud Agenta to **nie** zwykłe chat completion. To trwały, wieloetapowy
-element pracy, który może trwać od minut do godzin, może wygenerować Pull Request jako
-artefakt i obsługuje wiadomości follow-up oraz (u części providerów) bramki zatwierdzania planu.
+A Cloud Agent task is **not** a regular chat completion. It is a durable, multi-step
+unit of work that may take minutes to hours, can produce a Pull Request as its
+artifact, and supports follow-up messages and (in some providers) plan approval gates.
 
 ![Cloud Agent task lifecycle](../diagrams/exported/cloud-agent-flow.svg)
 
 > Source: [diagrams/cloud-agent-flow.mmd](../diagrams/cloud-agent-flow.mmd)
 
-## Obsługiwani agenci
+## Supported Agents
 
 | Provider ID    | Class              | Source                                | Upstream Base URL                       | Plan Approval |
 | -------------- | ------------------ | ------------------------------------- | --------------------------------------- | ------------- |
@@ -31,11 +31,11 @@ artefakt i obsługuje wiadomości follow-up oraz (u części providerów) bramki
 | `codex-cloud`  | `CodexCloudAgent`  | `src/lib/cloudAgent/agents/codex.ts`  | `https://api.openai.com/v1/codex/cloud` | No (auto)     |
 | `cursor-cloud` | `CursorCloudAgent` | `src/lib/cloudAgent/agents/cursor.ts` | `https://api.cursor.com/v0`             | No (auto)     |
 
-Registry: `src/lib/cloudAgent/registry.ts` — eksportuje `getAgent(providerId)`,
-`getAvailableAgents()` oraz `isCloudAgentProvider(providerId)`. Registry to
-zwykły in-memory `Record<string, CloudAgentBase>` wypełniany przy ładowaniu modułu.
+Registry: `src/lib/cloudAgent/registry.ts` — exports `getAgent(providerId)`,
+`getAvailableAgents()`, and `isCloudAgentProvider(providerId)`. The registry is a
+plain in-memory `Record<string, CloudAgentBase>` populated at module load.
 
-## Architektura
+## Architecture
 
 ```
 Client (Dashboard / CLI / API)
@@ -64,11 +64,11 @@ Interactions:
     → status flips to "cancelled"                       for "cancel" (local-only)
 ```
 
-Synchronizacja jest **leniwa**: status jest odświeżany z upstreamu przy każdym `GET /tasks/[id]`.
-Nie ma background pollera. Dashboardy potrzebujące świeżego stanu powinny odpytywać endpoint GET
-w rozsądnym interwale.
+Sync is **lazy**: status is refreshed from the upstream on every `GET /tasks/[id]`.
+There is no background poller. Dashboards that need fresh state should poll the GET
+endpoint at a sensible interval.
 
-## Interfejs `CloudAgentBase`
+## `CloudAgentBase` Interface
 
 Source: `src/lib/cloudAgent/baseAgent.ts`
 
@@ -118,20 +118,20 @@ export abstract class CloudAgentBase {
 }
 ```
 
-`CodexCloudAgent.approvePlan` celowo rzuca wyjątek — Codex Cloud planuje automatycznie i nie ma
-bramki zatwierdzania. `CodexCloudAgent.listSources` zwraca `[]`.
+`CodexCloudAgent.approvePlan` intentionally throws — Codex Cloud auto-plans and has
+no approval gate. `CodexCloudAgent.listSources` returns `[]`.
 
-`CursorCloudAgent` steruje Background / Cloud Agents Cursora przez oficjalne REST
-API (`api.cursor.com/v0`) z **kluczem API użytkownika lub konta serwisowego** — bezpieczniejszą,
-first-party alternatywą wobec ponownego użycia sesji OAuth IDE Cursor (provider `cursor`,
-który niesie ostrzeżenie o ryzyku bana). To zwykły adapter REST (bez natywnej zależności
-`@cursor/sdk`). `approvePlan` rzuca wyjątek (agenci Cursora działają autonomicznie); `listSources` listuje
-repozytoria dostępne dla klucza. Cursor zwraca statusy enum UPPERCASE
-(`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), mapowane jawnie na wspólny
-`CloudAgentStatus`. `baseUrl` jest nadpisywalny per-credential, więc wersję/ścieżkę API można
-skorygować bez zmiany kodu.
+`CursorCloudAgent` drives Cursor's Background / Cloud Agents through its official REST
+API (`api.cursor.com/v0`) with a **user or service-account API key** — the safer,
+first-party alternative to re-using the Cursor IDE's OAuth session (provider `cursor`,
+which carries a ban-risk warning). It is a plain REST adapter (no `@cursor/sdk` native
+dependency). `approvePlan` throws (Cursor agents run autonomously); `listSources` lists
+the repositories reachable by the key. Cursor returns UPPERCASE status enums
+(`CREATING`/`RUNNING`/`FINISHED`/`ERROR`), mapped explicitly to the shared
+`CloudAgentStatus`. `baseUrl` is overridable per-credential so the API version/path can
+be corrected without a code change.
 
-## Typy domenowe
+## Domain Types
 
 Source: `src/lib/cloudAgent/types.ts`
 
@@ -190,14 +190,14 @@ export interface CloudAgentTask {
 }
 ```
 
-Schematy walidacji (`CreateCloudAgentTaskSchema`, `UpdateCloudAgentTaskSchema`) są
-eksportowane obok typów i używane przez handlery route'ów.
+Validation schemas (`CreateCloudAgentTaskSchema`, `UpdateCloudAgentTaskSchema`) are
+exported alongside the types and are used by the route handlers.
 
-## Baza danych
+## Database
 
-Source: `src/lib/cloudAgent/db.ts` — tabela jest tworzona leniwie przez
-`createCloudAgentTaskTable()` (wywoływane także z `src/lib/cloudAgent/index.ts` przy
-importcie modułu).
+Source: `src/lib/cloudAgent/db.ts` — table is created lazily via
+`createCloudAgentTaskTable()` (also called from `src/lib/cloudAgent/index.ts` at
+module import).
 
 ```sql
 CREATE TABLE IF NOT EXISTS cloud_agent_tasks (
@@ -220,15 +220,15 @@ CREATE INDEX IF NOT EXISTS idx_cloud_agent_tasks_status   ON cloud_agent_tasks(s
 CREATE INDEX IF NOT EXISTS idx_cloud_agent_tasks_created  ON cloud_agent_tasks(created_at DESC);
 ```
 
-`updateCloudAgentTask` wymusza **whitelistę kolumn**, aby zapobiec SQL injection:
+`updateCloudAgentTask` enforces a **column whitelist** to prevent SQL injection:
 `status`, `prompt`, `source`, `options`, `result`, `activities`, `error`,
-`completed_at`. Każdy inny klucz w częściowej aktualizacji jest cicho pomijany.
+`completed_at`. Any other key in the partial update is silently dropped.
 
-## REST API — cykl życia taska
+## REST API — Task Lifecycle
 
-**Auth:** Wszystkie endpointy `/api/v1/agents/tasks*` wymagają **management auth**
-(`requireCloudAgentManagementAuth` opakowuje `requireManagementAuth` z
-`src/lib/api/requireManagementAuth`). Jest to wymuszane od commita `588a0333`
+**Auth:** All `/api/v1/agents/tasks*` endpoints require **management auth**
+(`requireCloudAgentManagementAuth` wraps `requireManagementAuth` from
+`src/lib/api/requireManagementAuth`). This is enforced after commit `588a0333`
 (_"fix(auth): require management auth for agent and cooldown APIs"_).
 
 | Method  | Path                          | Purpose                                                |
@@ -242,7 +242,7 @@ CREATE INDEX IF NOT EXISTS idx_cloud_agent_tasks_created  ON cloud_agent_tasks(c
 | POST    | `/api/v1/agents/tasks/[id]`   | Action: `approve` / `message` / `cancel`               |
 | DELETE  | `/api/v1/agents/tasks/[id]`   | Delete task by path id                                 |
 
-### Utworzenie taska
+### Create task
 
 ```bash
 curl -X POST http://localhost:20128/api/v1/agents/tasks \
@@ -263,7 +263,7 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks \
   }'
 ```
 
-Odpowiedź `201`:
+Response `201`:
 
 ```json
 {
@@ -280,7 +280,7 @@ Odpowiedź `201`:
 }
 ```
 
-### Zatwierdzenie planu
+### Approve a plan
 
 ```bash
 curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
@@ -289,30 +289,30 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
   -d '{"action":"approve"}'
 ```
 
-### Wysłanie wiadomości follow-up
+### Send a follow-up message
 
 ```bash
 curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
   -d '{"action":"message","message":"Also add a unit test for the parser"}'
 ```
 
-### Anulowanie (tylko status lokalny)
+### Cancel (local status only)
 
 ```bash
 curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
   -d '{"action":"cancel"}'
 ```
 
-`cancel` ustawia `status` na `"cancelled"` w lokalnej bazie, ale **nie** wywołuje
-upstream providera — w `CloudAgentBase` nie ma abort RPC. Aby zatrzymać billing
-upstream, zakończ task w konsoli samego providera.
+`cancel` flips `status` to `"cancelled"` in the local DB but does **not** call the
+upstream provider — there is no abort RPC in `CloudAgentBase`. To stop billing
+upstream, terminate the task in the provider's own console.
 
-## REST API — infrastruktura Cloud Provider
+## REST API — Cloud Provider Plumbing
 
-Te pomocnicze endpointy pod `src/app/api/cloud/` są używane przez zdalnych klientów
-(CLI, aplikacja Electron lub workery sync) do odczytu metadanych połączeń providerów
-oraz rozwiązywania aliasów modeli. Są uwierzytelniane **zwykłym kluczem API**
-(przez `validateApiKey`), a nie management auth używanym przez endpointy tasków.
+These auxiliary endpoints under `src/app/api/cloud/` are used by remote clients
+(the CLI, the Tauri desktop app, or sync workers) to read provider connection metadata
+and resolve model aliases. They are authenticated with a **regular API key**
+(via `validateApiKey`), not the management auth used by the task endpoints.
 
 | Method | Path                            | Purpose                                                             |
 | ------ | ------------------------------- | ------------------------------------------------------------------- |
@@ -322,56 +322,56 @@ oraz rozwiązywania aliasów modeli. Są uwierzytelniane **zwykłym kluczem API*
 | GET    | `/api/cloud/models/alias`       | List all model aliases                                              |
 | PUT    | `/api/cloud/models/alias`       | Set a model alias (and auto-sync to Cloud if enabled)               |
 
-`/api/cloud/auth` nigdy nie zwraca surowego `apiKey` / `accessToken` / `refreshToken`. Zwraca
-`hasApiKey`, `hasAccessToken`, `hasRefreshToken` oraz zamaskowany podgląd
-(`maskedApiKey`: pierwsze 4 + `****` + ostatnie 4).
+`/api/cloud/auth` never returns raw `apiKey` / `accessToken` / `refreshToken`. It
+returns `hasApiKey`, `hasAccessToken`, `hasRefreshToken`, and a masked preview
+(`maskedApiKey`: first 4 + `****` + last 4).
 
-## Rozwiązywanie poświadczeń
+## Credentials Resolution
 
-`getCloudAgentCredentials(providerId)` w `src/lib/cloudAgent/api.ts`:
+`getCloudAgentCredentials(providerId)` in `src/lib/cloudAgent/api.ts`:
 
-1. Ładuje aktywne połączenia providerów przez `getProviderConnections({ provider: providerId, isActive: true })`.
-2. Dla każdego połączenia preferuje `apiKey` (trimmed). Fallback na `accessToken`.
-3. Zwraca pierwszy niepusty token opakowany jako `{ apiKey: token }`.
-4. Zwraca `null`, gdy nie znaleziono użytecznego tokena — API odpowiada `400` z
+1. Loads active provider connections via `getProviderConnections({ provider: providerId, isActive: true })`.
+2. For each connection, prefers `apiKey` (trimmed). Falls back to `accessToken`.
+3. Returns the first non-empty token wrapped as `{ apiKey: token }`.
+4. Returns `null` if no usable token is found — the API responds `400` with
    `"No active credentials configured for cloud agent provider: <id>"`.
 
-Oznacza to, że Cloud Agenci współdzielą tę samą tabelę Provider Connection co zwykli
-providerzy LLM. Aby włączyć Jules, utwórz aktywne połączenie z `provider: "jules"`
-i wypełnionym `apiKey`.
+This means Cloud Agents reuse the same Provider Connection table as regular LLM
+providers. To enable Jules, create an active connection with `provider: "jules"`
+and a populated `apiKey`.
 
 ## Dashboard
 
 Source: `src/app/(dashboard)/dashboard/cloud-agents/page.tsx`
 
-Strona React `"use client"`, która:
+A `"use client"` React page that:
 
-- Listuje taski (polling przez `GET /api/v1/agents/tasks`).
-- Przesyła nowe taski formularzem mapowanym na `CreateCloudAgentTaskSchema`.
-- Pokazuje badge'e statusu (`queued`, `running`, `awaiting_approval`, `completed`,
-  `failed`, `cancelled`) i renderuje timeline `activities[]`.
-- Wyświetla `result.prUrl` / `commitMessage` / `summary`, gdy `status === "completed"`.
+- Lists tasks (polled via `GET /api/v1/agents/tasks`).
+- Submits new tasks via a form that maps to `CreateCloudAgentTaskSchema`.
+- Shows status badges (`queued`, `running`, `awaiting_approval`, `completed`,
+  `failed`, `cancelled`) and renders the `activities[]` timeline.
+- Surfaces the `result.prUrl` / `commitMessage` / `summary` when `status === "completed"`.
 
-## Integracja z A2A
+## Integration with A2A
 
-Cloud Agenci mogą być eksponowani jako skill'e A2A przez zarejestrowanie skill'a A2A, który deleguje
-swój handler `tasks/send` do `getAgent(...).createTask(...)` i tłumaczy zdarzenia statusu tasków A2A
-na protokół JSON-RPC 2.0. Zobacz [A2A-SERVER.md](./A2A-SERVER.md).
+Cloud Agents can be exposed as A2A skills by registering an A2A skill that delegates
+its `tasks/send` handler to `getAgent(...).createTask(...)` and translates A2A task
+status events to the JSON-RPC 2.0 protocol. See [A2A-SERVER.md](./A2A-SERVER.md).
 
-## Dodawanie nowego Cloud Agenta
+## Adding a New Cloud Agent
 
-1. Utwórz `src/lib/cloudAgent/agents/<name>.ts` rozszerzające `CloudAgentBase`.
-2. Zaimplementuj `createTask`, `getStatus`, `approvePlan` (lub rzuć wyjątek, jeśli N/A),
-   `sendMessage`, `listSources`. Użyj `this.mapStatus(...)` do normalizacji statusu.
-3. Zarejestruj w `src/lib/cloudAgent/registry.ts` pod stabilnym `providerId`.
-4. Rozszerz unię literałów `providerId` w `src/lib/cloudAgent/types.ts`
-   (`CloudAgentTask.providerId` oraz `CreateCloudAgentTaskSchema`).
-5. Dodaj providera do `src/shared/constants/providers.ts`, jeśli potrzebuje rekordu
-   połączenia. Providery oparte na OAuth wymagają też `src/lib/oauth/providers/`.
-6. Dodaj testy w `tests/unit/cloud-agent-*.test.ts`.
-7. Zaktualizuj ten dokument oraz stałą `CLOUD_AGENTS` w dashboardzie.
+1. Create `src/lib/cloudAgent/agents/<name>.ts` extending `CloudAgentBase`.
+2. Implement `createTask`, `getStatus`, `approvePlan` (or throw if N/A),
+   `sendMessage`, `listSources`. Use `this.mapStatus(...)` for status normalization.
+3. Register in `src/lib/cloudAgent/registry.ts` under a stable `providerId`.
+4. Extend the `providerId` literal union in `src/lib/cloudAgent/types.ts`
+   (`CloudAgentTask.providerId` and `CreateCloudAgentTaskSchema`).
+5. Add the provider to `src/shared/constants/providers.ts` if it needs a connection
+   record. OAuth-based providers also need `src/lib/oauth/providers/`.
+6. Add tests under `tests/unit/cloud-agent-*.test.ts`.
+7. Update this doc and the dashboard's `CLOUD_AGENTS` constant.
 
-## Konfiguracja
+## Configuration
 
 | Env Var          | Purpose                                                     |
 | ---------------- | ----------------------------------------------------------- |
@@ -379,10 +379,10 @@ na protokół JSON-RPC 2.0. Zobacz [A2A-SERVER.md](./A2A-SERVER.md).
 | `JWT_SECRET`     | Required for management auth on task endpoints              |
 | `API_KEY_SECRET` | Required to encrypt provider connection credentials at rest |
 
-Dziś nie ma env varów specyficznych dla Cloud Agentów — każdy sekret żyje w tabeli
-`provider_connections`.
+No Cloud-Agent-specific env vars exist today — every secret lives in the
+`provider_connections` table.
 
-## Zobacz też
+## See Also
 
 - [A2A-SERVER.md](./A2A-SERVER.md)
 - [API_REFERENCE.md](../reference/API_REFERENCE.md)

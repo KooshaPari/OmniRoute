@@ -120,293 +120,267 @@ URLanna réamhshocraithe:
 
 ---
 
-## Sreabh Oibre Git
-
-> ⚠️ **NÁ CHOMH Dhéan DÍREACH go dtí an bhranch `main`.** Bain úsáid i gcónaí as bhrancheanna gnéithe.
->
-> **Bunús PR:** sainmhínigh an bhranch gníomhach `release/vX.Y.Z` (nach `main`). Féach
-> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md) le haghaidh an
-> tsamhail bhainnseachta in aghaidh na brainse + taegeáil ag seoladh.
+## Running Tests
 
 ```bash
-# Branche ó bharr an fhóta seolta gníomhaigh (sampla: release/v3.8.49)
-git fetch origin
-git checkout -b feat/your-feature-name origin/release/v3.8.49
-# ... déan athruithe ...
-git commit -m "feat: describe your change"
-git push -u origin feat/your-feature-name
-# Oscail Pull Request le bunús = release/v3.8.49
-```
-
-### Ainmneach Brainse
-
-| Réimír      | Cuspóir                        |
-| ----------- | ------------------------------ |
-| `feat/`     | Gnéithe nua                    |
-| `fix/`      | Ceartuithe fabhsa              |
-| `refactor/` | Athchóiriú cóid                |
-| `docs/`     | Athruithe doiciméadúcháin      |
-| `test/`     | Tuirlingtí/deisiúcháin tástála |
-| `chore/`    | Uirlisí, CI, spleáchais        |
-
-### Teachtaireachtí Coimmitáide
-
-Lean [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update SECURITY.md with PII protection
-test: add observability unit tests
-refactor(db): consolidate rate limit tables
-```
-
-Scóipeanna (v3.8): `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`, `cloud-agent`, `guardrails`, `compression`, `auto-combo`, `resilience`, `providers`, `executors`, `translator`, `domain`, `authz`.
-
----
-
-## Rith Tástálacha
-
-```bash
-# Gach tástáil (aonad + vitest + córas + e2e)
+# All tests (unit + vitest + ecosystem + e2e)
 npm run test:all
 
-# Comhad tástála amháin (runner tástála dúchasach Node.js — úsáideann an chuid is mó de seo)
+# Single test file (Node.js native test runner — most tests use this)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Tástálacha aonad amháin a bhfuil tionchar ag do athrú orthu (an roghnóir TIA céanna le geata CI, #8084)
-npm run test:scoped            # athruithe sa choimmitáid deireanach (nó sa chrann oibre)
-npm run test:scoped:staged     # athruithe stáisiúnaithe amháin — oibríonn go maith le rith réamh-chomhshocraithe
-npm run test:scoped:full       # atógáil an léarscáil graf tionscail ar dtús (tar éis comhadanna a chur leis/a bhogadh)
-# Téann Amach 1 + "rith an t-iomlán suite" le comhad hub (tsconfig, package.json, …) nó
-# athrú neamh-mhapáilte — theipeann an roghnóir ar shábháilte, ní dhéanann sé dearmad i rith.
+# Only the unit tests impacted by your change (same TIA selector as the CI gate, #8084)
+npm run test:scoped            # changes in the last commit (or the working tree)
+npm run test:scoped:staged     # staged changes only — pairs well with a pre-commit run
+npm run test:scoped:full       # rebuild the import-graph map first (after adding/moving files)
+# Exit 1 + "run the full suite" means a hub file (tsconfig, package.json, …) or an
+# unmapped source changed — the selector fails safe, it never silently skips.
 
-# Vitest (freastalaí MCP, autoCombo, taisce)
+# Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
 
-# Tástálacha E2E (teastaíonn Playwright)
+# E2E tests (requires Playwright)
 npm run test:e2e
 
-# Tástálacha cliant prótacail E2E (aistrithe MCP, A2A)
+# Protocol clients E2E (MCP transports, A2A)
 npm run test:protocols:e2e
 
-# Tástálacha comhoiriúnachta córais
+# Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Geata clúdach: 0.6 radhairc/lineanna/fuincsiúin/brainsí
+# Coverage gate: 60% statements/lines/functions/branches
 npm run test:coverage
 npm run coverage:report
 
-# Seiceáil lint + formáid
+# Lint + format check
 npm run lint
 npm run check
 
-# Meascán fíor-upstream ina bhfuil geata (teastaíonn rochtain VPS + creidmheachtaí soláthraí fíor)
-# Buaileann soláthraithe FÍOR — costais beagán. NÁ RITH i gCI. Oibríonn gan ghlan gan an geata.
-# Teastaíonn: ssh root@192.168.0.15 rochtain (faigheann an léarscáil DB read-only ón VPS).
+# Gated real-upstream combo smoke (requires VPS access + real provider credits)
+# Hits REAL providers — costs a little. NEVER runs in CI. Skips cleanly without the gate.
+# Needs: ssh root@192.168.0.15 access (sources a read-only DB snapshot from the VPS).
 RUN_COMBO_LIVE=1 npm run test:combo:live
 
-# Meascán beo Céim-3 VPS — scripteanna Node ESM simplí, buail an freastalaí beo .15 go díreach.
-# Teastaíonn: ssh root@192.168.0.15 rochtain (cruthaítear/nichtear combos tríd an SSH sqlite).
-# Buileann soláthraithe FÍOR (costas beag). NÍ cruthaigh/nichtear ach combos __live_test__*. NÁ RITH i gCI.
-# Tá REQUIRE_API_KEY=false ar .15 mar sin ní theastaíonn eochair API, ach ómníonn sé COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY más ann dóibh.
-npm run test:combo:live:vps              # 7 cásanna HTTP (tosaíocht/ciorcal-chothrom/meáchain_costais/leáilis/auto + sláinte)
-npm run test:combo:live:vps:failover     # cuireann cás fíor iomrallaithe tras-sholáthraí leis (8 iomlán)
+# Phase-3 VPS live smoke — plain Node ESM scripts, hit the live .15 server directly.
+# Requires: ssh root@192.168.0.15 access (combos created/torn down via SSH sqlite).
+# Hits REAL providers (small cost). Creates/deletes only __live_test__* combos. NEVER runs in CI.
+# REQUIRE_API_KEY=false on .15 so no API key needed, but honors COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY if set.
+npm run test:combo:live:vps              # 7 HTTP scenarios (priority/round-robin/weighted/cost/fusion/auto + health)
+npm run test:combo:live:vps:failover     # adds a real cross-provider failover scenario (8 total)
 ```
 
-Nótaí clúdach:
+Coverage notes:
 
-- Léiríonn `npm run test:coverage` clúdach foinse don seisiún tástála aonad príomhúil, fágann sé `tests/**` amach, agus cuireann sé `open-sse/**` isteach
-- Ní mór do Phull Request cloí le geata clúdach ag **60%+** radhairc/lineanna/fuincsiúin/brainsí
-- Má théann PR i bhfeidhm ar chód táirgíochta i `src/`, `open-sse/`, `electron/`, nó `bin/`, ní mór dó tástálacha uathoibrithe a chur leis nó a nuashonrú sa PR céanna
-- Cuir comhaid tástála athraithe nó curtha leis i bhfíor an PR nuair a théann i bhfeidhm ar chód táirgíochta
-- Seiceáil toradh SonarQube ar an PR nuair atá rúin tionscadail cumraithe i gCI
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the coverage gate at **60%+** statements/lines/functions/branches
+- If a PR changes production code in `src/`, `open-sse/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-Stádas tástála reatha: **122 comhad tástála aonad** ag clúdach:
+### Pull Request Requirements
 
-- Aistritheoirí soláthraí agus comhshó formáid
-- Teorainn ráta, sos circuits, agus neartmhaireacht
-- Taisce shéimeantach, idempotentacht, rathú dul chun cinn
-- Oibríochtaí bunachair sonraí agus scéime (21 modúl DB)
-- Sreabhadh OAuth agus fíordheimhniú
-- Bailíochtú pointí deiridh API (Zod v4)
-- Uirlisí freastalaí MCP agus cur i bhfeidhm scóip
-- Córais Cuimhne agus Scileanna
+Before opening a PR, use the
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) to run the focused loop for
+what you changed. The full unit suite (4 CI shards), Vitest, the **60%+** coverage gate, and
+the production build are CI's responsibility — running them locally adds no signal the PR
+checks will not already give you, and on smaller machines it can saturate the host (#8084):
+
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
+
+Current test status: **122 unit test files** covering:
+
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
 
 ---
 
-## Stíl Chóid
+## Code Style
 
-- **ESLint** — Rith `npm run lint` roimh chomhdú
-- **Prettier** — Formáidithe go huathoibríoch trí `lint-staged` ar chomhdú (2 spás, leathstadanna, comharthaí athfhriotail dúbailte, leithead 100 carachtar, camóga eireaball es5)
-- **TypeScript** — Úsáideann gach cód `src/` `.ts`/`.tsx`; úsáideann `open-sse/` `.ts`/`.js`; doiciméadaigh le TSDoc (`@param`, `@returns`, `@throws`)
-- **Gan `eval()`** — Cuireann ESLint `no-eval`, `no-implied-eval`, `no-new-func` i bhfeidhm
-- **Bailíochtú Zod** — Úsáid scéimeanna Zod v4 le haghaidh gach bailíochtú ionchuir API
-- **Ainmniú**: Comhaid = camelCase/kebab-case, comhpháirteanna = PascalCase, tairisigh = UPPER_SNAKE
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
 
-### Láimhseáil earráidí / blocanna catch folmha
+### Error handling / empty catch blocks
 
-Ná fág `catch` gan mhíniú riamh. Aicmigh é i gceann amháin de dhá chatagóir (cuireann sé seo
-an riail chrua "ná slog earráidí go ciúin riamh i sruthanna SSE" i bhfeidhm go hoibríochtúil):
+Never leave a `catch` unexplained. Classify it into one of two buckets (operationalizes
+the hard rule "never silently swallow errors in SSE streams"):
 
-- **D'aon ghnó (ár nglanadh/teileiméadracht dhícheallach féin)** — tá teip anseo ag súil leis agus
-  neamhdhíobhálach; cuir trácht réasúnaíochta aonlíne leis, gan logáil (is é logáil ar gach iarratas
-  an torann a sheachnaíonn an coinbhinsiún seo).
+- **Intentional (our own best-effort cleanup/telemetry)** — a failure here is expected and
+  harmless; add a one-line rationale comment, no logging (logging on every request is the
+  noise this convention avoids).
 
   ```ts
-  } catch {} // tá sé ag súil leis an rialtóir a dhúnadh tar éis dícheangal cliaint
+  } catch {} // closing an already-closed controller after client disconnect is expected
   ```
 
-- **Ba chóir logáil (cód seachtrach/arna sholáthar ag an nglaoiteoir, nó athraíonn an slog sreabhadh rialaithe)** —
-  coinnigh an catch (ná lig dó an sruth a bhriseadh riamh) ach astaigh `console.debug`/`warn` comhthéacsúil
-  ionas go mbeidh an teip inbhraite.
+- **Should log (external/caller-supplied code, or the swallow changes control flow)** — keep
+  the catch (never let it break the stream) but emit a contextual `console.debug`/`warn` so the
+  failure is discoverable.
 
   ```ts
   } catch (e) {
-    console.debug("[STREAM] earráid callback onFailure:", e);
+    console.debug("[STREAM] onFailure callback error:", e);
   }
   ```
 
-Féach `open-sse/utils/stream.ts` agus `open-sse/utils/streamHandler.ts` le haghaidh samplaí feidhmithe.
+See `open-sse/utils/stream.ts` and `open-sse/utils/streamHandler.ts` for applied examples.
 
 ---
 
-## Struchtúr an Tionscadail
+## Project Structure
 
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Leathanaigh deais (23 rannóg)
-│   ├── api/                # Bealaí API (51 eolaire)
-│   └── login/              # Leathanaigh fíordheimhnithe (.tsx)
-├── domain/                 # Inneall beartais (policyEngine, comboResolver, costRules, srl.)
-├── lib/                    # Croí-loighic ghnó (.ts)
-│   ├── a2a/                # Freastalaí prótacail Gníomhaire-go-Gníomhaire v0.3
-│   ├── acp/                # Clár prótacal cumarsáide gníomhairí
-│   ├── compliance/         # Inneall beartas comhlíonta
-│   ├── db/                 # Modúil fearainn SQLite + 130 imirce
-│   ├── memory/             # Cuimhne chomhráiteach bhuan
-│   ├── oauth/              # Soláthraithe, seirbhísí, agus fóntais OAuth
-│   ├── skills/             # Creat scileanna insínte
-│   ├── usage/              # Rianú úsáide agus ríomh costais
-│   └── localDb.ts          # Ciseal ath-onnmhairithe amháin — ná cuir loighic anseo riamh
-├── middleware/              # Meán-earraí iarratais (promptInjectionGuard)
-├── mitm/                   # Seachfhreastalaí MITM (deimhniú, DNS, ródú sprice)
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # Comhpháirteanna React (.tsx)
-│   ├── constants/          # Sainmhínithe soláthraithe (329), scóip MCP, 19 straitéis ródaithe
-│   ├── utils/              # Briscoir ciorcaid, sláintitheoir, cúntóirí fíordheimhnithe
-│   └── validation/         # Scéimeanna Zod v4
-└── sse/                    # Píblíne seachfhreastalaí SSE
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 19 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # @omniroute/open-sse spás oibre
-├── executors/              # 89 modúl feidhmitheora
-├── handlers/               # 11 láimhseálaí iarratais (comhrá, freagraí, leabú, íomhánna, srl.)
-├── mcp-server/             # Freastalaí MCP (110 uirlis uathúla, 3 iompar, 33 scóip)
-├── services/               # 178 seirbhís ardleibhéil (combo, autoCombo, rateLimitManager, srl.)
-├── translator/             # Aistritheoirí formáide (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Claochladán API Freagraí
-└── utils/                  # 22 modúl fóntais (sruth, TLS, seachfhreastalaí, logáil)
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 89 executor implementation modules
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Aip deisce Electron (tras-ardán)
+apps/desktop/               # Tauri 2 desktop app (cross-platform)
 
 tests/
-├── unit/                   # Rith tástála Node.js (1,574 comhad tástála)
-├── integration/            # Tástálacha comhtháthaithe
-├── e2e/                    # Tástálacha Playwright
-├── security/               # Tástálacha slándála
-├── translator/             # Tástálacha aistritheora ar leith
-└── load/                   # Tástálacha ualaigh
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/
-├── adr/                     # Taifid Chinntí Ailtireachta
-├── architecture/            # Ailtireacht chórais & athléimneacht
-├── comparison/              # OmniRoute vs roghanna eile
-├── compression/             # Treoracha & rialacha comhbhrú
-├── dev/                     # Treoracha forbartha
-├── diagrams/                # Léaráidí ailtireachta
-├── frameworks/              # MCP, A2A, OpenCode, Cuimhne, Scileanna
-├── guides/                  # Treoir úsáideora, Docker, socrú, fabhtcheartú
-├── i18n/                    # Aistriúcháin README idirnáisiúnaithe
-├── marketing/               # Ábhair mhargaíochta
-├── ops/                     # Imscaradh, seachfhreastalaí, clúdach, scaoileadh
-├── providers/               # Doiciméid shonracha soláthraithe
-├── reference/               # Tagairt API, athróga timpeallachta, uirlisí CLI, sraitheanna saor in aisce
-├── releases/                # Nótaí scaoilte
-├── routing/                 # Inneall uath-chomhcheangail, athsheinm réasúnaíochta
-├── screenshots/             # Scáileánghabhálacha deais
-├── security/                # Ráillí cosanta, comhlíonadh, stealth, comharthaí
-└── specs/                   # Sonraíochtaí dearaidh
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
+├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
 ---
 
-## Soláthróir Nua á Chur Leis
+## Adding a New Provider
 
-### Céim 1: Cláraigh Tairisigh an tSoláthróra
+### Step 1: Register Provider Constants
 
-Cuir le `src/shared/constants/providers.ts` — bailíochtaithe ag Zod ag am lódála an mhodúil.
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-### Céim 2: Cuir Feidhmitheoir Leis (más gá loighic shaincheaptha)
+### Step 2: Add Executor (if custom logic needed)
 
-Cruthaigh feidhmitheoir in `open-sse/executors/your-provider.ts` ag síneadh an fheidhmitheora bhunúsaigh.
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-### Céim 3: Cuir Aistritheoir Leis (mura bhformáid OpenAI é)
+### Step 3: Add Translator (if non-OpenAI format)
 
-Cruthaigh aistritheoirí iarratais/freagra in `open-sse/translator/`.
+Create request/response translators in `open-sse/translator/`.
 
-### Céim 4: Cuir Cumraíocht OAuth Leis (más OAuth-bhunaithe é)
+### Step 4: Add OAuth Config (if OAuth-based)
 
-Cuir dintiúir OAuth in `src/lib/oauth/constants/oauth.ts` agus seirbhís in `src/lib/oauth/services/`.
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
 
-Má dháileann an soláthróir uaschúrsa client_id/secret OAuth poiblí nó eochair Firebase Web API laistigh dá CLI / brabhsálaí poiblí, **ná** leabaigh é mar litriúil teaghrán. Úsáid `resolvePublicCred()` ó `open-sse/utils/publicCreds.ts` agus cuir iontráil beart mascáilte le `EMBEDDED_DEFAULTS`. Tá an sreabhadh oibre iomlán éigeantach doiciméadaithe in [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
+If the upstream provider distributes a public OAuth client_id/secret or Firebase Web API key inside its public CLI / browser bundle, **do not** embed it as a string literal. Use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts` and add a masked byte entry to `EMBEDDED_DEFAULTS`. The full mandatory workflow is documented in [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
 
-Laistigh de láimhseálaithe/feidhmitheoirí, ní mór teachtaireachtaí earráide a shroicheann an cliant dul trí `buildErrorBody()` / `sanitizeErrorMessage()` ó `open-sse/utils/error.ts` — ná cuir `err.stack` nó `err.message` amh i gcomhlacht Freagra riamh. Féach [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
+Inside handlers/executors, error messages reaching the client must go through `buildErrorBody()` / `sanitizeErrorMessage()` from `open-sse/utils/error.ts` — never put raw `err.stack` or `err.message` in a Response body. See [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
 
-### Céim 5: Cláraigh Samhlacha
+### Step 5: Register Models
 
-Cuir sainmhínithe samhlacha in `open-sse/config/providerRegistry.ts`.
+Add model definitions in `open-sse/config/providerRegistry.ts`.
 
-### Céim 6: Cuir Tástálacha Leis
+### Step 6: Add Tests
 
-Scríobh tástálacha aonad in `tests/unit/` a chlúdaíonn ar a laghad:
+Write unit tests in `tests/unit/` covering at minimum:
 
-- Clárú an tsoláthróra
-- Aistriúchán iarratais/freagra
-- Láimhseáil earráidí
-
----
-
-## Seicliosta um Iarratas Tarraingthe
-
-- [ ] Ritheann tástálacha (`npm test`)
-- [ ] Ritheann lintáil (`npm run lint`)
-- [ ] Éiríonn le tógáil (`npm run build`)
-- [ ] Cineálacha TypeScript curtha le haghaidh feidhmeanna agus comhéadain phoiblí nua
-- [ ] Gan aon rúin chrua-chódaithe ná luachanna cúltaca
-- [ ] Dintiúir phoiblí uaschúrsa leabaithe trí `resolvePublicCred()` (féach [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), riamh mar litriúil
-- [ ] Freagraí earráide ar aghaidh trí `buildErrorBody()` / `sanitizeErrorMessage()` — gan aon rianta cruachta amha i gcomhlachtaí freagra (féach [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Orduithe blaosc (`exec` / `spawn`) ag rith luachanna runtime trí `env`, ní trí idirshuíomh teaghrán
-- [ ] Gach ionchur bailíochtaithe le scéimeanna Zod
-- [ ] **Blúire** loga athraithe curtha faoi `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` le haghaidh athruithe atá infheicthe d'úsáideoirí (féach [`changelog.d/README.md`](./changelog.d/README.md)) — ná cuir in eagar `CHANGELOG.md` go díreach; déantar blúirí a chomhiomlánú ag am scaoilte agus ní bhíonn coinbhleacht eatarthu riamh idir PRanna
-- [ ] Doiciméadúchán nuashonraithe (más infheidhme)
-- [ ] Gan aon foláirimh CodeQL / Secret-Scanning nua oscailte, nó gach ceann díobh dícháilithe le réasúnú teicniúil ag tagairt don doiciméad ábhartha `docs/security/`
-- [ ] Bealaí a ghineann próisis fho-áite (`/api/mcp/`, `/api/cli-tools/runtime/`) aicmithe mar `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — féach [Riail Chrua #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Gan aon bhanda `Co-Authored-By` i dteachtaireachtaí coimit — ní mór go mbeadh coimítí le feiceáil go heisiach faoi chéannacht Git úinéir an stór (Riail Chrua #16)
-
-## Eisiúint
-
-Bainistítear eisiúintí tríd an sreabhadh oibre `/generate-release`. Nuair a chruthaítear Eisiúint GitHub nua, foilsítear an pacáiste **go huathoibríoch ar npm** trí GitHub Actions.
-
-Le haghaidh imscaradh VPS, bain úsáid as `npm run build:release` (ní `npm run build`) — déanann sé atógáil ghlan, tionóileann sé an bheart isteach i `dist/`, agus scríobhann sé an comhartha `dist/BUILD_SHA`. Ansin bain úsáid as na scileanna `/deploy-vps-*-cc` a dhéanann rsync ar `dist/` go dtí an chomhadlann `app/` iargúlta.
+- Provider registration
+- Request/response translation
+- Error handling
 
 ---
 
-## Cabhair a Fháil
+## Pull Request Checklist
 
-- **Ailtireacht**: Féach [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **Tagairt API**: Féach [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Doiciméid slándála**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Doiciméid oibriúcháin**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Saincheisteanna**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Féach `docs/adr/` le haghaidh taifid chinntí ailtireachta
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] Public upstream credentials embedded via `resolvePublicCred()` (see [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), never as literals
+- [ ] Error responses route through `buildErrorBody()` / `sanitizeErrorMessage()` — no raw stack traces in response bodies (see [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) pass runtime values via `env`, not via string interpolation
+- [ ] All inputs validated with Zod schemas
+- [ ] Changelog **fragment** added under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for user-facing changes (see [`changelog.d/README.md`](./changelog.d/README.md)) — do **not** edit `CHANGELOG.md` directly; fragments are aggregated at release time and never conflict between PRs
+- [ ] Documentation updated (if applicable)
+- [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
+- [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
+
+---
+
+## Releasing
+
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+For VPS deploys, use `npm run build:release` (not `npm run build`) — it performs a clean
+rebuild, assembles the bundle into `dist/`, and writes the `dist/BUILD_SHA` sentinel.
+Then use the `/deploy-vps-*-cc` skills which rsync `dist/` to the remote `app/` directory.
+
+---
+
+## Getting Help
+
+- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Security docs**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Ops docs**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

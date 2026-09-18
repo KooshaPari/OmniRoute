@@ -38,6 +38,36 @@ This removes the application **and permanently erases** all data:
 
 ---
 
+## Quick Uninstall (v3.6.2+)
+
+OmniRoute provides two built-in scripts for clean removal:
+
+### Keep Your Data
+
+```bash
+npm run uninstall
+```
+
+This removes the OmniRoute application but **preserves** your database, configurations, API keys, and provider settings in `~/.omniroute/`. Use this if you plan to reinstall later and want to keep your setup.
+
+### Full Removal
+
+```bash
+npm run uninstall:full
+```
+
+This removes the application **and permanently erases** all data:
+
+- Database (`storage.sqlite`)
+- Provider configurations and API keys
+- Backup files
+- Log files
+- All files in the `~/.omniroute/` directory
+
+> ⚠️ **Warning:** `npm run uninstall:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
+
+---
+
 ## Manual Uninstall
 
 ### NPM Global Install
@@ -81,7 +111,7 @@ docker compose down
 docker compose down -v
 ```
 
-### Electron Desktop App
+### Tauri Desktop App
 
 **Windows:**
 

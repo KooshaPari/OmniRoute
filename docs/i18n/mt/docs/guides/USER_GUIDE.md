@@ -11,125 +11,119 @@ version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# Gwida għall-Utent
+## Table of Contents
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
-
-Gwida kompleta għall-konfigurazzjoni tal-providers, il-ħolqien ta' combos, l-integrazzjoni ta' għodod CLI, u t-tqegħid ta' OmniRoute.
-
----
-
-## Werrej
-
-- [Prezzijiet f'Ħarsa Ġenerali](#-pricing-at-a-glance)
-- [Każijiet ta' Użu](#-use-cases)
-- [Setup tal-Provider](#-provider-setup)
-- [Integrazzjoni tal-CLI](#-cli-integration)
-- [Tqegħid (Deployment)](#-deployment)
-- [Mudelli Disponibbli](#-available-models)
-- [Karatteristiċi Avvanzati](#-advanced-features)
-- [Routing Awtomatiku (Zero-config)](#-auto-routing-zero-config)
-- [Integrazzjoni MCP & A2A](#-mcp--a2a-integration)
-- [Sistema ta' Ħiliet (Skills)](#-skills-system)
-- [Sistema ta' Memorja](#-memory-system)
+- [Pricing at a Glance](#-pricing-at-a-glance)
+- [Use Cases](#-use-cases)
+- [Provider Setup](#-provider-setup)
+- [CLI Integration](#-cli-integration)
+- [Deployment](#-deployment)
+- [Available Models](#-available-models)
+- [Advanced Features](#-advanced-features)
+- [Auto-Routing (Zero-config)](#-auto-routing-zero-config)
+- [MCP & A2A Integration](#-mcp--a2a-integration)
+- [Skills System](#-skills-system)
+- [Memory System](#-memory-system)
 - [Webhooks](#-webhooks)
-- [Aġenti Cloud](#-cloud-agents)
-- [Ġestjoni Programmattika](#-programmatic-management)
-- [CLI Intern](#-internal-cli)
-- [Applikazzjoni Desktop (Electron)](#-desktop-application-electron)
+- [Cloud Agents](#-cloud-agents)
+- [Programmatic Management](#-programmatic-management)
+- [Internal CLI](#-internal-cli)
+- [Desktop Application (Tauri 2)](#-desktop-application-tauri-2)
 
 ---
 
-## 💰 Ħarsa lejn il-Prezzijiet
+## 💰 Pricing at a Glance
 
-| Livell                 | Provditur         | Piża             | Tneħħija tal-Quota             | L-Aħjar Għal                |
-| ---------------------- | ----------------- | ---------------- | ------------------------------ | --------------------------- |
-| **💳 SOTTISKRIZZJONI** | Claude Code (Pro) | $20/xahar        | 5h + ġimgħija                  | Diġà sottokrit              |
-|                        | Codex (Plus/Pro)  | $20-200/xahar    | 5h + ġimgħija                  | Utenti OpenAI               |
-|                        | GitHub Copilot    | $10-19/xahar     | Xahrewwa                       | Utenti GitHub               |
-| **🔑 API KEY**         | DeepSeek          | Ħlas skont l-użu | L-ebda                         | Rati irħas                  |
-|                        | Groq              | Ħlas skont l-użu | L-ebda                         | Inferenza ultra mgħaġġla    |
-|                        | xAI (Grok)        | Ħlas skont l-użu | L-ebda                         | Rati Grok 4                 |
-|                        | Mistral           | Ħlas skont l-użu | L-ebda                         | Mudelli ospitati fl-UE      |
-|                        | Perplexity        | Ħlas skont l-użu | L-ebda                         | Riki mbieraq bil-fittxien   |
-|                        | Together AI       | Ħlas skont l-użu | L-ebda                         | Mudelli b'ħarsien miftuħ    |
-|                        | Fireworks AI      | Ħlas skont l-użu | L-ebda                         | Stampi FLUX malajr          |
-|                        | Cerebras          | Ħlas skont l-użu | L-ebda                         | Veloċità ta' skala wafer    |
-|                        | Cohere            | Ħlas skont l-użu | L-ebda                         | Command R+ RAG              |
-|                        | NVIDIA NIM        | Ħlas skont l-użu | L-ebda                         | Mudelli għall-intrapriża    |
-|                        | Baidu Qianfan     | Ħlas skont l-użu | L-ebda                         | Mudelli ERNIE               |
-| **💰 RĦAS**            | GLM-4.7           | $0.6/1M          | Ta' kuljum fis-10AM            | Riserva baġitarja           |
-|                        | MiniMax M2.1      | $0.2/1M          | 5 sigħat lissirqi              | L-għażla irħas              |
-|                        | Kimi K2           | $9/xahar fiss    | 10M tokens/xahar               | Piża previżibbli            |
-| **🆓 B'XEJN**          | Qoder             | $0               | Limiti tal-provditur japplikaw | Verifika l-katalogu attwali |
-|                        | Kiro              | $0               | ~50 krediti/xahar              | B'xejn ta' Claude           |
-
----
-
-## 🎨 Xi Ġuriex
-
-### Ġurija 1: "Għandi sottoskrizzjoni ta' Claude Pro"
-
-**Problema:** Il-quota ġġorrula mhux użata, limiti ta' rata waqt programmazzjoni intensiva
-
-```
-Kombinazzjoni: "maximize-claude"
-  1. cc/claude-opus-4-7        (uża s-sottoskrizzjoni b'mod sħiħ)
-  2. glm/glm-4.7               (riserva rħisa meta l-quota tispiċċa)
-  3. if/qwen3.8-max-preview       (riserva bla spiża għall-emerġenza)
-
-Piża ta' kull xahar: $20 (sottoskrizzjoni) + ~$5 (riserva) = $25 totali
-vs. $20 + limiti jseħħu = frustrazzjoni
-```
-
-### Ġurija 2: "Irrid piża żero"
-
-**Problema:** Ma nistax naffordja s-sottoskrizzjonijiet, jeħtiġli AI affidabbli għall-programmazzjoni
-
-```
-Kombinazzjoni: "zero-cost"
-  1. if/kimi-k2.7-code          (aċċess imniżżel b'xejn; limiti ta' rata jistgħu japplikaw)
-  2. kr/qwen3-coder-next        (riserva b'xejn ta' Kiro)
-
-Piża ta' kull xahar: $0
-Kwalità: verifika l-mudell, il-limiti, il-privatezza, u l-SLA għal xogħolek
-```
-
-### Ġurija 3: "Jeħtiġli programmazzjoni 24/7, bla interruzzjonijiet"
-
-**Problema:** Skadenzi, ma nistax naffordja waqfa
-
-```
-Kombinazzjoni: "always-on"
-  1. cc/claude-opus-4-7        (l-aqwa kwalità)
-  2. cx/gpt-5.5                (sottoskrizzjoni oħra)
-  3. glm/glm-4.7               (rħisa, ġġedded ta' kuljum)
-  4. minimax/MiniMax-M2.1      (irħas, tneħħija ta' 5h)
-  5. if/deepseek-v4-flash       (aċċess imniżżel b'xejn; limiti ta' rata jistgħu japplikaw)
-
-Riżultat: 5 saffi ta' riserva jwessgħu r-resiljenza; disponibbiltà ta' l-avvenniet mhijiwa garantita
-Piża ta' kull xahar: $20-200 (sottoskrizzjonijiet) + $10-20 (riserva)
-```
-
-### Ġurija 4: "Irrid AI B'XEJN fi OpenClaw"
-
-**Problema:** Jeħtiġli assistent AI f'applikazzjonijiet tal-messaġġi, totalment b'xejn
-
-```
-Kombinazzjoni: "openclaw-free"
-  1. if/qwen3.8-max-preview     (aċċess imniżżel b'xejn; limiti ta' rata jistgħu japplikaw)
-  2. if/deepseek-v4-flash       (aċċess imniżżel b'xejn; limiti ta' rata jistgħu japplikaw)
-  3. if/kimi-k2.7-code          (aċċess imniżżel b'xejn; limiti ta' rata jistgħu japplikaw)
-
-Piża ta' kull xahar: $0
-Aċċess permezz ta': WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
-```
+| Tier                | Provider          | Cost        | Quota Reset           | Best For               |
+| ------------------- | ----------------- | ----------- | --------------------- | ---------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly           | Already subscribed     |
+|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly           | OpenAI users           |
+|                     | GitHub Copilot    | $10-19/mo   | Monthly               | GitHub users           |
+| **🔑 API KEY**      | DeepSeek          | Pay per use | None                  | Cheap reasoning        |
+|                     | Groq              | Pay per use | None                  | Ultra-fast inference   |
+|                     | xAI (Grok)        | Pay per use | None                  | Grok 4 reasoning       |
+|                     | Mistral           | Pay per use | None                  | EU-hosted models       |
+|                     | Perplexity        | Pay per use | None                  | Search-augmented       |
+|                     | Together AI       | Pay per use | None                  | Open-source models     |
+|                     | Fireworks AI      | Pay per use | None                  | Fast FLUX images       |
+|                     | Cerebras          | Pay per use | None                  | Wafer-scale speed      |
+|                     | Cohere            | Pay per use | None                  | Command R+ RAG         |
+|                     | NVIDIA NIM        | Pay per use | None                  | Enterprise models      |
+|                     | Baidu Qianfan     | Pay per use | None                  | ERNIE models           |
+| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM            | Budget backup          |
+|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling        | Cheapest option        |
+|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo         | Predictable cost       |
+| **🆓 FREE**         | Qoder             | $0          | Provider limits apply | Verify current catalog |
+|                     | Kiro              | $0          | ~50 credits/mo        | Claude free            |
 
 ---
 
-## 📖 Tħejjija tal-Fornitur
+## 🎯 Use Cases
 
-### 🔐 Fornituri ta' Abbonament
+### Case 1: "I have Claude Pro subscription"
+
+**Problem:** Quota expires unused, rate limits during heavy coding
+
+```
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-7        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/qwen3.8-max-preview       (free emergency fallback)
+
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
+```
+
+### Case 2: "I want zero cost"
+
+**Problem:** Can't afford subscriptions, need reliable AI coding
+
+```
+Combo: "zero-cost"
+  1. if/kimi-k2.7-code          (listed free access; rate limits may apply)
+  2. kr/qwen3-coder-next        (Kiro free fallback)
+
+Monthly cost: $0
+Quality: verify the model, limits, privacy, and SLA for your workload
+```
+
+### Case 3: "I need 24/7 coding, no interruptions"
+
+**Problem:** Deadlines, can't afford downtime
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-7        (best quality)
+  2. cx/gpt-5.5                (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/deepseek-v4-flash       (listed free access; rate limits may apply)
+
+Result: 5 fallback layers broaden resilience; upstream availability is not guaranteed
+Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
+```
+
+### Case 4: "I want FREE AI in OpenClaw"
+
+**Problem:** Need AI assistant in messaging apps, completely free
+
+```
+Combo: "openclaw-free"
+  1. if/qwen3.8-max-preview     (listed free access; rate limits may apply)
+  2. if/deepseek-v4-flash       (listed free access; rate limits may apply)
+  3. if/kimi-k2.7-code          (listed free access; rate limits may apply)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+```
+
+---
+
+## 📖 Provider Setup
+
+To bulk-add API-key connections from a CSV or JSON file, use **Dashboard → Providers → Import from file**. Columns are positional (`provider,name,apiKey,baseUrl,priority`); `provider` must already exist as a managed provider or a compatible node. See [Import providers from a CSV or JSON file](../providers/CSV-IMPORT.md).
+
+### 🔐 Subscription Providers
 
 #### Claude Code (Pro/Max)
 
@@ -144,10 +138,11 @@ Models:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Pro Tip:** Uża l-Opus għal komplessi, Sonnet għas-sekondarja. OmniRoute jissorvelja l-kwota għal kull mudell!
+**Pro Tip:** Use Opus for complex tasks, Sonnet for speed. OmniRoute tracks quota per model!
 
-It-toroq li huma kompatibbli ma' Claude u Claude Code iżommu l-isforz ta' ħsieb "max" għall-mudelli Opus u Sonnet.
-Il-mudelli Haiku ma jirċevux il-livell "max" ta' sforz, għalhekk OmniRoute jagħmel downgrade ta' dik it-talba għal baġit ta' ħsieb qawwi qabel ma jibagħthha 'il quddiem.
+Claude and Claude Code-compatible routes preserve `max` thinking effort for Opus and Sonnet
+models. Haiku models do not accept the `max` effort tier, so OmniRoute downgrades that
+request to a high thinking budget before sending it upstream.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -178,44 +173,44 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Fornituri irħas
+### 💰 Cheap Providers
 
-#### GLM-4.7 (Reset ta' kuljum, $0.6/1M)
+#### GLM-4.7 (Daily reset, $0.6/1M)
 
-1. Irreġistra: [Zhipu AI](https://open.bigmodel.cn)
-2. Ikseb API key minn Coding Plan
+1. Sign up: [Zhipu AI](https://open.bigmodel.cn)
+2. Get API key from Coding Plan
 3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
 
-**Uża:** `glm/glm-4.7` — **Pro Tip:** Coding Plan joffri 3× kwota b'1/7 l-ispiża! Reset kuljum fil-10:00 AM.
+**Use:** `glm/glm-4.7` — **Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
 
-#### MiniMax M2.1 (Reset ta' 5h, $0.20/1M)
+#### MiniMax M2.1 (5h reset, $0.20/1M)
 
-1. Irreġistra: [MiniMax](https://www.minimax.io)
-2. Ikseb API key → Dashboard → Add API Key
+1. Sign up: [MiniMax](https://www.minimax.io)
+2. Get API key → Dashboard → Add API Key
 
-**Uża:** `minimax/MiniMax-M2.1` — **Pro Tip:** L-iktar għażla irħisa għal kuntest twil (1M tokens)!
+**Use:** `minimax/MiniMax-M2.1` — **Pro Tip:** Cheapest option for long context (1M tokens)!
 
-#### Kimi K2 ($9/xahar flat)
+#### Kimi K2 ($9/month flat)
 
-1. Abbona: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Ikseb API key → Dashboard → Add API Key
+1. Subscribe: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. Get API key → Dashboard → Add API Key
 
-**Uża:** `kimi/kimi-k2.5` — **Pro Tip:** $9 fissi fix-xahar għal 10M tokens = spża effettiva ta' $0.90/1M!
+**Use:** `kimi/kimi-k2.5` — **Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
 
 #### Baidu Qianfan / ERNIE
 
-1. Irreġistra: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Oħloq API key ta' Qianfan → Dashboard → Add API Key: Provider: `qianfan`
+1. Sign up: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. Create a Qianfan API key → Dashboard → Add API Key: Provider: `qianfan`
 
-**Uża:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, jew mudell ieħor kompatibbli ma' OpenAI ta' Qianfan.
+**Use:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, or another Qianfan OpenAI-compatible model ID.
 
-### 🆓 Fornituri B'XEJN
+### 🆓 FREE Providers
 
-Il-fornituri b'xejn mingħajr awtentikazzjoni għandhom switch ħdejn **No authentication required** fil-paġna tal-fornitur tagħhom.
-Meta tneħħih, tkun qed tiddiżattiva dak il-fornitur, tneħħih mill-views ta' Providers configured/compact, u
-tneħħi l-mudelli tiegħu minn `/v1/models`.
+No-auth free providers have a switch beside **No authentication required** on their provider page.
+Turning it off disables that provider, removes it from Providers configured/compact views, and
+removes its models from `/v1/models`.
 
-#### Qoder (9 Mudelli B'XEJN)
+#### Qoder (9 FREE models)
 
 ```bash
 Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
@@ -223,7 +218,7 @@ Dashboard → Connect Qoder → OAuth login → Access is subject to current pro
 Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude B'XEJN)
+#### Kiro (Claude FREE)
 
 ```bash
 Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → ~50 credits/month
@@ -233,11 +228,11 @@ Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 
 ---
 
-## 🎨 Kombinazzjonijiet
+## 🎨 Combos
 
-Tista' terġa' tordna l-karti tal-kombinazzjonijiet direttament f'**Dashboard → Combos** billi tiġbed il-manku ta' kull karta. L-ordni tiġi mħżuna f'SQLite u terġa' titwaqqaf meta terġa' tibda.
+You can reorder combo cards directly in **Dashboard → Combos** by dragging the handle on each card. The order is stored in SQLite and restored on reload.
 
-### Eżempju 1: Massimizza l-Abbonament → Riserva Irħasa
+### Example 1: Maximize Subscription → Cheap Backup
 
 ```
 Dashboard → Combos → Create New
@@ -251,7 +246,7 @@ Models:
 Use in CLI: premium-coding
 ```
 
-### Eżempju 2: B'XEJN biss (Spiża Ċikka)
+### Example 2: Free-Only (Zero Cost)
 
 ```
 Name: free-combo
@@ -264,21 +259,21 @@ Cost: currently listed as $0; terms and availability may change
 
 ---
 
-## 🔦 Integrazjoni CLI
+## 🔧 CLI Integration
 
 ### Cursor IDE
 
-**Użu ta' Cursor bħala klijent OmniRoute** (instradi chat ta' Cursor permezz ta' OmniRoute):
+**Using Cursor as an OmniRoute client** (route Cursor chat through OmniRoute):
 
 ```
 Settings → Models → Advanced:
   OpenAI API Base URL: http://localhost:20128/v1
-  OpenAI API Key: [mill-dashboard tal-omniroute]
+  OpenAI API Key: [from omniroute dashboard]
   Model: cc/claude-opus-4-7
 ```
 
-**Użu ta' OmniRoute bħala fornitur ta' Cursor** (OmniRoute jistenna lill-Cursor upstream): prefer
-**Dashboard → Providers → Cursor → Login with Cursor**. F'Docker, ara
+**Using OmniRoute as a Cursor provider** (OmniRoute calls Cursor upstream): prefer
+**Dashboard → Providers → Cursor → Login with Cursor**. In Docker, see
 [`docs/providers/CURSOR-DOCKER.md`](../providers/CURSOR-DOCKER.md).
 
 ### Claude Code
@@ -294,7 +289,7 @@ Edit `~/.claude/settings.json`:
 }
 ```
 
-Użu l-endpoint root kompatibbli ma' Claude hawn. Tagħlaqx `/v1` ma' `ANTHROPIC_BASE_URL`.
+Use the Claude-compatible root endpoint here. Do not append `/v1` to `ANTHROPIC_BASE_URL`.
 
 ### Codex CLI
 
@@ -328,95 +323,95 @@ Edit `~/.openclaw/openclaw.json`:
 }
 ```
 
-**Jew uża l-Dashboard:** CLI Tools → OpenClaw → Auto-config
+**Or use Dashboard:** CLI Tools → OpenClaw → Auto-config
 
 ### Cline / Continue / RooCode
 
 ```
 Provider: OpenAI Compatible
 Base URL: http://localhost:20128/v1
-API Key: [mill-dashboard]
+API Key: [from dashboard]
 Model: cc/claude-opus-4-7
 ```
 
 ---
 
-## 🚀 Twaqqif
+## 🚀 Deployment
 
-### npm globali install (Rikomandat)
+### Global npm install (Recommended)
 
 ```bash
 npm install -g omniroute
 
-# Oħloq direttorju tal-konfigurazzjoni
+# Create config directory
 mkdir -p ~/.omniroute
 
-# Oħloq fajl .env (ara .env.example)
+# Create .env file (see .env.example)
 cp .env.example ~/.omniroute/.env
 
-# Beda s-server
+# Start server
 omniroute
-# Jew b'port abbinali:
+# Or with custom port:
 omniroute --port 3000
 ```
 
-L-CLI awtomatikament jgħabbi `.env` minn `~/.omniroute/.env` jew `./.env`.
+The CLI automatically loads `.env` from `~/.omniroute/.env` or `./.env`.
 
-### Triq il-tray
+### Tray mode
 
-Bedal OmniRoute fil-tray tas-sistema:
+Start OmniRoute in the system tray:
 
 ```bash
 omniroute serve --tray
 ```
 
-Il-kmand jirritorna wara li s-server u t-tray ikunu lesti.
+The command returns after the server and tray are ready.
 
-Is-server jibqa' mingħajr il-terminal.
+The server continues without the terminal.
 
-It-tray mode jappoġġa macOS, Windows, u sessions Linux b'interfaċċi grafika. It-tray mode ma jiftaħx l-dashboard awtomatikament.
+Tray mode supports macOS, Windows, and graphical Linux sessions. Tray mode does not open the dashboard automatically.
 
-Uża l-menu tal-tray għal dawn l-azzjonijiet:
+Use the tray menu for these actions:
 
-- Ftaħ l-dashboard.
-- Ftaħ `/dashboard/logs`.
-- Biddel l-awto-bidu.
-- Waqqaf OmniRoute.
+- Open the dashboard.
+- Open `/dashboard/logs`.
+- Change auto-start.
+- Stop OmniRoute.
 
-Tagħmilx `--tray` ma' dawn l-għażliet:
+Do not combine `--tray` with these options:
 
 - `--daemon`
 - `--log`
 - `--no-recovery`
 
-Dawn il-mudelli jeħtieġu proprjetà differenti tal-proċess.
+These modes require different process ownership.
 
-Ekwiżizzjoni ta' bidu fil-login li jmiss tal-magna:
+Enable startup at the next machine login:
 
 ```bash
 omniroute autostart enable
 ```
 
-L-awto-bidu juża t-tray mode fuq macOS, Windows, u sessions Linux b'interfaċċi grafika. Linux Headless juża s-servizz attwali tal-systemd user.
+Auto-start uses tray mode on macOS, Windows, and graphical Linux sessions. Headless Linux uses the existing systemd user service.
 
-Tixħirx l-awto-bidu fil-login:
+Disable startup at login:
 
 ```bash
 omniroute autostart disable
 ```
 
-### Tneħħija
+### Uninstalling
 
-Meta m'għadekx teħtieġ OmniRoute, noffrulek żewġ scripts ħfief għat-tneħħija nadifa:
+When you no longer need OmniRoute, we provide two quick scripts for a clean removal:
 
-| Kmand                    | Azzjoni                                                                                         |
-| ------------------------ | ----------------------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Jneħħi l-app tal-sistema iżda **jżomm il-DB u l-konfigurazzjonijiet tiegħek** f'`~/.omniroute`. |
-| `npm run uninstall:full` | Jneħħi l-app U **jħassar permanentement il-konfigurazzjonijiet, ċavetti, u databases kollha**.  |
+| Command                  | Action                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
 
-> Nota: Biex tħaddem dawn il-kmandi, mur fil-folder tal-proġett OmniRoute (jekk klonjajtu) u ħaddemhom. Barra minn hekk, jekk installat globalment, tista' sempliċement tħaddem `npm uninstall -g omniroute`.
+> Note: To run these commands, navigate to the OmniRoute project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g omniroute`.
 
-### Twaqqif VPS
+### VPS Deployment
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -432,25 +427,25 @@ export NEXT_PUBLIC_BASE_URL="http://localhost:20128"
 export API_KEY_SECRET="endpoint-proxy-api-key-secret"
 
 npm run start
-# Jew: pm2 start npm --name omniroute -- start
+# Or: pm2 start npm --name omniroute -- start
 ```
 
-### Twaqqif PM2 (RAM Baxxa)
+### PM2 Deployment (Low Memory)
 
-Għal servers b'RAM limitata, uża l-għażla tal-limitu tal-memorja:
+For servers with limited RAM, use the memory limit option:
 
 ```bash
-# B'limitu ta' 512MB (default)
+# With 512MB limit (default)
 pm2 start npm --name omniroute -- start
 
-# Jew b'limitu tal-memorja abbinali
+# Or with custom memory limit
 OMNIROUTE_MEMORY_MB=512 pm2 start npm --name omniroute -- start
 
-# Jew uża ecosystem.config.js
+# Or using ecosystem.config.js
 pm2 start ecosystem.config.js
 ```
 
-Oħloq `ecosystem.config.js`:
+Create `ecosystem.config.js`:
 
 ```javascript
 module.exports = {
@@ -475,24 +470,24 @@ module.exports = {
 ### Docker
 
 ```bash
-# Bini ta' stampa (default = runner-cli b'codex/claude/droid installat minn qabel)
+# Build image (default = runner-cli with codex/claude/droid preinstalled)
 docker build -t omniroute:cli .
 
-# Mod portable (rikomandat)
+# Portable mode (recommended)
 docker run -d --name omniroute -p 20128:20128 --env-file ./.env -v omniroute-data:/app/data omniroute:cli
 ```
 
-Għall-mod host-integrated b'binaries CLI, ara t-taqsima Docker fil-dokumentazzjoni ewlenija.
+For host-integrated mode with CLI binaries, see the Docker section in the main docs.
 
 ### Void Linux (xbps-src)
 
-L-utenti tal-Void Linux jistgħu jippakkjaw u jinstallaw OmniRoute b'mod nattiv jużand il-framework tal-kross-kompilazzjoni `xbps-src`. Dan jawtomatizza l-bini standalone tal-Node/js flimkien mal-`better-sqlite3` native bindings meħtieġa.
+Void Linux users can package and install OmniRoute natively using the `xbps-src` cross-compilation framework. This automates the Node.js standalone build along with the required `better-sqlite3` native bindings.
 
 <details>
-<summary><b>Ara l-mudell xbps-src</b></summary>
+<summary><b>View xbps-src template</b></summary>
 
 ```bash
-# Fajl tal-mudell għal 'omniroute'
+# Template file for 'omniroute'
 pkgname=omniroute
 version=3.8.0
 revision=1
@@ -513,7 +508,7 @@ export npm_config_fund=false
 export npm_config_audit=false
 
 do_build() {
-	# Iddetermina l-arqa CPU tal-mira għal node-gyp
+	# Determine target CPU arch for node-gyp
 	local _gyp_arch
 	case "$XBPS_TARGET_MACHINE" in
 		aarch64*) _gyp_arch=arm64 ;;
@@ -522,29 +517,29 @@ do_build() {
 		*) _gyp_arch=x64 ;;
 	esac
 
-	# 1) Installa d-dipendenzi kollha – omitti l-scripts
+	# 1) Install all deps – skip scripts
 	NODE_ENV=development npm ci --ignore-scripts
 
-	# 2) Bni l-bundle standalone Next.js
+	# 2) Build the Next.js standalone bundle
 	npm run build
 
-	# 3) Kopja l-assetti statiċi fil-standalone
+	# 3) Copy static assets into standalone
 	cp -r .next/static .next/standalone/.next/static
 	[ -d public ] && cp -r public .next/standalone/public || true
 
-	# 4) Ġabar il-binding nativ better-sqlite3
+	# 4) Compile better-sqlite3 native binding
 	local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
 	(cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
 
-	# 5) Poġġi l-binding imġabar fil-bundle standalone
+	# 5) Place the compiled binding into the standalone bundle
 	local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
 	mkdir -p "$_bs3_release"
 	cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
 
-	# 6) Neħħi l-bundles ta' @img speċifiċi għall-arqa
+	# 6) Remove arch-specific sharp bundles
 	rm -rf .next/standalone/node_modules/@img
 
-	# 7) Kopja d-dipendenzi runtime tal-pino li ġew omessi mill-analiżi statika Next.js:
+	# 7) Copy pino runtime deps omitted by Next.js static analysis:
 	for _mod in pino-abstract-transport split2 process-warning; do
 		cp -r "node_modules/$_mod" .next/standalone/node_modules/
 	done
@@ -558,7 +553,7 @@ do_install() {
 	vmkdir usr/lib/omniroute/.next
 	vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 
-	# Prevjeni t-tneħħija ta' direttorji vojta tal-app router Next.js mill-hook post-install
+	# Prevent removal of empty Next.js app router dirs by the post-install hook
 	for _d in \
 		.next/standalone/.next/server/app/dashboard \
 		.next/standalone/.next/server/app/dashboard/settings \
@@ -584,49 +579,51 @@ post_install() {
 
 </details>
 
-### Varjabbli tal-Ambjent
+### Environment Variables
 
-| Varjabbli                               | Default                              | Deskrizzjoni                                                                                                                                     |
-| --------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | Sigriet għat-tiffirma tal-JWT (**biddel fil-produzzjoni**)                                                                                       |
-| `INITIAL_PASSWORD`                      | `CHANGEME`                           | Password tal-ewwel login                                                                                                                         |
-| `DATA_DIR`                              | `~/.omniroute`                       | Direttorju tad-dejta (db, użu, logħob)                                                                                                           |
-| `PORT`                                  | default tal-frawwerk                 | Port tas-servizz (`20128` fil-eżempji)                                                                                                           |
-| `HOSTNAME`                              | default tal-frawwerk                 | Jorbot il-host (Docker default għal `0.0.0.0`)                                                                                                   |
-| `NODE_ENV`                              | default runtime                      | Waħħal `production` għat-twaqqif                                                                                                                 |
-| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | URL pubbliku bażiċi murija lill-dashboard u esposta lis-sserver (tissostitwixxi l-`BASE_URL` antika)                                             |
-| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | URL bażiċi tal-endpoint tal-sinkronizzazzjoni cloud (tissostitwixxi l-`CLOUD_URL` antika)                                                        |
-| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | Sigriet HMAC għall-API keys ġenerati                                                                                                             |
-| `REQUIRE_API_KEY`                       | `false`                              | Infurza Bearer API key fuq `/v1/*`                                                                                                               |
-| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Tippermetti lill-utenti tal-dashboard awtentikati jikxfu l-valuri kompluti tal-API key洢żżati meta jitolbuhom                                    |
-| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Frekwenza tal-ġdid tas-server għad-dejta tal-Provider Limits maħżuna; il-buttuni tal-ġdid tal-UI għadhom jistimulaw is-sinkronizzazzjoni manwali |
-| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Tixħirx il-prints awtomatiċi SQLite qabel il-kitbiet/importazzjoni/rkupru; il-backups manwali għadhom jaħdmu                                     |
-| `APP_LOG_TO_FILE`                       | `true`                               | Jippermetti l-output tal-log tal-applikazzjoni u tal-awditjar fuq il-disk                                                                        |
-| `AUTH_COOKIE_SECURE`                    | `false`                              | Tifforza cookie `Secure` tal-awtentikazzjoni (wara reverse proxy HTTPS)                                                                          |
-| `CLOUDFLARED_BIN`                       | ma twarrabx                          | Uża binarju `cloudflared` eżistenti minflok l-downloads immaniġġjati                                                                             |
-| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | Trasport għat-Quick Tunnels immaniġġjati (`http2`, `quic`, jew `auto`)                                                                           |
-| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Limitu tal-heap tal-Node.js f'MB                                                                                                                 |
-| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | Daqs massimu ta' dħul tal-cache tal-prompt                                                                                                       |
-| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | Daqs massimu ta' dħul tal-cache semantiku                                                                                                        |
+| Variable                                | Default                              | Description                                                                                               |
+| --------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)                                                             |
+| `INITIAL_PASSWORD`                      | `CHANGEME`                           | First login password                                                                                      |
+| `DATA_DIR`                              | `~/.omniroute`                       | Data directory (db, usage, logs)                                                                          |
+| `PORT`                                  | framework default                    | Service port (`20128` in examples)                                                                        |
+| `HOSTNAME`                              | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                                                                  |
+| `NODE_ENV`                              | runtime default                      | Set `production` for deploy                                                                               |
+| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | Public base URL surfaced to the dashboard and exposed to the server (replaces legacy `BASE_URL`)          |
+| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Cloud sync endpoint base URL (replaces legacy `CLOUD_URL`)                                                |
+| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                                        |
+| `REQUIRE_API_KEY`                       | `false`                              | Enforce Bearer API key on `/v1/*`                                                                         |
+| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow authenticated dashboard users to reveal full stored API key values on demand                        |
+| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Server-side refresh cadence for cached Provider Limits data; UI refresh buttons still trigger manual sync |
+| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work                |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
+| `AUTH_COOKIE_SECURE`                    | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy)                                                   |
+| `CLOUDFLARED_BIN`                       | unset                                | Use an existing `cloudflared` binary instead of managed download                                          |
+| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | Transport for managed Quick Tunnels (`http2`, `quic`, or `auto`)                                          |
+| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Node.js heap limit in MB                                                                                  |
+| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | Max prompt cache entries                                                                                  |
+| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | Max semantic cache entries                                                                                |
 
-Għar-riferenza sħiħa tal-varjabbli tal-ambjent, ara l-[README](../README.md).
+For the full environment variable reference, see the [README](../README.md).
 
-## 📊 Mudelli Disponibbli
+---
+
+## 📊 Available Models
 
 <details>
-<summary><b>Uri l-mudelli kollha disponibbli</b></summary>
+<summary><b>View all available models</b></summary>
 
-> Il-lista ta' hawn taħt ġiet magħżula minn `open-sse/config/providerRegistry.ts` għal v3.8.0. Il-katalaġi tal-cloud (Gemini, OpenRouter, eċċ.) jiġu ssinkronizzati b'mod dinamiku — għall-katalaġi sħiħ ħaj issir miftuħ il- **Dashboard → Providers → [provider] → Available Models** jew sejjaħ `GET /api/models/catalog`.
+> The list below is curated from `open-sse/config/providerRegistry.ts` for v3.8.0. Cloud catalogs (Gemini, OpenRouter, etc.) are synced dynamically — for the full live catalog open **Dashboard → Providers → [provider] → Available Models** or call `GET /api/models/catalog`.
 >
-> Jekk il-lista interna ta' provajder mmur, uża **Import from /models** fuq dik il-paġna (jew ippermetti **Auto-Sync**) biex tġib il-katalaġi tal-upstream ħaj. Dan ġie vverifikat fil-v3.8.50 għal LLM7.io (`gemini-3.1-flash-lite`) u UncloseAI (`solidrust/Hermes-3-Llama-3.1-8B-AWQ`); l-aċċess anonimu ta' Pollinations baqa' limited mill-upstream waqt l-istess test pass.
+> If a provider's built-in list has drifted, use **Import from /models** on that page (or enable **Auto-Sync**) to pull the live upstream catalog. This was verified in v3.8.50 for LLM7.io (`gemini-3.1-flash-lite`) and UncloseAI (`solidrust/Hermes-3-Llama-3.1-8B-AWQ`); Pollinations anonymous access remained upstream-limited during the same test pass.
 
 **Claude Code (`cc/`)** — Pro/Max OAuth: `cc/claude-opus-4-8`, `cc/claude-opus-4-7`, `cc/claude-opus-4-6`, `cc/claude-opus-4-5-20251101`, `cc/claude-sonnet-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
-**Codex (`cx/`)** — Plus/Pro OAuth: `cx/gpt-5.5` (+ livelli ta' sforz: `gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`), `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`
+**Codex (`cx/`)** — Plus/Pro OAuth: `cx/gpt-5.5` (+ effort tiers: `gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`), `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`
 
 **GitHub Copilot (`gh/`)** — OAuth: `gh/gpt-5.5`, `gh/gpt-5.4`, `gh/gpt-5.4-mini`, `gh/gpt-5-mini`, `gh/gpt-5.3-codex`, `gh/claude-opus-4.7`, `gh/claude-opus-4.6`, `gh/claude-opus-4-5-20251101`, `gh/claude-sonnet-4.6`, `gh/claude-sonnet-4.5`, `gh/claude-haiku-4.5`, `gh/gemini-3.1-pro-preview`, `gh/gemini-3-flash-preview`, `gh/oswe-vscode-prime`
 
-**Kiro (`kr/`)** — FREE OAuth: uża l-katalaġi ħaj murien taħt **Dashboard → Providers → Kiro → Available Models**. Il-disponibbiltà tiddependi fuq il-kont u l-pjan.
+**Kiro (`kr/`)** — FREE OAuth: use the live catalog shown under **Dashboard → Providers → Kiro → Available Models**. Availability depends on the account and plan.
 
 **Qoder (`if/`)** — FREE OAuth: `if/qwen3.8-max-preview`, `if/qwen3.7-max`, `if/qwen3.7-plus`, `if/kimi-k3`, `if/kimi-k2.7-code`, `if/glm-5.2`, `if/deepseek-v4-pro`, `if/deepseek-v4-flash`, `if/minimax-m3`
 
@@ -634,92 +631,98 @@ Għar-riferenza sħiħa tal-varjabbli tal-ambjent, ara l-[README](../README.md).
 
 **MiniMax (`minimax/`, `minimax-cn/`)** — $0.2/1M: `minimax/MiniMax-M2.7`, `minimax/MiniMax-M2.7-highspeed`, `minimax/MiniMax-M2.5`, `minimax/MiniMax-M2.5-highspeed`
 
-**Kimi (`kimi/`, `kimi-coding/`, `kimi-coding-apikey/`)** — $9/xahar flat jew per-use: `kimi/kimi-k2.6`, `kimi/kimi-k2.5`
+**Kimi (`kimi/`, `kimi-coding/`, `kimi-coding-apikey/`)** — $9/mo flat or per-use: `kimi/kimi-k2.6`, `kimi/kimi-k2.5`
 
 **DeepSeek (`ds/`)** — API key: `ds/deepseek-v4-pro`, `ds/deepseek-v4-flash`
 
 **Groq (`groq/`)** — Ultra-fast: `groq/llama-3.3-70b-versatile`, `groq/meta-llama/llama-4-maverick-17b-128e-instruct`, `groq/qwen/qwen3-32b`, `groq/openai/gpt-oss-120b`
 
-**xAI (`xai/`)** — Grok nattiv: `xai/grok-4.3`, `xai/grok-4.20-multi-agent-0309`, `xai/grok-4.20-0309-reasoning`, `xai/grok-4.20-0309-non-reasoning`
+**xAI (`xai/`)** — Grok native: `xai/grok-4.3`, `xai/grok-4.20-multi-agent-0309`, `xai/grok-4.20-0309-reasoning`, `xai/grok-4.20-0309-non-reasoning`
 
-**Mistral (`mistral/`)** — Hosted fl-UE: `mistral/mistral-large-latest`, `mistral/mistral-medium-3-5`, `mistral/mistral-small-latest`, `mistral/devstral-latest`, `mistral/codestral-latest`
+**Mistral (`mistral/`)** — EU-hosted: `mistral/mistral-large-latest`, `mistral/mistral-medium-3-5`, `mistral/mistral-small-latest`, `mistral/devstral-latest`, `mistral/codestral-latest`
 
-**Perplexity (`pplx/`)** — Bis-searċi: `pplx/sonar-deep-research`, `pplx/sonar-reasoning-pro`, `pplx/sonar-pro`, `pplx/sonar`
+**Perplexity (`pplx/`)** — Search-augmented: `pplx/sonar-deep-research`, `pplx/sonar-reasoning-pro`, `pplx/sonar-pro`, `pplx/sonar`
 
-**Together AI (`together/`)** — Open-source: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo-Free` (b'xejn), `together/meta-llama/Llama-Vision-Free`, `together/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-Free`, `together/deepseek-ai/DeepSeek-R1`, `together/Qwen/Qwen3-235B-A22B`, `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`
+**Together AI (`together/`)** — Open-source: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo-Free` (free), `together/meta-llama/Llama-Vision-Free`, `together/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-Free`, `together/deepseek-ai/DeepSeek-R1`, `together/Qwen/Qwen3-235B-A22B`, `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`
 
-**Fireworks AI (`fireworks/`)** — Inferrenzi veloċi: `fireworks/accounts/fireworks/models/kimi-k2p6`, `fireworks/accounts/fireworks/models/minimax-m2p7`, `fireworks/accounts/fireworks/models/qwen3p6-plus`, `fireworks/accounts/fireworks/models/glm-5p1`, `fireworks/accounts/fireworks/models/deepseek-v4-pro`
+**Fireworks AI (`fireworks/`)** — Fast inference: `fireworks/accounts/fireworks/models/kimi-k2p6`, `fireworks/accounts/fireworks/models/minimax-m2p7`, `fireworks/accounts/fireworks/models/qwen3p6-plus`, `fireworks/accounts/fireworks/models/glm-5p1`, `fireworks/accounts/fireworks/models/deepseek-v4-pro`
 
 **Cerebras (`cerebras/`)** — Wafer-scale: `cerebras/zai-glm-4.7`, `cerebras/gpt-oss-120b`
 
-**Cohere (`cohere/`)** — Fokus fuq RAG: `cohere/command-a-reasoning-08-2025`, `cohere/command-a-vision-07-2025`, `cohere/command-a-03-2025`, `cohere/command-r-08-2024`
+**Cohere (`cohere/`)** — RAG-focused: `cohere/command-a-reasoning-08-2025`, `cohere/command-a-vision-07-2025`, `cohere/command-a-03-2025`, `cohere/command-r-08-2024`
 
 **NVIDIA NIM (`nvidia/`)** — Enterprise: `nvidia/z-ai/glm-5.1`, `nvidia/minimaxai/minimax-m2.7`, `nvidia/google/gemma-4-31b-it`, `nvidia/mistralai/mistral-small-4-119b-2603`, `nvidia/mistralai/mistral-large-3-675b-instruct-2512`, `nvidia/qwen/qwen3.5-397b-a17b`, `nvidia/deepseek-ai/deepseek-v4-pro`, `nvidia/openai/gpt-oss-120b`, `nvidia/nvidia/nemotron-3-super-120b-a12b`
 
 **Baidu Qianfan (`qianfan/`)** — ERNIE: `qianfan/ernie-5.1`, `qianfan/ernie-5.0-thinking-latest`, `qianfan/ernie-x1.1`
 
-**Ollama Cloud (`ollama-cloud/`)**: `ollama-cloud/deepseek-v4-pro`, `ollama-cloud/deepseek-v4-flash`, `ollama-cloud/kimi-k2.6`, `ollama-cloud/glm-5.1`, `ollama-cloud/minimax-m2.7`, `ollama-cloud/gemma4:31b`, `ollama-cloud/qwen3.5:399b`
+**Ollama Cloud (`ollama-cloud/`)**: `ollama-cloud/deepseek-v4-pro`, `ollama-cloud/deepseek-v4-flash`, `ollama-cloud/kimi-k2.6`, `ollama-cloud/glm-5.1`, `ollama-cloud/minimax-m2.7`, `ollama-cloud/gemma4:31b`, `ollama-cloud/qwen3.5:397b`
 
-**Gemini (Google Cloud `gemini/`)**: Issinkronizzat ħaj skont il-API key minn Google — ebda lista statika. Qabbad key fil- **Dashboard → Providers** imbagħad uża **Available Models** biex timporta l-katalaġi attwali (pereż. `gemini/gemini-3-pro`, `gemini/gemini-3-flash`).
+**Gemini (Google Cloud `gemini/`)**: Synced live per API key from Google — no static list. Connect a key in **Dashboard → Providers** then use **Available Models** to import the current catalog (e.g. `gemini/gemini-3-pro`, `gemini/gemini-3-flash`).
 
-**Provajderi kompatibbli oħra** (magħżula): `cohere`, `databricks`, `snowflake`, `together`, `vertex`, `alibaba`, `alibaba-cn`, `bedrock` (permezz ta' `aws-bedrock`), `azure-ai`, `openrouter` (katalaġi pass-through), `siliconflow`, `hyperbolic`, `huggingface`, `featherless-ai`, `cloudflare-ai`, `scaleway`, `deepinfra`, `vercel-ai-gateway`, `bazaarlink`, `friendliai`, `nous-research`, `reka`, `volcengine`, `ai21`, `gigachat`. Kull wieħed iżomm il-lista tal-mudelli tiegħu stess fil-`providerRegistry.ts` u jista' jiġi ssinkronizzat awtomatikament meta l-provajder jiżvela endpoint `/models`.
+**Other compatible providers** (selected): `cohere`, `databricks`, `snowflake`, `together`, `vertex`, `alibaba`, `alibaba-cn`, `bedrock` (via `aws-bedrock`), `azure-ai`, `openrouter` (passthrough catalog), `siliconflow`, `hyperbolic`, `huggingface`, `featherless-ai`, `cloudflare-ai`, `scaleway`, `deepinfra`, `vercel-ai-gateway`, `bazaarlink`, `friendliai`, `nous-research`, `reka`, `volcengine`, `ai21`, `gigachat`. Each maintains its own model list in `providerRegistry.ts` and can be auto-synced when the provider exposes a `/models` endpoint.
 
-**Nota dwar l-IDs tal-mudelli:** OmniRoute juża IDs nattivi tal-provajder (`claude-opus-4-8`, `gpt-5.5`, `glm-5.1`, `MiniMax-M2.7`, `kimi-k2.5`, `groq-4.20-0309-reasoning`). Xi IDs jinkludu versjonijiet bil-punti għaliex hekk qed tistenna l-API ta' fuq. Jekk mudelli mhux elenkat hawn fuq, ħdimt `omniroute models --search <term>` jew sejjaħ `GET /api/models/catalog` biex tikkonferma d-disponibbiltà.
+**Note on model IDs:** OmniRoute uses provider-native IDs (`claude-opus-4-8`, `gpt-5.5`, `glm-5.1`, `MiniMax-M2.7`, `kimi-k2.5`, `grok-4.20-0309-reasoning`). Some IDs include dotted versions because that is how the upstream API expects them. If a model is not listed above, run `omniroute models --search <term>` or hit `GET /api/models/catalog` to confirm availability.
 
 </details>
 
 ---
 
-## 🧩 Caratteristiċi Avvanzati
+## 🧩 Advanced Features
 
-### Mudelli personalizzati
+### Custom Models
 
-Żid kwalunkwe mudell ID mal-fornitur kwalunkwe mingħajr ma tistenna aġġornament tal-app:
+Add any model ID to any provider without waiting for an app update:
 
 ```bash
-# Permezz tal-API
+# Via API
 curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
-# Lista: curl http://localhost:20128/api/provider-models?provider=openai
-# Neħħi: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
+# List: curl http://localhost:20128/api/provider-models?provider=openai
+# Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-Jew uża l-Dashboard: **Fornituri → [Fornitur] → Mudelli personalizzati**.
+Or use Dashboard: **Providers → [Provider] → Custom Models**.
 
-Noti:
+Notes:
 
-- OpenRouter u fornituri kompatibbli mal-OpenAI/Anthropic humaġġestiti biss mill-**Mudelli Disponibbli**. It-tħ添, importazzjoni u sinkronizzazzjoni awtomatika kollha jispiċċaw fl-istess lista tal-mudelli disponibbli, hekk li m'hemm l-ebda sezzjoni separata għal Mudelli personalizzati għal dawk il-fornituri.
-- Is-Sezzjoni **Mudelli personalizzati** hija maħsuba għal fornituri li ma jurux importazzjonijiet tal-mudelli disponibbliġestiti.
+- OpenRouter and OpenAI/Anthropic-compatible providers are managed from **Available Models** only. Manual add, import, and auto-sync all land in the same available-model list, so there is no separate Custom Models section for those providers.
+- The **Custom Models** section is intended for providers that do not expose managed available-model imports.
 
-### Katina ta' Peers OmniRoute
+### Chaining OmniRoute Peers
 
-Tista' tiġi miżjuda peer OmniRoute oħra bħala fornititur **Kompatibbli mal-OpenAI personalizzat**. Uża l-URL bażiċi `/v1` tal-peer u API key dedikata, b'privileġġ minimu, mogħtija minn dik il-peer.
+Another OmniRoute gateway can be added as a **Custom OpenAI-compatible** provider. Use the
+peer's `/v1` base URL and a dedicated, least-privilege API key issued by that peer.
 
-Għal katini reċiproki jew multi-hop, fil-permess il-guard tal-loop fuq kull bieb:
+For reciprocal or multi-hop chains, enable the opt-in loop guard on every gateway:
 
 ```bash
-# bieb-a
+# gateway-a
 OMNIROUTE_INSTANCE_ID=gateway-a
 OMNIROUTE_PEER_URLS=http://gateway-b:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
 ```bash
-# bieb-b
+# gateway-b
 OMNIROUTE_INSTANCE_ID=gateway-b
 OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-It-talbiet biss li jintbagħtu lejn URL peer li huwa ċar permess jirċievu l-intestatura `X-OmniRoute-Peer-Trace`. Bieb jirrifjuta ID tal-istanza ripetut jew baġit hop fi tmiemu b'HTTP `508 Loop Detected`; il-fornituri upstream ordinarji ma jirċievu l-ebda metadata tal-peer.
+Only requests sent to an explicitly allowlisted peer URL receive the
+`X-OmniRoute-Peer-Trace` header. A gateway rejects a repeated instance ID or exhausted hop
+budget with HTTP `508 Loop Detected`; ordinary upstream providers receive no peer metadata.
 
-Il-katina tal-peers mhijiex replikazzjoni tal-base tad-data jew failover tal-host. Kull bieb iżżomm stat indipendenti SQLite, buffers, kontijiet tal-miżura, u sessions. Uża prokri tal-inverżjoni b'saħħa ċċekkjata jew client failover għal disponibbiltà attiva/passiva jew attiva/attiva, u qatt twaħħal base tad-data SQLite f'ħafna istanzi OmniRoute qed jitħaddtu.
+Peer chaining is not database replication or host failover. Each gateway keeps independent
+SQLite state, caches, rate counters, and sessions. Use a health-checked reverse proxy or client
+failover for active/passive or active/active availability, and never mount one SQLite database
+into multiple running OmniRoute instances.
 
-### Rotot tal-Furnitur Ddedikati
+### Dedicated Provider Routes
 
-Roti t-talbiet direttament lejn fornitur speċifiku b'validazzjoni tal-mudell:
+Route requests directly to a specific provider with model validation:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -727,137 +730,137 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-Il-prefiss tal-furnitur jiġi miżjud awtomatikament jekk nieqas. Mudelli ma jidhinx jirritornaw `400`.
+The provider prefix is auto-added if missing. Mismatched models return `400`.
 
-### Konfigurazzjoni tal-Proxy tan-Netwerk
+### Network Proxy Configuration
 
 ```bash
-# Isettja proxy globali
+# Set global proxy
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
-# Proxy għal kull fornitur
+# Per-provider proxy
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
-# Ipprova l-proxy
+# Test proxy
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Preċedenza:** Speċifiku għal ċavetta → Speċifiku għal combo → Speċifiku għal fornitur → Globali → Ambjent.
+**Precedence:** Key-specific → Combo-specific → Provider-specific → Global → Environment.
 
-### Katalog tal-Mudelli API
+### Model Catalog API
 
 ```bash
 curl http://localhost:20128/api/models/catalog
 ```
 
-Jirritorna mudelli maġguppati skont il-furnitur b'tipi (`chat`, `embedding`, `image`).
+Returns models grouped by provider with types (`chat`, `embedding`, `image`).
 
-### Sinkronizzazzjoni Sħab
+### Cloud Sync
 
-- Isinkronizza fornituri, combos, u settingi bejn l-apparati
-- Sinkronizzazzjoni awtomatika ta' wara b'timeout + fail-fast
-- Agħżel server-side `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` fil-produzzjoni
+- Sync providers, combos, and settings across devices
+- Automatic background sync with timeout + fail-fast
+- Prefer server-side `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` in production
 
-### Tunnel Quick Cloudflare
+### Cloudflare Quick Tunnel
 
-- Disponibbli fil-**Dashboard → Tmiem** għal Docker u deplojamenti oħra host personali
-- Joħloq URL temporanju `https://*.trycloudflare.com` li jwassal lejn il-punt ta' tilħiq attwali mal-OpenAI kompatibbli `/v1`
-- L-ewwel tiftaħ tinstalla `cloudflared` biss meta jkun meħtieġ; tiftaħiet wara jużaw l-istess binarjuġestit
-- Tunnel Quick mhumix awtomatikament restawrati wara restart ta' OmniRoute jew kontenitur; terġa' tiftaħhom mid-dashbord meta tixtieq
-- URLs tal-tunnel huma temporanji u jinbidlu kull meta tieqaf/tibda t-tunnel
-- Tunnel Quick ġestiti jgħaddu b'ħin transport HTTP/2 biex jitwarrbu twigganijiet tal-buffer QUIC UDP fil-konteniturijiet ristretti
-- Isettja `CLOUDFLARED_PROTOCOL=quic` jew `auto` jekk trid toverride l-għażla tal-transport ġestita
-- Isettja `CLOUDFLARED_BIN` jekk tippreferi tuża binarju `cloudflared` preinstallat minflok li tniżżel il-ġestit
-- Panelli tal-tunnel Cloudflare Quick, Tailscale Funnel, u ngrok Tunnel jistgħu juru jew jinħbew fil-**Settings → Tidwir**. Ma turiwsa ma waqfu tunnel li qed jimxi.
+- Available in **Dashboard → Endpoints** for Docker and other self-hosted deployments
+- Creates a temporary `https://*.trycloudflare.com` URL that forwards to your current OpenAI-compatible `/v1` endpoint
+- First enable installs `cloudflared` only when needed; later restarts reuse the same managed binary
+- Quick Tunnels are not auto-restored after an OmniRoute or container restart; re-enable them from the dashboard when needed
+- Tunnel URLs are ephemeral and change every time you stop/start the tunnel
+- Managed Quick Tunnels default to HTTP/2 transport to avoid noisy QUIC UDP buffer warnings in constrained containers
+- Set `CLOUDFLARED_PROTOCOL=quic` or `auto` if you want to override the managed transport choice
+- Set `CLOUDFLARED_BIN` if you prefer using a preinstalled `cloudflared` binary instead of the managed download
+- Cloudflare Quick Tunnel, Tailscale Funnel, and ngrok Tunnel panels can be shown or hidden in **Settings → Appearance**. Hiding a panel does not stop a running tunnel.
 
-### Intelligenza tal-Bieb LLM (Fażi 9)
+### LLM Gateway Intelligence (Phase 9)
 
-- **Buffer Semantiku** — Jħaffer b'mod awtomatiku risponsi mhux stramming, b'temperature=0 (tħares b' `X-OmniRoute-No-Cache: true`)
-- **Idempotenzi tal-Talba** — Jinfirek talbiet fi żmien 5s permezz ta' `Idempotency-Key` jew intestatura `X-Request-Id`
-- **Traċċar tal-Progress** — Fil-permess SSE `event: progress` events permezz ta' intestatura `X-OmniRoute-Progress: true`
-
----
-
-### Torkbar tal-Vertu
-
-Aċċess permezz **Dashboard → Vertu**. Debug u viżwalizza kif OmniRoute jivverifika talbiet API bejn il-fornituri.
-
-| Mod                    | Skop                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------- |
-| **Torkbar**            | Agħżel formati sors/sib, pastja talba, u ara l-output ivverifikat mill-ewwel                      |
-| **Tester ta' Ħbubija** | Ittebgħa messaġġi ħbubija ħajjin permezz tal-proxy u spezzjon iċ-ċiklu sħiħ tal-ħlas/tirrispondi  |
-| **Bank tal-Prova**     | Itella' testijiet fuq ħafna kombinazzjonijiet ta' format biex tivverifika l-korrettezza tal-vertu |
-| **Monitor Ħaj**        | Ara vetrifikazzjonijiet real-time kif it-talbiet imorru permezz tal-proxy                         |
-
-**Każijiet tal-Użu:**
-
-- Debug għaliex kombonjazzjoni speċifika ta' client/furnitur tifailja
-- Verifika li tagħbijiet tal-ħsieb, sejħiet tal-għodda, u prompts tas-sistema jivverifikaw b'mod korrett
-- Qabbel differenzi tal-format bejn formati OpenAI, Claude, Gemini, u Responses API
+- **Semantic Cache** — Auto-caches non-streaming, temperature=0 responses (bypass with `X-OmniRoute-No-Cache: true`)
+- **Request Idempotency** — Deduplicates requests within 5s via `Idempotency-Key` or `X-Request-Id` header
+- **Progress Tracking** — Opt-in SSE `event: progress` events via `X-OmniRoute-Progress: true` header
 
 ---
 
-### Strateġiji tar-Rutjar
+### Translator Playground
 
-Konfigurazzjoni permezz **Dashboard → Settings → Rutjar**. Il-dashboard turi l-istrateġiji l-aktar użati; combos u l-awtorutjar internament tħallas ħafna strateġiji oħra.
+Access via **Dashboard → Translator**. Debug and visualize how OmniRoute translates API requests between providers.
 
-**Strateġiji viżibbli fil-dashboard (rutjar ta' livell ta' kont):**
+| Mode             | Purpose                                                                                |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| **Playground**   | Select source/target formats, paste a request, and see the translated output instantly |
+| **Chat Tester**  | Send live chat messages through the proxy and inspect the full request/response cycle  |
+| **Test Bench**   | Run batch tests across multiple format combinations to verify translation correctness  |
+| **Live Monitor** | Watch real-time translations as requests flow through the proxy                        |
 
-| Istrateġija                               | Deskrizzjoni                                                                                                     |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Mimmi l-Ewwel**                         | Juża l-kontijiet b'ordni ta' prijorità — il-kont primarju jitratta it-talbiet kollha sakemm ma jkunx disponibbli |
-| **Ronda tal-Qiegħ**                       | Idur mal-kontijiet kollha b'limitu stikxu konfigurabbli (default: 3 sejħiet għal kull kont)                      |
-| **P2C (Is-Tagħżil tal-Ħumas tal-Għażla)** | Jagħżel 2 kontijiet bi prijorità u jivverifika l-aktar b'saħħa — ibilanċja l-piż b'għarfien tal-saħħa            |
-| **Accidental**                            | Jagħżel kont għal kull talba b'modAccidental billi juża t-tħawwil tal-Fisher-Yates                               |
-| **L-iktar Użat**                          | Jivverifika lejn il-kont b'timistamp ta' `lastUsedAt` l-aktar qadim, jixerrid it-traffiku b'mod uniformi         |
-| **Ottimizzat għall-Ispejjeż**             | Jivverifika lejn il-kont b'l-iktar valur ta' prijorità baxx, joqroq għal fornituri b'ispejjeż baxxi              |
+**Use cases:**
 
-**Strateġiji avvanzati u awto għal combo** (konfigurabbli għal kull kombo jew permezz ta' prefissi `auto/*` — ara [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
+- Debug why a specific client/provider combination fails
+- Verify that thinking tags, tool calls, and system prompts translate correctly
+- Compare format differences between OpenAI, Claude, Gemini, and Responses API formats
 
-- `priority` — ordni strett, qatt mhuwa ronda tal-qiegħ
-- `weighted` — tinqasam traffiku proporzjonali skont piżijiet għal kull mudell
-- `fill-first` — jivvasta l-ewwel mudell sakemm jilħqu l-limiti
+---
+
+### Routing Strategies
+
+Configure via **Dashboard → Settings → Routing**. The dashboard exposes the six most-used strategies; combos and the auto-router internally support a wider set.
+
+**Dashboard-visible strategies (account-level routing):**
+
+| Strategy                       | Description                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| **Fill First**                 | Uses accounts in priority order — primary account handles all requests until unavailable         |
+| **Round Robin**                | Cycles through all accounts with a configurable sticky limit (default: 3 calls per account)      |
+| **P2C (Power of Two Choices)** | Picks 2 random accounts and routes to the healthier one — balances load with awareness of health |
+| **Random**                     | Randomly selects an account for each request using Fisher-Yates shuffle                          |
+| **Least Used**                 | Routes to the account with the oldest `lastUsedAt` timestamp, distributing traffic evenly        |
+| **Cost Optimized**             | Routes to the account with the lowest priority value, optimizing for lowest-cost providers       |
+
+**Advanced combo and auto strategies** (configurable per combo or via `auto/*` prefixes — see [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
+
+- `priority` — strict order, never round-robins
+- `weighted` — proportional traffic split by per-model weights
+- `fill-first` — drain the first model until limits hit
 - `round-robin` / `strict-random` / `random`
-- `p2c` (Is-Tagħżil tal-Ħumas tal-Għażla)
-- `least-used` u `cost-optimized`
-- `auto` — skor imexxi fost il-kandidati kollha
-- `lkgp` (Il-Fornitur Tafu l-Aħħar tajjeb) — jipponi lejn il-furnitur li rnexxielu l-aħħar, imbagħad jaqa' fuq ir-regoli
-- `context-optimized` — jagħżel il-mudell bil-f㶞 kbar ħielsa
-- `context-relay` — jirringan mudelli b'konstellazzjoni twila għal dawriet li jmiss
+- `p2c` (Power of Two Choices)
+- `least-used` and `cost-optimized`
+- `auto` — score-driven across all candidates
+- `lkgp` (Last Known Good Provider) — pins to the last successful provider, then falls back to rules
+- `context-optimized` — picks the model with the largest free context window
+- `context-relay` — chains long-context models for follow-up turns
 
-#### Intestatura Sessione Barra
+#### External Sticky Session Header
 
-Għal affinità ta' sessione barra (per eżempju, aġenti Claude Code/Codex wara prokri tal-inverżjoni), bagħat:
+For external session affinity (for example, Claude Code/Codex agents behind reverse proxies), send:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute jirċievi wkoll `x_session_id` u jirritorna l-ċavetta effettiva tas-sessione f'`X-OmniRoute-Session-Id`.
+OmniRoute also accepts `x_session_id` and returns the effective session key in `X-OmniRoute-Session-Id`.
 
-Jekk tuża Nginx u tibgħat intestaturi b'underscore, fil-permess:
+If you use Nginx and send underscore-form headers, enable:
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Aliases tal-Mudell bil-Wildcards
+#### Wildcard Model Aliases
 
-Oħloq patterns biex tiddetermina mill-ġdid ismijiet tal-mudelli:
+Create wildcard patterns to remap model names:
 
 ```
 Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
 Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
 ```
 
-Wildcards jappoġġjau `*` (kwalunkwe karattri) u `?` (karattru wieħed).
+Wildcards support `*` (any characters) and `?` (single character).
 
-#### Katini tal-Ħalluka
+#### Fallback Chains
 
-Definixxi katini globali tal-ħalluka li japplikaw għat-talbiet kollha:
+Define global fallback chains that apply across all requests:
 
 ```
 Chain: production-fallback
@@ -868,149 +871,149 @@ Chain: production-fallback
 
 ---
 
-### Reżiljenza u Kburijiet tal-Kuritur
+### Resilience & Circuit Breakers
 
-Konfigurazzjoni permezz **Dashboard → Settings → Reżiljenza**.
+Configure via **Dashboard → Settings → Resilience**.
 
-OmniRoute jimplimenta reżiljenza ta' livell tal-furnitur b'ħames komponenti:
+OmniRoute implements provider-level resilience with five components:
 
-1. **Queue tal-Talba u Pacing** — Formazzjoni tat-talba ta' livell tas-sistema:
-   - **Talbiet Fil-Minuta (RPM)** — Talbiet massimi fil-minuta għal kull kont
-   - **Ħin Minimu bejn it-Talbiet** — Tnoss minimu f'millisekondi bejn it-talbiet
-   - **Talbiet Massimi Konkorrenti** — Talbiet simultanji massimi għal kull kont
+1. **Request Queue & Pacing** — System-level request shaping:
+   - **Requests Per Minute (RPM)** — Maximum requests per minute per account
+   - **Min Time Between Requests** — Minimum gap in milliseconds between requests
+   - **Max Concurrent Requests** — Maximum simultaneous requests per account
 
-2. **Cooldown tal-Ġonta** — Konfigurazzjoni għal kull tip ta' awtentikazzjoni għal konnessjoni waħda wara fallimenti li jistgħu jerġgħu jsiru:
-   - **Cooldown Bażi** — Tnoss tal-cooldown default għal fallimenti upstream li jistgħu jerġgħu jsiru
-   - **Uża Dowżuni tal-Riprova Upstream** — Jirrispetta dowżuni ewlenin `Retry-After` jew dowżuni tat-twaqqif meta jinġiebu
-   - **Passi massimi tal-Backoff** — Livell massimu tal-backoff esponenzjali għal fallimenti ripetuti
+2. **Connection Cooldown** — Per-auth-type configuration for a single connection after retryable failures:
+   - **Base Cooldown** — Default cooldown window for retryable upstream failures
+   - **Use Upstream Retry Hints** — Honors authoritative `Retry-After` or reset hints when provided
+   - **Max Backoff Steps** — Maximum exponential backoff level for repeated failures
 
-3. **Kuritur tal-Furnitur** — Jitrakka l-fallimenti tal-furnitur minn tmiem sa tmiem, jimmarka furnitur b'mod degradat fil-limitu tal-warnja konfigurat, u jiftaħ il-kuritur meta jilħaq il-limitu tal-fallimenti konfigurat:
-   - **Limitu tal-Ħsara** — Fallimenti konsekuttivi tal-furnitur qabel ma jidħlu fi `DEGRADED`
-   - **Limitu tal-Falliment** — Fallimenti konsekuttivi tal-furnitur qabel ma jidħlu fi `OPEN`
-   - **Ħin qabel ir-Riżett** — Tnoss qabel ma jittestja mill-ġdid il-furnitur
-   - **CLOSED** (B'Saħħa) — It-talbiet imorru normalment
-   - **DEGRADED** — It-talbiet għadhom imorru waqt li l-fallimenti mgħollijin jittraċċraw
-   - **OPEN** — Il-furnitur huwa mblukkat temporanjament wara fallimenti ripetuti
-   - **HALF_OPEN** — Ittestjar jekk irkupra il-furnitur
+3. **Provider Circuit Breaker** — Tracks end-to-end provider failures, marks a provider degraded at the configured warning threshold, and opens the breaker when the configured failure threshold is reached:
+   - **Degradation Threshold** — Consecutive provider failures before entering `DEGRADED`
+   - **Failure Threshold** — Consecutive provider failures before entering `OPEN`
+   - **Reset Timeout** — Time window before the provider is tested again
+   - **CLOSED** (Healthy) — Requests flow normally
+   - **DEGRADED** — Requests still flow while elevated failures are tracked
+   - **OPEN** — Provider is temporarily blocked after repeated failures
+   - **HALF_OPEN** — Testing if provider has recovered
 
-   Limiti tar-rata `429` li jiskopru ġonta jibqgħu f'**Cooldown tal-Ġonta** u ma jgħoddux lejn il-kuritur tal-furnitur.
+   Connection-scoped `429` rate limits stay in **Connection Cooldown** and do not count toward the provider breaker.
 
-   L-istat runtime tal-kuritur tal-furnitur jidher biss fil-**Dashboard → Saħħa**.
+   The provider breaker runtime state is shown on **Dashboard → Health** only.
 
-4 Stenna għal Cooldown — Jekk kull konnessjoni kandidata diġa' tkun qed tistenna, OmniRoute jista' jistenna l-ewwel cooldown u jerġa' jipprova l-istess talba tal-client awtomatikament.
+4. **Wait For Cooldown** — If every candidate connection is already cooling down, OmniRoute can wait for the earliest cooldown and retry the same client request automatically.
 
-5. **Għarfien Awtomatiku tal-Miżura** — Meta fornituri upstream jirritornaw tnoss tal-attendi ċari, id-dowżuni tagħhom jaħbu fuq il-cooldown tal-Ġonta lokali meta l-impostazzjoni tkun fil-permess.
+5. **Rate Limit Auto-Detection** — When upstream providers return explicit wait windows, those hints override the local connection cooldown when the setting is enabled.
 
-**Parir ta' Pert:** Uża l-paġna **Saħħa** biex tispezzjonaw u tissellafa kurituri tal-furnitur ħajjin wara qtugħ. Il-paġna Reżiljenza tbiddel biss il-konfigurazzjoni.
+**Pro Tip:** Use the **Health** page to inspect and reset live provider breakers after an outage. The Resilience page only changes configuration.
 
 ---
 
-### Esportazzjoni / Importazzjoni tal-Base tad-Data
+### Database Export / Import
 
-Ġestija backup tal-base tad-data fil-**Dashboard → Settings → Sistema u Stoccar**.
+Manage database backups in **Dashboard → Settings → System & Storage**.
 
-| Azjoni                       | Deskrizzjoni                                                                                                                                                         |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Esporta l-Base tad-Data**  | Niżżel il-base tad-data SQLite attwali bħala fajl `.sqlite`                                                                                                          |
-| **Esporta Kollha (.tar.gz)** | Niżżel arċiv backup sħiħ li jinkludi: base tad-data, settingi, combos, konnessjonijiet tal-furnitur (bl-ebda kredenzjali), metadata tal-API key                      |
-| **Importa Base tad-Data**    | Tella' fajl `.sqlite` biex tissostitwixxi l-base tad-data attwali. Backup qabel l-importazzjoni jiġi ġenerat awtomatikament sakemm `DISABLE_SQLITE_AUTO_BACKUP=true` |
+| Action                   | Description                                                                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Export Database**      | Downloads the current SQLite database as a `.sqlite` file                                                                                      |
+| **Export All (.tar.gz)** | Downloads a full backup archive including: database, settings, combos, provider connections (no credentials), API key metadata                 |
+| **Import Database**      | Upload a `.sqlite` file to replace the current database. A pre-import backup is automatically created unless `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
 ```bash
-# API: Esporta base tad-data
+# API: Export database
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: Esporta kollha (arċiv sħiħ)
+# API: Export all (full archive)
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
-# API: Importa base tad-data
+# API: Import database
 curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Validazzjoni Importazzjoni:** Il-fajl importat jiġi validat għall-integrità (SQLite pragma check), tabelli meħtieġa (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), u daqs (massimu 100MB).
+**Import Validation:** The imported file is validated for integrity (SQLite pragma check), required tables (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), and size (max 100MB).
 
-**Każijiet tal-Użu:**
+**Use Cases:**
 
-- Tmigra OmniRoute bejn il-magni
-- Oħloq backups esterni għal tħaris tad-diżastri
-- Tqassam il-konfigurazzjonijiet bejn membri tal-tim (esporta kollha → qassam l-arċiv)
-
----
-
-### Dashboard tal-Settingi
-
-Il-paġna tal-settingi hija organizzata f'**7 tabs** għal navigazzjoni faċli:
-
-| Tab            | Kontenut                                                                                                                                                                                                 |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Ġenerali**   | Għodod tal-istoccar tal-sistema, imġieba default, Vetrifikazzjoni tat-Tunnel tal-Endpoint                                                                                                                |
-| **Tidwir**     | Kontrolli tat-Tema (skur/ċar/sistema), vetrifikazzjoni tal-sidebar, panelli tal-toggle għal karti tal-tunnel Cloudflare/Tailscale/ngrok                                                                  |
-| **AI**         | Budget tal-ħsieb (pass-through / auto-strip / personalizzat / adattiv — ara [THINKING_BUDGET.md](./THINKING_BUDGET.md)), prompt globali tas-sistema, statistika tal-cache tal-prompt                     |
-| **Sikurezza**  | Impostazzjonijiet ta' Login/Password, Kontroll tal-Aċċess IP, Awtentikazzjoni API għal `/models`, Tixrid tal-Furnitur, Gwardja kontra l-inġettjar tal-prompt                                             |
-| **Rutjar**     | Istrateġija globali tal-rutjar (Mimmi l-Ewwel / Ronda tal-Qiegħ / P2C / Accidental / L-iktar Użat / Ottimizzat għall-Ispejjeż), aliases tal-mudell bil-wildcards, katini tal-ħalluka, defaults tal-combo |
-| **Reżiljenza** | Queue tal-talba, cooldown tal-Ġonta, konfigurazzjoni tal-kuritur tal-furnitur, u imġieba tal-istenna għal cooldown                                                                                       |
-| **Avvanzat**   | Konfigurazzjoni tal-proxy globali (HTTP/SOCKS5), override tal-proxy għal kull fornitur                                                                                                                   |
-
-Ġenerali ma jidduplikax noti biss għall-logging u cache. Ġestija ta' ritenzjoni tal-base tad-data
-u ottimizzazzjoni huma preservati permezz `/api/settings/database`; tneħħija tal-cache manwali tuża
-`DELETE /api/cache`. Limiti tal-linji tal-log tal-ħlas u tal-proxy huma kkontrollati minn
-`CALL_LOGS_TABLE_MAX_ROWS` u `PROXY_LOGS_TABLE_MAX_ROWS`.
+- Migrate OmniRoute between machines
+- Create external backups for disaster recovery
+- Share configurations between team members (export all → share archive)
 
 ---
 
-### Spejjeż u Ġestjoni tal-Budget
+### Settings Dashboard
 
-Aċċess permezz **Dashboard → Spejjeż**.
+The settings page is organized into **7 tabs** for easy navigation:
 
-| Tab            | Skop                                                                                               |
-| -------------- | -------------------------------------------------------------------------------------------------- |
-| **Budget**     | Isettja limiti tal-ħlas għal kull API key b'budgets ta' kuljum/ġimgħa/xahar u traċċar real-time    |
-| **Prezzijiet** | Ara u editja d-dħul tal-prezzijiet tal-mudell — piż għal 1K tokens input/output għal kull fornitur |
+| Tab            | Contents                                                                                                                                                  |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **General**    | System storage tools, default behavior, Endpoint tunnel visibility                                                                                        |
+| **Appearance** | Theme controls (light/dark/system), sidebar visibility, panel toggles for Cloudflare/Tailscale/ngrok tunnel cards                                         |
+| **AI**         | Thinking budget (passthrough / auto-strip / custom / adaptive — see [THINKING_BUDGET.md](./THINKING_BUDGET.md)), global system prompt, prompt cache stats |
+| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, Provider Blocking, prompt-injection guard                                             |
+| **Routing**    | Global routing strategy (Fill First / Round Robin / P2C / Random / Least Used / Cost Optimized), wildcard model aliases, fallback chains, combo defaults  |
+| **Resilience** | Request queue, connection cooldown, provider breaker config, and wait-for-cooldown behavior                                                               |
+| **Advanced**   | Global proxy configuration (HTTP/SOCKS5), per-provider proxy overrides                                                                                    |
+
+General no longer duplicates read-only logging and cache notes. Database retention and
+optimization settings are persisted through `/api/settings/database`; manual cache clearing uses
+`DELETE /api/cache`. Request and proxy log row caps are controlled by
+`CALL_LOGS_TABLE_MAX_ROWS` and `PROXY_LOGS_TABLE_MAX_ROWS`.
+
+---
+
+### Costs & Budget Management
+
+Access via **Dashboard → Costs**.
+
+| Tab         | Purpose                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------- |
+| **Budget**  | Set spending limits per API key with daily/weekly/monthly budgets and real-time tracking |
+| **Pricing** | View and edit model pricing entries — cost per 1K input/output tokens per provider       |
 
 ```bash
-# API: Isettja budget
+# API: Set a budget
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: Ħu stat attwali tal-budget
+# API: Get current budget status
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Traċċar tal-Ispejjeż:** Kull talba tivvintar l-użu tat-token u tikkalkola l-ispiż permezz tal-tabella tal-prezzijiet. Ara s-suzzjonijiet fil-**Dashboard → Użu** skont il-furnitur, il-mudell, u l-API key.
+**Cost Tracking:** Every request logs token usage and calculates cost using the pricing table. View breakdowns in **Dashboard → Usage** by provider, model, and API key.
 
 ---
 
-### Traskrizzjoni tal-Awdjo
+### Audio Transcription
 
-OmniRoute jappoġġja traskrizzjoni tal-awdjo permezz tal-punt ta' tilħiq kompatibbli mal-OpenAI:
+OmniRoute supports audio transcription via the OpenAI-compatible endpoint:
 
 ```bash
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
-# Eżempju b'curl
+# Example with curl
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@audio.mp3" \
   -F "model=openai/whisper-1"
 ```
 
-`deepgram/nova-3` hija r-rotta nattiva ta' Deepgram u teħtieġ API key ta' Deepgram.
-Jekk biss OpenRouter ġie konfigurat, uża `openrouter/deepgram/nova-3`.
+`deepgram/nova-3` is the native Deepgram route and needs a Deepgram API key.
+If only OpenRouter is configured, use `openrouter/deepgram/nova-3`.
 
-**Fornituri tal-Kelma għat-Test (traskrizzjoni)**:
+**Speech-to-Text (transcription)** providers:
 
-- `openai/` (kompatibbli mal-whisper)
+- `openai/` (whisper-compatible)
 - `groq/` (Groq Whisper Turbo)
-- `deepgram/` (familja Nova)
+- `deepgram/` (Nova family)
 - `assemblyai/`
 - `nvidia/` (Parakeet, Canary)
-- `huggingface/` (varianti tal-whisper)
+- `huggingface/` (whisper variants)
 - `qwen/`
 
-**Fornituri tal-Test għall-Kelma (`POST /v1/audio/speech`)**:
+**Text-to-Speech (`POST /v1/audio/speech`)** providers:
 
 - `openai/` (tts-1, tts-1-hd)
 - `hyperbolic/`
@@ -1027,64 +1030,74 @@ Jekk biss OpenRouter ġie konfigurat, uża `openrouter/deepgram/nova-3`.
 - `coqui/`, `tortoise/`
 - `qwen/`
 
-Formati awdjo appoġġjati għall-traskrizzjoni: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. Il-formati tal-output TTS jiddependu mill-fornitur (mp3, wav, opus, pcm, mulaw).
+Supported audio formats for transcription: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. TTS output formats depend on the provider (mp3, wav, opus, pcm, mulaw).
 
 ---
 
-### Strateġiji tal-Bilanċ tal-Kombo
+### Combo Balancing Strategies
 
-Konfigurazzjoni tal-bilanċ għal kull kombo fil-**Dashboard → Combos → Ħolqien/Edizzjoni → Istrateġija**.
+Configure per-combo balancing in **Dashboard → Combos → Create/Edit → Strategy**.
 
-| Istrateġija                   | Deskrizzjoni                                                                     |
-| ----------------------------- | -------------------------------------------------------------------------------- |
-| **Ronda tal-Qiegħ**           | Idur mal-mudelli b'mod konsekuttiv                                               |
-| **Prijorità**                 | Dejjem jipprova l-ewwel mudell; jaqa' biss fil-każ ta' żball                     |
-| **Accidental**                | Jagħżel mudell accidental mill-kombo għal kull talba                             |
-| **Piziżżat**                  | Jivverifika b'mod proporzjonali skont il-piżijiet assenjati għal kull mudell     |
-| **L-iktar Użat**              | Jivverifika lejn il-mudell bil-ftit talbiet reċenti (jjuża metrics tal-kombo)    |
-| **Ottimizzat għall-Ispejjeż** | Jivverifika lejn l-iktar mudell irħas disponibbli (jjuża tabella tal-prezzijiet) |
+| Strategy           | Description                                                              |
+| ------------------ | ------------------------------------------------------------------------ |
+| **Round-Robin**    | Rotates through models sequentially                                      |
+| **Priority**       | Always tries the first model; falls back only on error                   |
+| **Random**         | Picks a random model from the combo for each request                     |
+| **Weighted**       | Routes proportionally based on assigned weights per model                |
+| **Least-Used**     | Routes to the model with the fewest recent requests (uses combo metrics) |
+| **Cost-Optimized** | Routes to the cheapest available model (uses pricing table)              |
 
-Defaults globali tal-kombo jistgħu jinstabu fil-**Dashboard → Settings → Rutjar → Defaults tal-Kombo**.
-It-timeouts tal-kombo intrist minn it-timeout tal-talba attwali b'mod default. Uża **Timeout tal-mira (sekondi)** fil-defaults tal-kombo jew kombo individwali biss meta limitu iqsar għal kull mira għandu jikkanċella fallback aktar mgħaġġel.
+Global combo defaults can be set in **Dashboard → Settings → Routing → Combo Defaults**.
+Combo target timeouts inherit the current request timeout by default. Use **Target timeout
+(seconds)** on combo defaults or an individual combo only when a shorter per-target limit should
+trigger faster fallback.
 
-Ottimizzazzjonijiet tal-kombo b'latebja zero huma fil-permess. Ħalli **Ottimizzazzjonijiet b'latebja zero** mhux fil-permess biex tevita li dawn il-karatteristiċi tal-atebjija jiġru mal-miri tal-fallback, jaqsmu miri skont l-istorja tal-TTFT, jew jissikksaw talbiet fallback; jekk jitlesta jippermetti hedging konfigurat, skip predictor tal-TTFT, u s-sikksar proattiv tal-fallback biex itttrasferixxi l-fedelta tal-rotja/talba għal atebja eqsar ta' pont.
+Zero-latency combo optimizations are opt-in. Leave **Zero-latency optimizations** disabled to
+prevent these latency features from racing fallback targets, skipping targets based on TTFT
+history, or compressing fallback requests; enabling it allows configured hedging, predictive TTFT
+skips, and proactive fallback compression to trade routing/request fidelity for lower tail
+latency.
 
-Fil-permess **Buffer tal-Token tar-Raguna** meta fornituri upstream jeħtieġu limiti stretti `max_tokens` / `maxOutputTokens`. Meta miftuħ, il-rotja tal-kombo iżżid biss spazju ta' prijorità tal-mudell tar-raguna għal mudelli b'limitu magħruf tal-output u tħalli l-limitu tal-token tal-client inbidel meta l-valur sikur tal-buffer jaqbeż dak il-limitu. Jekk il-limitu tal-client diġa' huwa 'l fuq minn limitu magħruf, OmniRoute iwaħħalhu għal dak il-limitu qabel ma jibagħat it-talba upstream.
-
----
-
-### Dashboard tas-Saħħa
-
-Aċċess permezz **Dashboard → Saħħa**. Ġabra real-time tal-istat tas-sistema b'6 karti:
-
-| Karta                     | Ulied juru                                                         |
-| ------------------------- | ------------------------------------------------------------------ |
-| **Istat tas-Sistema**     | Ħin mixgħul, verżjoni, użu tal-memorja, direttorju tad-data        |
-| **Saħħa tal-Furnitur**    | Istat runtime tal-kuritur globali tal-furnitur                     |
-| **Miżuri tar-Rata**       | Cooldowns attivi tal-Ġonta għal kull kont b'ħin fadal              |
-| **Blokkamenti Attivi**    | Blokkamenti ta' skop tal-mudell attivi u eskluzjonijiet temporanji |
-| **Buffer tal-Firma**      | Statistika tal-cache tal-iskoppjar (ċavetti attivi, rata ta' hit)  |
-| **Telemetria l-atebjija** | Ġabra l-atebjija p50/p95/p99 għal kull fornitur                    |
-
-**Parir ta' Pert:** Il-paġna Saħħa tixtaq awtomatikament kull 10 sekondi. Uża l-karta tal-kuritur biex tidentifika liema fornituri qed jesperjenzaw problemi.
+Disable **Reasoning token buffer** when upstream providers require strict
+`max_tokens` / `maxOutputTokens` limits. When enabled, combo routing only adds reasoning-model
+headroom for models with a known output cap and leaves the client token limit unchanged when the
+safe buffered value would exceed that cap. If the client limit is already above a known cap,
+OmniRoute clamps it down to that cap before sending the upstream request.
 
 ---
 
-## 🤖 Awto-Routjar (B’ebda konfigurazzjoni)
+### Health Dashboard
 
-OmniRoute jittrasmetti b’**awto-router mmexxi b’iskor** li jagħżel l-aħjar mudell għal kull talba fost il-provdituri kollha konnessi — l-ebda kombo x’tżomm. Agħti biss it-talba b’wieħed mill-prefissi `auto/*` u l-Omniroute se jkabbar kombo virtwali fuq il-post, billi jskora l-kandidati skont id-dewmien, l-ispiża, ir-rata ta’ suċċess, l-adattament tal-kuntest, l-adattament tal-mudell għall-impjiegi, it-telf reċenti, il-kwota, u l-kundizzjonijiet tal-ksur tal-ċirkuwitu.
+Access via **Dashboard → Health**. Real-time system health overview with 6 cards:
 
-| Prefiss        | Jottimizza għal                                                                                                      |
-| -------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `auto`         | Default bilanċjat (dewmien × ispiża × rata ta’ suċċесс)                                                              |
-| `auto/coding`  | Xogħlijiet tal-kodifikazzjoni: jippreferixxi Claude, GPT-5, GLM, Kimi, Qwen Coder, il-kodifikaturi DeepSeek          |
-| `auto/cheap`   | L-iqsar $/token, jaccetta aktar dewmien                                                                              |
-| `auto/fast`    | L-iqsar dewmien, injora l-ispiża                                                                                     |
-| `auto/offline` | Provdituri biss lokali (Ollama, vLLM, llama.cpp) — utli għal ambjenti mħottas                                        |
-| `auto/smart`   | Kwalità tar-ragunament l-ewwel (Opus, GPT-5 xhigh, R1, ragunament GLM 5.1)                                           |
-| `auto/lkgp`    | "Provdituri Magħrufa Tajbin ta’ l-Aħħar" — imwaħħal mal-aħħar provditur ta’ suċċесс, imbagħad jirrikorri għar-regoli |
+| Card                  | What It Shows                                               |
+| --------------------- | ----------------------------------------------------------- |
+| **System Status**     | Uptime, version, memory usage, data directory               |
+| **Provider Health**   | Global provider circuit breaker runtime state               |
+| **Rate Limits**       | Active connection cooldowns per account with remaining time |
+| **Active Lockouts**   | Active model-scoped lockouts and temporary exclusions       |
+| **Signature Cache**   | Deduplication cache stats (active keys, hit rate)           |
+| **Latency Telemetry** | p50/p95/p99 latency aggregation per provider                |
 
-Eżempju:
+**Pro Tip:** The Health page auto-refreshes every 10 seconds. Use the circuit breaker card to identify which providers are experiencing issues.
+
+---
+
+## 🤖 Auto-Routing (Zero-config)
+
+OmniRoute ships with a **score-driven auto-router** that picks the best model for each request across every connected provider — no combo to maintain. Just send the request with one of the `auto/*` prefixes and OmniRoute will assemble a virtual combo on the fly, scoring candidates on latency, cost, success rate, context fit, model fitness for the task, recent failures, quota, and circuit-breaker state.
+
+| Prefix         | Optimizes for                                                                               |
+| -------------- | ------------------------------------------------------------------------------------------- |
+| `auto`         | Balanced default (latency × cost × success rate)                                            |
+| `auto/coding`  | Coding tasks: prefers Claude, GPT-5, GLM, Kimi, Qwen Coder, DeepSeek coders                 |
+| `auto/cheap`   | Lowest $/token, accepts higher latency                                                      |
+| `auto/fast`    | Lowest latency, ignores cost                                                                |
+| `auto/offline` | Local-only providers (Ollama, vLLM, llama.cpp) — useful for air-gapped setups               |
+| `auto/smart`   | Reasoning quality first (Opus, GPT-5 xhigh, R1, GLM 5.1 reasoning)                          |
+| `auto/lkgp`    | "Last Known Good Provider" — pins to the last successful provider, then falls back to rules |
+
+Example:
 
 ```bash
 curl -X POST http://localhost:20128/v1/chat/completions \
@@ -1092,28 +1105,28 @@ curl -X POST http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "auto/coding",
-    "messages": [{ "role": "user", "content": "Refactor dan il-funzjoni Python" }],
+    "messages": [{ "role": "user", "content": "Refactor this Python function" }],
     "stream": true
   }'
 ```
 
-L-awto-router huwa deskritt b’mod sħiħ f’[AUTO-COMBO.md](../routing/AUTO-COMBO.md) — inkluż kif tista’ taġġusta l-piżijiet tal-iskor, tissanzjona provdituri, u tispezzjona d-deċiżjonijiet tar-routjar f’**Dashboard → Auto Combo**.
+The auto-router is fully described in [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — including how to tune scoring weights, blacklist providers, and inspect routing decisions in **Dashboard → Auto Combo**.
 
 ---
 
-## 🔌 Integrazzjoni MCP & A2A
+## 🔌 MCP & A2A Integration
 
-L-Omniroute huwa kemm **server MCP** (Protokoll tal-Kuntest tal-Mudell) kif ukoll **server A2A** (Agent-to-Agent JSON-RPC 2.0). Kwalunkwe IDE jew provditur tal-aġenti kompatibbli mal-MCP jista’ sejjaħ għall-għodod tal-Omniroute direttament — l-ebda wrapper addizzjonali meħtieġ.
+OmniRoute is both an **MCP server** (Model Context Protocol) and an **A2A server** (Agent-to-Agent JSON-RPC 2.0). Any MCP-compatible IDE or agent host can call OmniRoute tools directly — no extra wrapper required.
 
-### Trasporti MCP
+### MCP transports
 
 - **SSE**: `http://localhost:20128/api/mcp/sse`
 - **Streamable HTTP**: `http://localhost:20128/api/mcp/stream`
-- **stdio**: `omniroute --mcp` (għal plugins tal-IDE li jippreferixxu l-stdio)
+- **stdio**: `omniroute --mcp` (for IDE plugins that prefer stdio)
 
-### Konnetti Claude Desktop
+### Connect Claude Desktop
 
-Editja `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) jew l-ekwivalenti fuq Windows/Linux:
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or the equivalent on Windows/Linux:
 
 ```json
 {
@@ -1126,176 +1139,168 @@ Editja `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 }
 ```
 
-### Konnetti Cursor / Continue / VS Code MCP
+### Connect Cursor / Continue / VS Code MCP
 
-Ipprovdilhom l-URL SSE `http://localhost:20128/api/mcp/sse` u API key ġenerata f’**Dashboard → API Keys**.
+Use the SSE URL `http://localhost:20128/api/mcp/sse` and a Bearer API key generated in **Dashboard → API Keys**.
 
-### Ambiti
+### Scopes
 
-L-MCP bħalissa jiddefinixxi 32 ambitu magħruf. Kull Bearer key jista’ jiġi limitat għal ambitti speċifiċi — ara [MCP-SERVER.md](../frameworks/MCP-SERVER.md) għall-inventarju awtorevoli tal-ambiti u l-għodod, u [A2A-SERVER.md](../frameworks/A2A-SERVER.md) għas-skema JSON-RPC.
-
----
-
-## 🧩 Sistema ta' Ħiliet
-
-OmniRoute toffri **qafas ta' ħiliet estensibbli** (`src/lib/skills/`) sabiex l-agenti u l-punt tat-tmiem A2A jistgħu jwettqu rutini speċifiċi għal domini (eż. `code-review`, `summarize`, `extract-facts`, `web-research`).
-
-- **Interfaċi tal-Marketplace** — Stenna u tinstalla ħiliet minn **Dashboard → Ħiliet**
-- **Ambiti fuq iċ-ċavetta** — Irstrinġu liema ċavetti tal-API jistgħu jsejħu liema ħiliet
-- **Ħiliet personalizzati** — Waqqa' fajl TypeScript f' `src/lib/a2a/skills/`, irreġistrah, u immedjatament isir invokabbli permezz tal-A2A
-
-Referenza sħiħa: [SKILLS.md](../frameworks/SKILLS.md).
+MCP currently defines 32 named scopes. Each Bearer key can be limited to specific scopes — see [MCP-SERVER.md](../frameworks/MCP-SERVER.md) for the authoritative scope and tool inventory and [A2A-SERVER.md](../frameworks/A2A-SERVER.md) for the JSON-RPC schema.
 
 ---
 
-## 💾 Sistema tal-Memorja
+## 🧠 Skills System
 
-OmniRoute jippreżerva **memorja twila tal-konverżazzjoni** b'retrieval ibridu:
+OmniRoute exposes an extensible **skill framework** (`src/lib/skills/`) so agents and the A2A endpoint can run domain-specific routines (e.g. `code-review`, `summarize`, `extract-facts`, `web-research`).
 
-- **SQLite FTS5** għal tiftixa bil-kelma mal-turns li għaddew
-- **Ħażna vetturali ta' Qdrant** (għażla) għal tifkira semantika
-- **Spezzjoni awtomatika tal-fatti** — L-entitajiet, il-preferenzi, u d-deċiżjonijiet jiġu rrasummjati wara kull session u maħżuna fil- `memory_facts`
-- Il-memorji huma skopjati skont iċ-ċavetta tal-API u skont is-sessjoni
+- **Marketplace UI** — Browse and install skills from **Dashboard → Skills**
+- **Per-key scopes** — Restrict which API keys can invoke which skills
+- **Custom skills** — Drop a TypeScript file in `src/lib/a2a/skills/`, register it, and it becomes immediately invocable over A2A
 
-Immaniġġja l-mororji f' **Dashboard → Memorja** (tiftixa, teditja, esportazzjoni, tneħħija). L-isuperfiċi HTTP (`/api/memory/*`) tippermetti lill-agenti jippromwovu u jistaqsu l-fatti b'mod programmatiku — ara [MEMORY.md](../frameworks/MEMORY.md).
+Full reference: [SKILLS.md](../frameworks/SKILLS.md).
+
+---
+
+## 💾 Memory System
+
+OmniRoute persists **long-term conversational memory** with hybrid retrieval:
+
+- **SQLite FTS5** for keyword search across past turns
+- **Qdrant vector store** (optional) for semantic recall
+- **Automatic fact extraction** — entities, preferences, and decisions are summarized after each session and stored in the `memory_facts` table
+- Memories are scoped per API key and per session
+
+Manage memories in **Dashboard → Memory** (search, edit, export, purge). The HTTP surface (`/api/memory/*`) lets agents push and query facts programmatically — see [MEMORY.md](../frameworks/MEMORY.md).
 
 ---
 
 ## 🔔 Webhooks
 
-Abbona għall-avvenimenti tal-OmniRoute għal monitoraġġ u awtomazzjoni f'ħin reali.
+Subscribe to OmniRoute events for real-time monitoring and automation.
 
-- Oħloq webhook f' **Dashboard → Webhooks** b'URL ta' skop u sigriet tal-iffirma HMAC
-- L-avvenimenti disponibbli: `request.completed`, `request.failed`, `provider.unavailable`, `budget.exceeded`, `combo.switched`, `circuit_breaker.opened`, `circuit_breaker.closed`
-- Kull payload jinkludi `X-OmniRoute-Signature` (HMAC-SHA256) għal verifika
-- Storji: 3 attentat b'retroċessjoniment esponenzjali, imbagħad il-queue tal-mewt
+- Create a webhook in **Dashboard → Webhooks** with target URL and HMAC signing secret
+- Available events: `request.completed`, `request.failed`, `provider.unavailable`, `budget.exceeded`, `combo.switched`, `circuit_breaker.opened`, `circuit_breaker.closed`
+- Every payload includes `X-OmniRoute-Signature` (HMAC-SHA256) for verification
+- Retries: 3 attempts with exponential backoff, then dead-letter queue
 
-Is-sema sħiħa f' [WEBHOOKS.md](../frameworks/WEBHOOKS.md).
-
----
-
-## ☁️ Aġenti tal-Cloud
-
-OmniRoute jintegra ma' aġenti tal-kodiċi tal-cloud (**OpenAI Codex Cloud**, **Devin**, **Jules**, **Antigravity**) sabiex tista' tiddispatchja xogħlijiet li jdumu fit-tul minn l-istess dashboard li tiġġestixxi r-rotta lokali tiegħek.
-
-- Oħloq xogħlijiet f' **Dashboard → Aġenti tal-Cloud** jew permezz ta' `POST /api/v1/agents/tasks`
-- Iġbor l-istatus, il-logs, u l-artifatti għal kull xogħol
-- Ġib ċavetta tal-API tiegħek stess għal kull fornitur — il-kredenzjali qatt ma ħarġu minn l-istanza tal-OmniRoute
-
-Referenza sħiħa: [CLOUD_AGENT.md](../frameworks/CLOUD_AGENT.md).
+Full schema in [WEBHOOKS.md](../frameworks/WEBHOOKS.md).
 
 ---
 
-## 🛠️Ġestjoni Programmatika
+## ☁️ Cloud Agents
 
-Tista' timmaniġġja kull riżorsa tal-OmniRoute (fornituri, kombos, ċavetti, settings) permezz ta' HTTP billi tuża **ċavetta Bearer b' l-ambitu `manage`**.
+OmniRoute integrates with cloud coding agents (**OpenAI Codex Cloud**, **Devin**, **Jules**, **Antigravity**) so you can dispatch long-running tasks from the same dashboard that handles your local routing.
 
-Ġenera l-ċavetta f' **Dashboard → Ċavetti tal-API → Ċavetta Ġdida → Ambitu: manage**, imbagħad:
+- Create tasks in **Dashboard → Cloud Agents** or via `POST /api/v1/agents/tasks`
+- Track status, logs, and artifacts per task
+- Bring-your-own API key per provider — credentials never leave the OmniRoute instance
+
+Full reference: [CLOUD_AGENT.md](../frameworks/CLOUD_AGENT.md).
+
+---
+
+## 🛠️ Programmatic Management
+
+You can manage every OmniRoute resource (providers, combos, keys, settings) over HTTP using a **Bearer key with the `manage` scope**.
+
+Generate the key in **Dashboard → API Keys → New Key → Scope: manage**, then:
 
 ```bash
-# Lista tal-fornituri
+# List providers
 curl http://localhost:20128/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 
-# Żid konnessjoni mal-fornitur
+# Add a provider connection
 curl -X POST http://localhost:20128/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "provider": "openai", "apiKey": "sk-...", "name": "main" }'
 
-# Oħloq combo
+# Create a combo
 curl -X POST http://localhost:20128/api/combos \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "name": "premium", "strategy": "priority", "models": [{ "model": "cc/claude-opus-4-7" }, { "model": "glm/glm-5.1" }] }'
 
-# Lista/ħoloq ċavetti tal-API
+# List/create API keys
 curl http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -d '{ "name": "ci-bot", "scopes": ["chat"] }'
 ```
 
-Ara [API_REFERENCE.md](../reference/API_REFERENCE.md) għall-katalgu sħiħ tal-punti tat-tmiem u l-isemi tal-istedina/rispons.
+See [API_REFERENCE.md](../reference/API_REFERENCE.md) for the full endpoint catalog and request/response schemas.
 
 ---
 
-## 💻 CLI Interna
+## 💻 Internal CLI
 
-OmniRoute jipprovdi CLI intern (`omniroute …`) għat-twaqqif, dijanjostika, u kontroll waqt l-isfond. Dan huwa **separat mill-paġna "Għodod CLI" fil-dashboard**, li tikkonfigura CLIs ta' parti terza (Claude Code, Cursor, Codex, Cline, …) sabiex ikunu jistgħu jikkomunikaw ma' OmniRoute.
+OmniRoute ships an internal CLI (`omniroute …`) for setup, diagnostics, and runtime control. This is **separate from the "CLI Tools" page in the dashboard**, which configures third-party CLIs (Claude Code, Cursor, Codex, Cline, …) so they can talk to OmniRoute.
 
 ```bash
-omniroute setup                    # Wizard interattiv (password, fornituri, kombinazzjonijiet)
-omniroute setup --non-interactive  # Ħaġar għal CI
-omniroute doctor                   # Dijanjostika tas-saħħa (dir. tad-dett, DB, fornituri, portijiet)
-omniroute providers available      # Elenka l-fornituri appoġġjati
-omniroute providers list           # Elenka konnessjonijiet ikkonfigurati
-omniroute providers test <id>      # Test ħaj ta' konnessjoni ta' fornitur
-omniroute combos list              # Elenka l-kombinazzjonijiet
-omniroute combos switch <name>     # Waqqaf kombinazzjoni default
-omniroute models                   # Elenka mudelli disponibbli (--json, --search)
-omniroute keys add | list | remove # Ġestixxi ċav API mill-terminal
-omniroute backup                   # Fenfas ta' konfigurazzjoni + DB
-omniroute restore [<timestamp>]    # Irrestorja minn fenfas
-omniroute health                   # Saħħa dettaljata (breakers, cache, memorja)
-omniroute quota                    # Użu tal-kwota tal-fornitur
-omniroute mcp status               # Statut tal-server MCP
-omniroute a2a status               # Statut tal-server A2A
-omniroute tunnel list|create|stop  # Tunelli Cloudflare/Tailscale/ngrok
-omniroute reset-password           # Ġeddid il-password tal-amministratur
-omniroute --mcp                    # Daħħal server MCP permezz ta' stdio
-omniroute --port 3000              # Daħħal il-server fuq port personaliżżat
+omniroute setup                    # Interactive wizard (password, providers, combos)
+omniroute setup --non-interactive  # CI-friendly
+omniroute doctor                   # Health diagnostics (data dir, DB, providers, ports)
+omniroute providers available      # List supported providers
+omniroute providers list           # List configured connections
+omniroute providers test <id>      # Live test a provider connection
+omniroute combos list              # List combos
+omniroute combos switch <name>     # Set default combo
+omniroute models                   # List available models (--json, --search)
+omniroute keys add | list | remove # Manage API keys from the terminal
+omniroute backup                   # Snapshot config + DB
+omniroute restore [<timestamp>]    # Restore from a snapshot
+omniroute health                   # Detailed health (breakers, cache, memory)
+omniroute quota                    # Provider quota usage
+omniroute mcp status               # MCP server status
+omniroute a2a status               # A2A server status
+omniroute tunnel list|create|stop  # Cloudflare/Tailscale/ngrok tunnels
+omniroute reset-password           # Reset the admin password
+omniroute --mcp                    # Start MCP server over stdio
+omniroute --port 3000              # Start the server on a custom port
 ```
 
-Parir: għaqqad `omniroute doctor --json` mal-għodda ta' monitoraġġ tiegħek biex twissi meta konnessjonijiet tal-fornituri m'humiex fl-isħun.
+Tip: pair `omniroute doctor --json` with your monitoring tool to alert on unhealthy provider connections.
 
 ---
 
-## 🖥️ Applikazzjoni Desktop (Electron)
+## 🖥️ Desktop Application (Tauri 2)
 
-OmniRoute huwa disponibbli bħala applikazzjoni desktop nattiva għal Windows, macOS, u Linux.
+OmniRoute is available as a native desktop application for Windows, macOS, and Linux, built on Tauri 2 (Rust shell + system webview).
 
-### Twaqqif
-
-```bash
-# Mill-dir. electron:
-cd electron
-npm install
-
-# Modalità żvilupp (għaqqad ma' server Next.js ta' żvilupp li qed jaħdem):
-npm run dev
-
-# Modalità produzzjoni (tuża build standard):
-npm start
-```
-
-### Twaqqif ta' Installaturi
+### Development
 
 ```bash
-cd electron
-npm run build          # Pjattaforma attwali
-npm run build:win      # Windows (.exe NSIS)
-npm run build:mac      # macOS (.dmg universali)
-npm run build:linux    # Linux (.AppImage)
+# Rust shell + SvelteKit dev server (hot reload):
+cd apps/desktop/src-tauri
+cargo tauri dev
 ```
 
-Output → `electron/dist-electron/`
+### Building the App
 
-### Karatteristiċi Ċav
+```bash
+cd apps/desktop/src-tauri
+cargo tauri build          # Current platform
+```
 
-| Karatteristika                        | Twaħħal                                                           |
-| ------------------------------------- | ----------------------------------------------------------------- |
-| **Disponibbiltà tal-Server**          | Jivverifika qabel ma juri l-fenestra (bla skrin bħal din)         |
-| **Tray tal-Isistema**                 | Naqqas għal-tray, ibdel il-port, ħarba minn menu tray             |
-| **Ġestjoni tal-Port**                 | Ibdel port tal-server minn tray (ijerra mill-ġdid awtomatikament) |
-| **Politika ta' Sigurtà tal-Kontenut** | CSP ristrett permezz ta' intestaturi session                      |
-| **Munzell Wieħed**                    | Biss wieħed mill-app jeħtieġ jaħdem f'ħin wieħed                  |
-| **Modalità Offline**                  | Is-server NextRoute inklux jaħdem mingħajr internet               |
+Output → `apps/desktop/src-tauri/target/release/bundle/` (`macos/OmniRoute.app`, platform bundles).
 
-### Variabbli tal-Ambjent
+### Key Features
 
-| Variabbja             | Default | Twaħħal                               |
-| --------------------- | ------- | ------------------------------------- |
-| `OMNIROUTE_PORT`      | `20128` | Port tal-server                       |
-| `OMNIROUTE_MEMORY_MB` | `512`   | Limitu tal-ħira Node.js (64–16384 MB) |
+| Feature                     | Description                                          |
+| --------------------------- | ---------------------------------------------------- |
+| **Server Readiness**        | Polls server before showing window (no blank screen) |
+| **System Tray**             | Minimize to tray, change port, quit from tray menu   |
+| **Port Management**         | Change server port from tray (auto-restarts server)  |
+| **Content Security Policy** | Restrictive CSP in `tauri.conf.json`                 |
+| **Single Instance**         | Only one app instance can run at a time              |
+| **Offline Mode**            | Embedded SvelteKit frontend works without internet   |
+| **Embedded Frontend**       | SPA bundled into the binary via `custom-protocol`    |
 
-📖 Dokumentazzjoni sħiħa: [`electron/README.md`](../../electron/README.md)
+### Environment Variables
+
+| Variable              | Default | Description                      |
+| --------------------- | ------- | -------------------------------- |
+| `OMNIROUTE_PORT`      | `20128` | Server port                      |
+| `OMNIROUTE_MEMORY_MB` | `512`   | Node.js heap limit (64–16384 MB) |
+
+📖 Full documentation: [`apps/desktop/README.md`](../../apps/desktop/README.md)

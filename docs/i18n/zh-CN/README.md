@@ -59,7 +59,7 @@
 ![NPM Monthly](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 ![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+![Desktop Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=desktop%20downloads&logo=desktop&color=47848F)
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 
 </div>
@@ -392,14 +392,14 @@ Combo: "always-on"                         策略: priority
 | ------------------------ | ---------------------------------------- | ------------------------------------------------- |
 | 📦 **npm（全局）**       | `npm install -g omniroute`               | 一行命令，任意 OS                                 |
 | 🐳 **Docker**            | `docker run … diegosouzapw/omniroute`    | 多架构 **AMD64 + ARM64**                          |
-| 🖥️ **桌面（Electron）**  | `npm run electron:build`                 | 原生窗口 + 系统托盘 — **Windows / macOS / Linux** |
+| 🖥️ **桌面（Tauri 2）**   | `cargo tauri build`                      | 原生窗口 + 系统托盘 — **Windows / macOS / Linux** |
 | 💪 **ARM**               | 原生 `arm64`                             | 树莓派、ARM 服务器、Apple Silicon                 |
 | 📱 **Android（Termux）** | `pkg install nodejs && npx -y omniroute` | **在手机上** 7×24 运行，无需 Root                 |
 | 📲 **PWA**               | "添加到主屏幕"                           | 全屏、离线、可从浏览器安装                        |
 | 🧩 **OpenCode 插件**     | `@omniroute/opencode-provider`           | 原生 OpenCode 集成                                |
 | 🛠️ **源码构建**          | `npm install && npm run dev`             | 动手改造，贡献代码                                |
 
-<sub>📖 [Docker 指南](../../guides/DOCKER_GUIDE.md) · [桌面端](../../electron/README.md) · [Termux](../../guides/TERMUX_GUIDE.md) · [PWA](../../guides/PWA_GUIDE.md) · [OpenCode](../../frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker 指南](../../guides/DOCKER_GUIDE.md) · [桌面端](../../docs/guides/DESKTOP_GUIDE.md) · [Termux](../../guides/TERMUX_GUIDE.md) · [PWA](../../guides/PWA_GUIDE.md) · [OpenCode](../../frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -884,7 +884,7 @@ podman compose --profile base up -d --build
 - **流式传输**：服务器推送事件（SSE）+ WebSocket 桥接（`/v1/ws`）
 - **认证**：OAuth 2.0（PKCE）+ JWT + API Key + MCP 权限域授权
 - **测试**：Node.js 原生测试运行器 + Vitest（**14,965 个测试用例**，覆盖 517 个文件 — 单元、集成、E2E、安全、生态）
-- **平台**：桌面端（Electron）、Android（Termux）、PWA（任意浏览器）
+- **平台**：桌面端（Tauri 2）、Android（Termux）、PWA（任意浏览器）
 - **CI/CD**：GitHub Actions（Release 时自动发布至 npm + Docker Hub）
 - **官网**：[omniroute.online](https://omniroute.online)
 - **npm 包**：[npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
@@ -1010,7 +1010,7 @@ podman compose --profile base up -d --build
         <b>benzntech</b>
       </a><br/>
       <sub>🏅 20 次提交 · +7.5K 行</sub><br/>
-      <sub>Electron 桌面应用、自动更新、<br/>发布构建工作流、跨平台 CI</sub>
+      <sub>Tauri 2 桌面应用、自动更新、<br/>发布构建工作流、跨平台 CI</sub>
     </td>
   </tr>
 </table>
@@ -1021,163 +1021,11 @@ podman compose --profile base up -d --build
 
 ---
 
-<br/>
-
 <div align="center">
 
-## 👥 贡献者
+**[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
 
-</div>
-
-[![Contributors](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=100&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
-
-### 如何贡献
-
-1. Fork 本仓库
-2. 创建功能分支（`git checkout -b feature/amazing-feature`）
-3. 提交更改（`git commit -m 'Add amazing feature'`）
-4. 推送分支（`git push origin feature/amazing-feature`）
-5. 创建 Pull Request
-
-详见 [CONTRIBUTING.md](../../CONTRIBUTING.md) 获取完整开发指南。
-
-### 发布新版本
-
-```bash
-# 创建 Release — npm 发布将自动触发
-gh release create v3.8.2 --title "v3.8.2" --generate-notes
-```
-
-<br/>
-
-<div align="center">
-
-## 📊 Star 历史
-
-<a href="https://www.star-history.com/?repos=diegosouzapw%2Fomniroute&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
- </picture>
-</a>
-</div>
-
-<br/>
-
-<div align="center">
-
-## 🌍 StarMapper
-
-<a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
-    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
-  </picture>
-</a>
-</div>
-
-<br/>
-
-<div align="center">
-
-## 🙏 致谢
-
-</div>
-
-OmniRoute 是站在巨人肩膀上的作品。它始于 **[9router](https://github.com/decolua/9router)** 的一个 Fork 以及 Go 项目 **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** 的 TypeScript 移植 — 自此，以下每个子系统均受惠于先行者的开源成果。每一个项目都在 OmniRoute 中留下了具体印记。这是我们对所有项目的由衷感谢。🙏
-
-> ⭐ 星标数为 2026 年 6 月数据 — 请给这些项目点颗星。
-
-### 🧬 渊源与网关
-
-| 项目                                                                            | ⭐    | 对 OmniRoute 的启发                                                                       |
-| ------------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------------------------------- |
-| **[9router](https://github.com/decolua/9router)** · decolua                     | 17.9k | 此 Fork 所基于的原型项目 — 此处扩展了多模态 API 并完成了全面 TypeScript 重写。            |
-| **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** · router-for-me | 37.8k | 启发本 JavaScript/TypeScript 移植版的 Go 语言实现。                                       |
-| **[LiteLLM](https://github.com/BerriAI/litellm)** · BerriAI                     | 50.8k | AI 网关，其公开定价数据集为我们提供成本同步数据，其服务商规范化模型启发了我们的路由体系。 |
-
-### 🗜️ 上下文与 Token 压缩 — 引擎
-
-| 项目                                                                         | ⭐    | 对 OmniRoute 的启发                                                                                          |
-| ---------------------------------------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------ |
-| **[Caveman](https://github.com/JuliusBrussee/caveman)** · JuliusBrussee      | 74.5k | "Token 够用就好"爆款项目 — 其原始人风格哲学驱动着我们的标准压缩模式及 30+ 条填充词/凝练规则。                |
-| **[RTK – Rust Token Killer](https://github.com/rtk-ai/rtk)** · rtk-ai        | 63.6k | 高性能命令输出压缩 — 启发了我们的 RTK 引擎、JSON 过滤器 DSL、原始输出恢复及 RTK → Caveman 级联流水线。       |
-| **[headroom](https://github.com/chopratejas/headroom)** · chopratejas        | 33.6k | 可逆上下文压缩（SmartCrusher）— 启发了我们的 `headroom` 引擎及 `ccr` 检索标记模式。                          |
-| **[LLMLingua](https://github.com/microsoft/LLMLingua)** · Microsoft          | 6.3k  | 提示压缩研究（LLMLingua / LLMLingua-2）— 启发了我们的异步、代码安全、Fail-Open 的 `llmlingua` 引擎。         |
-| **[llmlingua-2-js](https://github.com/atjsh/llmlingua-2-js)** · atjsh        | 27    | JS/ONNX 移植（MobileBERT / XLM-RoBERTa），用作我们 LLMLingua 引擎的 Worker Thread 后端。                     |
-| **[Troglodita](https://github.com/leninejunior/troglodita)** · Lenine Júnior | 15    | PT-BR Token 压缩 — 驱动我们的 pt-BR 语言包：针对巴西葡萄牙语语法调优的赘语消减与填充词移除。                 |
-| **[ponytail](https://github.com/DietrichGebert/ponytail)** · DietrichGebert  | 51.4k | "经验丰富的高级开发" YAGNI 编码技能 — 启发了我们的**少即是多**输出风格：最小化可用改动引导，减少生成代码量。 |
-
-### 🧩 紧凑格式、Token 研究与代码感知工具
-
-| 项目                                                                                           | ⭐    | 对 OmniRoute 的启发                                                                                                                     |
-| ---------------------------------------------------------------------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| **[TOON](https://github.com/toon-format/toon)** · toon-format                                  | 24.6k | Token 导向对象表示法 — 其列式、表头加行的数据模型塑造了我们的表格式压缩阶段。                                                           |
-| **[GCF – Graph Compact Format](https://github.com/blackwell-systems/gcf)** · Blackwell Systems | 11    | 模式感知的"LLM 专用 JSON"表示法 — 共同启发了我们带 `[N rows]` 标记的无损同构数组压缩。                                                  |
-| **[token-optimizer-mcp](https://github.com/ooples/token-optimizer-mcp)** · ooples              | 409   | Brotli/SQLite 缓存 + 按会话上下文增量 — 启发了我们的 `session-dedup` 引擎。                                                             |
-| **[token-savior](https://github.com/Mibayy/token-savior)** · Mibayy                            | 993   | Bash 输出压缩 + MCP 配置文件 — 启发了我们的压缩安全回退机制及 MCP 工具清单简化。                                                        |
-| **[token-saver](https://github.com/ppgranger/token-saver)** · ppgranger                        | 103   | 内容感知、按文件类型输出压缩及故障感知回退 — 验证了我们的按类型分发和最低收益跳过策略。                                                 |
-| **[token-optimizer](https://github.com/alexgreensh/token-optimizer)** · alexgreensh            | 1.4k  | "发现隐藏 Token" — 其卸载+可恢复句柄模式启发了我们的 CCR 卸载思路。                                                                     |
-| **[TokenMizer](https://github.com/Shweta-Mishra-ai/tokenmizer)** · Shweta-Mishra-ai            | 1     | 会话图 + 跨轮次行去重蓝图，启发了我们的 session-dedup 设计。                                                                            |
-| **[OmniCompress](https://github.com/jessefreitas/OmniCompress)** · jessefreitas                | 2     | Rust 列式 JSON + 内容寻址检索 + 跨消息去重 — 验证了我们 `headroom`/`ccr`/`session-dedup` 引擎设计及"压缩形态位置无关"的缓存稳定不变量。 |
-| **[mcp-compressor](https://github.com/atlassian-labs/mcp-compressor)** · Atlassian Labs        | 80    | MCP 工具 Schema/描述压缩 — 启发了我们的 MCP 工具清单基数缩减。                                                                          |
-| **[RepoMapper](https://github.com/pdavis68/RepoMapper)** · pdavis68                            | 182   | Aider 风格仓库地图排序 — 启发了我们的仓库地图/检索排序探索。                                                                            |
-| **[quiet-shell-mcp](https://github.com/mrsimpson/quiet-shell-mcp)** · mrsimpson                | 4     | 基于 MCP 的声明式 Shell 输出缩减 — 验证了我们的声明式 Bash 输出压缩。                                                                   |
-| **[ts-morph](https://github.com/dsherret/ts-morph)** · David Sherret                           | 6.1k  | TypeScript 编译器 API 工具包 — 启发了我们基于解析器的注释移除，完整保留字符串、模板和正则字面量。                                       |
-
-### 🧠 记忆与 RAG
-
-| 项目                                                               | ⭐    | 对 OmniRoute 的启发                                                                 |
-| ------------------------------------------------------------------ | ----- | ----------------------------------------------------------------------------------- |
-| **[Mem0](https://github.com/mem0ai/mem0)** · mem0ai                | 58.9k | 通用记忆层 — 其代理即写入/读取边界模型塑造了我们的记忆架构。                        |
-| **[Letta (MemGPT)](https://github.com/letta-ai/letta)** · letta-ai | 23.4k | 具备分层记忆的有状态代理 — 启发了我们的上下文控制与恢复（CCR）分层模型。            |
-| **[WFGY](https://github.com/onestardao/WFGY)** · onestardao        | 1.8k  | 16 种常见 RAG/LLM 失效模式的 ProblemMap 分类法 — 构成了我们故障排除指南的共享词汇。 |
-
-### 🛰️ 流量检查、MITM 与透明代理
-
-| 项目                                                                              | ⭐   | 对 OmniRoute 的启发                                                                                          |
-| --------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------ |
-| **[llm-interceptor](https://github.com/chouzz/llm-interceptor)** · chouzz         | 46   | 编码助手 ↔ LLM 流量 MITM 拦截/分析 — 我们的流量检查器移植了其 SSE 合并、对话归一化、主机透传及密钥掩码方案。 |
-| **[ProxyBridge](https://github.com/InterceptSuite/ProxyBridge)** · InterceptSuite | 5.1k | 透明每进程代理路由 — 启发了我们崩溃安全的 MITM 拆卸、Socket 空闲超时、`/proc` 进程归因及 TPROXY 捕获。       |
-
-### 📚 模型数据、可观测性与 UI
-
-| 项目                                                                       | ⭐    | 对 OmniRoute 的启发                                                                       |
-| -------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------------------------------- |
-| **[models.dev](https://github.com/anomalyco/models.dev)** · SST / OpenCode | 5.1k  | AI 模型规格、定价与能力的开放数据库 — 原生同步至我们的模型目录。                          |
-| **[React Flow / xyflow](https://github.com/xyflow/xyflow)** · xyflow       | 37.1k | 驱动我们实时 Compression Studio 及 Combo/Routing Studio 的基于节点的图形库。              |
-| **[LangGraph](https://github.com/langchain-ai/langgraph)** · LangChain     | 35.1k | LangGraph Studio 的实时工作流图形可视化启发了我们 Studios 的实时级联视图。                |
-| **[Langfuse](https://github.com/langfuse/langfuse)** · Langfuse            | 29.3k | 其 trace → span → generation 可观测性模型塑造了我们的 Compression Studio 瀑布图。         |
-| **[Kiali](https://github.com/kiali/kiali)** · Kiali                        | 3.6k  | Istio 服务网格可观测性 — 启发了我们 Routing/Combo Studio 中的熔断器徽章和错误边界可视化。 |
-| **[lobe-icons](https://github.com/lobehub/lobe-icons)** · LobeHub          | 2.1k  | AI/LLM 品牌图标，渲染控制台中各服务商标识。                                               |
-
-### 🛡️ 安全
-
-| 项目                                                                                        | ⭐  | 对 OmniRoute 的启发                                                                                                  |
-| ------------------------------------------------------------------------------------------- | --- | -------------------------------------------------------------------------------------------------------------------- |
-| **[awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)** · tldrsec | 708 | 一份精选的安全默认库清单，指导我们的安全技术选型（Helmet.js、DOMPurify、ssrf-req-filter、safe-regex、Google Tink）。 |
-
-## ❤️ 支持
-
-OmniRoute 是免费开源项目，在公开环境中持续构建与维护。如果它帮你节省了时间或金钱，请考虑以以下方式支持开发：
-
-- ⭐ **为本仓库加颗 Star** — 这确确实实能帮我们提升可见度
-- 💖 **[GitHub Sponsors](https://github.com/sponsors/diegosouzapw)** — 资助持续维护和新服务商接入
-- 🐛 **在 [Discussions](https://github.com/diegosouzapw/OmniRoute/discussions) 中反馈 Bug 和分享意见**
-
-## 📄 许可证
-
-MIT 协议 — 详见 [LICENSE](../../LICENSE)。
-
----
-
-<div align="center">
-
-**[⬆ 返回顶部](#-omniroute)** · 用 ❤️ 为开源 AI 社区构建。
-
-<sub>OmniRoute v3.8.24 · Node ≥22.0.0 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->

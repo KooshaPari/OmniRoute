@@ -89,7 +89,7 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Litsents: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Dockeri tõmbamised](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electroni allalaadimised](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+![Desktop allalaadimised](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=desktop%20downloads&logo=desktop&color=47848F)
 
 <table>
   <tr>
@@ -724,7 +724,7 @@ eemal sinu shelli ajaloost. → [CLI integratsioonid](docs/guides/CLI-INTEGRATIO
   <tr><th align="left">Platvorm</th><th align="left">Paigaldamine</th><th align="left">Eripärad</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (globaalne)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Üks käsklus, suvaline OS</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Multi-arhitektuurne <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Töölaud (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Native aken + süsteemisalv — <b>Windows / macOS / Linux</b></td></tr>
+  <tr><td align="left" nowrap>🖥️ <b>Töölaud (Tauri 2)</b></td><td align="left" nowrap><code>cargo tauri build</code></td><td align="left">Native aken + süsteemisalv — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>native <code>arm64</code></td><td align="left">Raspberry Pi, ARM-serverid, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Töötab <b>sinu telefonis</b>, 24/7, ilma root-õigusteta</td></tr>
   <tr><td align="left" nowrap>📲 <b>PWA</b></td><td align="left" nowrap>"Lisa avakuvale"</td><td align="left">Täisekraan, võrguühenduseta, paigaldatav brauserist</td></tr>
@@ -733,7 +733,7 @@ eemal sinu shelli ajaloost. → [CLI integratsioonid](docs/guides/CLI-INTEGRATIO
   <tr><td align="left" nowrap>🛠️ <b>Lähtekoodist</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Nokitse selle kallal, panusta</td></tr>
 </table>
 
-<sub>📖 [Docker'i juhend](docs/guides/DOCKER_GUIDE.md) · [Töölaud](electron/README.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker'i juhend](docs/guides/DOCKER_GUIDE.md) · [Töölaud](docs/guides/DESKTOP_GUIDE.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1219,7 +1219,7 @@ Kanoonilised näitajad 2026-08-24 seisuga: **1029 unikaalset videot** · **11 13
   <tr><td nowrap><b>Vastupidavus</b></td><td>Vooluahela katkestaja, eksponentsiaalne tagasilangus, "thundering herd" efekti vältimine, automaatne enesetervenemine (auto-combo)</td></tr>
   <tr><td nowrap><b>Logimine</b></td><td>pino — struktureeritud JSON-logid koos päringu kontekstiga</td></tr>
   <tr><td nowrap><b>Testimine</b></td><td>Node.js testijooksutaja + Vitest — <b>üle 39 000 staatilise testideklaratsiooni</b> enam kui 5100 jälgitavas testifailis (üksus-, integratsiooni-, E2E-, turva- ja ekosüsteemitestid)</td></tr>
-  <tr><td nowrap><b>Platvormid</b></td><td>Töölaud (Electron) · Android (Termux) · PWA (mis tahes brauser)</td></tr>
+  <tr><td nowrap><b>Platvormid</b></td><td>Töölaud (Tauri 2) · Android (Termux) · PWA (mis tahes brauser)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automaatne npm-avaldamine + Docker Hub väljalaskmisel</td></tr>
   <tr><td nowrap><b>Lingid</b></td><td><a href="https://omniroute.online">Veebisait</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
@@ -1432,245 +1432,9 @@ Kanoonilised näitajad 2026-08-24 seisuga: **1029 unikaalset videot** · **11 13
 
 ---
 
-<br/>
-
-## 💖 Sponsorid
-
 <div align="center">
 
-Südamlik tänu inimestele, kes rahastavad OmniRoute't oma taskust — igaüks nendest panustustest hoiab projekti tasuta, sõltumatuna ja liikumas.
-
-<table>
-  <tr>
-    <td align="center" width="180">
-      <a href="https://github.com/drewbitt">
-        <img src="https://github.com/drewbitt.png?size=140" width="72" style="border-radius:50%" alt="Andrew"/><br/>
-        <b>Andrew</b>
-      </a><br/>
-      <sub>💛 Aktiivne igakuine sponsor</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/psylligent">
-        <img src="https://github.com/psylligent.png?size=140" width="72" style="border-radius:50%" alt="Vlad I"/><br/>
-        <b>Vlad I</b>
-      </a><br/>
-      <sub>💛 Aktiivne igakuine sponsor</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/pacocartones">
-        <img src="https://github.com/pacocartones.png?size=140" width="72" style="border-radius:50%" alt="Paco Cartones"/><br/>
-        <b>Paco Cartones</b>
-      </a><br/>
-      <sub>💛 Aktiivne ühekordne sponsor</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/igormorais123">
-        <img src="https://github.com/igormorais123.png?size=140" width="72" style="border-radius:50%" alt="Professor Igor Morais Vasconcelos"/><br/>
-        <b>Prof. Igor Morais</b>
-      </a><br/>
-      <sub>💛 Endine ühekordne toetaja</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/longtao77">
-        <img src="https://github.com/longtao77.png?size=140" width="72" style="border-radius:50%" alt="longtao"/><br/>
-        <b>longtao</b>
-      </a><br/>
-      <sub>💛 Endine ühekordne toetaja</sub>
-    </td>
-  </tr>
-</table>
-
-<sub>… ja teised, kes soovivad jääda anonüümseks 💛</sub>
-
-<sub>Avalikud GitHub Sponsorid kinnitati uuesti 24.08.2026. GitHubi <code>activeOnly</code> olek määrab ülaltoodud aktiivsed märgised; varem avalikustatud avalikud ühekordsed toetajad on jätkuvalt ära tänatud, ja erasponsorid jäävad anonüümseks.</sub>
-
-<b><a href="https://github.com/sponsors/diegosouzapw">💖 Hakka sponsoriks →</a></b> — igaüks dollarist hoiab OmniRoute'i tasuta ja sõltumatuna.
-
-</div>
-
-<br/>
-
-<div align="center">
-
-## 👥 600+ Kaastöölist
-
-</div>
-
-[![Contributors](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=639&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
-
-<sub>Auditeeritud 24.08.2026 külmutatud baasil <code>ac02c5b42f</code> ja korduskontroll live <code>release/v3.8.50</code> tipuga <code>dafb4ae808</code>: <b>639 normaliseeritud inimlikku Git-identiteeti</b> — 407 esineb commitide autoritena (kaasa arvatud haldaja) ja 232 vaid otsestes <code>Co-authored-by</code> järgmärgetes. Loendus normaliseerib GitHubi noreply-aadressid, jätab välja 26 boti/agendi/teenuse/asendusidentiteeti ning ei liida tavalisi e-posti aadresse ainuüksi seetõttu, et nende kuvatavad nimed ühtivad.</sub>
-
-### Kuidas kaasa aidata
-
-1. Fork'i repositoorium
-2. Loo hargnemine **aktiivse** `release/vX.Y.Z` tipu põhjal (mitte `main`-ist) — vaata [Hargnemise ja väljalaske mudel](docs/ops/BRANCHING_MODEL.md)
-3. Loo oma funktsioonide haru (`git checkout -b feat/amazing-feature`)
-4. Kinnita oma muudatused (`git commit -m 'feat: add amazing feature'`)
-5. Lükka haru serverisse (`git push origin feat/amazing-feature`)
-6. Ava Pull Request, kus **base = see `release/vX.Y.Z` haru**
-
-Vaata [CONTRIBUTING.md](CONTRIBUTING.md) üksikasjalikke juhiseid.
-
-### Uue versiooni väljalaskmine
-
-```bash
-# Loo väljalase — npm publish toimub automaatselt
-VERSION=x.y.z
-gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes
-```
-
-<br/>
-
-<div align="center">
-
-## 📊 Tähed
-
-<a href="https://www.star-history.com/?repos=diegosouzapw%2FOmniRoute&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&theme=dark&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
- </picture>
-</a>
-
-<br/>
-
-<div align="center">
-
-## 🌍 StarMapper
-
-<a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
-    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
-  </picture>
-</a>
-</div>
-
-<br/>
-
-<div align="center">
-
-## 🙏 Tänuavaldused
-
-</div>
-
-OmniRoute toetub hiiglaste õlgadele. See sai alguse **[9router](https://github.com/decolua/9router)** hargnemisena ja Go projekti **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** TypeScript-porditisena — ja sealt edasi on iga allpool nimetatud allsüsteem saanud inspiratsiooni avatud lähtekoodiga projektist, mis jõudis sinna esimesena. Igaüks neist kujundas OmniRoute'i konkreetse osa. See on meie tänu kõigile neile. 🙏
-
-> ⭐ tähtede arv on kontrollitud GitHubi REST API-st 24. augustil 2026 — käige neile projektidele tärn andmas. Arvud on täpne dateeritud hetktõmmis ja muutuvad loomulikult ajas.
-
-### 🧬 Päritolu ja lüüs (gateway)
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kuidas see OmniRoute'i inspireeris</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/decolua/9router">9router</a></b></td><td align="center">26 161</td><td>Algne projekt, millel see hargnemine põhineb — siin laiendatud multimodaalsete API-de ja täieliku TypeScript-ümberkirjutusega.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/router-for-me/CLIProxyAPI">CLIProxyAPI</a></b></td><td align="center">48 497</td><td>Go-implementatsioon, mis inspireeris seda JavaScript / TypeScript porti.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/BerriAI/litellm">LiteLLM</a></b></td><td align="center">57 100</td><td>AI-lüüs, mille avaliku hinnaandmestiku andmed toidavad meie kulujälgimise sünkroonimist ja mille teenusepakkuja-normaliseerimise mudel mõjutas meie ruutimist.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/miuuyy/codex-chatgpt-web">codex-chatgpt-web</a></b></td><td align="center">1 410</td><td>MIT-lähtekood, mis on kohandatud sisseehitatud ChatGPT Web → Codex Responses sillaks, sealhulgas brauseri-seansi, vastuse-vormistuse, kasutuse ja veebiotsingu adapterid.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Alishahryar1/free-claude-code">free-claude-code</a></b></td><td align="center">48 112</td><td>Mustrid, mis on porditud voo taastamisse, "no-thinking" pseudonüümidesse, varuveebiotsingusse, liuguraakna piirangutesse, logide varjamisse ja tugevdatud käivitusvoogudesse.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/standardagents/composer-api">composer-api</a></b></td><td align="center">322</td><td>Cursor Composer'i tööriistavaliku, väljundipiirangute ja tööriista-kinnituse mustrid, mis on kohandatud pärisliku Cursor-täitja jaoks.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ndycode/codex-multi-auth">codex-multi-auth</a></b></td><td align="center">457</td><td>Värske sisselogimise ja värskendustoken'i rotatsiooni mustrid, porditud Codex OAuth taastautentimisse.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ex-machina-co/opencode-anthropic-auth">opencode-anthropic-auth</a></b></td><td align="center">510</td><td>Claude Code-ga ühilduvad teisendusvaikeväärtused ja arveldus-päise käitumine, üldistatud OmniRoute'i konfiguratsioonipõhisesse sillasse.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/520mmxx/grok2api-merged">grok2api-merged</a></b></td><td align="center">2</td><td>Selle Grok mudeli kaardistused, võlts-TypeError Statsig generaator, päringu- ja seadme vaikeväärtused ning NDJSON vastuse töötleja on sisuliselt kohandatud OmniRoute'i Grok Web täitja jaoks.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/TQZHR/grok2api">TQZHR/grok2api</a></b></td><td align="center">705</td><td>grok2api-merged'i peamine transitiivne lähtekoodi allikas; selle mudeli, päise, koorma, Statsigi ja töötleja implementatsioonid on säilinud Grok Web pärandliinis.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/chenyme/grok2api">chenyme/grok2api</a></b></td><td align="center">7 520</td><td>Aluseks olev MIT-lähtekood Grok koorma ja seadme vaikeväärtuste, Statsig generaatori ning <code>result.response</code> töötleja jaoks, mis on kantud üle TQZHR ja grok2api-merged kaudu.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/miuzhaii/grok2api-pro">grok2api-pro</a></b></td><td align="center">27</td><td>Transitiivne allikas, mille grok2api-merged tunnustab proksi-puuli kihi eest; OmniRoute säilitab selle pärandimärke, kuid ei väida oma piiratud Grok Web täitjas proksi-puuli porti.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/CNFlyCat/GrokProxy">GrokProxy</a></b></td><td align="center">50</td><td>Selle küpsise-autentimisega Grok proksi ja <code>result.response.token</code> voogesitusmuster mõjutasid OmniRoute'i Grok Web transporti.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lianying1716/GrokBridge">GrokBridge</a></b></td><td align="center">5</td><td>Algne Grok Web implementatsioon konsulteeris selle HTTP/brauseri-põhise ülemvoo disainiga; selle otsene HTTP tee tuleneb GrokProxy'st, seega ei väidetaks siin sõltumatut koodiporti.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/imjustprism/grok-web-api">grok-web-api</a></b></td><td align="center">14</td><td>Selle Rust <code>ChatOptions</code> ja vastuse-ümbriku skeemid mõjutasid OmniRoute'i TypeScript Grok päringu- ja voogesitus-vastuse tüüpe.</td></tr>
-</table>
-
-### 🗜️ Kontekst ja tokenite tihendamine — mootorid
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kuidas see OmniRoute'i inspireeris</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/JuliusBrussee/caveman">Caveman</a></b></td><td align="center">100 538</td><td>Viraalne "miks kasutada palju tokenit, kui vähe tokenit teeb ka trikki" projekt — selle koopamehe-kõne filosoofia toidab meie standardset tihendusrežiimi ja 30+ täite-/kondenseerimisreeglit.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/rtk-ai/rtk">RTK – Rust Token Killer</a></b></td><td align="center">77 185</td><td>Kõrge jõudlusega käsurea-väljundi tihendamine — inspireeris meie RTK mootorit, JSON-filtri DSL-i, töötlemata väljundi taastamist ja pinnatud RTK → Caveman torustikku.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/headroomlabs-ai/headroom">headroom</a></b></td><td align="center">67 310</td><td>Pööratav kontekstitihendus (SmartCrusher) — inspireeris meie <code>headroom</code> mootorit ja <code>ccr</code> taastemarkeri mustrit.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/microsoft/LLMLingua">LLMLingua</a></b></td><td align="center">6 598</td><td>Promptide tihendamise teadusuuringud (LLMLingua / LLMLingua-2) — inspireeris meie asünkroonset, koodiohutut ja tõrkeohutut <code>llmlingua</code> mootorit.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/atjsh/llmlingua-2-js">llmlingua-2-js</a></b></td><td align="center">31</td><td>JS/ONNX port (MobileBERT / XLM-RoBERTa), mida kasutatakse meie LLMLingua mootori tööniidi (worker-thread) taustsüsteemina.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/leninejunior/troglodita">Troglodita</a></b></td><td align="center">40</td><td>PT-BR tokenite tihendus — toidab meie pt-BR keelepaketti: pleonasmide vähendamine ja täitesõnade eemaldamine, häälestatud Brasiilia portugali grammatikale.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/DietrichGebert/ponytail">ponytail</a></b></td><td align="center">108 957</td><td>Viraalne "laisa senior-arendaja" YAGNI-oskus — inspireeris meie <b>less-code</b> väljundistiili: väikseima toimiva muudatuse juhtimist, mis kärbib _genereeritud_ koodi (väljundi-telje vaste Caveman'i lühikesele proosale).</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ayghri/i-have-adhd">i-have-adhd</a></b></td><td align="center">23 526</td><td>Selle tegevuseelistav, ADHD-sõbralik vastusestiil on kohandatud OmniRoute'i kompaktseks väljundistiiliks viies keeles.</td></tr>
-</table>
-
-### 🧩 Kompaktsed vormingud, tokenite uuringud ja koodile teadlik tööriistastik
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kuidas see OmniRoute'i inspireeris</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/toon-format/toon">TOON</a></b></td><td align="center">25 233</td><td>Token-Oriented Object Notation — selle veerulise, päis-pluss-ridade mudel kujundas meie tabelikuju tihendusetappi.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/blackwell-systems/gcf">GCF – Graph Compact Format</a></b></td><td align="center">41</td><td>Selle kompaktne graafivorming ja generic-profiili disain mõjutasid OmniRoute'i tabelikuju tihendust ja Headroom koodeki vormingut.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/blackwell-systems/gcf-typescript">gcf-typescript</a></b></td><td align="center">4</td><td>MIT-litsentsiga TypeScript-implementatsioon, mis on otse sisse võetud ja laiendatud Headroom generic-profiili koodekiks.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ooples/token-optimizer-mcp">token-optimizer-mcp</a></b></td><td align="center">494</td><td>Brotli/SQLite vahemälu + seansipõhine konteksti-delta — inspireeris meie <code>session-dedup</code> mootorit.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Mibayy/token-savior">token-savior</a></b></td><td align="center">1 122</td><td>Bash-väljundi tihendamine + MCP profiilid — inspireeris meie tihendamise katkestusdistsipliini ja MCP tööriista-manifesti vähendamist.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ppgranger/token-saver">token-saver</a></b></td><td align="center">138</td><td>Sisu-teadlik, failitüübipõhine väljundi tihendamine tõrke-teadliku katkestusega — kinnitas meie tüübipõhist dispatchimist ja miinimumkasu vahelejättu.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/alexgreensh/token-optimizer">token-optimizer</a></b></td><td align="center">1 951</td><td>"Leia kummitus-tokenid" — selle mahalaadimise + taasleitava käepideme muster mõjutas meie CCR mahalaadimise mõtlemist.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Shweta-Mishra-ai/tokenmizer">TokenMizer</a></b></td><td align="center">28</td><td>Seansigraafi + käikudevahelise rea-dubleerimise vähendamise mudel, mis mõjutas meie session-dedup disaini.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/jessefreitas/OmniCompress">OmniCompress</a></b></td><td align="center">3</td><td>Rust veeruline JSON + sisupõhine taastemine + sõnumitevaheline dubleerimise vähendamine — kinnitas meie <code>headroom</code>/<code>ccr</code>/<code>session-dedup</code> mootorite disaini ja vahemälu-stabiilset invarianti "tihendatud vorm on positsioonist sõltumatu".</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/atlassian-labs/mcp-compressor">mcp-compressor</a></b></td><td align="center">113</td><td>MCP tööriista-skeemi/kirjelduse tihendamine — mõjutas meie MCP tööriista-manifesti kardinaalsuse vähendamist.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/pdavis68/RepoMapper">RepoMapper</a></b></td><td align="center">197</td><td>Aider-stiilis repo-kaardi hindamine — mõjutas meie repo-kaardi / otsingu-hindamise uurimist.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/mrsimpson/quiet-shell-mcp">quiet-shell-mcp</a></b></td><td align="center">4</td><td>Deklaratiivne shell-väljundi vähendamine MCP kaudu — kinnitas meie deklaratiivset bash-väljundi tihendamist.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/dsherret/ts-morph">ts-morph</a></b></td><td align="center">6 162</td><td>TypeScript Compiler API tööriistakomplekt — inspireeris meie parseripõhist kommentaaride eemaldamist, mis säilitab string-, mall- ja regulaaravaldise literaale.</td></tr>
-</table>
-
-### 🧠 Mälu ja RAG
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kuidas see OmniRoute'i inspireeris</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/mem0ai/mem0">Mem0</a></b></td><td align="center">63 902</td><td>Universaalne mälukiht — selle proksina-kirjutamise/lugemispiiri mudel kujundas meie mäluarhitektuuri.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/letta-ai/letta">Letta (MemGPT)</a></b></td><td align="center">24 382</td><td>Olekulised agendid kihilise mäluga — inspireeris meie Context Control & Recovery (CCR) kihilist mudelit.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/onestardao/WFGY">WFGY</a></b></td><td align="center">1 781</td><td>ProblemMap taksonoomia 16 korduvast RAG/LLM tõrkemustrist — jagatud sõnavara meie tõrkeotsingu juhendis.</td></tr>
-</table>
-
-### 🛰️ Liikluse jälgimine, MITM ja läbipaistev proksi
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kuidas see OmniRoute'i inspireeris</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/chouzz/llm-interceptor">llm-interceptor</a></b></td><td align="center">66</td><td>Kodeerimisassistendi ↔ LLM liikluse MITM-vahepealtkuulamine/analüüs mõjutas Traffic Inspectori algseid nõudeid. Neli varem tuletatud moodulit — SSE liitmine, vestluse normaliseerimine, saladuste maskimine ja päiste sanitiseerimine — on asendatud sõltumatute puhta-toa implementatsioonidega, mis põhinevad avalikel protokollistandarditel. Kaks host-läbilaskepinda (<code>passthrough.ts</code> ja <code>_internal/bypass.cjs</code>) jäävad OmniRoute-sisemisteks implementatsioonideks, mis on klassifitseeritud sõltumatult; neid selle asendamise käigus ümber ei kirjutatud.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/InterceptSuite/ProxyBridge">ProxyBridge</a></b></td><td align="center">5 995</td><td>Läbipaistev protsessipõhine proksi-ruutimine — inspireeris meie krahhikindlat MITM-lammutamist, pesade tegevusetuse ajapiiranguid, <code>/proc</code> protsessiomistamist ja TPROXY püüdmist.</td></tr>
-</table>
-
-### 📚 Mudeliandmed, jälgitavus ja kasutajaliides
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kuidas see OmniRoute'i inspireeris</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/anomalyco/models.dev">models.dev</a></b></td><td align="center">6 555</td><td>Avatud andmebaas AI-mudelite spetsifikatsioonide, hindade ja võimaluste kohta — sünkroonitud natiivselt meie mudelikataloogi.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/xyflow/xyflow">React Flow / xyflow</a></b></td><td align="center">38 108</td><td>Sõlmedel põhinev graafikaraamatukogu, mis toidab meie reaalajas Compression Studiot ja Combo/Routing Studiot.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/langchain-ai/langgraph">LangGraph</a></b></td><td align="center">40 314</td><td>LangGraph Studio'i elava töövoo-graafi visualiseerimine inspireeris meie Studiote reaalajas kaskaadivaadet.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/langfuse/langfuse">Langfuse</a></b></td><td align="center">33 592</td><td>Selle trace → span → generation jälgitavuse mudel kujundas meie Compression Studio kärestikuvaate (waterfall).</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/kiali/kiali">Kiali</a></b></td><td align="center">3 631</td><td>Istio teenusevõrgu jälgitavus — inspireeris meie ahelakatkestaja märgiseid ja tõrkeäärte visuaale Routing/Combo Studios.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lobehub/lobe-icons">lobe-icons</a></b></td><td align="center">2 428</td><td>AI/LLM kaubamärkide logod, mis kuvavad teenusepakkuja ikoone üle meie juhtpaneeli.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lipis/flag-icons">flag-icons</a></b></td><td align="center">12 354</td><td>Pakub MIT-litsentsiga SVG-lippe, mida kasutab README keelevalija.</td></tr>
-</table>
-
-### 🛡️ Turvalisus
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kuidas see OmniRoute'i inspireeris</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/tldrsec/awesome-secure-defaults">awesome-secure-defaults</a></b></td><td align="center">721</td><td>Kureeritud nimekiri turvalise-vaikeseadega teekidest, mis juhib meie turvavalikuid (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink).</td></tr>
-</table>
-
-### 🧭 Täiendavad tööriistad
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kuidas see OmniRoute'i inspireeris</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/BlockRunAI/ClawRouter">ClawRouter</a></b></td><td align="center">6 564</td><td>Inspireeris päringute dubleerimise vähendamist, hädaolukorra nullkuluga varulahendust, ühendatavaid Auto-Combo strateegiaid ja mitmekeelset kavatsuse klassifitseerimist.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lbjlaq/Antigravity-Manager">Antigravity-Manager</a></b></td><td align="center">30 652</td><td>Selle konto-teadlik mudeli ümberkaardistamine, käivitatava faili tee valideerimine ja plaanimärgise käitumine mõjutasid OmniRoute'i Antigravity käitusaega.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/jlcodes99/vscode-antigravity-cockpit">vscode-antigravity-cockpit</a></b></td><td align="center">4 817</td><td>Selle kompaktne kvoodi-taastamise loenduri vorming inspireeris OmniRoute'i vastavat teenusepakkuja-piirangu kuvamist.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/iOfficeAI/AionUi">AionUi</a></b></td><td align="center">32 230</td><td>Selle ACP integratsioonid inspireerisid OmniRoute'i installitud CLI-agentide automaatset tuvastamist.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/steipete/CodexBar">CodexBar</a></b></td><td align="center">20 507</td><td>Tuvastas Grok Build kvoodipinna; OmniRoute kontrollis ja korrigeeris seejärel elava juhtmevormingu iseseisvalt.</td></tr>
-</table>
-
-## 📄 Litsents
-
-MIT litsents - vaata täpsemalt [LICENSE](LICENSE).
-
----
-
-<div align="center">
-
-**[⬆ Tagasi üles](#-omniroute)** · Loodud ❤️-ga avatud lähtekoodiga AI kogukonna jaoks.
+**[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
 
 <sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 

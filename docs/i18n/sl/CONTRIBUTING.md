@@ -127,161 +127,116 @@ Privzeti URL-ji:
 
 ---
 
-## Potek dela z Gitom
-
-> ⚠️ **NIKOLI ne izvajajte commitov neposredno v `main`.** Vedno uporabljajte veje za funkcionalnosti.
->
-> **Osnova PR-ja:** za cilj izberite aktivno vejo `release/vX.Y.Z` (ne `main`). Glejte
-> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md) za model
-> ene veje na izdajo in označevanja ob izdaji.
+## Running Tests
 
 ```bash
-# Ustvarite vejo iz vrha aktivne veje izdaje (primer: release/v3.8.49)
-git fetch origin
-git checkout -b feat/your-feature-name origin/release/v3.8.49
-# ... izvedite spremembe ...
-git commit -m "feat: describe your change"
-git push -u origin feat/your-feature-name
-# Odprite zahtevo za spojitev z osnovo = release/v3.8.49
-```
-
-### Poimenovanje vej
-
-| Predpona    | Namen                     |
-| ----------- | ------------------------- |
-| `feat/`     | Nove funkcionalnosti      |
-| `fix/`      | Popravki napak            |
-| `refactor/` | Prestrukturiranje kode    |
-| `docs/`     | Spremembe dokumentacije   |
-| `test/`     | Dodajanje/popravki testov |
-| `chore/`    | Orodja, CI, odvisnosti    |
-
-### Sporočila commitov
-
-Upoštevajte [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update SECURITY.md with PII protection
-test: add observability unit tests
-refactor(db): consolidate rate limit tables
-```
-
-Obsegi (v3.8): `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`, `cloud-agent`, `guardrails`, `compression`, `auto-combo`, `resilience`, `providers`, `executors`, `translator`, `domain`, `authz`.
-
----
-
-## Izvajanje testov
-
-```bash
-# Vsi testi (enotski + vitest + ekosistem + e2e)
+# All tests (unit + vitest + ecosystem + e2e)
 npm run test:all
 
-# Posamezna testna datoteka (izvorni izvajalnik testov Node.js — uporablja ga večina testov)
+# Single test file (Node.js native test runner — most tests use this)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Samo enotski testi, na katere vpliva vaša sprememba (isti izbirnik TIA kot pri kontrolni točki CI, #8084)
-npm run test:scoped            # spremembe v zadnjem commitu (ali delovnem drevesu)
-npm run test:scoped:staged     # samo pripravljene spremembe — dobro se ujema z izvajanjem pred commitom
-npm run test:scoped:full       # najprej znova zgradi preslikavo grafa uvozov (po dodajanju/premikanju datotek)
-# Izhod 1 + »run the full suite« pomeni, da se je spremenila osrednja datoteka (tsconfig, package.json, …) ali
-# nepreslikana izvorna koda — izbirnik varno odpove in nikoli ničesar tiho ne preskoči.
+# Only the unit tests impacted by your change (same TIA selector as the CI gate, #8084)
+npm run test:scoped            # changes in the last commit (or the working tree)
+npm run test:scoped:staged     # staged changes only — pairs well with a pre-commit run
+npm run test:scoped:full       # rebuild the import-graph map first (after adding/moving files)
+# Exit 1 + "run the full suite" means a hub file (tsconfig, package.json, …) or an
+# unmapped source changed — the selector fails safe, it never silently skips.
 
-# Vitest (strežnik MCP, autoCombo, predpomnilnik)
+# Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
 
-# Testi E2E (zahtevajo Playwright)
+# E2E tests (requires Playwright)
 npm run test:e2e
 
-# E2E odjemalcev protokolov (transporti MCP, A2A)
+# Protocol clients E2E (MCP transports, A2A)
 npm run test:protocols:e2e
 
-# Testi združljivosti ekosistema
+# Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Kontrolna točka pokritosti: 60 % stavkov/vrstic/funkcij/vej
+# Coverage gate: 60% statements/lines/functions/branches
 npm run test:coverage
 npm run coverage:report
 
-# Preverjanje lintinga in oblikovanja
+# Lint + format check
 npm run lint
 npm run check
 
-# Nadzorovani preizkus kombinacije z resničnimi zunanjimi sistemi (zahteva dostop do VPS-a in dobroimetje pri resničnem ponudniku)
-# Uporablja RESNIČNE ponudnike — povzroči majhen strošek. NIKOLI se ne izvaja v CI-ju. Brez kontrolnega pogoja se čisto preskoči.
-# Potrebuje: dostop ssh root@192.168.0.15 (naloži posnetek podatkovne zbirke samo za branje iz VPS-a).
+# Gated real-upstream combo smoke (requires VPS access + real provider credits)
+# Hits REAL providers — costs a little. NEVER runs in CI. Skips cleanly without the gate.
+# Needs: ssh root@192.168.0.15 access (sources a read-only DB snapshot from the VPS).
 RUN_COMBO_LIVE=1 npm run test:combo:live
 
-# Preizkus delovanja 3. faze v živo na VPS-u — navadni skripti Node ESM, ki neposredno uporabljajo strežnik .15 v živo.
-# Zahteva: dostop ssh root@192.168.0.15 (kombinacije se ustvarijo/odstranijo prek SSH sqlite).
-# Uporablja RESNIČNE ponudnike (majhen strošek). Ustvari/izbriše samo kombinacije __live_test__*. NIKOLI se ne izvaja v CI-ju.
-# REQUIRE_API_KEY=false na .15, zato ključ API ni potreben, vendar upošteva COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY, če sta nastavljena.
-npm run test:combo:live:vps              # 7 scenarijev HTTP (prednostni/krožni/uteženi/stroškovni/fuzijski/samodejni + stanje)
-npm run test:combo:live:vps:failover     # doda resnični scenarij preklopa med ponudniki ob napaki (skupaj 8)
+# Phase-3 VPS live smoke — plain Node ESM scripts, hit the live .15 server directly.
+# Requires: ssh root@192.168.0.15 access (combos created/torn down via SSH sqlite).
+# Hits REAL providers (small cost). Creates/deletes only __live_test__* combos. NEVER runs in CI.
+# REQUIRE_API_KEY=false on .15 so no API key needed, but honors COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY if set.
+npm run test:combo:live:vps              # 7 HTTP scenarios (priority/round-robin/weighted/cost/fusion/auto + health)
+npm run test:combo:live:vps:failover     # adds a real cross-provider failover scenario (8 total)
 ```
 
-Opombe o pokritosti:
+Coverage notes:
 
-- `npm run test:coverage` meri pokritost izvorne kode za glavni nabor enotskih testov, izključuje `tests/**` in vključuje `open-sse/**`
-- Zahteve za spojitev morajo ohraniti kontrolno točko pokritosti na **60 % ali več** stavkov/vrstic/funkcij/vej
-- Če PR spremeni produkcijsko kodo v `src/`, `open-sse/`, `electron/` ali `bin/`, mora v istem PR-ju dodati ali posodobiti avtomatizirane teste
-- `npm run coverage:report` izpiše podrobno poročilo po posameznih datotekah iz zadnjega izvajanja pokritosti
-- `npm run test:coverage:legacy` ohrani starejšo metriko za zgodovinsko primerjavo
-- Glejte `docs/ops/COVERAGE_PLAN.md` za fazni načrt izboljševanja pokritosti
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the coverage gate at **60%+** statements/lines/functions/branches
+- If a PR changes production code in `src/`, `open-sse/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-### Zahteve za zahteve za spojitev
+### Pull Request Requirements
 
-Preden odprete PR, uporabite
-[zlato pot prispevanja](docs/ops/CONTRIBUTION_GOLDEN_PATH.md), da izvedete osredotočeno zanko za
-to, kar ste spremenili. Za celoten nabor enotskih testov (4 segmenti CI), Vitest, kontrolno točko
-pokritosti **60 % ali več** in produkcijsko gradnjo je odgovoren CI — lokalno izvajanje ne zagotavlja
-dodatnih informacij, ki jih preverjanja PR-ja ne bi že podala, na manjših računalnikih pa lahko preobremeni gostitelja (#8084):
+Before opening a PR, use the
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) to run the focused loop for
+what you changed. The full unit suite (4 CI shards), Vitest, the **60%+** coverage gate, and
+the production build are CI's responsibility — running them locally adds no signal the PR
+checks will not already give you, and on smaller machines it can saturate the host (#8084):
 
-- Zaženite testne datoteke, ki pokrivajo vašo spremembo: `node --import tsx/esm --test tests/unit/<file>.test.ts`
-- Zaženite `npm run lint`
-- Ob vsaki spremembi produkcijske kode vključite ali posodobite avtomatizirane teste v istem PR-ju
-- Ko se spremeni produkcijska koda, v opis PR-ja vključite spremenjene ali dodane testne datoteke
-- Ko so skrivnosti projekta konfigurirane v CI-ju, preverite rezultat SonarQube v PR-ju
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-Trenutno stanje testov: **122 datotek enotskih testov**, ki pokrivajo:
+Current test status: **122 unit test files** covering:
 
-- Prevajalnike ponudnikov in pretvorbo formatov
-- Omejevanje pogostosti, odklopnik in odpornost
-- Semantični predpomnilnik, idempotentnost in spremljanje napredka
-- Operacije podatkovne zbirke in shemo (21 modulov DB)
-- Tokove OAuth in avtentikacijo
-- Preverjanje končnih točk API (Zod v4)
-- Orodja strežnika MCP in uveljavljanje obsegov
-- Sistema Memory in Skills
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
 
 ---
 
-## Slog kode
+## Code Style
 
-- **ESLint** — Pred potrditvijo sprememb zaženite `npm run lint`
-- **Prettier** — Samodejno oblikovanje prek `lint-staged` ob potrditvi sprememb (2 presledka, podpičja, dvojni narekovaji, širina 100 znakov, končne vejice es5)
-- **TypeScript** — Vsa koda v `src/` uporablja `.ts`/`.tsx`; `open-sse/` uporablja `.ts`/`.js`; dokumentirajte s TSDoc (`@param`, `@returns`, `@throws`)
-- **Brez `eval()`** — ESLint uveljavlja `no-eval`, `no-implied-eval`, `no-new-func`
-- **Preverjanje z Zod** — Za preverjanje vseh vhodnih podatkov API-ja uporabljajte sheme Zod v4
-- **Poimenovanje**: Datoteke = camelCase/kebab-case, komponente = PascalCase, konstante = UPPER_SNAKE
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
 
-### Obravnava napak / prazni bloki catch
+### Error handling / empty catch blocks
 
-Nikoli ne pustite bloka `catch` brez pojasnila. Razvrstite ga v eno od dveh kategorij (s tem se
-udejanja strogo pravilo »nikoli tiho ne prezrite napak v tokovih SSE«):
+Never leave a `catch` unexplained. Classify it into one of two buckets (operationalizes
+the hard rule "never silently swallow errors in SSE streams"):
 
-- **Namerno (naše lastno čiščenje/telemetrija po najboljših močeh)** — napaka je tukaj pričakovana in
-  neškodljiva; dodajte enovrstični komentar z utemeljitvijo, brez beleženja (ta dogovor preprečuje
-  šum, ki bi ga povzročilo beleženje ob vsaki zahtevi).
+- **Intentional (our own best-effort cleanup/telemetry)** — a failure here is expected and
+  harmless; add a one-line rationale comment, no logging (logging on every request is the
+  noise this convention avoids).
 
   ```ts
-  } catch {} // zapiranje že zaprtega krmilnika po prekinitvi povezave odjemalca je pričakovano
+  } catch {} // closing an already-closed controller after client disconnect is expected
   ```
 
-- **Treba je zabeležiti (zunanja koda/koda, ki jo posreduje klicatelj, ali pa prezrtje spremeni potek izvajanja)** — ohranite
-  blok catch (nikoli ne dovolite, da prekine tok), vendar izpišite kontekstualno sporočilo z `console.debug`/`warn`, da je
-  napako mogoče odkriti.
+- **Should log (external/caller-supplied code, or the swallow changes control flow)** — keep
+  the catch (never let it break the stream) but emit a contextual `console.debug`/`warn` so the
+  failure is discoverable.
 
   ```ts
   } catch (e) {
@@ -289,150 +244,150 @@ udejanja strogo pravilo »nikoli tiho ne prezrite napak v tokovih SSE«):
   }
   ```
 
-Za uporabljene primere glejte `open-sse/utils/stream.ts` in `open-sse/utils/streamHandler.ts`.
+See `open-sse/utils/stream.ts` and `open-sse/utils/streamHandler.ts` for applied examples.
 
 ---
 
-## Struktura projekta
+## Project Structure
 
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Strani nadzorne plošče (23 razdelkov)
-│   ├── api/                # Poti API-ja (51 imenikov)
-│   └── login/              # Strani za preverjanje pristnosti (.tsx)
-├── domain/                 # Mehanizem pravilnikov (policyEngine, comboResolver, costRules itd.)
-├── lib/                    # Osrednja poslovna logika (.ts)
-│   ├── a2a/                # Strežnik protokola Agent-to-Agent v0.3
-│   ├── acp/                # Register protokola Agent Communication Protocol
-│   ├── compliance/         # Mehanizem pravilnikov skladnosti
-│   ├── db/                 # Domenski moduli SQLite + 130 migracij
-│   ├── memory/             # Trajni pomnilnik pogovorov
-│   ├── oauth/              # Ponudniki, storitve in pripomočki OAuth
-│   ├── skills/             # Razširljivo ogrodje veščin
-│   ├── usage/              # Spremljanje uporabe in izračun stroškov
-│   └── localDb.ts          # Samo plast za ponovni izvoz — sem nikoli ne dodajajte logike
-├── middleware/              # Vmesna programska oprema zahtev (promptInjectionGuard)
-├── mitm/                   # Posredniški strežnik MITM (potrdilo, DNS, usmerjanje ciljev)
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # Komponente React (.tsx)
-│   ├── constants/          # Definicije ponudnikov (329), obsegi MCP, 19 strategij usmerjanja
-│   ├── utils/              # Odklopnik, čistilnik in pripomočki za preverjanje pristnosti
-│   └── validation/         # Sheme Zod v4
-└── sse/                    # Posredniški cevovod SSE
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 19 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # Delovni prostor @omniroute/open-sse
-├── executors/              # 89 modulov izvedbene implementacije
-├── handlers/               # 11 obdelovalnikov zahtev (klepet, odzivi, vdelave, slike itd.)
-├── mcp-server/             # Strežnik MCP (110 edinstvenih orodij, 3 transporti, 33 obsegov)
-├── services/               # 178 storitev najvišje ravni (combo, autoCombo, rateLimitManager itd.)
-├── translator/             # Prevajalniki formatov (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Pretvornik API-ja Responses
-└── utils/                  # 22 pomožnih modulov (tok, TLS, posredniški strežnik, beleženje)
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 89 executor implementation modules
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Namizna aplikacija Electron (za več platform)
+apps/desktop/               # Tauri 2 desktop app (cross-platform)
 
 tests/
-├── unit/                   # Izvajalnik testov Node.js (1.574 testnih datotek)
-├── integration/            # Integracijski testi
-├── e2e/                    # Testi Playwright
-├── security/               # Varnostni testi
-├── translator/             # Testi, specifični za prevajalnik
-└── load/                   # Obremenitveni testi
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/
-├── adr/                     # Zapisi arhitekturnih odločitev
-├── architecture/            # Arhitektura sistema in odpornost
-├── comparison/              # OmniRoute v primerjavi z alternativami
-├── compression/             # Vodniki in pravila za stiskanje
-├── dev/                     # Razvojni vodniki
-├── diagrams/                # Arhitekturni diagrami
-├── frameworks/              # MCP, A2A, OpenCode, pomnilnik, veščine
-├── guides/                  # Uporabniški vodnik, Docker, nastavitev, odpravljanje težav
-├── i18n/                    # Internacionalizirani prevodi README
-├── marketing/               # Trženjska gradiva
-├── ops/                     # Uvajanje, posredniški strežnik, pokritost, izdaje
-├── providers/               # Dokumentacija, specifična za ponudnike
-├── reference/               # Referenca API-ja, okoljske spremenljivke, orodja CLI, brezplačne ravni
-├── releases/                # Opombe ob izdajah
-├── routing/                 # Mehanizem samodejnih kombinacij, ponovno predvajanje sklepanja
-├── screenshots/             # Posnetki zaslona nadzorne plošče
-├── security/                # Zaščitni mehanizmi, skladnost, prikritost, žetoni
-└── specs/                   # Specifikacije zasnove
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
+├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
 ---
 
-## Dodajanje novega ponudnika
+## Adding a New Provider
 
-### 1. korak: Registrirajte konstante ponudnika
+### Step 1: Register Provider Constants
 
-Dodajte jih v `src/shared/constants/providers.ts` — ob nalaganju modula se preverijo z Zodom.
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-### 2. korak: Dodajte izvajalnik (če je potrebna logika po meri)
+### Step 2: Add Executor (if custom logic needed)
 
-Ustvarite izvajalnik v `open-sse/executors/your-provider.ts`, ki razširja osnovni izvajalnik.
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-### 3. korak: Dodajte pretvornik (če oblika ni združljiva z OpenAI)
+### Step 3: Add Translator (if non-OpenAI format)
 
-Ustvarite pretvornike zahtev in odgovorov v `open-sse/translator/`.
+Create request/response translators in `open-sse/translator/`.
 
-### 4. korak: Dodajte konfiguracijo OAuth (če temelji na OAuth)
+### Step 4: Add OAuth Config (if OAuth-based)
 
-Dodajte poverilnice OAuth v `src/lib/oauth/constants/oauth.ts` in storitev v `src/lib/oauth/services/`.
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
 
-Če izvorni ponudnik distribuira javni OAuth client_id/secret ali ključ Firebase Web API v svojem javnem CLI-ju oziroma brskalniškem paketu, ga **ne** vdelajte kot nizovni literal. Uporabite `resolvePublicCred()` iz `open-sse/utils/publicCreds.ts` in dodajte maskiran bajtni vnos v `EMBEDDED_DEFAULTS`. Celoten obvezni postopek je dokumentiran v [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
+If the upstream provider distributes a public OAuth client_id/secret or Firebase Web API key inside its public CLI / browser bundle, **do not** embed it as a string literal. Use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts` and add a masked byte entry to `EMBEDDED_DEFAULTS`. The full mandatory workflow is documented in [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
 
-V obdelovalnikih/izvajalnikih morajo sporočila o napakah, ki dosežejo odjemalca, iti skozi `buildErrorBody()` / `sanitizeErrorMessage()` iz `open-sse/utils/error.ts` — neobdelanega `err.stack` ali `err.message` nikoli ne vključite v telo odgovora. Glejte [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
+Inside handlers/executors, error messages reaching the client must go through `buildErrorBody()` / `sanitizeErrorMessage()` from `open-sse/utils/error.ts` — never put raw `err.stack` or `err.message` in a Response body. See [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
 
-### 5. korak: Registrirajte modele
+### Step 5: Register Models
 
-Dodajte definicije modelov v `open-sse/config/providerRegistry.ts`.
+Add model definitions in `open-sse/config/providerRegistry.ts`.
 
-### 6. korak: Dodajte teste
+### Step 6: Add Tests
 
-Napišite teste enot v `tests/unit/`, ki zajemajo najmanj:
+Write unit tests in `tests/unit/` covering at minimum:
 
-- Registracijo ponudnika
-- Pretvorbo zahtev/odgovorov
-- Obravnavo napak
-
----
-
-## Kontrolni seznam za zahtevo za združitev
-
-- [ ] Testi so uspešni (`npm test`)
-- [ ] Preverjanje sloga kode je uspešno (`npm run lint`)
-- [ ] Gradnja je uspešna (`npm run build`)
-- [ ] Tipi TypeScript so dodani za nove javne funkcije in vmesnike
-- [ ] Ni trdo kodiranih skrivnosti ali nadomestnih vrednosti
-- [ ] Javne poverilnice izvornega ponudnika so vdelane prek `resolvePublicCred()` (glejte [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nikoli kot literali
-- [ ] Odgovori o napakah potekajo skozi `buildErrorBody()` / `sanitizeErrorMessage()` — v telesih odgovorov ni neobdelanih skladovnih sledi (glejte [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Lupinski ukazi (`exec` / `spawn`) posredujejo vrednosti izvajalnega okolja prek `env`, ne prek interpolacije nizov
-- [ ] Vsi vnosi so preverjeni s shemami Zod
-- [ ] **Fragment** dnevnika sprememb je za spremembe, vidne uporabnikom, dodan v `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (glejte [`changelog.d/README.md`](./changelog.d/README.md)) — datoteke `CHANGELOG.md` **ne** urejajte neposredno; fragmenti se združijo ob izdaji in med zahtevami za združitev nikoli ne povzročajo sporov
-- [ ] Dokumentacija je posodobljena (če je ustrezno)
-- [ ] Ni novih opozoril CodeQL / Secret-Scanning oziroma je vsako zavrnjeno s tehnično utemeljitvijo, ki se sklicuje na ustrezen dokument v `docs/security/`
-- [ ] Poti, ki ustvarjajo podrejene procese (`/api/mcp/`, `/api/cli-tools/runtime/`), so razvrščene kot `isLocalOnlyPath()` v `src/server/authz/routeGuard.ts` — glejte [Strogo pravilo št. 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] V sporočilih potrditev ni zaključnih vrstic `Co-Authored-By` — potrditve morajo biti prikazane izključno pod identiteto Git lastnika repozitorija (Strogo pravilo št. 16)
+- Provider registration
+- Request/response translation
+- Error handling
 
 ---
 
-## Izdajanje
+## Pull Request Checklist
 
-Izdaje se upravljajo prek poteka dela `/generate-release`. Ko je ustvarjena nova izdaja GitHub Release, je paket prek GitHub Actions **samodejno objavljen v npm**.
-
-Za uvajanje na VPS uporabite `npm run build:release` (ne `npm run build`) — ta ukaz izvede čisto
-vnovično gradnjo, sestavi paket v `dist/` in zapiše nadzorno datoteko `dist/BUILD_SHA`.
-Nato uporabite veščine `/deploy-vps-*-cc`, ki z rsync sinhronizirajo `dist/` z oddaljenim imenikom `app/`.
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] Public upstream credentials embedded via `resolvePublicCred()` (see [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), never as literals
+- [ ] Error responses route through `buildErrorBody()` / `sanitizeErrorMessage()` — no raw stack traces in response bodies (see [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) pass runtime values via `env`, not via string interpolation
+- [ ] All inputs validated with Zod schemas
+- [ ] Changelog **fragment** added under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for user-facing changes (see [`changelog.d/README.md`](./changelog.d/README.md)) — do **not** edit `CHANGELOG.md` directly; fragments are aggregated at release time and never conflict between PRs
+- [ ] Documentation updated (if applicable)
+- [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
+- [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
 
 ---
 
-## Pridobivanje pomoči
+## Releasing
 
-- **Arhitektura**: Glejte [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **Referenca API-ja**: Glejte [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Varnostna dokumentacija**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Operativna dokumentacija**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Težave**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-ji**: Zapise arhitekturnih odločitev najdete v `docs/adr/`
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+For VPS deploys, use `npm run build:release` (not `npm run build`) — it performs a clean
+rebuild, assembles the bundle into `dist/`, and writes the `dist/BUILD_SHA` sentinel.
+Then use the `/deploy-vps-*-cc` skills which rsync `dist/` to the remote `app/` directory.
+
+---
+
+## Getting Help
+
+- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Security docs**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Ops docs**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

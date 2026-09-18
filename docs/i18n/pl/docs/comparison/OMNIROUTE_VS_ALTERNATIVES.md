@@ -67,4 +67,4 @@ Obiektywne porównanie funkcji z popularnymi open-source'owymi routerami AI.
 
 ---
 
-_Ostatnia aktualizacja: 2026-06-28. Poprawki zgłaszaj przez PR, aby utrzymać dokładność tej tabeli._
+_Last updated: 2026-08-02. Submit corrections via PR to keep this table accurate._

@@ -91,7 +91,7 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](../../../LICENSE)
 ![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+![Desktop Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=desktop%20downloads&logo=desktop&color=47848F)
 
 <table>
   <tr>
@@ -662,7 +662,7 @@ finiscano nella cronologia della shell. → [Integrazioni CLI](../../guides/CLI-
   <tr><th align="left">Piattaforma</th><th align="left">Installazione</th><th align="left">Punti di forza</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (globale)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Un comando, qualsiasi OS</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Multi-arch <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Desktop (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Finestra nativa + system tray — <b>Windows / macOS / Linux</b></td></tr>
+  <tr><td align="left" nowrap>🖥️ <b>Desktop (Tauri 2)</b></td><td align="left" nowrap><code>cargo tauri build</code></td><td align="left">Finestra nativa + system tray — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>nativo <code>arm64</code></td><td align="left">Raspberry Pi, server ARM, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Gira <b>sul tuo telefono</b>, 24/7, senza root</td></tr>
   <tr><td align="left" nowrap>📲 <b>PWA</b></td><td align="left" nowrap>"Aggiungi alla schermata Home"</td><td align="left">Schermo intero, offline, installabile dal browser</td></tr>
@@ -671,7 +671,7 @@ finiscano nella cronologia della shell. → [Integrazioni CLI](../../guides/CLI-
   <tr><td align="left" nowrap>🛠️ <b>Da sorgente</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Modificalo e contribuisci</td></tr>
 </table>
 
-<sub>📖 [Guida Docker](../../guides/DOCKER_GUIDE.md) · [Desktop](../../../electron/README.md) · [Termux](../../guides/TERMUX_GUIDE.md) · [PWA](../../guides/PWA_GUIDE.md) · [OpenCode](../../frameworks/OPENCODE.md)</sub>
+<sub>📖 [Guida Docker](../../guides/DOCKER_GUIDE.md) · [Desktop](../../../docs/guides/DESKTOP_GUIDE.md) · [Termux](../../guides/TERMUX_GUIDE.md) · [PWA](../../guides/PWA_GUIDE.md) · [OpenCode](../../frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1163,7 +1163,7 @@ Metriche di validazione: 1002 video monitorati · 7,069,190 visualizzazioni note
   <tr><td nowrap><b>Resilienza</b></td><td>Circuit breaker, backoff esponenziale, anti-thundering-herd, auto-combo self-healing</td></tr>
   <tr><td nowrap><b>Logging</b></td><td>pino — log JSON strutturati con contesto della richiesta</td></tr>
   <tr><td nowrap><b>Test</b></td><td>Test runner Node.js + Vitest — <b>oltre 25.000 casi di test</b> su 3.300+ file (unitari, integrazione, E2E, sicurezza, ecosistema)</td></tr>
-  <tr><td nowrap><b>Piattaforme</b></td><td>Desktop (Electron) · Android (Termux) · PWA (qualsiasi browser)</td></tr>
+  <tr><td nowrap><b>Piattaforme</b></td><td>Desktop (Tauri 2) · Android (Termux) · PWA (qualsiasi browser)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — pubblicazione automatica npm + Docker Hub alla release</td></tr>
   <tr><td nowrap><b>Link</b></td><td><a href="https://omniroute.online">Sito web</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
@@ -1321,7 +1321,7 @@ Metriche di validazione: 1002 video monitorati · 7,069,190 visualizzazioni note
         <b>kfiramar</b>
       </a><br/>
       <sub>🏅 38 commit • +1.7K righe</sub><br/>
-      <sub>Codex WebSocket + passthrough, auth/onboarding,<br/>hardening Electron, migrazioni DB</sub>
+      <sub>Codex WebSocket + passthrough, auth/onboarding,<br/>hardening Tauri 2, migrazioni DB</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/benzntech">
@@ -1329,7 +1329,7 @@ Metriche di validazione: 1002 video monitorati · 7,069,190 visualizzazioni note
         <b>Benson K B</b>
       </a><br/>
       <sub>🏅 28 commit • +9.2K righe</sub><br/>
-      <sub>App desktop Electron, auto-updater,<br/>workflow build release, CI multipiattaforma</sub>
+      <sub>App desktop Tauri 2, auto-updater,<br/>workflow build release, CI multipiattaforma</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/herjarsa">
@@ -1348,204 +1348,11 @@ Metriche di validazione: 1002 video monitorati · 7,069,190 visualizzazioni note
 
 ---
 
-<br/>
-
-<a id="-sponsors"></a>
-
-## 💖 Sponsor
-
 <div align="center">
 
-Un grazie di cuore alle persone che finanziano OmniRoute di tasca propria — ogni contributo aiuta a mantenere il progetto gratuito, indipendente e in evoluzione.
+**[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
 
-<table>
-  <tr>
-    <td align="center" width="180">
-      <a href="https://github.com/igormorais123">
-        <img src="https://github.com/igormorais123.png?size=140" width="72" style="border-radius:50%" alt="Professor Igor Morais Vasconcelos"/><br/>
-        <b>Prof. Igor Morais</b>
-      </a><br/>
-      <sub>💛 Sponsor</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/longtao77">
-        <img src="https://github.com/longtao77.png?size=140" width="72" style="border-radius:50%" alt="longtao"/><br/>
-        <b>longtao</b>
-      </a><br/>
-      <sub>💛 Sponsor</sub>
-    </td>
-  </tr>
-</table>
-
-<sub>… e altri che preferiscono restare anonimi 💛</sub>
-
-<b><a href="https://github.com/sponsors/diegosouzapw">💖 Diventa sponsor →</a></b> — ogni contributo mantiene OmniRoute gratuito e indipendente.
-
-</div>
-
-<br/>
-
-<a id="-500-contributors"></a>
-<div align="center">
-
-## 👥 Oltre 320 contributor
-
-</div>
-
-[![Contributors](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=400&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
-
-### Come contribuire
-
-1. Fai un fork del repository
-2. Crea il branch dalla punta della `release/vX.Y.Z` **attiva** (non da `main`) — vedi [Modello di branching e release](../../ops/BRANCHING_MODEL.md)
-3. Crea il tuo feature branch (`git checkout -b feat/amazing-feature`)
-4. Esegui il commit delle modifiche (`git commit -m 'feat: add amazing feature'`)
-5. Esegui il push del branch (`git push origin feat/amazing-feature`)
-6. Apri una Pull Request con **base = quel branch `release/vX.Y.Z`**
-
-Vedi [CONTRIBUTING.md](../../../CONTRIBUTING.md) per le linee guida complete.
-
-### Pubblicare una nuova versione
-
-```bash
-# Create a release — npm publish happens automatically
-gh release create v3.8.2 --title "v3.8.2" --generate-notes
-```
-
-<br/>
-
-<div align="center">
-
-## 📊 Stelle
-
-<a href="https://www.star-history.com/?repos=diegosouzapw%2FOmniRoute&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&theme=dark&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
-   <img alt="Grafico storico delle stelle" src="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
- </picture>
-</a>
-
-<br/>
-
-<div align="center">
-
-## 🌍 StarMapper
-
-<a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
-    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
-  </picture>
-</a>
-</div>
-
-<br/>
-
-<div align="center">
-
-## 🙏 Ringraziamenti
-
-</div>
-
-OmniRoute è costruito sulle spalle di giganti. È nato come fork di **[9router](https://github.com/decolua/9router)** e come port TypeScript del progetto Go **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — da lì, ogni sottosistema qui sotto è stato ispirato da un progetto open source arrivato prima. Ognuno ha influenzato una parte concreta di OmniRoute. Questo è il nostro ringraziamento a tutti loro. 🙏
-
-> ⭐ conteggio stelle a luglio 2026 — vai a lasciare una stella a questi progetti.
-
-### 🧬 Origini e gateway
-
-<table>
-  <tr><th align="left">Progetto</th><th align="center">⭐</th><th align="left">Come ha ispirato OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/decolua/9router">9router</a></b></td><td align="center">22.7k</td><td>Il progetto originale su cui si basa questo fork — esteso qui con API multimodali e una riscrittura completa in TypeScript.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/router-for-me/CLIProxyAPI">CLIProxyAPI</a></b></td><td align="center">43.6k</td><td>L'implementazione Go che ha ispirato questo port JavaScript / TypeScript.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/BerriAI/litellm">LiteLLM</a></b></td><td align="center">54.0k</td><td>Il gateway AI il cui dataset pubblico dei prezzi alimenta la sincronizzazione del cost tracking e il cui modello di normalizzazione dei provider ha influenzato il nostro routing.</td></tr>
-</table>
-
-### 🗜️ Compressione di contesto e token — motori
-
-<table>
-  <tr><th align="left">Progetto</th><th align="center">⭐</th><th align="left">Come ha ispirato OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/JuliusBrussee/caveman">Caveman</a></b></td><td align="center">90.8k</td><td>Il progetto virale "why use many token when few token do trick" — la sua filosofia caveman-speak alimenta la nostra modalità di compressione standard e oltre 30 regole di rimozione riempitivi/condensazione.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/rtk-ai/rtk">RTK – Rust Token Killer</a></b></td><td align="center">71.8k</td><td>Compressione ad alte prestazioni dell'output dei comandi — ha ispirato il nostro motore RTK, la DSL per filtri JSON, il recupero dell'output grezzo e la pipeline stacked RTK → Caveman.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/headroomlabs-ai/headroom">headroom</a></b></td><td align="center">60.1k</td><td>Compressione reversibile del contesto (SmartCrusher) — ha ispirato il nostro motore <code>headroom</code> e il pattern dei marker di recupero <code>ccr</code>.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/microsoft/LLMLingua">LLMLingua</a></b></td><td align="center">6.5k</td><td>Ricerca sulla compressione dei prompt (LLMLingua / LLMLingua-2) — ha ispirato il nostro motore <code>llmlingua</code> asincrono, code-safe e fail-open.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/atjsh/llmlingua-2-js">llmlingua-2-js</a></b></td><td align="center">30</td><td>Il port JS/ONNX (MobileBERT / XLM-RoBERTa) usato come backend worker-thread dal nostro motore LLMLingua.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/leninejunior/troglodita">Troglodita</a></b></td><td align="center">26</td><td>Compressione token PT-BR — alimenta il nostro language pack pt-BR: riduzione dei pleonasmi e rimozione dei riempitivi ottimizzate per la grammatica portoghese brasiliana.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/DietrichGebert/ponytail">ponytail</a></b></td><td align="center">86.0k</td><td>La skill virale da "lazy senior dev" basata su YAGNI — ha ispirato il nostro Output Style <b>less-code</b>: orientamento alla modifica minima funzionante che riduce il codice _generato_ (l'equivalente sull'asse output della prosa concisa di Caveman).</td></tr>
-</table>
-
-### 🧩 Formati compatti, ricerca sui token e tooling code-aware
-
-<table>
-  <tr><th align="left">Progetto</th><th align="center">⭐</th><th align="left">Come ha ispirato OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/toon-format/toon">TOON</a></b></td><td align="center">24.9k</td><td>Token-Oriented Object Notation — il suo modello colonnare con header + righe ha influenzato la nostra fase di compattazione tabellare.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/blackwell-systems/gcf">GCF – Graph Compact Format</a></b></td><td align="center">22</td><td>Ha inizialmente ispirato la nostra fase di compattazione tabellare; ora il suo encoder generic-profile lossless e senza dipendenze è <b>incluso direttamente</b> come codec Headroom (MIT, con marcatura SPDX), insieme ai successivi fix di correttezza per dominio numerico e discrepanze nei conteggi.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ooples/token-optimizer-mcp">token-optimizer-mcp</a></b></td><td align="center">444</td><td>Cache Brotli/SQLite + delta del contesto per sessione — ha ispirato il nostro motore <code>session-dedup</code>.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Mibayy/token-savior">token-savior</a></b></td><td align="center">1.1k</td><td>Compattazione dell'output Bash + profili MCP — ha ispirato la nostra disciplina di bail-out nella compressione e la riduzione del manifest dei tool MCP.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ppgranger/token-saver">token-saver</a></b></td><td align="center">117</td><td>Compressione dell'output consapevole del contenuto e del tipo di file, con bail-out in caso di errore — ha validato il nostro dispatch per tipo e lo skip basato sul guadagno minimo.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/alexgreensh/token-optimizer">token-optimizer</a></b></td><td align="center">1.7k</td><td>"Find the ghost tokens" — il suo pattern di offload + handle recuperabile ha influenzato il nostro approccio all'offload CCR.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Shweta-Mishra-ai/tokenmizer">TokenMizer</a></b></td><td align="center">16</td><td>Un blueprint con grafo di sessione + deduplica cross-turn per riga che ha influenzato il design di session-dedup.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/jessefreitas/OmniCompress">OmniCompress</a></b></td><td align="center">3</td><td>JSON colonnare in Rust + retrieve content-addressed + deduplica cross-message — ha validato il design dei nostri motori <code>headroom</code>/<code>ccr</code>/<code>session-dedup</code> e l'invariante cache-stable "la forma compressa è indipendente dalla posizione".</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/atlassian-labs/mcp-compressor">mcp-compressor</a></b></td><td align="center">98</td><td>Compressione degli schemi/descrizioni dei tool MCP — ha influenzato la riduzione della cardinalità del manifest dei tool MCP.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/pdavis68/RepoMapper">RepoMapper</a></b></td><td align="center">187</td><td>Ranking della repo-map in stile Aider — ha influenzato la nostra esplorazione del ranking di repo-map / retrieval.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/mrsimpson/quiet-shell-mcp">quiet-shell-mcp</a></b></td><td align="center">4</td><td>Riduzione dichiarativa dell'output shell tramite MCP — ha validato la nostra compattazione dichiarativa dell'output Bash.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/dsherret/ts-morph">ts-morph</a></b></td><td align="center">6.1k</td><td>Toolkit per la TypeScript Compiler API — ha ispirato la nostra rimozione dei commenti basata su parser, che preserva stringhe, template e literal regex.</td></tr>
-</table>
-
-### 🧠 Memoria e RAG
-
-<table>
-  <tr><th align="left">Progetto</th><th align="center">⭐</th><th align="left">Come ha ispirato OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/mem0ai/mem0">Mem0</a></b></td><td align="center">61.2k</td><td>Layer di memoria universale — il suo modello proxy-as-write/read-boundary ha plasmato la nostra architettura della memoria.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/letta-ai/letta">Letta (MemGPT)</a></b></td><td align="center">23.9k</td><td>Agent stateful con memoria a livelli — ha ispirato il nostro modello a livelli Context Control & Recovery (CCR).</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/onestardao/WFGY">WFGY</a></b></td><td align="center">1.8k</td><td>La tassonomia ProblemMap di 16 modalità ricorrenti di errore RAG/LLM — il vocabolario condiviso nella nostra guida alla risoluzione dei problemi.</td></tr>
-</table>
-
-### 🛰️ Ispezione del traffico, MITM e proxy trasparente
-
-<table>
-  <tr><th align="left">Progetto</th><th align="center">⭐</th><th align="left">Come ha ispirato OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/chouzz/llm-interceptor">llm-interceptor</a></b></td><td align="center">49</td><td>Intercettazione/analisi MITM del traffico coding-assistant ↔ LLM — il nostro Traffic Inspector adatta il suo merge SSE, la normalizzazione delle conversazioni, il passthrough degli host e il masking dei segreti (MIT).</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/InterceptSuite/ProxyBridge">ProxyBridge</a></b></td><td align="center">5.5k</td><td>Routing proxy trasparente per processo — ha ispirato il teardown MITM crash-safe, gli idle timeout dei socket, l'attribuzione dei processi tramite <code>/proc</code> e la cattura TPROXY.</td></tr>
-</table>
-
-### 📚 Dati dei modelli, osservabilità e UI
-
-<table>
-  <tr><th align="left">Progetto</th><th align="center">⭐</th><th align="left">Come ha ispirato OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/anomalyco/models.dev">models.dev</a></b></td><td align="center">6.0k</td><td>Database aperto di specifiche, prezzi e capacità dei modelli AI — sincronizzato nativamente nel nostro catalogo modelli.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/xyflow/xyflow">React Flow / xyflow</a></b></td><td align="center">37.7k</td><td>La libreria di grafi node-based che alimenta Compression Studio e Combo/Routing Studio in tempo reale.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/langchain-ai/langgraph">LangGraph</a></b></td><td align="center">37.6k</td><td>La visualizzazione live dei grafi di workflow di LangGraph Studio ha ispirato la vista a cascata in tempo reale dei nostri Studio.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/langfuse/langfuse">Langfuse</a></b></td><td align="center">31.4k</td><td>Il suo modello di osservabilità trace → span → generation ha plasmato la waterfall di Compression Studio.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/kiali/kiali">Kiali</a></b></td><td align="center">3.6k</td><td>Osservabilità del service mesh Istio — ha ispirato i badge circuit-breaker e le visualizzazioni degli edge di errore in Routing/Combo Studio.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lobehub/lobe-icons">lobe-icons</a></b></td><td align="center">2.2k</td><td>Loghi dei brand AI/LLM usati per le icone dei provider nella dashboard.</td></tr>
-</table>
-
-### 🛡️ Sicurezza
-
-<table>
-  <tr><th align="left">Progetto</th><th align="center">⭐</th><th align="left">Come ha ispirato OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/tldrsec/awesome-secure-defaults">awesome-secure-defaults</a></b></td><td align="center">710</td><td>Una raccolta curata di librerie secure-by-default che guida le nostre scelte di sicurezza (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink).</td></tr>
-</table>
-
-### 🧭 Strumenti complementari
-
-<table>
-  <tr><th align="left">Progetto</th><th align="center">⭐</th><th align="left">Come ha ispirato OmniRoute</th></tr>
-</table>
-
-## 📄 Licenza
-
-Licenza MIT - vedi [LICENSE](../../../LICENSE) per i dettagli.
-
----
-
-<div align="center">
-
-**[⬆ Torna all'inizio](#-omniroute)** · Realizzato con ❤️ per la community AI open source.
-
-<sub>OmniRoute v3.8.49 · Node ≥22.22.2 · Licenza MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->

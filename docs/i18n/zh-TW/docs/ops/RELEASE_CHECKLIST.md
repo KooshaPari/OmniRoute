@@ -10,7 +10,7 @@ lastUpdated: 2026-06-28
 > 精簡化發行流程，運用 Claude Code Skills 實現自動化。
 >
 > **在發行之間保持佇列／分支為綠色：** 請參閱 [RELEASE_GREEN.md](./RELEASE_GREEN.md)
->（`/green-prs` 系列指令 + `npm run check:release-green` + `/babysit` + 夜間排程）。定期執行此流程——
+> （`/green-prs` 系列指令 + `npm run check:release-green` + `/babysit` + 夜間排程）。定期執行此流程——
 > 尤其是在執行本檢查清單**之前**——可讓發行 PR 一開始就處於綠色狀態。
 
 ## TL;DR
@@ -191,7 +191,7 @@ Husky hooks 位於 `.husky/` 目錄，會在 git 操作時自動執行。
 - [ ] 模型已在 `open-sse/config/providerRegistry.ts` 中註冊
 - [ ] `tests/unit/` 中的單元測試涵蓋提供者分類與路由
 
-### 桌面版（Electron）
+### 桌面版（Tauri 2）
 
 若 `electron/` 有變更：
 
@@ -205,11 +205,11 @@ Husky hooks 位於 `.husky/` 目錄，會在 git 操作時自動執行。
 
 倉儲使用三個不同的輸出目錄——切勿混淆：
 
-| 目錄       | 用途                                                | 是否追蹤？    |
-| --------- | --------------------------------------------------- | ------------- |
-| `src/`    | 應用程式原始碼（TypeScript／TSX）                    | 是            |
-| `.build/` | 建置中間產物 — `next build` 輸出（`distDir`）        | 否（gitignored）|
-| `dist/`   | 可發行的 npm 套件 — 由 `assembleStandalone` 組合而成 | 否（gitignored）|
+| 目錄      | 用途                                                 | 是否追蹤？       |
+| --------- | ---------------------------------------------------- | ---------------- |
+| `src/`    | 應用程式原始碼（TypeScript／TSX）                    | 是               |
+| `.build/` | 建置中間產物 — `next build` 輸出（`distDir`）        | 否（gitignored） |
+| `dist/`   | 可發行的 npm 套件 — 由 `assembleStandalone` 組合而成 | 否（gitignored） |
 
 > **操作注意：** 遠端 VPS 映像目錄仍為 `/usr/lib/node_modules/omniroute/app/`。
 > 只有**倉儲內**的建置輸出目錄變更了（`app/` → `dist/`）。部署 skills 會將
@@ -342,30 +342,30 @@ npm run build:release
 
 ---
 
-## 回滾
+## Rollback
 
-若發行版本有重大問題：
+If release has critical issue:
 
-1. `gh release edit vX.Y.Z --prerelease`（標記為非最新）
-2. `git tag -d vX.Y.Z && git push --delete origin vX.Y.Z`（僅在使用者尚未採用時）
-3. 或者：在 `release/vX.Y.0` 上進行 hotfix → 修補版本 `vX.Y.(Z+1)`
-4. 立即在 GitHub Discussions 和 Discord 中溝通
+1. `gh release edit vX.Y.Z --prerelease` (marks as not latest)
+2. `git tag -d vX.Y.Z && git push --delete origin vX.Y.Z` (only if not yet adopted by users)
+3. Or: hotfix on `release/vX.Y.0` → patch release `vX.Y.(Z+1)`
+4. Communicate in GitHub Discussions and Discord immediately
 
-## 嚴格規則
+## Hard Rules
 
-- 絕不直接提交到 `main`
-- 絕不對 `main` 或 `release/*` 分支使用 `git push --force`
-- 絕不跳過 Husky hooks（`--no-verify`）
-- 絕不提交機密、憑證或 `.env` 檔案
-- 覆蓋率必須維持 ≥60/60/60/60（statements／lines／functions／branches）
-- 在變更 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的正式程式碼時，務必包含或更新測試
+- Never commit directly to `main`
+- Never use `git push --force` to `main` or `release/*` branches
+- Never skip Husky hooks (`--no-verify`)
+- Never commit secrets, credentials, or `.env` files
+- Coverage must stay ≥60/60/60/60 (statements/lines/functions/branches)
+- Always include or update tests when changing production code in `src/`, `open-sse/`, or `bin/`
 
-## 自動化同步檢查
+## Automated Sync Check
 
-在開啟 PR 前在本機執行文件同步檢查：
+Run the docs sync guard locally before opening a PR:
 
 ```bash
 npm run check:docs-sync
 ```
 
-CI 也會在 `.github/workflows/ci.yml`（lint 工作）中執行此檢查。
+CI also runs this check in `.github/workflows/ci.yml` (lint job).

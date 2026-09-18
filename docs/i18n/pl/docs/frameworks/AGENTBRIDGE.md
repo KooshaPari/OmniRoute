@@ -14,20 +14,20 @@ AgentBridge to proxy MITM (Man-in-the-Middle) OmniRoute, który przechwytuje ruc
 
 ---
 
-## §1 Przegląd
+## §1 Overview
 
-### Czym jest AgentBridge?
+### What is AgentBridge?
 
-Gdy agent IDE (np. GitHub Copilot, Cursor, Claude Code) wykonuje wywołanie API, łączy się bezpośrednio z upstreamowym dostawcą AI (OpenAI, Anthropic itd.). AgentBridge przechwytuje to połączenie w sposób przezroczysty na poziomie TLS — bez konieczności zmiany konfiguracji agenta — i przepisuje żądanie przez OmniRoute.
+When an IDE agent (e.g., GitHub Copilot, Cursor, Claude Code) makes an API call, it connects directly to the upstream AI provider (OpenAI, Anthropic, etc.). AgentBridge intercepts that connection transparently at the TLS level — without requiring any agent configuration change — and rewrites the request through OmniRoute.
 
-Dzięki temu możesz:
+This means you can:
 
-- **Przekierować dowolnego agenta do dowolnego providera**: Copilot rozmawia z OpenAI? Przekieruj go na Anthropic Claude, Gemini lub dowolny z 329 wpisów katalogu OmniRoute.
-- **Stosować mapowania modeli**: `gemini-3-flash` → `claude-sonnet-4.7` w sposób przezroczysty na poziomie handlera.
-- **Obserwować cały ruch agentów**: każde przechwycone żądanie jest publikowane w [Traffic Inspector](./TRAFFIC_INSPECTOR.md).
-- **Stosować odporność OmniRoute**: combo routing, circuit breakery, fallbacki i śledzenie kosztów działają także dla ruchu agentów IDE.
+- **Reroute any agent to any provider**: Copilot talking to OpenAI? Redirect it to Anthropic Claude, Gemini, or any of OmniRoute's 352 providers.
+- **Apply model mappings**: `gemini-3-flash` → `claude-sonnet-4.7` transparently at the handler level.
+- **Observe all agent traffic**: every intercepted request is published to the [Traffic Inspector](./TRAFFIC_INSPECTOR.md).
+- **Apply OmniRoute resilience**: combo routing, circuit breakers, fallbacks, and cost tracking work for IDE agent traffic too.
 
-### Pozycjonowanie względem rynku
+### Positioning vs. the market
 
 | Feature           | 9router | anti-api | llm-interceptor | **OmniRoute AgentBridge** |
 | ----------------- | :-----: | :------: | :-------------: | :-----------------------: |
@@ -49,9 +49,9 @@ Dzięki temu możesz:
 
 ---
 
-## §2 Architektura
+## §2 Architecture
 
-### 2.1 Przegląd komponentów
+### 2.1 Components overview
 
 ```
 IDE Agent (VS Code / Cursor / etc.)
@@ -72,37 +72,37 @@ src/mitm/server.cjs  (port 443, CJS child process)
     └── No match? → TCP passthrough (no decrypt)
 ```
 
-### 2.2 Serwer MITM (`src/mitm/server.cjs`)
+### 2.2 MITM server (`src/mitm/server.cjs`)
 
-Rdzeniowy serwer MITM działa jako proces potomny Node.js CJS (aby uniknąć przepisywania istniejącej bazy kodu CJS). On:
+The core MITM server runs as a Node.js CJS child process (to avoid rewriting the existing CJS codebase). It:
 
-- Nasłuchuje na porcie 443 (wymaga uprawnień lub `authbind`/`setcap`)
-- Odbiera tunele CONNECT z systemu operacyjnego (przez przekierowanie DNS w `/etc/hosts`)
-- Generuje certyfikaty TLS per-SNI podpisane przez CA AgentBridge (`DATA_DIR/mitm/ca.crt`)
-- Rozwiązuje docelowego agenta po nagłówku Host przez rejestr `targets/index.ts`
-- Przekazuje do warstwy handlerów TypeScript przez HTTP na `http://127.0.0.1:20128`
+- Listens on port 443 (requires privilege or `authbind`/`setcap`)
+- Receives CONNECT tunnels from the OS (via `/etc/hosts` DNS redirect)
+- Generates per-SNI TLS certificates signed by the AgentBridge CA (`DATA_DIR/mitm/ca.crt`)
+- Resolves the target agent by Host header via `targets/index.ts` registry
+- Dispatches to the TypeScript handler layer via HTTP to `http://127.0.0.1:20128`
 
-`TARGET_HOSTS` jest ładowany z `DATA_DIR/mitm/targets.json` (zapisywany przez `targets/index.ts` przy starcie), co umożliwia dynamiczne aktualizacje bez restartu serwera CJS.
+`TARGET_HOSTS` is loaded from `DATA_DIR/mitm/targets.json` (written by `targets/index.ts` at boot), allowing dynamic updates without restarting the CJS server.
 
-> **Model Root-CA (#6684).** Opisany powyżej model certyfikatu per-SNI podpisanego przez CA
-> to utrwalony model root-CA dodany w #6684 (`src/mitm/cert/rootCa.ts` +
-> `src/mitm/_internal/rootCaShim.cjs`, wykorzystujący kryptografię CA/leaf już
-> sprawdzoną dla TPROXY w `src/mitm/tproxy/dynamicCert.ts`) — zastępuje
-> starszy pojedynczy statyczny self-signed leaf (`src/mitm/cert/generate.ts`, nadal
-> ograniczony tylko do hostów antigravity), na który wskazuje sama para `server.crt`/`server.key`
-> na dysku. **Zachowanie migracji**: świeża instalacja (bez wcześniejszego
-> `server.crt`) automatycznie dostaje model root-CA; instalacja, która już
-> zaufała staremu statycznemu leafowi, nadal go używa, dopóki operator nie ustawi
-> `MITM_ROOT_CA_ENABLED=true` i nie zrestartuje bridge'a (`src/mitm/cert/migration.ts`
-> to czysta funkcja decyzyjna — zaufane CA MITM, które może podpisać leaf dla
-> **dowolnego** hosta, jest istotnie silniejsze niż stary leaf z fixed-SAN, więc
-> przełączenie nigdy nie jest ciche dla już zaufanej instalacji). Certyfikat CA instaluje się
-> w tym samym slocie trust-store `omniroute-mitm.crt`, którego używał stary leaf
-> (`cert/install.ts::installCaCert`) — nie jest potrzebne czyszczenie dual-trust.
+> **Root-CA model (#6684).** The per-SNI-cert-signed-by-a-CA description above
+> is the persisted root-CA model added in #6684 (`src/mitm/cert/rootCa.ts` +
+> `src/mitm/_internal/rootCaShim.cjs`, reusing the CA/leaf crypto already
+> proven for TPROXY in `src/mitm/tproxy/dynamicCert.ts`) — it replaces the
+> older single static self-signed leaf (`src/mitm/cert/generate.ts`, still
+> scoped only to the antigravity hosts) that a bare `server.crt`/`server.key`
+> pair on disk indicates. **Migration behavior**: a fresh install (no prior
+> `server.crt`) gets the root-CA model automatically; an install that already
+> trusted the old static leaf keeps using it until the operator sets
+> `MITM_ROOT_CA_ENABLED=true` and restarts the bridge (`src/mitm/cert/migration.ts`
+> is the pure decision function — a trusted MITM CA that can sign a leaf for
+> **any** host is materially more powerful than the old fixed-SAN leaf, so the
+> switch is never silent for an already-trusted install). The CA cert installs
+> into the same `omniroute-mitm.crt` trust-store slot the old leaf used
+> (`cert/install.ts::installCaCert`) — no dual-trust cleanup needed.
 
-### 2.3 Baza handlerów (`src/mitm/handlers/base.ts`)
+### 2.3 Handler base (`src/mitm/handlers/base.ts`)
 
-Wszystkie handlery agentów rozszerzają `MitmHandlerBase`:
+All agent handlers extend `MitmHandlerBase`:
 
 ```ts
 export abstract class MitmHandlerBase {
@@ -119,11 +119,11 @@ export abstract class MitmHandlerBase {
 }
 ```
 
-Każdy handler wywołuje `hookBufferStart()` przed proxyowaniem i `hookBufferUpdate()` po zakończeniu. Te metody wrzucają wpisy `InterceptedRequest` do `globalTrafficBuffer` (zob. [Traffic Inspector](./TRAFFIC_INSPECTOR.md) §4).
+Each handler calls `hookBufferStart()` before proxying and `hookBufferUpdate()` when complete. These push `InterceptedRequest` entries into `globalTrafficBuffer` (see [Traffic Inspector](./TRAFFIC_INSPECTOR.md) §4).
 
-### 2.4 Rejestr targetów (`src/mitm/targets/`)
+### 2.4 Targets registry (`src/mitm/targets/`)
 
-Każdy agent ma deklaratywny plik targetu:
+Each agent has a declarative target file:
 
 ```ts
 // src/mitm/targets/copilot.ts
@@ -139,65 +139,70 @@ export const COPILOT_TARGET: MitmTarget = {
 };
 ```
 
-Rejestr (`targets/index.ts`) eksportuje `ALL_TARGETS` i przy starcie emituje `DATA_DIR/mitm/targets.json`.
+The registry (`targets/index.ts`) exports `ALL_TARGETS` and emits `DATA_DIR/mitm/targets.json` on boot.
 
-### 2.5 Passthrough i lista bypass (`src/mitm/passthrough.ts`)
+### 2.5 Passthrough and bypass list (`src/mitm/passthrough.ts`)
 
-**Lista bypass** (sprawdzana pierwsza, z pierwszeństwem nad dopasowaniem targetu):
+**Bypass list** (checked first, with precedence over target match):
 
-- Wzorce domyślne: hosty bankowe, `.gov.`, providery OAuth/SSO (Okta, Auth0) itd.
-- Wzorce użytkownika: przechowywane w tabeli DB `agent_bridge_bypass`
-- Hosty z bypassu dostają przezroczysty tunel TCP — TLS **nigdy nie jest deszyfrowany**
+- Default patterns: banking hosts, `.gov.`, OAuth/SSO providers (Okta, Auth0), etc.
+- User patterns: stored in DB table `agent_bridge_bypass`
+- Bypassed hosts receive a transparent TCP tunnel — TLS is **never decrypted**
 
-**Domyślny passthrough** (brak dopasowania targetu i brak na liście bypass):
+**Passthrough default** (no target match and not in bypass):
 
-- Również dostaje tunel TCP — połączenia nigdy nie są zrywane
-- Zapobiega zakłócaniu przez AgentBridge ogólnego ruchu HTTPS systemu
+- Also receives a TCP tunnel — connections are never broken
+- Prevents the AgentBridge from disrupting general system HTTPS traffic
 
-Kolejność routingu:
+Routing precedence:
 
 ```
 bypass list → target match → passthrough
 ```
 
-### 2.6 Certyfikat CA upstream (`src/mitm/upstreamTrust.ts`)
+### 2.6 Upstream CA cert (`src/mitm/upstreamTrust.ts`)
 
-Dla środowisk sieci korporacyjnych z własnym CA:
+For corporate network environments with a custom CA:
 
 ```bash
 AGENTBRIDGE_UPSTREAM_CA_CERT=/path/to/corporate-ca.pem
 ```
 
-Po ustawieniu konfiguruje globalny dispatcher `undici` o dodatkowy certyfikat CA, dzięki czemu AgentBridge może dotrzeć do upstreamowych providerów przez korporacyjne proxy terminujące TLS.
+When set, configures `undici`'s global dispatcher with the extra CA cert, allowing AgentBridge to reach upstream providers through corporate TLS termination proxies.
 
-### 2.7 Maskowanie sekretów (`src/mitm/maskSecrets.ts`)
+### 2.7 Secret masking (`src/mitm/maskSecrets.ts`)
 
-Stosowane do wszystkich ciał żądań i nagłówków **zanim** trafią do bufora Traffic Inspector lub jakiegokolwiek logu:
+The independent clean-room scanner is applied to request bodies and credential headers
+**before** they enter the Traffic Inspector buffer or any log. It performs a single linear pass:
 
-- Tokeny z prefiksem `sk-` / `ak-` / `pk-` (styl OpenAI/Anthropic)
-- Nagłówki `Authorization: Bearer <token>`
-- Generyczne długie tokeny (≥40 znaków)
+- `sk-` / `ak-` / `pk-` prefixed tokens (OpenAI/Anthropic-style)
+- RFC 6750 `Authorization: Bearer <token>` credentials, with whole-token precedence
+- Generic long opaque tokens (≥40 chars), including dotted and padded forms
+
+`sanitizeHeaders()` lowercases retained names, joins array values deterministically, drops the
+shared hop-by-hop/framing denylist (including proxy authentication), fully redacts `cookie` and
+`set-cookie`, and delegates credential values to the scanner.
 
 ---
 
-## §3 Konfiguracja
+## §3 Setup
 
-### 3.1 Start/stop serwera MITM
+### 3.1 Start/stop the MITM server
 
-Użyj karty AgentBridge Server Card pod `/dashboard/tools/agent-bridge`:
+Use the AgentBridge Server Card at `/dashboard/tools/agent-bridge`:
 
-| Action          | Description                                                                        |
-| --------------- | ---------------------------------------------------------------------------------- |
-| Start Server    | Uruchamia `src/mitm/server.cjs` na porcie 443                                      |
-| Stop Server     | Gracefully zamyka proces potomny                                                   |
-| Restart Server  | Stop + start (przejmuje zmiany targetów)                                           |
-| Trust Cert      | Instaluje `DATA_DIR/mitm/ca.crt` w magazynie zaufania OS                           |
-| Download Cert   | Pobiera `ca.crt` do ręcznej instalacji                                             |
-| Regenerate Cert | Tworzy nową parę kluczy CA (unieważnia wszystkie istniejące certyfikaty per-agent) |
+| Action          | Description                                                             |
+| --------------- | ----------------------------------------------------------------------- |
+| Start Server    | Spawns `src/mitm/server.cjs` on port 443                                |
+| Stop Server     | Gracefully shuts down the child process                                 |
+| Restart Server  | Stop + start (picks up target changes)                                  |
+| Trust Cert      | Installs `DATA_DIR/mitm/ca.crt` into OS trust store                     |
+| Download Cert   | Downloads `ca.crt` for manual installation                              |
+| Regenerate Cert | Creates a new CA keypair (all existing per-agent certs are invalidated) |
 
-### 3.2 Zaufanie certyfikatowi
+### 3.2 Trust the certificate
 
-Certyfikat CA AgentBridge musi być zaufany przez OS, zanim IDE zaakceptują połączenie MITM.
+The AgentBridge CA certificate must be trusted by the OS before IDEs will accept the MITM connection.
 
 **Linux (NSS — Chrome/Firefox):**
 
@@ -218,103 +223,103 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-Albo użyj przycisku „Trust Cert” w dashboardzie (uruchamia odpowiednią komendę dla Twojego OS, z promptem sudo jeśli potrzeba).
+Or use the "Trust Cert" button in the dashboard (runs the appropriate command for your OS, with sudo prompt if needed).
 
-#### IDE oparte na Electron ignorują magazyn zaufania OS (`NODE_EXTRA_CA_CERTS`)
+#### Electron-based IDEs ignore the OS trust store (`NODE_EXTRA_CA_CERTS`)
 
-Niektóre IDE — zwłaszcza **Antigravity IDE** oraz inne aplikacje oparte na Electron / VS Code — dołączają
-własne runtime Node.js, które **nie konsultuje magazynu zaufania OS** dla wychodzących
-`fetch`/HTTPS. Zaufanie CA na poziomie OS/NSS wystarcza dla natywnego **backendu** IDE
-(np. serwer języka Go, który używa pakietu CA systemu), ale **frontend Electron**
-nadal będzie failował TLS — objawia się to jako _wylogowanie_ aplikacji lub komunikat _"connection error"_,
-mimo że log MITM pokazuje, że wywołania bootstrap backendu zwracają `200`. Wymagane są dwa kroki
-i oba mają znaczenie:
+Some IDEs — notably **Antigravity IDE**, and other Electron / VS Code-derived apps — bundle
+their own Node.js runtime that **does not consult the OS trust store** for outbound
+`fetch`/HTTPS. Trusting the CA at the OS/NSS level is enough for the IDE's native **backend**
+(e.g. a Go language server, which uses the OS CA bundle), but the **Electron frontend** will
+still fail TLS — it surfaces as the app being _logged out_ or showing a _"connection error"_
+even though the MITM log shows the backend's bootstrap calls returning `200`. Two steps are
+required, and both matter:
 
-1. Wskaż runtime jawnie na CA:
+1. Point the runtime at the CA explicitly:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **Uruchom IDE z tej powłoki.** Start z ikony pulpitu / Dock / menu Start
-   **nie** dziedziczy eksportów powłoki, a `~/.config/environment.d/*.conf` działa dopiero po
-   świeżym logowaniu graficznym. Najpierw w pełni zamknij IDE — singleton lock Electron sprawia, że drugie
-   uruchomienie tylko fokusuje istniejący proces i nowe środowisko jest ignorowane.
+2. **Launch the IDE from that shell.** Starting it from the desktop icon / Dock / Start menu
+   does **not** inherit shell exports, and `~/.config/environment.d/*.conf` only applies after
+   a fresh graphical login. Fully quit the IDE first — Electron's singleton lock means a second
+   launch just focuses the existing process and the new environment is ignored.
 
-Krok OS-trust + NSS powyżej nadal jest konieczny (stos sieciowy Chromium używany w niektórych flow
-auth czyta per-user store NSS i ma własne statyczne piny dla `*.googleapis.com`, które
-lokalnie zaufane CA nadpisuje). `NODE_EXTRA_CA_CERTS` pokrywa ścieżkę Node `fetch` na wierzchu tego.
+The OS-trust + NSS step above remains necessary (the Chromium network stack used by some auth
+flows reads the per-user NSS store, and has its own static pins for `*.googleapis.com` that a
+locally-trusted CA overrides). `NODE_EXTRA_CA_CERTS` covers the Node `fetch` path on top of it.
 
-### 3.3 Routing DNS
+### 3.3 DNS routing
 
-Dla każdego agenta, którego ruch chcesz przechwytywać, jego host(y) API muszą resolvować do `127.0.0.1`. AgentBridge zarządza wpisami `/etc/hosts` automatycznie, gdy włączysz DNS dla agenta w Setup Wizard.
+For each agent you want to intercept, its API host(s) must resolve to `127.0.0.1`. AgentBridge manages `/etc/hosts` entries automatically when you toggle DNS for an agent in the Setup Wizard.
 
-Przykładowe wpisy `/etc/hosts` dla GitHub Copilot:
+Example `/etc/hosts` entries for GitHub Copilot:
 
 ```
 127.0.0.1 api.githubcopilot.com
 127.0.0.1 copilot-proxy.githubusercontent.com
 ```
 
-### 3.4 Mapowanie modeli
+### 3.4 Model mapping
 
-Użyj tabeli Model Mapping w karcie każdego agenta, aby zdefiniować mapowania source → target:
+Use the Model Mapping Table in each agent card to define source → target mappings:
 
 | Source model (agent native) | Target model (OmniRoute) |
 | --------------------------- | ------------------------ |
 | `gpt-4o`                    | `claude-sonnet-4.7`      |
 | `*` (wildcard)              | `claude-haiku-4.7`       |
 
-Wildcard `*` mapuje dowolny nierozpoznany model na wskazany target. Trwałe w tabeli `agent_bridge_mappings`.
+Wildcard `*` maps any unrecognized model to the specified target. Persisted in `agent_bridge_mappings` table.
 
-> **Wskazówka — odkryj rzeczywiste ID modeli agenta.** IDE może wysyłać nazwy modeli inne niż
-> etykiety w UI i zmieniające się między major versions. Na przykład **Antigravity 2** wysyła
-> po drucie `gemini-3.1-pro-low`, `gemini-pro-agent` i `gemini-3.1-flash-lite` — nie
-> `gemini-2.5-pro` z starszej dokumentacji. Wyślij jeden chat bez pasującego mapowania: MITM
-> zaloguje dokładne przychodzące `model:` i przepuści żądanie. Zmapuj tę literałową wartość, a
-> następne żądanie zostanie przechwycone i skierowane do Twojego targetu.
+> **Tip — discover the agent's real model IDs.** An IDE may send model names that differ from
+> its UI labels and that change between major versions. For example **Antigravity 2** sends
+> `gemini-3.1-pro-low`, `gemini-pro-agent`, and `gemini-3.1-flash-lite` over the wire — not the
+> `gemini-2.5-pro` shown in older docs. Send one chat with no matching mapping in place: the MITM
+> logs the exact incoming `model:` and passes the request through. Map that literal value, then
+> the next request is intercepted and routed to your target.
 
-### 3.5 Ostrzeżenie o ryzyku
+### 3.5 Risk notice
 
-AgentBridge przechwytuje poświadczenia (tokeny OAuth, klucze API), których IDE używa do uwierzytelnienia u upstreamowych providerów. Są one **maskowane przed logowaniem** (zob. §2.7), ale są widoczne dla warstwy MITM OmniRoute. Pierwsza aktywacja każdego agenta pokazuje zamykalny modal z ostrzeżeniem o ryzyku.
+AgentBridge intercepts credentials (OAuth tokens, API keys) that the IDE uses to authenticate with upstream providers. These are **masked before logging** (see §2.7) but are visible to OmniRoute's MITM layer. First activation of each agent shows a dismissible risk notice modal.
 
 ### 3.6 Maintenance & Diagnostics
 
-Dashboard udostępnia kartę **Maintenance & Diagnostics** (`AgentBridgeMaintenanceCard`, w `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`), która ujawnia operacyjne trasy MITM wcześniej bez UI. Jej podtytuł: _"Self-test the capture pipeline, undo leftover system state, and move your setup between machines."_ Helpery klienckie karty żyją w `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
+The dashboard exposes a **Maintenance & Diagnostics** card (`AgentBridgeMaintenanceCard`, in `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`) that surfaces operational MITM routes which previously had no UI. Its subtitle: _"Self-test the capture pipeline, undo leftover system state, and move your setup between machines."_ The card client helpers live in `src/lib/inspector/agentBridgeMaintenanceApi.ts`.
 
-| Button            | Route                                  | What it does                                                                                                                                                                    |
-| ----------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Diagnose**      | `GET /api/tools/agent-bridge/diagnose` | Uruchamia self-test potoku przechwytywania i pokazuje raport per-check (✓/✗ + wskazówka remediaty).                                                                             |
-| **Repair**        | `POST /api/tools/agent-bridge/repair`  | Cofa osierocony stan systemowy MITM (wpisy DNS spoof, root CA, system proxy) pozostały po crashu lub SIGKILL. Idempotentny — zgłasza „Nothing to repair”, gdy stan jest czysty. |
-| **Remove CA**     | `DELETE /api/tools/agent-bridge/cert`  | Usuwa zaufanie i usuwa root CA MITM z magazynu zaufania OS (jawne, idempotentne). Pokazywane tylko gdy CA jest obecnie zaufane; wymaga inline potwierdzenia „Remove CA?”.       |
-| **Export config** | `GET /api/tools/agent-bridge/config`   | Pobiera przenośny JSON konfiguracji (zob. §3.7).                                                                                                                                |
-| **Import config** | `POST /api/tools/agent-bridge/config`  | Przesyła wcześniej wyeksportowany JSON konfiguracji (zob. §3.7).                                                                                                                |
+| Button            | Route                                  | What it does                                                                                                                                                                     |
+| ----------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Diagnose**      | `GET /api/tools/agent-bridge/diagnose` | Runs the capture-pipeline self-test and shows a per-check report (✓/✗ + remediation hint).                                                                                       |
+| **Repair**        | `POST /api/tools/agent-bridge/repair`  | Undoes orphaned MITM system state (DNS spoof entries, root CA, system proxy) left behind by a crash or SIGKILL. Idempotent — reports "Nothing to repair" when state is clean.    |
+| **Remove CA**     | `DELETE /api/tools/agent-bridge/cert`  | Untrusts and removes the MITM root CA from the OS trust store (explicit, idempotent). Shown only when the CA is currently trusted; requires an inline "Remove CA?" confirmation. |
+| **Export config** | `GET /api/tools/agent-bridge/config`   | Downloads the portable config JSON (see §3.7).                                                                                                                                   |
+| **Import config** | `POST /api/tools/agent-bridge/config`  | Uploads a previously-exported config JSON (see §3.7).                                                                                                                            |
 
-**Checki diagnostyczne** (`summarizeDiagnostics()` w `src/mitm/inspector/diagnostics.ts`). Trasa uruchamia efektowy probe dla każdego i przekazuje booleany do czystego summarizera; zwracany jest pojedynczy werdykt `healthy` oraz wskazówka per-failure:
+**Diagnostics checks** (`summarizeDiagnostics()` in `src/mitm/inspector/diagnostics.ts`). The route runs the effectful probe for each and feeds the booleans into the pure summarizer; a single `healthy` verdict plus a per-failure hint is returned:
 
-| Check name         | What it verifies                                             | Hint on failure                                                                                                                        |
-| ------------------ | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | Proces serwera MITM jest aktywny                             | "The MITM server is not running. Start it from the AgentBridge tab."                                                                   |
-| `server-reachable` | Serwer MITM akceptuje połączenia na swoim porcie (TCP probe) | "The MITM server is not accepting connections on its port. Check that the port is free and that you have privileges to bind it."       |
-| `cert-exists`      | Certyfikat MITM został wygenerowany na dysku                 | "No MITM certificate has been generated yet. Generate one from the AgentBridge tab."                                                   |
-| `cert-trusted`     | Root CA MITM jest w magazynie zaufania OS                    | "The MITM root CA is not trusted by the OS store, so TLS interception will fail. Trust the certificate from the AgentBridge tab."      |
-| `dns-configured`   | Hostnames targetów są spoofowane w `/etc/hosts`              | "Target hostnames are not spoofed in /etc/hosts, so traffic never reaches the proxy. Enable DNS for the agent(s) you want to capture." |
+| Check name         | What it verifies                                            | Hint on failure                                                                                                                        |
+| ------------------ | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | The MITM server process is active                           | "The MITM server is not running. Start it from the AgentBridge tab."                                                                   |
+| `server-reachable` | The MITM server accepts connections on its port (TCP probe) | "The MITM server is not accepting connections on its port. Check that the port is free and that you have privileges to bind it."       |
+| `cert-exists`      | The MITM certificate has been generated on disk             | "No MITM certificate has been generated yet. Generate one from the AgentBridge tab."                                                   |
+| `cert-trusted`     | The MITM root CA is in the OS trust store                   | "The MITM root CA is not trusted by the OS store, so TLS interception will fail. Trust the certificate from the AgentBridge tab."      |
+| `dns-configured`   | Target hostnames are spoofed in `/etc/hosts`                | "Target hostnames are not spoofed in /etc/hosts, so traffic never reaches the proxy. Enable DNS for the agent(s) you want to capture." |
 
-**Banner osieroconego stanu:** gdy strona wykryje stan pozostały po crashu (DNS spoof / CA / system proxy), karta pokazuje bursztynowy banner — _"A previous session left system state behind (DNS spoof, CA, or system proxy). Run Repair to clean it up."_ — i podświetla przycisk **Repair**. `Repair` to warstwa aplikacyjna analogiczna do flagi `--cleanup` ProxyBridge (deleguje do `repairMitm()` w `src/mitm/manager.ts`).
+**Orphaned-state banner:** when the page detects state left behind by a crash (DNS spoof / CA / system proxy), the card shows an amber banner — _"A previous session left system state behind (DNS spoof, CA, or system proxy). Run Repair to clean it up."_ — and highlights the **Repair** button. `Repair` is the application-layer analogue of ProxyBridge's `--cleanup` flag (it delegates to `repairMitm()` in `src/mitm/manager.ts`).
 
-> Root CA MITM pozostaje zainstalowany między stop/start, aby uniknąć powtarzanych promptów
-> sudo (to samo zachowanie co mitmproxy/Charles), więc usunięcie go to jawna
-> akcja **Remove CA**, a nie coś, co dzieje się automatycznie przy stopie.
+> The MITM root CA is kept installed across stop/start to avoid repeated sudo
+> prompts (the same behavior as mitmproxy/Charles), so removing it is an explicit
+> **Remove CA** action rather than something that happens automatically on stop.
 
-### 3.7 Przenośny import/eksport konfiguracji
+### 3.7 Portable config import/export
 
-AgentBridge może zserializować **konfigurowalny przez operatora** stan do wersjonowanego bloba JSON, aby setup dało się replikować między maszynami. Serializer to `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), walidowany przez `AgentBridgeConfigSchema`.
+AgentBridge can serialize the **operator-tunable** state into a versioned JSON blob so a setup can be replicated across machines. The serializer is `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`), validated by `AgentBridgeConfigSchema`.
 
-Eksport zawiera dokładnie trzy elementy (wbudowane domyślne są celowo **NIE** eksportowane, więc import nigdy ich nie duplikuje ani z nimi nie walczy):
+The export includes exactly three pieces (built-in defaults are intentionally **NOT** exported, so importing never duplicates or fights them):
 
-| Field            | Source                                                               | Notes                                                                  |
-| ---------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `bypassPatterns` | wzorce bypass zdefiniowane przez użytkownika (`agent_bridge_bypass`) | domyślne wzorce bank/gov/okta są wykluczone                            |
-| `customHosts`    | niestandardowe hosty Traffic Inspector (`inspector_custom_hosts`)    | każdy: `{ host, kind: "llm"\|"app"\|"custom", label? }`                |
-| `agentMappings`  | mapowania modeli per-agent (`agent_bridge_mappings`)                 | `{ [agentId]: [{ source, target }] }` dla każdego agenta z mapowaniami |
+| Field            | Source                                                    | Notes                                                                   |
+| ---------------- | --------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `bypassPatterns` | user-defined bypass patterns (`agent_bridge_bypass`)      | default bank/gov/okta patterns are excluded                             |
+| `customHosts`    | Traffic Inspector custom hosts (`inspector_custom_hosts`) | each: `{ host, kind: "llm"\|"app"\|"custom", label? }`                  |
+| `agentMappings`  | per-agent model mappings (`agent_bridge_mappings`)        | `{ [agentId]: [{ source, target }] }` for every agent that has mappings |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -326,143 +331,143 @@ Eksport zawiera dokładnie trzy elementy (wbudowane domyślne są celowo **NIE**
 }
 ```
 
-**Zachowanie importu** (`POST /api/tools/agent-bridge/config`): wzorce bypass i mapowania per-agent **zastępują w całości**; custom hosty są dodawane **idempotentnie** (`INSERT OR IGNORE`). Odpowiedź raportuje, ile z każdego zostało zastosowane:
+**Import behavior** (`POST /api/tools/agent-bridge/config`): bypass patterns and per-agent mappings **replace wholesale**; custom hosts are added **idempotently** (`INSERT OR IGNORE`). The response reports how many of each were applied:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Czego **NIE** ma w konfiguracji: stan działania serwera, ścieżki certyfikatów, stan DNS per-agent, ścieżka upstream CA oraz ustawienia TPROXY — to stan hosta/runtime, nie przenośne preferencje.
+What is **NOT** in the config: server running state, cert paths, per-agent DNS state, upstream CA path, and TPROXY settings — those are host/runtime state, not portable preferences.
 
 ---
 
-## §4 Referencja per-agent
+## §4 Per-agent reference
 
 | #   | Agent              | Status           | Hosts intercepted                                                  | Auth type      |
 | --- | ------------------ | ---------------- | ------------------------------------------------------------------ | -------------- |
 | 1   | **Antigravity**    | ✅ Supported     | `daily-cloudcode-pa.googleapis.com`, `cloudcode-pa.googleapis.com` | Firebase OAuth |
 | 2   | **Kiro (AWS)**     | ✅ Supported     | `prod.kiro.aws`, `dev.kiro.aws`                                    | AWS SigV4      |
 | 3   | **GitHub Copilot** | ✅ Supported     | `api.githubcopilot.com`, `copilot-proxy.githubusercontent.com`     | GitHub OAuth   |
-| 4   | **OpenAI Codex**   | ✅ Supported     | `api.openai.com` (ścieżki Codex), `chatgpt.com`                    | OpenAI key     |
+| 4   | **OpenAI Codex**   | ✅ Supported     | `api.openai.com` (Codex paths), `chatgpt.com`                      | OpenAI key     |
 | 5   | **Cursor IDE**     | ✅ Supported     | `api2.cursor.sh`, `api.cursor.sh`                                  | Cursor OAuth   |
 | 6   | **Zed Industries** | ✅ Supported     | `api.zed.dev`, `llm.zed.dev`                                       | Zed OAuth      |
 | 7   | **Claude Code**    | ✅ Supported     | `api.anthropic.com` (opt-in)                                       | Anthropic key  |
-| 8   | **Open Code**      | ✅ Supported     | `openrouter.ai`, `api.openai.com` (ścieżki zen)                    | API key        |
-| 9   | **Trae**           | 🔍 Investigating | TBD — zob. §8                                                      | TBD            |
+| 8   | **Open Code**      | ✅ Supported     | `openrouter.ai`, `api.openai.com` (zen paths)                      | API key        |
+| 9   | **Trae**           | 🔍 Investigating | TBD — see §8                                                       | TBD            |
 
-### Kroki setup wizard (per agent)
+### Setup wizard steps (per agent)
 
-Każda karta agenta ma 3-krokowy setup wizard:
+Each agent card has a 3-step setup wizard:
 
-1. **Verify prerequisites** — Serwer działa? Cert zaufany? IDE zainstalowane (auto-wykrycie)?
-2. **Enable DNS** — Dodaje wpisy `/etc/hosts` (wymaga sudo). Pokazuje dokładnie, które linie zostaną dodane.
-3. **Map models** — Opcjonalna tabela mapowania modeli. Wildcards akceptowane.
+1. **Verify prerequisites** — Server running? Cert trusted? IDE installed (auto-detected)?
+2. **Enable DNS** — Adds `/etc/hosts` entries (requires sudo). Shows exactly which lines will be added.
+3. **Map models** — Optional model mapping table. Wildcards accepted.
 
-### Wykrywanie agentów
+### Agent detection
 
-Dla agentów 1–8 AgentBridge próbuje automatycznie wykryć instalację IDE:
+For agents 1–8, AgentBridge attempts to auto-detect IDE installation:
 
 ```ts
 export async function detectAgent(agentId: AgentId): Promise<DetectionResult>;
 // Returns: { installed: boolean, version?: string, path?: string }
 ```
 
-Wykrywanie używa ścieżek specyficznych dla OS i sprawdzeń binarnych (np. `code --list-extensions | grep github.copilot` dla Copilot, `~/.config/antigravity/` dla Antigravity).
+Detection uses OS-specific paths and binary checks (e.g., `code --list-extensions | grep github.copilot` for Copilot, `~/.config/antigravity/` for Antigravity).
 
 ---
 
-## §5 Bezpieczeństwo
+## §5 Security
 
-### Zastosowane Hard Rules
+### Hard Rules applied
 
-| Rule                              | Application                                                                                |
-| --------------------------------- | ------------------------------------------------------------------------------------------ |
-| **#12** `sanitizeErrorMessage`    | Wszystkie błędy handlerów są sanityzowane przed odpowiedzią lub wpisem do bufora           |
-| **#13** Shell env-passing         | Edycje `/etc/hosts` używają opcji `env` — bez interpolacji stringów ścieżek                |
-| **#15 + #17** `isLocalOnlyPath()` | `/api/tools/agent-bridge/` jest LOCAL_ONLY + SPAWN_CAPABLE — loopback wymuszany przed auth |
+| Rule                              | Application                                                                              |
+| --------------------------------- | ---------------------------------------------------------------------------------------- |
+| **#12** `sanitizeErrorMessage`    | All handler errors are sanitized before response or buffer entry                         |
+| **#13** Shell env-passing         | `/etc/hosts` edits use `env` option — no string interpolation of paths                   |
+| **#15 + #17** `isLocalOnlyPath()` | `/api/tools/agent-bridge/` is LOCAL_ONLY + SPAWN_CAPABLE — loopback enforced before auth |
 
-### Lista bypass dla wrażliwych hostów
+### Bypass list for sensitive hosts
 
-Lista bypass gwarantuje, że instytucje finansowe, providery OAuth/SSO i inne wrażliwe hosty **nigdy nie są deszyfrowane**. Ich ruch TLS przechodzi jako przezroczysty tunel TCP — OmniRoute nigdy nie widzi plaintextu.
+The bypass list ensures that financial institutions, OAuth/SSO providers, and other sensitive hosts are **never decrypted**. Their TLS traffic passes through as a transparent TCP tunnel — OmniRoute never sees the plaintext.
 
-Domyślne wzorce bypass obejmują:
+Default bypass patterns include:
 
-- `*.bank.*`, `*.gov.*` (finanse/administracja)
-- `*.okta.com`, `*.auth0.com`, `*.microsoft.com` (SSO/tożsamość)
-- `*.apple.com`, `*.icloud.com` (usługi systemowe Apple)
+- `*.bank.*`, `*.gov.*` (financial/government)
+- `*.okta.com`, `*.auth0.com`, `*.microsoft.com` (SSO/identity)
+- `*.apple.com`, `*.icloud.com` (Apple system services)
 
-Wzorce bypass dodane przez użytkownika są przechowywane w tabeli `agent_bridge_bypass` i mają pierwszeństwo nad wszystkim.
+User-added bypass patterns are stored in `agent_bridge_bypass` table and take precedence over everything.
 
-### Maskowanie sekretów
+### Secret masking
 
-`maskSecrets()` z `src/mitm/maskSecrets.ts` jest stosowane:
+`maskSecrets()` from `src/mitm/maskSecrets.ts` is applied:
 
-- Na każdym ciele żądania przed `TrafficBuffer.push()`
-- Na każdym nagłówku przed logowaniem lub broadcastem
+- On every request body before `TrafficBuffer.push()`
+- On every header before logging or broadcasting
 
-Wzorce: tokeny z prefiksem `sk-`/`ak-`/`pk-`, tokeny `Bearer` oraz generyczne tokeny ≥40 znaków.
+Patterns: `sk-`/`ak-`/`pk-` prefix tokens, `Bearer` tokens, and generic tokens ≥40 characters.
 
-### Certyfikat CA upstream
+### Upstream CA cert
 
-Gdy ustawione jest `AGENTBRIDGE_UPSTREAM_CA_CERT`, plik jest odczytywany przy starcie. Jeśli ścieżka istnieje, ale plik jest nieczytelny, AgentBridge loguje jasny błąd i odmawia startu (zapobiega cichym awariom TLS w środowiskach korporacyjnych).
+When `AGENTBRIDGE_UPSTREAM_CA_CERT` is set, the file is read at startup. If the path exists but the file is unreadable, AgentBridge logs a clear error and refuses to start (prevents silent TLS failures in corporate environments).
 
-### Znane ograniczenia
+### Known limitations
 
-- **Port 443 wymaga uprawnień**: Na Linuxie AgentBridge potrzebuje `setcap 'cap_net_bind_service=+ep'` na binarium Node albo uruchomienia przez `authbind`. Setup Wizard wyświetla instrukcje specyficzne dla OS.
-- **Wymagany restart IDE**: Po przekierowaniu DNS IDE musi zostać zrestartowane, aby nowa resolucja hostów weszła w życie.
-- **Hardcoded tokeny OAuth**: Niektóre agenty (Kiro, Antigravity) przechowują lokalnie tokeny odświeżania OAuth. Są one przezroczyste dla AgentBridge — widzi Bearer token w każdym żądaniu, który jest maskowany przed logowaniem.
-- **Frontend Electron wymaga `NODE_EXTRA_CA_CERTS`**: IDE, których frontend działa na dołączonym runtime Node/Electron, ignorują magazyn zaufania OS/NSS i muszą być uruchamiane z powłoki z ustawionym `NODE_EXTRA_CA_CERTS` (zob. §3.2). Objaw przy braku: backend IDE się uwierzytelnia (MITM pokazuje `200`), ale UI pozostaje wylogowany.
-- **Wiele instalacji tego samego IDE jest niezależnych**: instalacja systemowa (np. `/usr/share/antigravity/antigravity`) i lokalna użytkownika „Full” (np. `~/AntigravityIDE_Full/antigravity-ide`) to osobne procesy z własnymi runtime — każdy musi być ponownie uruchomiony z wstrzykniętym CA. Zidentyfikuj, który działa, po ścieżce binarium przed relaunch.
-- **Tożsamość ustawia system prompt agenta, nie routowany model**: gdy remapujesz model agenta na innego providera, odpowiedź nadal twierdzi natywną tożsamość agenta (np. Antigravity odpowiada „I am powered by Gemini”), bo IDE wstrzykuje to do system prompt. Potwierdź prawdziwy backend w `call_logs` / `proxy_logs` (`provider`, `model`, `target_format`), a nie pytając model, kim jest.
+- **Port 443 requires privilege**: On Linux, AgentBridge needs `setcap 'cap_net_bind_service=+ep'` on the Node binary, or run via `authbind`. The Setup Wizard displays OS-specific instructions.
+- **IDE restart required**: After DNS redirect, the IDE must be restarted for the new host resolution to take effect.
+- **Hardcoded OAuth tokens**: Some agents (Kiro, Antigravity) store OAuth refresh tokens locally. These are transparent to AgentBridge — it sees the Bearer token in each request, which is masked before logging.
+- **Electron frontends need `NODE_EXTRA_CA_CERTS`**: IDEs whose frontend runs on a bundled Node/Electron runtime ignore the OS/NSS trust store and must be launched from a shell with `NODE_EXTRA_CA_CERTS` set (see §3.2). Symptom when missing: the IDE backend authenticates (MITM shows `200`s) but the UI stays logged out.
+- **Multiple installs of the same IDE are independent**: a system install (e.g. `/usr/share/antigravity/antigravity`) and a user-local "Full" install (e.g. `~/AntigravityIDE_Full/antigravity-ide`) are separate processes with their own runtimes — each must be relaunched with the CA injected. Identify which one is running by its binary path before relaunching.
+- **Identity is set by the agent's system prompt, not the routed model**: when you remap an agent's model to a different provider, the reply still claims the agent's native identity (e.g. Antigravity answers "I am powered by Gemini") because the IDE injects that into the system prompt. Confirm the real backend in `call_logs` / `proxy_logs` (`provider`, `model`, `target_format`), not by asking the model who it is.
 
 ---
 
-## §6 Rozwiązywanie problemów
+## §6 Troubleshooting
 
-### Konflikt portu 443
+### Port 443 conflict
 
-Jeśli inny proces już nasłuchuje na porcie 443 (serwer WWW, VPN itd.):
+If another process is already listening on port 443 (web server, VPN, etc.):
 
 ```bash
 lsof -i :443          # find the process
 sudo fuser -k 443/tcp  # force-kill (use with care)
 ```
 
-Alternatywnie skonfiguruj nieuprzywilejowany port w ustawieniach AgentBridge i ustaw reguły przekierowania `iptables` / `pf`.
+Alternatively, configure a non-privileged port in AgentBridge settings and set up `iptables` / `pf` redirect rules.
 
-### Certyfikat niezaufany
+### Certificate not trusted
 
-Jeśli IDE pokazuje błędy TLS po starcie AgentBridge:
+If the IDE shows TLS errors after starting AgentBridge:
 
-1. Sprawdź, czy cert został zainstalowany: `security find-certificate -c "OmniRoute AgentBridge"` (macOS) lub `certutil -L -d sql:$HOME/.pki/nssdb` (Linux/NSS)
-2. Niektóre aplikacje utrzymują własny magazyn zaufania (Firefox, Chrome na Linuxie). Uruchom „Trust Cert” ponownie i sprawdź store certyfikatów NSS/Firefox.
-3. Zrestartuj IDE po zaufaniu — trwające sesje TLS używają starego stanu zaufania.
+1. Verify the cert was installed: `security find-certificate -c "OmniRoute AgentBridge"` (macOS) or `certutil -L -d sql:$HOME/.pki/nssdb` (Linux/NSS)
+2. Some apps maintain their own trust store (Firefox, Chrome on Linux). Run "Trust Cert" again and check the NSS/Firefox-specific cert store.
+3. Restart the IDE after trusting — in-flight TLS sessions use the old trust state.
 
-### IDE wylogowane / „connection error” mimo zaufanego CA
+### IDE logged out / "connection error" despite a trusted CA
 
-Objaw: po przekierowaniu DNS i zaufaniu CA IDE oparte na Electron (np. Antigravity)
-otwiera się **wylogowane** lub pokazuje błąd uwierzytelnienia/połączenia, a log MITM pokazuje, że
-wywołania bootstrap (`loadCodeAssist`, `fetchAvailableModels`, …) zwracają `200`.
+Symptom: after redirecting DNS and trusting the CA, an Electron-based IDE (e.g. Antigravity)
+opens **logged out** or shows an authentication/connection error, yet the MITM log shows the
+bootstrap calls (`loadCodeAssist`, `fetchAvailableModels`, …) returning `200`.
 
-Przyczyna: **dołączone runtime Node/Electron IDE ignoruje magazyn zaufania OS**. Natywny
-backend (serwer języka Go) ufa CA OS i się uwierzytelnia, ale frontend Electron
-nie — więc UI uważa, że jest offline.
+Cause: the IDE's **bundled Node/Electron runtime ignores the OS trust store**. The native
+backend (a Go language server) trusts the OS CA and authenticates, but the Electron frontend
+does not — so the UI believes it is offline.
 
-Naprawa (oba kroki): wyeksportuj `NODE_EXTRA_CA_CERTS=<ca.crt>` **i uruchom ponownie IDE z tej
-powłoki**, nie z ikony pulpitu. Najpierw w pełni zamknij IDE — singleton lock Electron sprawia, że
-drugie uruchomienie tylko fokusuje istniejący proces i nowe środowisko jest ignorowane. Zob. §3.2.
-To odzwierciedla otwarty raport upstream, w którym samodzielny agent działa przez MITM, ale wariant
-IDE failuje przy tym samym setupie.
+Fix (both steps): export `NODE_EXTRA_CA_CERTS=<ca.crt>` **and relaunch the IDE from that
+shell**, not from the desktop icon. Fully quit the IDE first — Electron's singleton lock means
+a second launch just focuses the existing process and the new environment is ignored. See §3.2.
+This mirrors an open upstream report where a standalone agent works through a MITM but the IDE
+variant fails under the same setup.
 
-### DNS nie rozpropagowany
+### DNS not propagated
 
-Sprawdź, czy `/etc/hosts` został zaktualizowany:
+Check that `/etc/hosts` was updated:
 
 ```bash
 grep "omniroute\|127.0.0.1.*github\|127.0.0.1.*cursor" /etc/hosts
 ```
 
-Wyczyść cache DNS:
+Flush DNS cache:
 
 ```bash
 # macOS
@@ -473,81 +478,81 @@ sudo systemctl restart systemd-resolved
 ipconfig /flushdns
 ```
 
-### IDE nie wykryte
+### IDE not detected
 
-Auto-wykrywanie używa typowych ścieżek instalacji. Jeśli detekcja failuje, ale IDE jest zainstalowane:
+Auto-detection uses common installation paths. If detection fails but the IDE is installed:
 
-- Sprawdź, czy binarium IDE jest w niestandardowej lokalizacji
-- Setup Wizard nadal działa — niepowodzenie detekcji oznacza tylko, że badge nie pokaże ścieżki instalacji
+- Check if the IDE binary is in a non-standard location
+- The Setup Wizard still works — detection failure just means the badge won't show the install path
 
-### Błędy handlera (upstream fetch failuje)
+### Handler errors (upstream fetch fails)
 
-Jeśli AgentBridge przechwytuje, ale wszystkie żądania failują:
+If AgentBridge intercepts but all requests fail:
 
-1. Sprawdź, czy co najmniej jeden provider jest podłączony pod `/dashboard/providers`
-2. Sprawdź logi serwera OmniRoute: `APP_LOG_LEVEL=debug` w `.env`
-3. Zweryfikuj, że `OMNIROUTE_BASE_URL` wskazuje na poprawny endpoint routera (domyślnie: `http://127.0.0.1:20128`)
+1. Verify at least one provider is connected at `/dashboard/providers`
+2. Check OmniRoute server logs: `APP_LOG_LEVEL=debug` in `.env`
+3. Verify `OMNIROUTE_BASE_URL` points to the correct router endpoint (default: `http://127.0.0.1:20128`)
 
 ---
 
-## §7 Referencja API
+## §7 API reference
 
-Wszystkie trasy są `LOCAL_ONLY` (tylko loopback, wymuszane przed auth) i `SPAWN_CAPABLE`. Zob. `src/server/authz/routeGuard.ts`.
+All routes are `LOCAL_ONLY` (loopback-only, enforced before auth) and `SPAWN_CAPABLE`. See `src/server/authz/routeGuard.ts`.
 
 Base path: `/api/tools/agent-bridge/`
 
-| Method              | Path                                           | Description                                                                                                                   |
-| ------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | Globalny stan serwera + detekcja/status per-agent                                                                             |
-| GET                 | `/api/tools/agent-bridge/agents`               | Lista zarejestrowanych agentów (id, name, hosts, viability, state)                                                            |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Stan jednego agenta (konfiguracja targetu + detekcja + stan zapisany)                                                         |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Aktualizacja `setup_completed` dla agenta                                                                                     |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Uruchom probe detekcji dla agenta (`installed`, `version?`, `path?`)                                                          |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Włącz/wyłącz DNS dla agenta (`{enabled: boolean}`)                                                                            |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Mapowania modeli dla agenta                                                                                                   |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Zastąp mapowania modeli                                                                                                       |
-| POST                | `/api/tools/agent-bridge/server`               | Start/stop/restart serwera (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                            |
-| GET                 | `/api/tools/agent-bridge/cert`                 | Status certyfikatu (`exists`, `trusted`, `path`)                                                                              |
-| POST                | `/api/tools/agent-bridge/cert`                 | Zaufaj (zainstaluj) root CA MITM                                                                                              |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | Usuń zaufanie (usuń) root CA MITM — idempotentne (zob. §3.6)                                                                  |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Regeneruj self-signed cert MITM                                                                                               |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | Strumieniuj cert PEM do pobrania                                                                                              |
-| GET                 | `/api/tools/agent-bridge/bypass`               | Lista wzorców bypass (`default` + `user`)                                                                                     |
-| POST                | `/api/tools/agent-bridge/bypass`               | Zastąp w całości wzorce bypass zdefiniowane przez użytkownika                                                                 |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Usuń pojedynczy wzorzec bypass użytkownika                                                                                    |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Self-test potoku przechwytywania (zob. §3.6)                                                                                  |
-| POST                | `/api/tools/agent-bridge/repair`               | Cofnij osierocony stan systemowy MITM (zob. §3.6)                                                                             |
-| GET                 | `/api/tools/agent-bridge/config`               | Eksport przenośnego JSON konfiguracji (zob. §3.7)                                                                             |
-| POST                | `/api/tools/agent-bridge/config`               | Import przenośnego JSON konfiguracji (zob. §3.7)                                                                              |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Pobierz skonfigurowaną ścieżkę upstream CA                                                                                    |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Waliduj + utrwal ścieżkę upstream CA                                                                                          |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Tylko walidacja (dry-run) ścieżki upstream CA — nie utrwala                                                                   |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | Tryb transparentnego deszyfrowania TPROXY — zob. [`docs/security/MITM-TPROXY-DECRYPT.md`](../security/MITM-TPROXY-DECRYPT.md) |
+| Method              | Path                                           | Description                                                                                                           |
+| ------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | Global server state + per-agent detection/status                                                                      |
+| GET                 | `/api/tools/agent-bridge/agents`               | List registered agents (id, name, hosts, viability, state)                                                            |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | State of one agent (target config + detection + stored state)                                                         |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Update `setup_completed` for agent                                                                                    |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Run detection probe for agent (`installed`, `version?`, `path?`)                                                      |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Enable/disable DNS for agent (`{enabled: boolean}`)                                                                   |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Model mappings for agent                                                                                              |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Replace model mappings                                                                                                |
+| POST                | `/api/tools/agent-bridge/server`               | Start/stop/restart server (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                     |
+| GET                 | `/api/tools/agent-bridge/cert`                 | Cert status (`exists`, `trusted`, `path`)                                                                             |
+| POST                | `/api/tools/agent-bridge/cert`                 | Trust (install) the MITM root CA                                                                                      |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | Untrust (remove) the MITM root CA — idempotent (see §3.6)                                                             |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Regenerate the self-signed MITM cert                                                                                  |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | Stream the PEM cert for download                                                                                      |
+| GET                 | `/api/tools/agent-bridge/bypass`               | List bypass patterns (`default` + `user`)                                                                             |
+| POST                | `/api/tools/agent-bridge/bypass`               | Replace user-defined bypass patterns wholesale                                                                        |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Remove a single user-defined bypass pattern                                                                           |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Capture-pipeline self-test (see §3.6)                                                                                 |
+| POST                | `/api/tools/agent-bridge/repair`               | Undo orphaned MITM system state (see §3.6)                                                                            |
+| GET                 | `/api/tools/agent-bridge/config`               | Export portable config JSON (see §3.7)                                                                                |
+| POST                | `/api/tools/agent-bridge/config`               | Import portable config JSON (see §3.7)                                                                                |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Get configured upstream CA path                                                                                       |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Validate + persist upstream CA path                                                                                   |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Validate-only (dry-run) an upstream CA path — does not persist                                                        |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY transparent-decrypt capture mode — see `docs/security/MITM-TPROXY-DECRYPT.md` (git; not compiled into `/docs`) |
 
-Pełne schematy OpenAPI: `docs/openapi.yaml` → tag `AgentBridge`.
+Full OpenAPI schemas: `docs/openapi.yaml` → tag `AgentBridge`.
 
 ---
 
-## §8 Roadmapa
+## §8 Roadmap
 
-### Badanie Trae
+### Trae investigation
 
-Trae to stosunkowo nowy asystent AI do kodowania. Przed implementacją handlera:
+Trae is a relatively new AI coding assistant. Before implementing a handler:
 
-1. Zidentyfikuj binarium/rozszerzenie w marketplace VS Code / JetBrains lub jako samodzielną aplikację
-2. Przechwyć ruch mitmproxy, aby odkryć hosty API i kształty endpointów
-3. Ustal mechanizm uwierzytelniania
-4. Oceń go/no-go na podstawie TOS i odkrywalności API
+1. Identify the binary/extension in VS Code / JetBrains marketplaces or as a standalone app
+2. Capture traffic with mitmproxy to discover API hosts and endpoint shapes
+3. Determine authentication mechanism
+4. Assess go/no-go based on TOS and API discoverability
 
-Dopóki badanie się nie zakończy, karta Trae w dashboardzie pokazuje badge „Investigating” z linkiem „Report viability”. Stub handlera w `src/mitm/handlers/trae.ts` rzuca ustrukturyzowany błąd `Not yet implemented`.
+Until investigation completes, the Trae card in the dashboard shows a "Investigating" badge with a "Report viability" link. The handler stub at `src/mitm/handlers/trae.ts` throws a structured `Not yet implemented` error.
 
-### Agenty w backlogu (wymagany MITM — brak wsparcia custom base URL)
+### Backlog agents (MITM required — no custom base URL support)
 
-Poniższe narzędzia w obecnych wersjach nie wspierają custom base URL, więc MITM jest jedyną ścieżką przechwytywania. Ocena viability jest w toku:
+The following tools do not support custom base URLs in their current versions, making MITM the only interception path. Viability assessment is pending:
 
 - **Windsurf** (Codeium/Cognition)
 - **Amp** (Sourcegraph)
-- **Amazon Q / Kiro CLI** (AWS Bedrock — osobno od Kiro IDE)
+- **Amazon Q / Kiro CLI** (AWS Bedrock — separate from Kiro IDE)
 - **Cowork** (Anthropic desktop)
 
-Uwaga: GitHub Copilot CLI ≥v1.0.19 wspiera `COPILOT_PROVIDER_BASE_URL` — dla tego narzędzia użyj bezpośredniej konfiguracji zamiast MITM.
+Note: GitHub Copilot CLI ≥v1.0.19 supports `COPILOT_PROVIDER_BASE_URL` — use direct config instead of MITM for that tool.

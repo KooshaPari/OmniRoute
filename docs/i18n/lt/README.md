@@ -89,7 +89,7 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Licencija: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker atsisiuntimai](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron atsisiuntimai](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+![Desktop atsisiuntimai](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=desktop%20downloads&logo=desktop&color=47848F)
 
 <table>
   <tr>
@@ -734,7 +734,7 @@ patekti į jūsų apvalkalo istoriją. → [CLI integracijos](docs/guides/CLI-IN
   <tr><th align="left">Platforma</th><th align="left">Diegimas</th><th align="left">Svarbiausios ypatybės</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (visuotinis)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Viena komanda, bet kuri OS</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Kelių architektūrų: <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Darbalaukis (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Savasis langas ir sistemos dėklas — <b>Windows / macOS / Linux</b></td></tr>
+  <tr><td align="left" nowrap>🖥️ <b>Darbalaukis (Tauri 2)</b></td><td align="left" nowrap><code>cargo tauri build</code></td><td align="left">Savasis langas ir sistemos dėklas — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>savasis <code>arm64</code></td><td align="left">Raspberry Pi, ARM serveriai, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Veikia <b>jūsų telefone</b> visą parą, nereikia „root“ teisių</td></tr>
   <tr><td align="left" nowrap>📲 <b>PWA</b></td><td align="left" nowrap>„Pridėti prie pradžios ekrano“</td><td align="left">Viso ekrano režimas, veikia neprisijungus, galima įdiegti iš naršyklės</td></tr>
@@ -743,7 +743,7 @@ patekti į jūsų apvalkalo istoriją. → [CLI integracijos](docs/guides/CLI-IN
   <tr><td align="left" nowrap>🛠️ <b>Iš pirminio kodo</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Modifikuokite, prisidėkite prie kūrimo</td></tr>
 </table>
 
-<sub>📖 [Docker vadovas](docs/guides/DOCKER_GUIDE.md) · [Darbalaukio versija](electron/README.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker vadovas](docs/guides/DOCKER_GUIDE.md) · [Darbalaukio versija](docs/guides/DESKTOP_GUIDE.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1229,7 +1229,7 @@ Kanoniniai rodikliai 2026-08-24: **1.029 unikalūs vaizdo įrašai** · **11.132
   <tr><td nowrap><b>Atsparumas</b></td><td>Grandinės pertraukiklis, eksponentinis delsos didinimas, apsauga nuo vienalaikių užklausų antplūdžio, automatinis derinių savaiminis atkūrimas</td></tr>
   <tr><td nowrap><b>Žurnalizavimas</b></td><td>pino — struktūrizuoti JSON žurnalai su užklausos kontekstu</td></tr>
   <tr><td nowrap><b>Testavimas</b></td><td>Node.js testų vykdyklė + Vitest — <b>39 000+ statinių testų deklaracijų</b> daugiau nei 5 100 sekamų testų failų (modulių, integraciniai, E2E, saugumo, ekosistemos)</td></tr>
-  <tr><td nowrap><b>Platformos</b></td><td>Darbalaukis (Electron) · Android (Termux) · PWA (bet kuri naršyklė)</td></tr>
+  <tr><td nowrap><b>Platformos</b></td><td>Darbalaukis (Tauri 2) · Android (Termux) · PWA (bet kuri naršyklė)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatinis paskelbimas npm ir Docker Hub išleidžiant versiją</td></tr>
   <tr><td nowrap><b>Nuorodos</b></td><td><a href="https://omniroute.online">Svetainė</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
@@ -1442,247 +1442,11 @@ Kanoniniai rodikliai 2026-08-24: **1.029 unikalūs vaizdo įrašai** · **11.132
 
 ---
 
-<br/>
-
-## 💖 Rėmėjai
-
 <div align="center">
 
-Nuoširdžiai dėkojame žmonėms, kurie finansuoja „OmniRoute“ iš savo kišenės — kiekvienas įnašas padeda projektui išlikti nemokamam, nepriklausomam ir judėti pirmyn.
+**[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
 
-<table>
-  <tr>
-    <td align="center" width="180">
-      <a href="https://github.com/drewbitt">
-        <img src="https://github.com/drewbitt.png?size=140" width="72" style="border-radius:50%" alt="Andrew"/><br/>
-        <b>Andrew</b>
-      </a><br/>
-      <sub>💛 Aktyvus mėnesinis rėmėjas</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/psylligent">
-        <img src="https://github.com/psylligent.png?size=140" width="72" style="border-radius:50%" alt="Vlad I"/><br/>
-        <b>Vlad I</b>
-      </a><br/>
-      <sub>💛 Aktyvus mėnesinis rėmėjas</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/pacocartones">
-        <img src="https://github.com/pacocartones.png?size=140" width="72" style="border-radius:50%" alt="Paco Cartones"/><br/>
-        <b>Paco Cartones</b>
-      </a><br/>
-      <sub>💛 Aktyvus vienkartinis rėmėjas</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/igormorais123">
-        <img src="https://github.com/igormorais123.png?size=140" width="72" style="border-radius:50%" alt="Professor Igor Morais Vasconcelos"/><br/>
-        <b>Prof. Igor Morais</b>
-      </a><br/>
-      <sub>💛 Anksčiau vienkartinę paramą suteikęs rėmėjas</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/longtao77">
-        <img src="https://github.com/longtao77.png?size=140" width="72" style="border-radius:50%" alt="longtao"/><br/>
-        <b>longtao</b>
-      </a><br/>
-      <sub>💛 Anksčiau vienkartinę paramą suteikęs rėmėjas</sub>
-    </td>
-  </tr>
-</table>
-
-<sub>… ir kiti, pageidaujantys likti nežinomi 💛</sub>
-
-<sub>Vieši „GitHub Sponsors“ rėmėjai pakartotinai patikrinti 2026-08-24. Anksčiau pateiktas aktyvumo žymas nustato „GitHub“ būsena <code>activeOnly</code>; anksčiau paviešintiems vienkartiniams rėmėjams ir toliau dėkojama, o privatūs rėmėjai išlieka anonimiški.</sub>
-
-<b><a href="https://github.com/sponsors/diegosouzapw">💖 Tapkite rėmėju →</a></b> — kiekvienas doleris padeda „OmniRoute“ išlikti nemokamam ir nepriklausomam.
+<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
-
-<br/>
-
-<div align="center">
-
-## 👥 Daugiau nei 600 prisidėjusiųjų
-
-</div>
-
-[![Prisidėjusieji](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=639&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
-
-<sub>Auditas atliktas 2026-08-24 naudojant fiksuotą bazę <code>ac02c5b42f</code> ir pakartotinai patikrintas tiesioginės <code>release/v3.8.50</code> šakos viršūnėje <code>dafb4ae808</code>: <b>639 normalizuotos žmonių „Git“ tapatybės</b> — 407 nurodyti kaip įsipareigojimų autoriai (įskaitant prižiūrėtoją), o 232 nurodyti tik aiškiose <code>Co-authored-by</code> pabaigos eilutėse. Atliekant apskaitą normalizuojamos „GitHub“ noreply paskyros, neįtraukiamos 26 robotų, agentų, paslaugų ir vietaženklių tapatybės, o įprasti el. pašto adresai nesujungiami vien todėl, kad sutampa jų rodomi vardai.</sub>
-
-### Kaip prisidėti
-
-1. Sukurkite saugyklos kopiją
-2. Sukurkite šaką nuo **aktyvios** `release/vX.Y.Z` šakos viršūnės (ne nuo `main`) — žr. [Šakų ir laidų modelį](docs/ops/BRANCHING_MODEL.md)
-3. Sukurkite savo funkcijos šaką (`git checkout -b feat/amazing-feature`)
-4. Patvirtinkite savo pakeitimus (`git commit -m 'feat: add amazing feature'`)
-5. Nusiųskite pakeitimus į šaką (`git push origin feat/amazing-feature`)
-6. Atidarykite pakeitimų užklausą, kurios **bazė = ta `release/vX.Y.Z` šaka**
-
-Išsamias gaires rasite faile [CONTRIBUTING.md](CONTRIBUTING.md).
-
-### Naujos versijos išleidimas
-
-```bash
-# Sukurkite laidą — npm publish bus įvykdyta automatiškai
-VERSION=x.y.z
-gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes
-```
-
-<br/>
-
-<div align="center">
-
-## 📊 Žvaigždutės
-
-<a href="https://www.star-history.com/?repos=diegosouzapw%2FOmniRoute&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&theme=dark&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
-   <img alt="Žvaigždučių istorijos diagrama" src="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
- </picture>
-</a>
-
-<br/>
-
-<div align="center">
-
-## 🌍 StarMapper
-
-<a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
-    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
-  </picture>
-</a>
-</div>
-
-<br/>
-
-<div align="center">
-
-## 🙏 Padėkos
-
-</div>
-
-OmniRoute remiasi milžinų pasiekimais. Projektas prasidėjo kaip **[9router](https://github.com/decolua/9router)** atšaka ir Go projekto **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** perkėlimas į TypeScript, o nuo tada kiekvieną toliau nurodytą posistemę įkvėpė atvirojo kodo projektas, pirmasis įgyvendinęs atitinkamą idėją. Kiekvienas jų prisidėjo prie konkrečios OmniRoute dalies. Taip jiems visiems dėkojame. 🙏
-
-> ⭐ žvaigždučių skaičius patikrintas naudojant GitHub REST API 2026 m. rugpjūčio 24 d. — suteikite šiems projektams po žvaigždutę. Skaičiai yra tiksli konkrečios datos momentinė kopija ir laikui bėgant natūraliai keisis.
-
-### 🧬 Kilmė ir šliuzas
-
-<table>
-  <tr><th align="left">Projektas</th><th align="center">⭐</th><th align="left">Kaip jis įkvėpė OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/decolua/9router">9router</a></b></td><td align="center">26,161</td><td>Pradinis projektas, kuriuo pagrįsta ši atšaka — čia jis išplėstas daugiarūšėmis API ir visiškai perrašytas naudojant TypeScript.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/router-for-me/CLIProxyAPI">CLIProxyAPI</a></b></td><td align="center">48,497</td><td>Go realizacija, įkvėpusi šį perkėlimą į JavaScript / TypeScript.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/BerriAI/litellm">LiteLLM</a></b></td><td align="center">57,100</td><td>DI šliuzas, kurio viešas kainų duomenų rinkinys naudojamas mūsų išlaidų stebėjimo sinchronizavimui, o paslaugų teikėjų normalizavimo modelis padėjo suformuoti mūsų maršrutizavimą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/miuuyy/codex-chatgpt-web">codex-chatgpt-web</a></b></td><td align="center">1,410</td><td>MIT šaltinio kodas, pritaikytas į projektą įtrauktam ChatGPT Web → Codex Responses tiltui, įskaitant naršyklės seanso, atsakymų kadravimo, naudojimo apskaitos ir žiniatinklio paieškos adapterius.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Alishahryar1/free-claude-code">free-claude-code</a></b></td><td align="center">48,112</td><td>Šablonai perkelti į srauto atkūrimą, nemąstymo alternatyviuosius pavadinimus, atsarginę žiniatinklio paiešką, slankiojo lango apribojimus, žurnalų neskelbtinų duomenų maskavimą ir sustiprintus paleidimo procesus.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/standardagents/composer-api">composer-api</a></b></td><td align="center">322</td><td>Cursor Composer įrankio pasirinkimo, išvesties apribojimų ir įrankio patvirtinimo šablonai pritaikyti vietiniame Cursor vykdymo modulyje.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ndycode/codex-multi-auth">codex-multi-auth</a></b></td><td align="center">457</td><td>Naujo prisijungimo ir atnaujinimo prieigos raktų rotacijos šablonai perkelti į Codex OAuth pakartotinį autentifikavimą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ex-machina-co/opencode-anthropic-auth">opencode-anthropic-auth</a></b></td><td align="center">510</td><td>Su Claude Code suderinamos numatytosios transformavimo nuostatos ir atsiskaitymo antraščių elgsena apibendrintos konfigūracija valdomame OmniRoute tilte.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/520mmxx/grok2api-merged">grok2api-merged</a></b></td><td align="center">2</td><td>Jo Grok modelių susiejimai, netikrą TypeError generuojantis Statsig generatorius, numatytosios užklausų ir įrenginių nuostatos bei NDJSON atsakymų apdorojimo modulis buvo reikšmingai pritaikyti OmniRoute Grok Web vykdymo modulyje.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/TQZHR/grok2api">TQZHR/grok2api</a></b></td><td align="center">705</td><td>Pagrindinis netiesioginis grok2api-merged kodo šaltinis; jo modelių, antraščių, naudingųjų duomenų, Statsig ir apdorojimo modulių realizacijos išsaugotos Grok Web kilmės grandinėje.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/chenyme/grok2api">chenyme/grok2api</a></b></td><td align="center">7,520</td><td>Pirminis MIT šaltinis, skirtas Grok naudingųjų duomenų ir įrenginių numatytosioms nuostatoms, Statsig generatoriui bei <code>result.response</code> apdorojimo moduliui, perduotam per TQZHR ir grok2api-merged.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/miuzhaii/grok2api-pro">grok2api-pro</a></b></td><td align="center">27</td><td>Netiesioginis šaltinis, kurį grok2api-merged nurodo kaip savo tarpinių serverių telkinio sluoksnio šaltinį; OmniRoute išsaugo šią kilmės nuorodą, tačiau neteigia, kad į ribotos apimties Grok Web vykdymo modulį buvo perkeltas tarpinių serverių telkinys.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/CNFlyCat/GrokProxy">GrokProxy</a></b></td><td align="center">50</td><td>Jo slapukais autentifikuojamas Grok tarpinis serveris ir <code>result.response.token</code> srautinio perdavimo šablonas padėjo suformuoti OmniRoute Grok Web perdavimo sluoksnį.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lianying1716/GrokBridge">GrokBridge</a></b></td><td align="center">5</td><td>Kuriant pradinę Grok Web realizaciją remtasi jo HTTP / naršyklės aukštesniojo lygio serverio architektūra; jo tiesioginis HTTP kelias kilęs iš GrokProxy, todėl neteigiama, kad kodas buvo perkeltas savarankiškai.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/imjustprism/grok-web-api">grok-web-api</a></b></td><td align="center">14</td><td>Jo Rust <code>ChatOptions</code> ir atsakymo apvalkalo schemos padėjo suformuoti OmniRoute TypeScript Grok užklausų ir srautinių atsakymų tipus.</td></tr>
-</table>
-
-### 🗜️ Konteksto ir prieigos raktų glaudinimas — varikliai
-
-<table>
-  <tr><th align="left">Projektas</th><th align="center">⭐</th><th align="left">Kaip jis įkvėpė OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/JuliusBrussee/caveman">Caveman</a></b></td><td align="center">100,538</td><td>Virusiniu tapęs projektas „kam naudoti daug žodžių, kai pakanka kelių“ — jo urvinio žmogaus kalbos filosofija užtikrina mūsų standartinio glaudinimo režimo ir daugiau nei 30 perteklinių žodžių šalinimo bei sutraukimo taisyklių veikimą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/rtk-ai/rtk">RTK – Rust Token Killer</a></b></td><td align="center">77,185</td><td>Didelio našumo komandų išvesties glaudinimas — įkvėpė mūsų RTK variklį, JSON filtrų DSL, neapdorotos išvesties atkūrimą ir pakopinį RTK → Caveman konvejerį.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/headroomlabs-ai/headroom">headroom</a></b></td><td align="center">67,310</td><td>Grįžtamasis konteksto glaudinimas (SmartCrusher) — įkvėpė mūsų <code>headroom</code> variklį ir <code>ccr</code> gavimo žymeklio šabloną.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/microsoft/LLMLingua">LLMLingua</a></b></td><td align="center">6,598</td><td>Raginimų glaudinimo tyrimai (LLMLingua / LLMLingua-2) — įkvėpė mūsų asinchroninį, kodui saugų ir sutrikus glaudinimui pradinę išvestį grąžinantį <code>llmlingua</code> variklį.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/atjsh/llmlingua-2-js">llmlingua-2-js</a></b></td><td align="center">31</td><td>JS / ONNX perkėlimas (MobileBERT / XLM-RoBERTa), naudojamas kaip mūsų LLMLingua variklio foninės gijos posistemė.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/leninejunior/troglodita">Troglodita</a></b></td><td align="center">40</td><td>PT-BR prieigos raktų glaudinimas — užtikrina mūsų pt-BR kalbos paketo veikimą: pleonazmų mažinimą ir perteklinių žodžių šalinimą, pritaikytą Brazilijos portugalų kalbos gramatikai.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/DietrichGebert/ponytail">ponytail</a></b></td><td align="center">108,957</td><td>Virusiniu tapęs „tingaus vyresniojo programuotojo“ YAGNI kodavimo įgūdis — įkvėpė mūsų <b>mažiau kodo</b> išvesties stilių: orientavimą į mažiausią veikiantį pakeitimą, sumažinantį _sugeneruoto_ kodo kiekį (išvesties ašies atitikmenį glaustai Caveman prozai).</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ayghri/i-have-adhd">i-have-adhd</a></b></td><td align="center">23,526</td><td>Jo į veiksmą orientuotas, ADHD turintiems žmonėms pritaikytas atsakymų stilius buvo pritaikytas glaustam OmniRoute išvesties stiliui penkiomis kalbomis.</td></tr>
-</table>
-
-### 🧩 Kompaktiški formatai, prieigos raktų tyrimai ir kodą išmanantys įrankiai
-
-<table>
-  <tr><th align="left">Projektas</th><th align="center">⭐</th><th align="left">Kaip jis įkvėpė OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/toon-format/toon">TOON</a></b></td><td align="center">25,233</td><td>Į prieigos raktus orientuotas objektų žymėjimas — jo stulpelinis, antrašte ir eilutėmis pagrįstas modelis suformavo mūsų lentelinio sutankinimo etapą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/blackwell-systems/gcf">GCF – Graph Compact Format</a></b></td><td align="center">41</td><td>Jo kompaktiškas grafų formatas ir bendrojo profilio architektūra padėjo suformuoti OmniRoute lentelinį sutankinimą ir Headroom kodeko formatą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/blackwell-systems/gcf-typescript">gcf-typescript</a></b></td><td align="center">4</td><td>MIT TypeScript realizacija, tiesiogiai įtraukta į projektą ir išplėsta kaip Headroom bendrojo profilio kodekas.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ooples/token-optimizer-mcp">token-optimizer-mcp</a></b></td><td align="center">494</td><td>Brotli / SQLite podėlis ir kiekvieno seanso konteksto skirtumas — įkvėpė mūsų <code>session-dedup</code> variklį.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Mibayy/token-savior">token-savior</a></b></td><td align="center">1,122</td><td>Bash išvesties sutankinimas ir MCP profiliai — įkvėpė mūsų drausmingą glaudinimo atsisakymą bei MCP įrankių deklaracijų mažinimą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ppgranger/token-saver">token-saver</a></b></td><td align="center">138</td><td>Turinį ir failų tipus atpažįstantis išvesties glaudinimas, atsisakantis glaudinti nesėkmės atveju — patvirtino mūsų paskirstymo pagal tipą ir praleidimo nepasiekus minimalaus sutaupymo principus.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/alexgreensh/token-optimizer">token-optimizer</a></b></td><td align="center">1,951</td><td>„Raskite nematomus prieigos raktus“ — jo iškėlimo ir atkuriamų deskriptorių šablonas padėjo formuoti mūsų CCR iškėlimo koncepciją.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Shweta-Mishra-ai/tokenmizer">TokenMizer</a></b></td><td align="center">28</td><td>Seansų grafu ir tarp užklausų atliekamu eilučių pasikartojimų šalinimu pagrįstas planas, padėjęs formuoti mūsų session-dedup architektūrą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/jessefreitas/OmniCompress">OmniCompress</a></b></td><td align="center">3</td><td>Rust stulpelinis JSON, turiniu adresuojamas gavimas ir pasikartojimų šalinimas tarp pranešimų — patvirtino mūsų <code>headroom</code> / <code>ccr</code> / <code>session-dedup</code> variklių architektūrą ir podėlio stabilumo invariantą „suglaudinto pavidalo reikšmė nepriklauso nuo jo padėties“.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/atlassian-labs/mcp-compressor">mcp-compressor</a></b></td><td align="center">113</td><td>MCP įrankių schemų ir aprašų glaudinimas — padėjo formuoti mūsų MCP įrankių deklaracijų kardinalumo mažinimą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/pdavis68/RepoMapper">RepoMapper</a></b></td><td align="center">197</td><td>Aider stiliaus saugyklos žemėlapių reitingavimas — padėjo formuoti mūsų saugyklos žemėlapių ir gavimo reitingavimo tyrimus.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/mrsimpson/quiet-shell-mcp">quiet-shell-mcp</a></b></td><td align="center">4</td><td>Deklaratyvus apvalkalo išvesties mažinimas per MCP — patvirtino mūsų deklaratyvų Bash išvesties sutankinimą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/dsherret/ts-morph">ts-morph</a></b></td><td align="center">6,162</td><td>TypeScript Compiler API įrankių rinkinys — įkvėpė mūsų analizatoriumi pagrįstą komentarų šalinimą, išsaugantį eilučių, šablonų ir reguliariųjų reiškinių literalus.</td></tr>
-</table>
-
-### 🧠 Atmintis ir RAG
-
-<table>
-  <tr><th align="left">Projektas</th><th align="center">⭐</th><th align="left">Kaip jis įkvėpė OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/mem0ai/mem0">Mem0</a></b></td><td align="center">63,902</td><td>Universalus atminties sluoksnis — jo tarpinio serverio kaip rašymo ir skaitymo ribos modelis suformavo mūsų atminties architektūrą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/letta-ai/letta">Letta (MemGPT)</a></b></td><td align="center">24,382</td><td>Būseną išlaikantys agentai su pakopine atmintimi — įkvėpė mūsų pakopinį konteksto valdymo ir atkūrimo (CCR) modelį.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/onestardao/WFGY">WFGY</a></b></td><td align="center">1,781</td><td>16 pasikartojančių RAG / LLM trikčių tipų ProblemMap taksonomija — bendras mūsų trikčių šalinimo vadove vartojamas žodynas.</td></tr>
-</table>
-
-### 🛰️ Srauto tikrinimas, MITM ir skaidrusis tarpinis serveris
-
-<table>
-  <tr><th align="left">Projektas</th><th align="center">⭐</th><th align="left">Kaip jis įkvėpė OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/chouzz/llm-interceptor">llm-interceptor</a></b></td><td align="center">66</td><td>Kodavimo asistento ↔ LLM srauto MITM perėmimas ir analizė padėjo suformuoti ankstyvuosius Traffic Inspector reikalavimus. Keturi anksčiau išvestiniai moduliai — SSE sujungimas, pokalbių normalizavimas, slaptų duomenų maskavimas ir antraščių valymas — pakeisti nepriklausomomis švariojo kambario realizacijomis, pagrįstomis viešais protokolų standartais. Dvi pagrindinio kompiuterio tiesioginio perdavimo sąsajos (<code>passthrough.ts</code> ir <code>_internal/bypass.cjs</code>) tebėra atskirai klasifikuojamos vidinės OmniRoute realizacijos; atliekant šį pakeitimą jos nebuvo perrašytos.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/InterceptSuite/ProxyBridge">ProxyBridge</a></b></td><td align="center">5,995</td><td>Skaidrusis kiekvieno proceso tarpinio serverio maršrutizavimas — įkvėpė mūsų gedimams atsparų MITM išjungimą, lizdų neveiklumo skirtąjį laiką, <code>/proc</code> procesų priskyrimą ir TPROXY perėmimą.</td></tr>
-</table>
-
-### 📚 Modelių duomenys, stebimumas ir naudotojo sąsaja
-
-<table>
-  <tr><th align="left">Projektas</th><th align="center">⭐</th><th align="left">Kaip jis įkvėpė OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/anomalyco/models.dev">models.dev</a></b></td><td align="center">6,555</td><td>Atvira DI modelių specifikacijų, kainų ir galimybių duomenų bazė — savaiminiu būdu sinchronizuojama su mūsų modelių katalogu.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/xyflow/xyflow">React Flow / xyflow</a></b></td><td align="center">38,108</td><td>Mazgais pagrįsta grafų biblioteka, užtikrinanti mūsų tikralaikių Compression Studio ir Combo / Routing Studio veikimą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/langchain-ai/langgraph">LangGraph</a></b></td><td align="center">40,314</td><td>LangGraph Studio tiesioginis darbo eigos grafo vizualizavimas įkvėpė mūsų Studios tikralaikį pakopų rodinį.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/langfuse/langfuse">Langfuse</a></b></td><td align="center">33,592</td><td>Jo sekimo įrašas → atkarpa → generavimas stebimumo modelis suformavo mūsų Compression Studio krioklio diagramą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/kiali/kiali">Kiali</a></b></td><td align="center">3,631</td><td>Istio paslaugų tinklo stebimumas — įkvėpė mūsų grandinės pertraukiklio ženklelius ir klaidų briaunų vaizdavimą Routing / Combo Studio aplinkoje.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lobehub/lobe-icons">lobe-icons</a></b></td><td align="center">2,428</td><td>DI / LLM prekių ženklų logotipai, naudojami paslaugų teikėjų piktogramoms mūsų valdymo skydelyje atvaizduoti.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lipis/flag-icons">flag-icons</a></b></td><td align="center">12,354</td><td>Pateikia pagal MIT licenciją platinamas SVG vėliavas, kurias naudoja README kalbos parinkiklis.</td></tr>
-</table>
-
-### 🛡️ Saugumas
-
-<table>
-  <tr><th align="left">Projektas</th><th align="center">⭐</th><th align="left">Kaip jis įkvėpė OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/tldrsec/awesome-secure-defaults">awesome-secure-defaults</a></b></td><td align="center">721</td><td>Atrinktas pagal numatytąsias nuostatas saugių bibliotekų sąrašas, kuriuo vadovaujamės priimdami saugumo sprendimus (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink).</td></tr>
-</table>
-
-### 🧭 Papildomi įrankiai
-
-<table>
-  <tr><th align="left">Projektas</th><th align="center">⭐</th><th align="left">Kaip jis įkvėpė OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/BlockRunAI/ClawRouter">ClawRouter</a></b></td><td align="center">6,564</td><td>Įkvėpė užklausų pasikartojimų šalinimą, avarinį nulinės kainos atsarginį variantą, prijungiamas Auto-Combo strategijas ir daugiakalbį ketinimų klasifikavimą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lbjlaq/Antigravity-Manager">Antigravity-Manager</a></b></td><td align="center">30,652</td><td>Jo paskyras atpažįstantis modelių persiejimas, vykdomųjų failų kelių tikrinimas ir planų žymų elgsena padėjo formuoti OmniRoute Antigravity vykdymo aplinką.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/jlcodes99/vscode-antigravity-cockpit">vscode-antigravity-cockpit</a></b></td><td align="center">4,817</td><td>Jo kompaktiškas kvotos nustatymo iš naujo atgalinės atskaitos formatas įkvėpė atitinkamą paslaugų teikėjo apribojimų rodinį OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/iOfficeAI/AionUi">AionUi</a></b></td><td align="center">32,230</td><td>Jo ACP integracijos įkvėpė OmniRoute automatinį įdiegtų CLI agentų aptikimą.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/steipete/CodexBar">CodexBar</a></b></td><td align="center">20,507</td><td>Nustatė Grok Build kvotos sąsają; vėliau OmniRoute savarankiškai patikrino ir pataisė tiesiogiai perduodamų duomenų formatą.</td></tr>
-</table>
-
-## 📄 Licencija
-
-MIT licencija – išsamią informaciją žr. [LICENSE](LICENSE).
-
----
-
-<div align="center">
-
-**[⬆ Atgal į viršų](#-omniroute)** · Sukurta su ❤️ atvirojo kodo DI bendruomenei.
-
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT licencija · <a href="https://omniroute.online">omniroute.online</a></sub>
-
-</div>
-<!-- GitHub Discussions įjungtos bendruomenės klausimams ir atsakymams -->
+<!-- GitHub Discussions enabled for community Q&A -->

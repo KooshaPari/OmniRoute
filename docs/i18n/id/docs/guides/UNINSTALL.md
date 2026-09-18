@@ -38,9 +38,39 @@ Perintah ini menghapus aplikasi **dan menghapus secara permanen** semua data:
 
 ---
 
-## Mencopot Pemasangan Secara Manual
+## Quick Uninstall (v3.6.2+)
 
-### Instalasi Global NPM
+OmniRoute provides two built-in scripts for clean removal:
+
+### Keep Your Data
+
+```bash
+npm run uninstall
+```
+
+This removes the OmniRoute application but **preserves** your database, configurations, API keys, and provider settings in `~/.omniroute/`. Use this if you plan to reinstall later and want to keep your setup.
+
+### Full Removal
+
+```bash
+npm run uninstall:full
+```
+
+This removes the application **and permanently erases** all data:
+
+- Database (`storage.sqlite`)
+- Provider configurations and API keys
+- Backup files
+- Log files
+- All files in the `~/.omniroute/` directory
+
+> ⚠️ **Warning:** `npm run uninstall:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
+
+---
+
+## Manual Uninstall
+
+### NPM Global Install
 
 ```bash
 # Remove the global package
@@ -50,7 +80,7 @@ npm uninstall -g omniroute
 rm -rf ~/.omniroute
 ```
 
-### Instalasi Global pnpm
+### pnpm Global Install
 
 ```bash
 pnpm uninstall -g omniroute
@@ -81,24 +111,24 @@ docker compose down
 docker compose down -v
 ```
 
-### Aplikasi Desktop Electron
+### Tauri Desktop App
 
 **Windows:**
 
-- Buka `Settings → Apps → OmniRoute → Uninstall`
-- Atau jalankan uninstaller NSIS dari direktori instalasi
+- Open `Settings → Apps → OmniRoute → Uninstall`
+- Or run the NSIS uninstaller from the install directory
 
 **macOS:**
 
-- Seret `OmniRoute.app` dari `/Applications` ke Trash
-- Hapus data: `rm -rf ~/Library/Application Support/omniroute`
+- Drag `OmniRoute.app` from `/Applications` to Trash
+- Remove data: `rm -rf ~/Library/Application Support/omniroute`
 
 **Linux:**
 
-- Hapus berkas AppImage
-- Hapus data: `rm -rf ~/.omniroute`
+- Remove the AppImage file
+- Remove data: `rm -rf ~/.omniroute`
 
-### Instalasi dari Sumber (git clone)
+### Source Install (git clone)
 
 ```bash
 # Remove the cloned directory
@@ -110,11 +140,11 @@ rm -rf ~/.omniroute
 
 ---
 
-## Direktori Data
+## Data Directories
 
-OmniRoute menyimpan data di lokasi-lokasi berikut secara default:
+OmniRoute stores data in the following locations by default:
 
-| Platform      | Jalur Default                 | Pengganti                 |
+| Platform      | Default Path                  | Override                  |
 | ------------- | ----------------------------- | ------------------------- |
 | Linux         | `~/.omniroute/`               | `DATA_DIR` env var        |
 | macOS         | `~/.omniroute/`               | `DATA_DIR` env var        |
@@ -122,22 +152,22 @@ OmniRoute menyimpan data di lokasi-lokasi berikut secara default:
 | Docker        | `/app/data/` (mounted volume) | `DATA_DIR` env var        |
 | XDG-compliant | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` env var |
 
-### Berkas di dalam direktori data
+### Files in the data directory
 
-| Berkas/Direktori     | Deskripsi                                             |
-| -------------------- | ----------------------------------------------------- |
-| `storage.sqlite`     | Basis data utama (penyedia, combo, pengaturan, kunci) |
-| `storage.sqlite-wal` | Write-ahead log SQLite (sementara)                    |
-| `storage.sqlite-shm` | Shared memory SQLite (sementara)                      |
-| `call_logs/`         | Arsip payload permintaan                              |
-| `backups/`           | Cadangan basis data otomatis                          |
-| `log.txt`            | Log permintaan lama (opsional)                        |
+| File/Directory       | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| `storage.sqlite`     | Main database (providers, combos, settings, keys) |
+| `storage.sqlite-wal` | SQLite write-ahead log (temporary)                |
+| `storage.sqlite-shm` | SQLite shared memory (temporary)                  |
+| `call_logs/`         | Request payload archives                          |
+| `backups/`           | Automatic database backups                        |
+| `log.txt`            | Legacy request log (optional)                     |
 
 ---
 
-## Verifikasi Penghapusan Lengkap
+## Verify Complete Removal
 
-Setelah mencopot pemasangan, verifikasi bahwa tidak ada berkas yang tersisa:
+After uninstalling, verify there are no remaining files:
 
 ```bash
 # Check for global npm package
@@ -150,7 +180,7 @@ ls -la ~/.omniroute/ 2>/dev/null
 pgrep -f omniroute
 ```
 
-Jika ada proses yang masih berjalan, hentikan dengan perintah berikut:
+If any process is still running, stop it:
 
 ```bash
 pkill -f omniroute

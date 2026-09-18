@@ -6,232 +6,227 @@ lastUpdated: 2026-07-23
 
 # ADR: Podłączalna granica persystencji
 
-- **Status:** Zaproponowany — wymaga zatwierdzenia maintainerów przed rozpoczęciem prac runtime
+- **Status:** Proposed — requires maintainer approval before runtime work begins
 - **Tracking issue:** [#8075](https://github.com/diegosouzapw/OmniRoute/issues/8075)
-- **Zakres:** Wyłącznie architektura persystencji; ta decyzja nie dodaje ani nie wybiera zewnętrznej bazy danych
+- **Scope:** Persistence architecture only; this decision does not add or select an external database
 
-## Kontekst
+## Context
 
-OmniRoute obecnie udostępnia zorientowane domenowo funkcje persystencji z `src/lib/db/`, podczas gdy
-współdzielone połączenie zwracane przez `src/lib/db/core.ts` implementuje synchroniczny kontrakt
-`SqliteAdapter` w `src/lib/db/adapters/types.ts`. Ten adapter obsługuje kilka runtime'ów SQLite, ale
-jego powierzchnia pozostaje ukształtowana pod SQLite: synchroniczne prepared statements, `pragma`,
-transakcje deferred i immediate, natywny backup / backup przez kopiowanie pliku, checkpoint oraz
-lokalny uchwyt bazy danych.
+OmniRoute currently presents domain-oriented persistence functions from `src/lib/db/`, while the
+shared connection returned by `src/lib/db/core.ts` implements the synchronous `SqliteAdapter`
+contract in `src/lib/db/adapters/types.ts`. That adapter supports several SQLite runtimes, but its
+surface remains SQLite-shaped: synchronous prepared statements, `pragma`, deferred and immediate
+transactions, native/file-copy backup, checkpoint, and a local database handle.
 
-Obecna ścieżka startu i odzyskiwania posiada także cykl życia pliku SQLite. `src/lib/db/core.ts`
-rozwiązuje `storage.sqlite`, utrzymuje jeden procesowo-globalny adapter, wykonuje checkpoint WAL,
-zachowuje wybrane tabele podczas odzyskiwania i usuwa pliki towarzyszące SQLite przy przebudowie
-bazy. Wybór sterownika w `src/lib/db/adapters/driverFactory.ts` dotyczy obsługiwanych runtime'ów
-SQLite; nie jest abstrakcją zewnętrznego backendu.
+The current startup and recovery path also owns the SQLite file lifecycle. `src/lib/db/core.ts`
+resolves `storage.sqlite`, maintains one process-global adapter, checkpoints WAL, preserves selected
+tables during recovery, and removes SQLite companion files when rebuilding a database. Driver
+selection in `src/lib/db/adapters/driverFactory.ts` chooses among the supported SQLite runtimes; it
+is not an external-backend abstraction.
 
-Ewolucja schematu jest podobnie sprzężona. `src/lib/db/migrationRunner.ts` stosuje numerowane pliki
-SQL, sonduje `sqlite_master` i `PRAGMA table_info`, wykrywa opcjonalne wsparcie FTS5 i uruchamia
-migracje w transakcjach SQLite. Moduły operacyjne takie jak `src/lib/db/backup.ts` i
-`src/lib/db/optimizationSettings.ts` korzystają bezpośrednio z semantyki backupu, `PRAGMA`, WAL,
-page-size, auto-vacuum oraz `VACUUM`.
+Schema evolution is similarly coupled. `src/lib/db/migrationRunner.ts` applies numbered SQL files,
+probes `sqlite_master` and `PRAGMA table_info`, detects optional FTS5 support, and runs migration
+work in SQLite transactions. Operational modules such as `src/lib/db/backup.ts` and
+`src/lib/db/optimizationSettings.ts` use backup, `PRAGMA`, WAL, page-size, auto-vacuum, and `VACUUM`
+semantics directly.
 
-Są to prawidłowe właściwości osadzonego wdrożenia SQLite. Powinny pozostać dostępne bez zmuszania
-PostgreSQL ani MySQL do emulowania API SQLite.
+These are valid properties of the embedded SQLite deployment. They should remain available without
+forcing PostgreSQL or MySQL to emulate a SQLite API.
 
-## Decyzja
+## Decision
 
-Przyjąć dwupoziomową granicę persystencji dla przenośnego trwałego stanu:
+Adopt a two-level persistence boundary for portable durable state:
 
-1. **Kontrakty repozytoriów domenowych** definiują operacje persystencji potrzebne kodowi biznesowemu
-   i routingu. Wywołujący zależą od zachowania domenowego i danych domenowych, a nie od tekstu SQL,
-   prepared statements, plików bazy ani obiektów dialektu.
-2. **Wewnętrzny asynchroniczny kontrakt backendu** wspiera implementacje repozytoriów kontekstami
-   transakcji, health/readiness, koordynacją migracji, możliwościami backendu oraz sklasyfikowanymi
-   błędami. Dokładna powierzchnia TypeScript zostanie zaproponowana wraz z pierwszym PR
-   implementacyjnym i potwierdzona testami zgodności; ten ADR celowo nie zamraża spekulacyjnego API.
+1. **Domain repository contracts** define the persistence operations needed by business and routing
+   code. Callers depend on domain behavior and domain data, not SQL text, prepared statements,
+   database files, or dialect objects.
+2. **An internal asynchronous backend contract** supports repository implementations with
+   transaction contexts, health/readiness, migration coordination, backend capabilities, and
+   classified errors. The exact TypeScript surface will be proposed with the first implementation
+   PR and proven by conformance tests; this ADR intentionally does not freeze a speculative API.
 
-SQLite pozostaje domyślną implementacją. Istniejąca kaskada sterowników SQLite oraz synchroniczny
-`SqliteAdapter` pozostają za implementacją repozytorium SQLite, podczas gdy domeny są migrowane w
-małych pionowych wycinkach. Żaden użytkownik nie jest zobowiązany do konfigurowania zewnętrznej
-usługi.
+SQLite remains the default implementation. The existing SQLite driver cascade and synchronous
+`SqliteAdapter` stay behind the SQLite repository implementation while domains are migrated in
+small vertical slices. No user is required to configure an external service.
 
-PostgreSQL jest pierwszą proponowaną zewnętrzną implementacją po udowodnieniu granicy repozytorium
-wobec SQLite. MySQL następuje jako równorzędna implementacja wobec tej samej suity zgodności, a nie
-jako drugi fork logiki biznesowej.
+PostgreSQL is the first proposed external implementation after the repository boundary is proven
+against SQLite. MySQL follows as a peer implementation against the same conformance suite rather
+than as a second business-logic fork.
 
-## Reguły granicy
+## Boundary rules
 
-### Przenośna powierzchnia repozytorium
+### Portable repository surface
 
-Przenośne repozytorium może udostępniać:
+A portable repository may expose:
 
-- odczyty i zapisy domenowe;
-- jawne operacje atomowe oraz dostęp do repozytorium w zakresie transakcji;
-- operacje compare/update lub lease, gdy semantyka współbieżności jest częścią domeny;
-- neutralne względem backendu paginację, porządkowanie oraz błędy ograniczeń.
+- domain reads and writes;
+- explicit atomic operations and transaction-scoped repository access;
+- compare/update or lease operations where concurrency semantics are part of the domain;
+- backend-neutral pagination, ordering, and constraint errors.
 
-Health backendu, readiness oraz koordynacja migracji należą do wewnętrznego kontraktu
-backendu/operacyjnego, a nie do poszczególnych repozytoriów domenowych.
+Backend health, readiness, and migration coordination belong to the internal backend/operational
+contract rather than to individual domain repositories.
 
-Przenośne repozytorium nie może udostępniać:
+A portable repository must not expose:
 
-- `prepare`, `get`, `all`, `run` ani surowych uchwytów sterownika;
-- `PRAGMA`, trybów checkpoint WAL, `VACUUM` ani strojenia page/cache;
-- ścieżek plików SQLite, plików towarzyszących ani backupu przez kopiowanie pliku;
-- `lastInsertRowid` jako międzybackendowego kontraktu domenowego;
-- składni FTS5 lub `sqlite-vec`;
-- generycznego wyłomu dialektu używanego przez zwykły kod biznesowy.
+- `prepare`, `get`, `all`, `run`, or raw driver handles;
+- `PRAGMA`, WAL checkpoint modes, `VACUUM`, or page/cache tuning;
+- SQLite file paths, companion files, or file-copy backup;
+- `lastInsertRowid` as a cross-backend domain contract;
+- FTS5 or `sqlite-vec` syntax;
+- a generic dialect escape hatch used by normal business code.
 
-### Powierzchnia możliwości backendu
+### Backend capability surface
 
-Zachowanie specyficzne dla backendu pozostaje jawne i odkrywalne. Utrzymanie wyłącznie dla SQLite
-pozostaje za własną implementacją i interfejsem operacyjnym, w tym:
+Backend-specific behavior remains explicit and discoverable. SQLite-only maintenance stays behind
+its own implementation and operational interface, including:
 
-- wybór sterownika w runtime;
-- checkpoint WAL oraz zachowanie zamykania SQLite;
-- ustawienia page-size, cache-size i auto-vacuum;
-- backup, restore i odzyskiwanie pliku bazy;
-- introspekcja schematu SQLite;
-- integracja FTS5 i `sqlite-vec`.
+- runtime driver selection;
+- WAL checkpoint and SQLite shutdown behavior;
+- page-size, cache-size, and auto-vacuum settings;
+- database-file backup, restore, and recovery;
+- SQLite schema introspection;
+- FTS5 and `sqlite-vec` integration.
 
-Zewnętrzny backend nie jest zobowiązany do naśladowania tych funkcji. Repozytoria muszą albo użyć
-przenośnej możliwości, dostarczyć implementację specyficzną dla backendu z udokumentowanym
-zachowaniem, albo zgłosić, że możliwość jest niedostępna.
+An external backend is not required to imitate those features. Repositories must either use a
+portable capability, provide a backend-specific implementation with documented behavior, or report
+that a capability is unavailable.
 
-## Model transakcji i migracji
+## Transaction and migration model
 
-API repozytoriów definiują atomową operację biznesową; wywołujący nie wybierają trybu transakcji SQL.
-Każda operacja musi zdefiniować swoje obserwowalne gwarancje współbieżności: chronione niezmienniki,
-wykrywanie konfliktów, klasyfikację ponowień, oczekiwania idempotencji oraz propagację kontekstu
-transakcji. Implementacje mogą używać różnych mechanizmów transakcji i izolacji tylko wtedy, gdy te
-obserwowalne gwarancje pozostają równoważne. SQLite może wewnętrznie nadal używać obecnego
-zachowania transakcji deferred lub immediate, o ile spełnia kontrakt operacji.
+Repository APIs define the atomic business operation; callers do not select a SQL transaction mode.
+Each operation must define its observable concurrency guarantees: protected invariants, conflict
+detection, retry classification, idempotency expectations, and transaction-context propagation.
+Implementations may use different transaction and isolation mechanisms only when those observable
+guarantees remain equivalent. SQLite may continue using its current deferred or immediate
+transaction behavior internally where it satisfies the operation's contract.
 
-Zewnętrzne backendy wymagają jawnej własności migracji, aby wiele replik aplikacji nie mogło ścigać
-się o tę samą zmianę schematu. Historie migracji backendów mogą współdzielić logiczne kamienie
-milowe, ale pliki SQL SQLite nie są zakładane jako przenośne ani wielokrotnego użytku jako inny
-dialekt.
+External backends require explicit migration ownership so multiple application replicas cannot race
+the same schema change. Backend migration histories may share logical milestones, but SQLite SQL
+files are not assumed to be portable or reusable as another dialect.
 
-## Semantyka zgodności między backendami
+## Cross-backend conformance semantics
 
-Testy zgodności muszą obejmować zachowanie, a nie tylko sygnatury metod repozytorium. Każda
-migrowana domena musi zdefiniować i zweryfikować:
+Conformance tests must cover behavior, not only repository method signatures. Each migrated domain
+must define and verify:
 
-- strefę czasową znaczników czasu, precyzję i serializację;
-- oczekiwania dotyczące porządkowania `NULL`, collation oraz wrażliwości na wielkość liter;
-- reprezentację JSON i zachowanie porównań;
-- precyzję liczb całkowitych, dziesiętnych i monetarnych;
-- stabilne porządkowanie i deterministyczne rozstrzyganie remisów przy paginacji;
-- generowanie ID bez polegania na row ID SQLite;
-- klasyfikację naruszeń unikalności i kluczy obcych;
-- zachowanie affected-row dla operacji no-op, compare/update i delete;
-- wyniki współbieżnych zapisów, konflikty nadające się do ponowienia oraz idempotentne ponowienia.
+- timestamp timezone, precision, and serialization;
+- `NULL` ordering, collation, and case-sensitivity expectations;
+- JSON representation and comparison behavior;
+- integer, decimal, and monetary precision;
+- stable ordering and deterministic tie-breakers for pagination;
+- ID generation without relying on SQLite row IDs;
+- uniqueness and foreign-key violation classification;
+- affected-row behavior for no-op, compare/update, and delete operations;
+- concurrent-write outcomes, retryable conflicts, and idempotent retries.
 
-Jeśli domena nie potrafi wyrazić równoważnej obserwowalnej semantyki, nie jest jeszcze przenośna i
-musi pozostać specyficzna dla backendu, dopóki ten kontrakt nie zostanie zaprojektowany.
+If a domain cannot state equivalent observable semantics, it is not yet portable and must remain
+backend-specific until that contract is designed.
 
-## Wymagania zgodności
+## Compatibility requirements
 
-Każda implementacja zgodna z tym ADR musi zachować te właściwości:
+Any implementation following this ADR must preserve these properties:
 
-- SQLite pozostaje domyślnym wariantem zero-configuration.
-- Istniejące pliki SQLite i historia migracji pozostają czytelne.
-- Fallbacki SQLite dla npm, Electron, Docker i restricted-runtime zachowują obecną ścieżkę startu.
-- Przechowywane poświadczenia providerów nadal używają istniejącego zachowania szyfrowania aplikacji.
-- Migracja repozytorium nie zmienia po cichu semantyki routingu, quota, kluczy API ani audytu.
-- Zachowanie backupu i odzyskiwania jest dokumentowane per backend, a nie przedstawiane jako uniwersalne.
-- Czysta instalacja wyłącznie SQLite nie ładuje ani nie wymaga zewnętrznego sterownika bazy danych.
+- SQLite remains the zero-configuration default.
+- Existing SQLite files and migration history remain readable.
+- npm, Tauri desktop, Docker, and restricted-runtime SQLite fallbacks retain their current startup path.
+- Stored provider credentials continue to use the existing application encryption behavior.
+- A repository migration does not silently change routing, quota, API-key, or audit semantics.
+- Backup and recovery behavior is documented per backend rather than presented as universal.
+- A clean SQLite-only installation does not load or require an external database driver.
 
-## Sekwencja dostarczania
+## Delivery sequence
 
-1. Opublikować odtwarzalny inwentarz sprzężenia z SQLite jako osobny artefakt przeglądu.
-2. Wprowadzić pierwsze kontrakty repozytoriów domenowych i testy zgodności.
-3. Zaadaptować istniejącą implementację SQLite za tymi kontraktami bez zmiany domyślnych ustawień.
-4. Po zatwierdzeniu przez maintainerów dodać PostgreSQL jako pierwszą zewnętrzną implementację dla
-   jednego ograniczonego wycinka control-plane.
-5. Rozszerzać współdzielony stan dopiero po istnieniu testów concurrent-write i migration-ownership.
-6. Dodać offline, zweryfikowaną ścieżkę migracji SQLite-to-external przed reklamowaniem przełączania bazy.
-7. Dodać MySQL wobec sprawdzonych kontraktów repozytorium i backendu.
+1. Publish a reproducible SQLite coupling inventory as a separate review artifact.
+2. Introduce the first domain repository contracts and conformance tests.
+3. Adapt the existing SQLite implementation behind those contracts without changing defaults.
+4. Subject to maintainer approval, add PostgreSQL as the first external implementation for one
+   bounded control-plane slice.
+5. Extend shared state only after concurrent-write and migration-ownership tests exist.
+6. Add an offline, validated SQLite-to-external migration path before advertising database switching.
+7. Add MySQL against the proven repository and backend contracts.
 
-Każdy krok runtime to osobny, podlegający przeglądowi PR. Późniejszy krok nie może służyć do
-uzasadnienia scalenia niedowiedzionej abstrakcji we wcześniejszym kroku.
+Each runtime step is a separate, reviewable PR. A later step must not be used to justify merging an
+unproven abstraction in an earlier step.
 
-## Pierwszy wycinek implementacji
+## First implementation slice
 
-Pierwszy wycinek runtime powinien zostać wybrany po przeglądzie inwentarza sprzężenia. Połączenia
-providerów, klucze API, combo i konfiguracja routingu są kandydatami, ponieważ ich tabele bazowe są
-widoczne w `src/lib/db/core.ts`, ale ten ADR nie zatwierdza listy tabel ani PR migracyjnego.
-Wycinek musi obejmować:
+The first runtime slice should be selected after the coupling inventory is reviewed. Provider
+connections, API keys, combos, and routing configuration are candidates because their base tables
+are visible in `src/lib/db/core.ts`, but this ADR does not approve a table list or a migration PR.
+The slice must include:
 
-- testy zachowania zachowujące SQLite;
-- testy zgodności repozytorium;
-- jawne granice transakcji;
-- weryfikację szyfrowania i redakcji dla przechowywanych poświadczeń;
-- brak zmian w domyślnej konfiguracji startu.
+- SQLite behavior-preservation tests;
+- repository conformance tests;
+- explicit transaction boundaries;
+- encryption and redaction verification for stored credentials;
+- no change to the default startup configuration.
 
-## Rozważane alternatywy
+## Alternatives considered
 
-### Dodać PostgreSQL pod `SqliteAdapter`
+### Add PostgreSQL beneath `SqliteAdapter`
 
-Odrzucone. `SqliteAdapter` to warstwa zgodności dla runtime'ów SQLite i udostępnia operacje
-specyficzne dla SQLite. Emulowanie tej powierzchni wpuściłoby synchroniczne i dialektyczne założenia
-do nowego backendu.
+Rejected. `SqliteAdapter` is a compatibility layer for SQLite runtimes and exposes SQLite-specific
+operations. Emulating that surface would leak synchronous and dialect-specific assumptions into a
+new backend.
 
-### Udostępnić generyczne API query/execute wszystkim domenom
+### Expose a generic query/execute API to all domains
 
-Odrzucone jako główna granica. Scentralizowałoby obsługę połączeń, ale pozostawiłoby sprzężenie
-dialektu SQL, transakcji i tabel w modułach biznesowych. Niskopoziomowy prymityw backendu może istnieć
-wewnątrz implementacji repozytoriów, a nie jako aplikacyjne API persystencji.
+Rejected as the primary boundary. It would centralize connection handling but leave SQL dialect,
+transaction, and table coupling in business modules. A low-level backend primitive may exist inside
+repository implementations, not as the application-facing persistence API.
 
-### Przepisać całą persystencję przed walidacją jednego wycinka
+### Rewrite all persistence before validating one slice
 
-Odrzucone. Obecna powierzchnia persystencji jest szeroka i obejmuje cykl życia plików, odzyskiwanie,
-wyszukiwanie oraz ustawienia operacyjne. Pionowe wycinki zapewniają podlegające przeglądowi zachowanie
-i granice wycofania.
+Rejected. The current persistence surface is broad and includes file lifecycle, recovery, search,
+and operational settings. Vertical slices provide reviewable behavior and rollback boundaries.
 
-### Zastąpić SQLite jako domyślny
+### Replace SQLite as the default
 
-Odrzucone. Osadzone i desktopowe wdrożenia zależą od obecnego modelu startu zero-service. Zewnętrzny
-backend jest opt-in.
+Rejected. Embedded and desktop deployments depend on the current zero-service startup model. An
+external backend is opt-in.
 
-### Użyć Redis jako trwałego autorytetu
+### Use Redis as the durable authority
 
-Odrzucone. Redis może wspierać jawnie efemeryczną koordynację, cache lub liczniki, ale nie zastępuje
-opisanego tu trwałego kontraktu repozytorium.
+Rejected. Redis may support explicitly ephemeral coordination, cache, or counters, but it does not
+replace the durable repository contract described here.
 
-## Konsekwencje
+## Consequences
 
-### Pozytywne
+### Positive
 
-- Kod biznesowy zyskuje stabilny szew persystencji niezależny od dialektu bazy.
-- Zachowanie SQLite jest testowane, zanim zewnętrzny backend zdefiniuje abstrakcję.
-- PostgreSQL i MySQL współdzielą kontrakty i testy zamiast duplikować logikę domenową.
-- Możliwości wyłącznie SQLite pozostają pierwszorzędne, zamiast stawać się nieszczelnymi shimami zgodności.
-- Zachowanie migracji multi-replica i transakcji staje się jawną troską projektową.
+- Business code gains a stable persistence seam independent of database dialect.
+- SQLite behavior is tested before an external backend defines the abstraction.
+- PostgreSQL and MySQL share contracts and tests instead of duplicating domain logic.
+- SQLite-only capabilities remain first-class rather than becoming leaky compatibility shims.
+- Multi-replica migration and transaction behavior becomes an explicit design concern.
 
-### Koszty i ryzyka
+### Costs and risks
 
-- Wydzielenie repozytoriów wymaga przyrostowej migracji miejsc wywołań.
-- Granice async mogą się propagować przez obecnie synchroniczny kod usług.
-- Semantyka między backendami wymaga testów zgodności wykraczających poza zgodność składni SQL.
-- Backup, wyszukiwanie, magazyn wektorowy i utrzymanie pozostają specyficzne dla możliwości.
-- Uruchamianie więcej niż jednej implementacji persystencji zwiększa koszt CI i wsparcia operacyjnego.
+- Repository extraction requires incremental call-site migration.
+- Async boundaries may propagate through currently synchronous service code.
+- Cross-backend semantics require conformance tests beyond SQL syntax compatibility.
+- Backup, search, vector storage, and maintenance remain capability-specific.
+- Running more than one persistence implementation increases CI and operational support cost.
 
-## Cele poza zakresem
+## Non-goals
 
-Ten ADR nie:
+This ADR does not:
 
-- dodaje zależności bazy, zmiennej środowiskowej, schematu ani migracji;
-- zmienia działającego singletona SQLite ani kaskady sterowników;
-- obiecuje wsparcia PostgreSQL ani MySQL w konkretnym wydaniu;
-- czyni FTS5, `sqlite-vec`, plików backupu ani utrzymania SQLite przenośnymi;
-- definiuje gotowości active-active, zanim powstaną testy shared-state i koordynacji;
-- zatwierdza jednorazowego przepisania `src/lib/db/`.
+- add a database dependency, environment variable, schema, or migration;
+- change the live SQLite singleton or driver cascade;
+- promise PostgreSQL or MySQL support in a specific release;
+- make FTS5, `sqlite-vec`, backup files, or SQLite maintenance portable;
+- define active-active readiness before shared-state and coordination tests exist;
+- approve a one-shot rewrite of `src/lib/db/`.
 
-## Otwarte pytania do zatwierdzenia przez maintainerów
+## Open questions for maintainer approval
 
-1. Czy repozytorium plus wewnętrzna asynchroniczna granica backendu to preferowany kierunek, czy
-   zewnętrzna persystencja powinna żyć za osobną usługą control-plane?
-2. Czy PostgreSQL jest akceptowalny jako pierwsza zewnętrzna implementacja po zgodności SQLite?
-3. Która domena powinna być pierwszym ograniczonym wycinkiem repozytorium?
-4. Który stan musi być współdzielony dla pierwszego kamienia milowego multi-replica, a który pozostaje lokalny dla węzła?
-5. Jaka gwarancja zgodności jest wymagana dla przerwanej lub wycofanej migracji repozytorium?
+1. Is the repository plus internal async backend boundary the preferred direction, or should
+   external persistence live behind a separate control-plane service?
+2. Is PostgreSQL acceptable as the first external implementation after SQLite conformance?
+3. Which domain should be the first bounded repository slice?
+4. Which state must be shared for the first multi-replica milestone, and which remains node-local?
+5. What compatibility window is required for an interrupted or rolled-back repository migration?
 
-Dopóki te pytania nie zostaną rozstrzygnięte, ten dokument jest propozycją i nie implikuje żadnego
-refaktoringu runtime.
+Until these questions are resolved, this document is a proposal and no runtime refactor is implied.

@@ -273,7 +273,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   ├── frameworks/               # MCP-SERVER.md (110 tools), A2A-SERVER.md, SKILLS.md, MEMORY.md, CLOUD_AGENT.md, EVALS.md, WEBHOOKS.md
 │   ├── routing/                  # AUTO-COMBO.md (16-factor scoring), REASONING_REPLAY.md
 │   ├── security/                 # GUARDRAILS.md, COMPLIANCE.md, STEALTH_GUIDE.md, PUBLIC_CREDS.md, ERROR_SANITIZATION.md
-│   ├── guides/                   # USER_GUIDE.md, TROUBLESHOOTING.md, ELECTRON_GUIDE.md, I18N.md
+│   ├── guides/                   # USER_GUIDE.md, TROUBLESHOOTING.md, DESKTOP_GUIDE.md, I18N.md
 │   ├── ops/                      # RELEASE_CHECKLIST.md, TUNNELS_GUIDE.md, VM deployment
 │   ├── openapi.yaml              # OpenAPI specification
 │   └── screenshots/              # Dashboard screenshots
@@ -507,5 +507,5 @@ diagnostics) plus **memory**, **skill**, **agentSkill**, **githubSkill**, **pool
 - **Routing & resilience**: `docs/routing/AUTO-COMBO.md`, `docs/architecture/RESILIENCE_GUIDE.md`
 - **Security**: `docs/architecture/AUTHZ_GUIDE.md`, `docs/security/GUARDRAILS.md`, `docs/security/COMPLIANCE.md`, `docs/security/STEALTH_GUIDE.md`
 - **Extensibility**: `docs/frameworks/SKILLS.md`, `docs/frameworks/MEMORY.md`, `docs/frameworks/EVALS.md`, `docs/frameworks/WEBHOOKS.md`, `docs/routing/REASONING_REPLAY.md`
-- **Platform**: `docs/guides/ELECTRON_GUIDE.md`, `docs/ops/TUNNELS_GUIDE.md`
+- **Platform**: `docs/guides/DESKTOP_GUIDE.md`, `docs/ops/TUNNELS_GUIDE.md`
 - **AI agents**: `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`

@@ -11,125 +11,119 @@ version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# Korisnički vodič
+## Table of Contents
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
-
-Kompletan vodič za konfiguraciju pružatelja usluga, izradu kombinacija, integraciju CLI alata i implementaciju OmniRoute-a.
-
----
-
-## Sadržaj
-
-- [Pregled cijena](#-pricing-at-a-glance)
-- [Slučajevi upotrebe](#-use-cases)
-- [Postavljanje pružatelja usluga](#-provider-setup)
-- [CLI integracija](#-cli-integration)
-- [Implementacija](#-deployment)
-- [Dostupni modeli](#-available-models)
-- [Napredne značajke](#-advanced-features)
-- [Automatsko usmjeravanje (bez konfiguracije)](#-auto-routing-zero-config)
-- [MCP i A2A integracija](#-mcp--a2a-integration)
-- [Sustav vještina](#-skills-system)
-- [Sustav memorije](#-memory-system)
-- [Webhookovi](#-webhooks)
-- [Cloud agenti](#-cloud-agents)
-- [Programsko upravljanje](#-programmatic-management)
-- [Interni CLI](#-internal-cli)
-- [Desktop aplikacija (Electron)](#-desktop-application-electron)
+- [Pricing at a Glance](#-pricing-at-a-glance)
+- [Use Cases](#-use-cases)
+- [Provider Setup](#-provider-setup)
+- [CLI Integration](#-cli-integration)
+- [Deployment](#-deployment)
+- [Available Models](#-available-models)
+- [Advanced Features](#-advanced-features)
+- [Auto-Routing (Zero-config)](#-auto-routing-zero-config)
+- [MCP & A2A Integration](#-mcp--a2a-integration)
+- [Skills System](#-skills-system)
+- [Memory System](#-memory-system)
+- [Webhooks](#-webhooks)
+- [Cloud Agents](#-cloud-agents)
+- [Programmatic Management](#-programmatic-management)
+- [Internal CLI](#-internal-cli)
+- [Desktop Application (Tauri 2)](#-desktop-application-tauri-2)
 
 ---
 
-## 💰 Pregled cijena
+## 💰 Pricing at a Glance
 
-| Razina           | Pružatelj usluge  | Trošak                 | Resetiranje kvote              | Najbolje za                 |
-| ---------------- | ----------------- | ---------------------- | ------------------------------ | --------------------------- |
-| **💳 PRETPLATA** | Claude Code (Pro) | $20/mj                 | 5h + tjedno                    | Već ste pretplaćeni         |
-|                  | Codex (Plus/Pro)  | $20-200/mj             | 5h + tjedno                    | Korisnici OpenAI-a          |
-|                  | GitHub Copilot    | $10-19/mj              | Mjesečno                       | Korisnici GitHub-a          |
-| **🔑 API KLJUČ** | DeepSeek          | Plaćanje po korištenju | Nema                           | Jeftino zaključivanje       |
-|                  | Groq              | Plaćanje po korištenju | Nema                           | Ultra-brzo zaključivanje    |
-|                  | xAI (Grok)        | Plaćanje po korištenju | Nema                           | Zaključivanje s Grok 4      |
-|                  | Mistral           | Plaćanje po korištenju | Nema                           | Modeli hostirani u EU       |
-|                  | Perplexity        | Plaćanje po korištenju | Nema                           | Pretraga uz podršku AI-a    |
-|                  | Together AI       | Plaćanje po korištenju | Nema                           | Modeli otvorenog koda       |
-|                  | Fireworks AI      | Plaćanje po korištenju | Nema                           | Brze FLUX slike             |
-|                  | Cerebras          | Plaćanje po korištenju | Nema                           | Brzina razine wafer-a       |
-|                  | Cohere            | Plaćanje po korištenju | Nema                           | Command R+ RAG              |
-|                  | NVIDIA NIM        | Plaćanje po korištenju | Nema                           | Poslovni modeli             |
-|                  | Baidu Qianfan     | Plaćanje po korištenju | Nema                           | ERNIE modeli                |
-| **💰 JEFTINO**   | GLM-4.7           | $0.6/1M                | Dnevno 10h ujutro              | Proračunska rezerva         |
-|                  | MiniMax M2.1      | $0.2/1M                | Rotacija svakih 5 sati         | Najjeftinija opcija         |
-|                  | Kimi K2           | $9/mj fiksno           | 10M tokena/mj                  | Predvidljiv trošak          |
-| **🆓 BESPLATNO** | Qoder             | $0                     | Vrijede ograničenja pružatelja | Provjerite trenutni katalog |
-|                  | Kiro              | $0                     | ~50 kredita/mj                 | Claude besplatno            |
+| Tier                | Provider          | Cost        | Quota Reset           | Best For               |
+| ------------------- | ----------------- | ----------- | --------------------- | ---------------------- |
+| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly           | Already subscribed     |
+|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly           | OpenAI users           |
+|                     | GitHub Copilot    | $10-19/mo   | Monthly               | GitHub users           |
+| **🔑 API KEY**      | DeepSeek          | Pay per use | None                  | Cheap reasoning        |
+|                     | Groq              | Pay per use | None                  | Ultra-fast inference   |
+|                     | xAI (Grok)        | Pay per use | None                  | Grok 4 reasoning       |
+|                     | Mistral           | Pay per use | None                  | EU-hosted models       |
+|                     | Perplexity        | Pay per use | None                  | Search-augmented       |
+|                     | Together AI       | Pay per use | None                  | Open-source models     |
+|                     | Fireworks AI      | Pay per use | None                  | Fast FLUX images       |
+|                     | Cerebras          | Pay per use | None                  | Wafer-scale speed      |
+|                     | Cohere            | Pay per use | None                  | Command R+ RAG         |
+|                     | NVIDIA NIM        | Pay per use | None                  | Enterprise models      |
+|                     | Baidu Qianfan     | Pay per use | None                  | ERNIE models           |
+| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM            | Budget backup          |
+|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling        | Cheapest option        |
+|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo         | Predictable cost       |
+| **🆓 FREE**         | Qoder             | $0          | Provider limits apply | Verify current catalog |
+|                     | Kiro              | $0          | ~50 credits/mo        | Claude free            |
 
 ---
 
-## 🎯 Slučajevi korištenja
+## 🎯 Use Cases
 
-### Slučaj 1: "Imam pretplatu na Claude Pro"
+### Case 1: "I have Claude Pro subscription"
 
-**Problem:** Kvota istječe neiskorištena, ograničenja stope prilikom intenzivnog programiranja
-
-```
-Kombinacija: "maximize-claude"
-  1. cc/claude-opus-4-7        (potpuno iskoristite pretplatu)
-  2. glm/glm-4.7               (jeftina rezerva kad kvota istekne)
-  3. if/qwen3.8-max-preview       (besplatna rezerva za hitne slučajeve)
-
-Mjesečni trošak: $20 (pretplata) + ~$5 (rezerva) = $25 ukupno
-u odnosu na $20 + dosezanje ograničenja = frustracija
-```
-
-### Slučaj 2: "Želim nulti trošak"
-
-**Problem:** Ne mogu si priuštiti pretplate, treba pouzdana AI podrška za programiranje
+**Problem:** Quota expires unused, rate limits during heavy coding
 
 ```
-Kombinacija: "zero-cost"
-  1. if/kimi-k2.7-code          (navedeni besplatan pristup; mogu se primjenjivati ograničenja stope)
-  2. kr/qwen3-coder-next        (Kiro besplatna rezerva)
+Combo: "maximize-claude"
+  1. cc/claude-opus-4-7        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/qwen3.8-max-preview       (free emergency fallback)
 
-Mjesečni trošak: $0
-Kvaliteta: provjerite model, ograničenja, privatnost i SLA za vaše radno opterećenje
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
 ```
 
-### Slučaj 3: "Trebam programiranje 24/7, bez prekida"
+### Case 2: "I want zero cost"
 
-**Problem:** Rokovi, ne mogu si priuštiti prekide u radu
-
-```
-Kombinacija: "always-on"
-  1. cc/claude-opus-4-7        (najbolja kvaliteta)
-  2. cx/gpt-5.5                (druga pretplata)
-  3. glm/glm-4.7               (jeftino, dnevno resetiranje)
-  4. minimax/MiniMax-M2.1      (najjeftinije, resetiranje na 5h)
-  5. if/deepseek-v4-flash       (navedeni besplatan pristup; mogu se primjenjivati ograničenja stope)
-
-Rezultat: 5 razina rezerve proširuje otpornost sustava; dostupnost izvora nije zagarantirana
-Mjesečni trošak: $20-200 (pretplate) + $10-20 (rezerva)
-```
-
-### Slučaj 4: "Želim BESPLATNI AI u OpenClaw"
-
-**Problem:** Potreban AI asistent u aplikacijama za razmjenu poruka, potpuno besplatno
+**Problem:** Can't afford subscriptions, need reliable AI coding
 
 ```
-Kombinacija: "openclaw-free"
-  1. if/qwen3.8-max-preview     (navedeni besplatan pristup; mogu se primjenjivati ograničenja stope)
-  2. if/deepseek-v4-flash       (navedeni besplatan pristup; mogu se primjenjivati ograničenja stope)
-  3. if/kimi-k2.7-code          (navedeni besplatan pristup; mogu se primjenjivati ograničenja stope)
+Combo: "zero-cost"
+  1. if/kimi-k2.7-code          (listed free access; rate limits may apply)
+  2. kr/qwen3-coder-next        (Kiro free fallback)
 
-Mjesečni trošak: $0
-Pristup putem: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+Monthly cost: $0
+Quality: verify the model, limits, privacy, and SLA for your workload
+```
+
+### Case 3: "I need 24/7 coding, no interruptions"
+
+**Problem:** Deadlines, can't afford downtime
+
+```
+Combo: "always-on"
+  1. cc/claude-opus-4-7        (best quality)
+  2. cx/gpt-5.5                (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/deepseek-v4-flash       (listed free access; rate limits may apply)
+
+Result: 5 fallback layers broaden resilience; upstream availability is not guaranteed
+Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
+```
+
+### Case 4: "I want FREE AI in OpenClaw"
+
+**Problem:** Need AI assistant in messaging apps, completely free
+
+```
+Combo: "openclaw-free"
+  1. if/qwen3.8-max-preview     (listed free access; rate limits may apply)
+  2. if/deepseek-v4-flash       (listed free access; rate limits may apply)
+  3. if/kimi-k2.7-code          (listed free access; rate limits may apply)
+
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 ```
 
 ---
 
-## 📖 Postavljanje pružatelja usluge
+## 📖 Provider Setup
 
-### 🔐 Pružatelji usluge po pretplati
+To bulk-add API-key connections from a CSV or JSON file, use **Dashboard → Providers → Import from file**. Columns are positional (`provider,name,apiKey,baseUrl,priority`); `provider` must already exist as a managed provider or a compatible node. See [Import providers from a CSV or JSON file](../providers/CSV-IMPORT.md).
+
+### 🔐 Subscription Providers
 
 #### Claude Code (Pro/Max)
 
@@ -144,11 +138,11 @@ Models:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Profesionalni savjet:** Koristite Opus za složene zadatke, Sonnet za brzinu. OmniRoute prati kvotu po modelu!
+**Pro Tip:** Use Opus for complex tasks, Sonnet for speed. OmniRoute tracks quota per model!
 
-Claude i Claude Code-kompatibilne rute čuvaju `max` razinu razmišljanja (thinking effort) za modele Opus i Sonnet.
-Haiku modeli ne prihvaćaju `max` razinu, pa OmniRoute prije slanja zahtjeva prema dobavljaču
-smanjuje taj zahtjev na visoki proračun razmišljanja (thinking budget).
+Claude and Claude Code-compatible routes preserve `max` thinking effort for Opus and Sonnet
+models. Haiku models do not accept the `max` effort tier, so OmniRoute downgrades that
+request to a high thinking budget before sending it upstream.
 
 #### OpenAI Codex (Plus/Pro)
 
@@ -179,44 +173,44 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Jeftini pružatelji usluge
+### 💰 Cheap Providers
 
-#### GLM-4.7 (Dnevni reset, $0.6/1M)
+#### GLM-4.7 (Daily reset, $0.6/1M)
 
-1. Registrirajte se: [Zhipu AI](https://open.bigmodel.cn)
-2. Preuzmite API ključ iz Coding Plan
+1. Sign up: [Zhipu AI](https://open.bigmodel.cn)
+2. Get API key from Coding Plan
 3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
 
-**Koristi se kao:** `glm/glm-4.7` — **Profesionalni savjet:** Coding Plan nudi 3× kvotu po 1/7 cijene! Reset svaki dan u 10:00.
+**Use:** `glm/glm-4.7` — **Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
 
-#### MiniMax M2.1 (Reset svakih 5h, $0.20/1M)
+#### MiniMax M2.1 (5h reset, $0.20/1M)
 
-1. Registrirajte se: [MiniMax](https://www.minimax.io)
-2. Preuzmite API ključ → Dashboard → Add API Key
+1. Sign up: [MiniMax](https://www.minimax.io)
+2. Get API key → Dashboard → Add API Key
 
-**Koristi se kao:** `minimax/MiniMax-M2.1` — **Profesionalni savjet:** Najjeftinija opcija za dugi kontekst (1M tokena)!
+**Use:** `minimax/MiniMax-M2.1` — **Pro Tip:** Cheapest option for long context (1M tokens)!
 
-#### Kimi K2 ($9/mjesečno fiksno)
+#### Kimi K2 ($9/month flat)
 
-1. Pretplatite se: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Preuzmite API ključ → Dashboard → Add API Key
+1. Subscribe: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. Get API key → Dashboard → Add API Key
 
-**Koristi se kao:** `kimi/kimi-k2.5` — **Profesionalni savjet:** Fiksno $9/mjesečno za 10M tokena = efektivna cijena $0.90/1M!
+**Use:** `kimi/kimi-k2.5` — **Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
 
 #### Baidu Qianfan / ERNIE
 
-1. Registrirajte se: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Kreirajte Qianfan API ključ → Dashboard → Add API Key: Provider: `qianfan`
+1. Sign up: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. Create a Qianfan API key → Dashboard → Add API Key: Provider: `qianfan`
 
-**Koristi se kao:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, ili neki drugi Qianfan OpenAI-kompatibilan ID modela.
+**Use:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, or another Qianfan OpenAI-compatible model ID.
 
-### 🆓 BESPLATNI pružatelji usluge
+### 🆓 FREE Providers
 
-Besplatni pružatelji koji ne zahtijevaju autentikaciju imaju prekidač pored **No authentication required** na svojoj stranici pružatelja.
-Isključivanjem se onemogućuje taj pružatelj, uklanja ga iz konfiguriranih/kompaktnih prikaza pružatelja (Providers) i
-uklanja njegove modele iz `/v1/models`.
+No-auth free providers have a switch beside **No authentication required** on their provider page.
+Turning it off disables that provider, removes it from Providers configured/compact views, and
+removes its models from `/v1/models`.
 
-#### Qoder (9 BESPLATNIH modela)
+#### Qoder (9 FREE models)
 
 ```bash
 Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
@@ -224,7 +218,7 @@ Dashboard → Connect Qoder → OAuth login → Access is subject to current pro
 Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude BESPLATNO)
+#### Kiro (Claude FREE)
 
 ```bash
 Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → ~50 credits/month
@@ -234,11 +228,11 @@ Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 
 ---
 
-## 🎨 Kombinacije
+## 🎨 Combos
 
-Kartice kombinacija možete preslagati direktno u **Dashboard → Combos** povlačenjem ručke na svakoj kartici. Redoslijed se pohranjuje u SQLite i vraća prilikom ponovnog učitavanja.
+You can reorder combo cards directly in **Dashboard → Combos** by dragging the handle on each card. The order is stored in SQLite and restored on reload.
 
-### Primjer 1: Maksimalno iskoristi pretplatu → jeftina rezerva
+### Example 1: Maximize Subscription → Cheap Backup
 
 ```
 Dashboard → Combos → Create New
@@ -252,7 +246,7 @@ Models:
 Use in CLI: premium-coding
 ```
 
-### Primjer 2: Samo besplatno (nulti trošak)
+### Example 2: Free-Only (Zero Cost)
 
 ```
 Name: free-combo
@@ -265,26 +259,26 @@ Cost: currently listed as $0; terms and availability may change
 
 ---
 
-## 🔧 CLI integracija
+## 🔧 CLI Integration
 
 ### Cursor IDE
 
-**Korištenje Cursora kao OmniRoute klijenta** (usmjeravanje Cursor chata kroz OmniRoute):
+**Using Cursor as an OmniRoute client** (route Cursor chat through OmniRoute):
 
 ```
 Settings → Models → Advanced:
   OpenAI API Base URL: http://localhost:20128/v1
-  OpenAI API Key: [iz omniroute nadzorne ploče]
+  OpenAI API Key: [from omniroute dashboard]
   Model: cc/claude-opus-4-7
 ```
 
-**Korištenje OmniRoutea kao Cursor providera** (OmniRoute poziva Cursor uzvodno): preferira se
-**Dashboard → Providers → Cursor → Login with Cursor**. U Dockeru pogledajte
+**Using OmniRoute as a Cursor provider** (OmniRoute calls Cursor upstream): prefer
+**Dashboard → Providers → Cursor → Login with Cursor**. In Docker, see
 [`docs/providers/CURSOR-DOCKER.md`](../providers/CURSOR-DOCKER.md).
 
 ### Claude Code
 
-Uredite `~/.claude/settings.json`:
+Edit `~/.claude/settings.json`:
 
 ```json
 {
@@ -295,7 +289,7 @@ Uredite `~/.claude/settings.json`:
 }
 ```
 
-Ovdje koristite root endpoint kompatibilan s Claudeom. Ne dodajte `/v1` na `ANTHROPIC_BASE_URL`.
+Use the Claude-compatible root endpoint here. Do not append `/v1` to `ANTHROPIC_BASE_URL`.
 
 ### Codex CLI
 
@@ -307,7 +301,7 @@ codex "your prompt"
 
 ### OpenClaw
 
-Uredite `~/.openclaw/openclaw.json`:
+Edit `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -329,95 +323,95 @@ Uredite `~/.openclaw/openclaw.json`:
 }
 ```
 
-**Ili koristite Dashboard:** CLI Tools → OpenClaw → Auto-config
+**Or use Dashboard:** CLI Tools → OpenClaw → Auto-config
 
 ### Cline / Continue / RooCode
 
 ```
 Provider: OpenAI Compatible
 Base URL: http://localhost:20128/v1
-API Key: [iz nadzorne ploče]
+API Key: [from dashboard]
 Model: cc/claude-opus-4-7
 ```
 
 ---
 
-## 🚀 Postavljanje (Deployment)
+## 🚀 Deployment
 
-### Globalna npm instalacija (preporučeno)
+### Global npm install (Recommended)
 
 ```bash
 npm install -g omniroute
 
-# Kreirajte direktorij za konfiguraciju
+# Create config directory
 mkdir -p ~/.omniroute
 
-# Kreirajte .env datoteku (pogledajte .env.example)
+# Create .env file (see .env.example)
 cp .env.example ~/.omniroute/.env
 
-# Pokrenite server
+# Start server
 omniroute
-# Ili s prilagođenim portom:
+# Or with custom port:
 omniroute --port 3000
 ```
 
-CLI automatski učitava `.env` iz `~/.omniroute/.env` ili `./.env`.
+The CLI automatically loads `.env` from `~/.omniroute/.env` or `./.env`.
 
-### Tray način rada
+### Tray mode
 
-Pokrenite OmniRoute u sistemskoj traci (tray):
+Start OmniRoute in the system tray:
 
 ```bash
 omniroute serve --tray
 ```
 
-Naredba se vraća nakon što su server i tray spremni.
+The command returns after the server and tray are ready.
 
-Server nastavlja s radom bez terminala.
+The server continues without the terminal.
 
-Tray način rada podržava macOS, Windows i grafičke Linux sesije. Tray način rada ne otvara automatski nadzornu ploču.
+Tray mode supports macOS, Windows, and graphical Linux sessions. Tray mode does not open the dashboard automatically.
 
-Koristite tray izbornik za sljedeće radnje:
+Use the tray menu for these actions:
 
-- Otvorite nadzornu ploču.
-- Otvorite `/dashboard/logs`.
-- Promijenite automatsko pokretanje.
-- Zaustavite OmniRoute.
+- Open the dashboard.
+- Open `/dashboard/logs`.
+- Change auto-start.
+- Stop OmniRoute.
 
-Ne kombinirajte `--tray` s ovim opcijama:
+Do not combine `--tray` with these options:
 
 - `--daemon`
 - `--log`
 - `--no-recovery`
 
-Ovi načini rada zahtijevaju različito vlasništvo nad procesom.
+These modes require different process ownership.
 
-Omogućite pokretanje pri sljedećoj prijavi na računalo:
+Enable startup at the next machine login:
 
 ```bash
 omniroute autostart enable
 ```
 
-Automatsko pokretanje koristi tray način rada na macOS, Windows i grafičkim Linux sesijama. Headless Linux koristi postojeću systemd korisničku uslugu.
+Auto-start uses tray mode on macOS, Windows, and graphical Linux sessions. Headless Linux uses the existing systemd user service.
 
-Isključite pokretanje pri prijavi:
+Disable startup at login:
 
 ```bash
 omniroute autostart disable
 ```
 
-### Deinstalacija
+### Uninstalling
 
-Kada vam OmniRoute više ne treba, nudimo dvije brze skripte za čisto uklanjanje:
+When you no longer need OmniRoute, we provide two quick scripts for a clean removal:
 
-| Naredba                  | Radnja                                                                                              |
-| ------------------------ | --------------------------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Uklanja sistemsku aplikaciju, ali **zadržava vašu bazu podataka i konfiguracije** u `~/.omniroute`. |
-| `npm run uninstall:full` | Uklanja aplikaciju I trajno **briše sve konfiguracije, ključeve i baze podataka**.                  |
+| Command                  | Action                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
 
-> Napomena: Za pokretanje ovih naredbi otiđite u mapu OmniRoute projekta (ako ste ga klonirali) i pokrenite ih. Alternativno, ako je instaliran globalno, jednostavno pokrenite `npm uninstall -g omniroute`.
+> Note: To run these commands, navigate to the OmniRoute project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g omniroute`.
 
-### VPS postavljanje
+### VPS Deployment
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -433,25 +427,25 @@ export NEXT_PUBLIC_BASE_URL="http://localhost:20128"
 export API_KEY_SECRET="endpoint-proxy-api-key-secret"
 
 npm run start
-# Ili: pm2 start npm --name omniroute -- start
+# Or: pm2 start npm --name omniroute -- start
 ```
 
-### PM2 postavljanje (mala memorija)
+### PM2 Deployment (Low Memory)
 
-Za servere s ograničenom RAM memorijom koristite opciju ograničenja memorije:
+For servers with limited RAM, use the memory limit option:
 
 ```bash
-# S ograničenjem od 512MB (zadano)
+# With 512MB limit (default)
 pm2 start npm --name omniroute -- start
 
-# Ili s prilagođenim ograničenjem memorije
+# Or with custom memory limit
 OMNIROUTE_MEMORY_MB=512 pm2 start npm --name omniroute -- start
 
-# Ili koristeći ecosystem.config.js
+# Or using ecosystem.config.js
 pm2 start ecosystem.config.js
 ```
 
-Kreirajte `ecosystem.config.js`:
+Create `ecosystem.config.js`:
 
 ```javascript
 module.exports = {
@@ -476,21 +470,21 @@ module.exports = {
 ### Docker
 
 ```bash
-# Izgradnja slike (zadano = runner-cli s predinstaliranim codex/claude/droid)
+# Build image (default = runner-cli with codex/claude/droid preinstalled)
 docker build -t omniroute:cli .
 
-# Prijenosni način rada (preporučeno)
+# Portable mode (recommended)
 docker run -d --name omniroute -p 20128:20128 --env-file ./.env -v omniroute-data:/app/data omniroute:cli
 ```
 
-Za način rada integriran s hostom uz CLI binarne datoteke, pogledajte odjeljak o Dockeru u glavnoj dokumentaciji.
+For host-integrated mode with CLI binaries, see the Docker section in the main docs.
 
 ### Void Linux (xbps-src)
 
-Korisnici Void Linuxa mogu pakirati i instalirati OmniRoute nativno koristeći `xbps-src` framework za cross-kompilaciju. Ovo automatizira samostalnu (standalone) Node.js izgradnju zajedno s potrebnim nativnim vezama `better-sqlite3`.
+Void Linux users can package and install OmniRoute natively using the `xbps-src` cross-compilation framework. This automates the Node.js standalone build along with the required `better-sqlite3` native bindings.
 
 <details>
-<summary><b>Pregledajte xbps-src predložak</b></summary>
+<summary><b>View xbps-src template</b></summary>
 
 ```bash
 # Template file for 'omniroute'
@@ -514,7 +508,7 @@ export npm_config_fund=false
 export npm_config_audit=false
 
 do_build() {
-	# Odredi ciljnu CPU arhitekturu za node-gyp
+	# Determine target CPU arch for node-gyp
 	local _gyp_arch
 	case "$XBPS_TARGET_MACHINE" in
 		aarch64*) _gyp_arch=arm64 ;;
@@ -523,29 +517,29 @@ do_build() {
 		*) _gyp_arch=x64 ;;
 	esac
 
-	# 1) Instaliraj sve ovisnosti – preskoči skripte
+	# 1) Install all deps – skip scripts
 	NODE_ENV=development npm ci --ignore-scripts
 
-	# 2) Izgradi Next.js standalone paket
+	# 2) Build the Next.js standalone bundle
 	npm run build
 
-	# 3) Kopiraj statičke resurse u standalone
+	# 3) Copy static assets into standalone
 	cp -r .next/static .next/standalone/.next/static
 	[ -d public ] && cp -r public .next/standalone/public || true
 
-	# 4) Kompajliraj better-sqlite3 nativnu vezu
+	# 4) Compile better-sqlite3 native binding
 	local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
 	(cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
 
-	# 5) Postavi kompajliranu vezu u standalone paket
+	# 5) Place the compiled binding into the standalone bundle
 	local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
 	mkdir -p "$_bs3_release"
 	cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
 
-	# 6) Ukloni arhitekturno specifične sharp pakete
+	# 6) Remove arch-specific sharp bundles
 	rm -rf .next/standalone/node_modules/@img
 
-	# 7) Kopiraj pino runtime ovisnosti izostavljene Next.js statičkom analizom:
+	# 7) Copy pino runtime deps omitted by Next.js static analysis:
 	for _mod in pino-abstract-transport split2 process-warning; do
 		cp -r "node_modules/$_mod" .next/standalone/node_modules/
 	done
@@ -559,7 +553,7 @@ do_install() {
 	vmkdir usr/lib/omniroute/.next
 	vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 
-	# Spriječi uklanjanje praznih Next.js app router direktorija post-install kukom
+	# Prevent removal of empty Next.js app router dirs by the post-install hook
 	for _d in \
 		.next/standalone/.next/server/app/dashboard \
 		.next/standalone/.next/server/app/dashboard/settings \
@@ -585,123 +579,123 @@ post_install() {
 
 </details>
 
-### Varijable okoline
+### Environment Variables
 
-| Varijabla                               | Zadano                               | Opis                                                                                                                                                      |
-| --------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | Tajni ključ za JWT potpisivanje (**promijeniti u produkciji**)                                                                                            |
-| `INITIAL_PASSWORD`                      | `CHANGEME`                           | Lozinka za prvu prijavu                                                                                                                                   |
-| `DATA_DIR`                              | `~/.omniroute`                       | Direktorij podataka (baza podataka, korištenje, zapisnici)                                                                                                |
-| `PORT`                                  | zadano iz frameworka                 | Port usluge (`20128` u primjerima)                                                                                                                        |
-| `HOSTNAME`                              | zadano iz frameworka                 | Host za vezivanje (Docker zadano koristi `0.0.0.0`)                                                                                                       |
-| `NODE_ENV`                              | zadano tijekom izvođenja             | Postavite `production` za postavljanje                                                                                                                    |
-| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | Javna osnovna URL adresa prikazana na nadzornoj ploči i izložena serveru (zamjenjuje zastarjeli `BASE_URL`)                                               |
-| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Osnovna URL adresa krajnje točke sinkronizacije s oblakom (zamjenjuje zastarjeli `CLOUD_URL`)                                                             |
-| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | HMAC tajni ključ za generirane API ključeve                                                                                                               |
-| `REQUIRE_API_KEY`                       | `false`                              | Zahtijeva Bearer API ključ na `/v1/*`                                                                                                                     |
-| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Dopušta autentificiranim korisnicima nadzorne ploče otkrivanje potpunih pohranjenih vrijednosti API ključeva na zahtjev                                   |
-| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Učestalost obnavljanja na strani servera za predmemorirane podatke o Provider Limits; gumbi za obnavljanje u sučelju i dalje pokreću ručnu sinkronizaciju |
-| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Isključuje automatske SQLite snapshotove prije pisanja/uvoza/vraćanja; ručne sigurnosne kopije i dalje rade                                               |
-| `APP_LOG_TO_FILE`                       | `true`                               | Omogućuje izlaz aplikacijskih i revizijskih zapisnika na disk                                                                                             |
-| `AUTH_COOKIE_SECURE`                    | `false`                              | Prisiljava `Secure` autentifikacijski kolačić (iza HTTPS reverse proxyja)                                                                                 |
-| `CLOUDFLARED_BIN`                       | nepostavljeno                        | Koristi postojeću `cloudflared` binarnu datoteku umjesto upravljanog preuzimanja                                                                          |
-| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | Transport za upravljane Quick Tunnels (`http2`, `quic` ili `auto`)                                                                                        |
-| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Ograničenje Node.js heap-a u MB                                                                                                                           |
-| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | Maksimalan broj unosa u predmemoriji prompta                                                                                                              |
-| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | Maksimalan broj unosa u semantičkoj predmemoriji                                                                                                          |
+| Variable                                | Default                              | Description                                                                                               |
+| --------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)                                                             |
+| `INITIAL_PASSWORD`                      | `CHANGEME`                           | First login password                                                                                      |
+| `DATA_DIR`                              | `~/.omniroute`                       | Data directory (db, usage, logs)                                                                          |
+| `PORT`                                  | framework default                    | Service port (`20128` in examples)                                                                        |
+| `HOSTNAME`                              | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                                                                  |
+| `NODE_ENV`                              | runtime default                      | Set `production` for deploy                                                                               |
+| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | Public base URL surfaced to the dashboard and exposed to the server (replaces legacy `BASE_URL`)          |
+| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Cloud sync endpoint base URL (replaces legacy `CLOUD_URL`)                                                |
+| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                                        |
+| `REQUIRE_API_KEY`                       | `false`                              | Enforce Bearer API key on `/v1/*`                                                                         |
+| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow authenticated dashboard users to reveal full stored API key values on demand                        |
+| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Server-side refresh cadence for cached Provider Limits data; UI refresh buttons still trigger manual sync |
+| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work                |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
+| `AUTH_COOKIE_SECURE`                    | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy)                                                   |
+| `CLOUDFLARED_BIN`                       | unset                                | Use an existing `cloudflared` binary instead of managed download                                          |
+| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | Transport for managed Quick Tunnels (`http2`, `quic`, or `auto`)                                          |
+| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Node.js heap limit in MB                                                                                  |
+| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | Max prompt cache entries                                                                                  |
+| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | Max semantic cache entries                                                                                |
 
-Za potpuni popis varijabli okoline pogledajte [README](../README.md).
+For the full environment variable reference, see the [README](../README.md).
 
 ---
 
-## 📊 Dostupni modeli
+## 📊 Available Models
 
 <details>
-<summary><b>Prikaz svih dostupnih modela</b></summary>
+<summary><b>View all available models</b></summary>
 
-> Popis u nastavku je preuzet iz `open-sse/config/providerRegistry.ts` za v3.8.0. Katalozi u oblaku (Gemini, OpenRouter itd.) sinkroniziraju se dinamički — za potpuni ažurni katalog otvorite **Dashboard → Providers → [provider] → Available Models** ili pozovite `GET /api/models/catalog`.
+> The list below is curated from `open-sse/config/providerRegistry.ts` for v3.8.0. Cloud catalogs (Gemini, OpenRouter, etc.) are synced dynamically — for the full live catalog open **Dashboard → Providers → [provider] → Available Models** or call `GET /api/models/catalog`.
 >
-> Ako se ugrađeni popis nekog pružatelja usluge razišao od stvarnog stanja, koristite **Import from /models** na toj stranici (ili omogućite **Auto-Sync**) da preuzmete aktualni katalog s izvora. Ovo je provjereno u v3.8.50 za LLM7.io (`gemini-3.1-flash-lite`) i UncloseAI (`solidrust/Hermes-3-Llama-3.1-8B-AWQ`); anonimni pristup za Pollinations je ostao ograničen od strane izvornog pružatelja tijekom istog testiranja.
+> If a provider's built-in list has drifted, use **Import from /models** on that page (or enable **Auto-Sync**) to pull the live upstream catalog. This was verified in v3.8.50 for LLM7.io (`gemini-3.1-flash-lite`) and UncloseAI (`solidrust/Hermes-3-Llama-3.1-8B-AWQ`); Pollinations anonymous access remained upstream-limited during the same test pass.
 
 **Claude Code (`cc/`)** — Pro/Max OAuth: `cc/claude-opus-4-8`, `cc/claude-opus-4-7`, `cc/claude-opus-4-6`, `cc/claude-opus-4-5-20251101`, `cc/claude-sonnet-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
-**Codex (`cx/`)** — Plus/Pro OAuth: `cx/gpt-5.5` (+ razine napora: `gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`), `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`
+**Codex (`cx/`)** — Plus/Pro OAuth: `cx/gpt-5.5` (+ effort tiers: `gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`), `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`
 
 **GitHub Copilot (`gh/`)** — OAuth: `gh/gpt-5.5`, `gh/gpt-5.4`, `gh/gpt-5.4-mini`, `gh/gpt-5-mini`, `gh/gpt-5.3-codex`, `gh/claude-opus-4.7`, `gh/claude-opus-4.6`, `gh/claude-opus-4-5-20251101`, `gh/claude-sonnet-4.6`, `gh/claude-sonnet-4.5`, `gh/claude-haiku-4.5`, `gh/gemini-3.1-pro-preview`, `gh/gemini-3-flash-preview`, `gh/oswe-vscode-prime`
 
-**Kiro (`kr/`)** — BESPLATAN OAuth: koristite ažurni katalog prikazan pod **Dashboard → Providers → Kiro → Available Models**. Dostupnost ovisi o računu i planu.
+**Kiro (`kr/`)** — FREE OAuth: use the live catalog shown under **Dashboard → Providers → Kiro → Available Models**. Availability depends on the account and plan.
 
-**Qoder (`if/`)** — BESPLATAN OAuth: `if/qwen3.8-max-preview`, `if/qwen3.7-max`, `if/qwen3.7-plus`, `if/kimi-k3`, `if/kimi-k2.7-code`, `if/glm-5.2`, `if/deepseek-v4-pro`, `if/deepseek-v4-flash`, `if/minimax-m3`
+**Qoder (`if/`)** — FREE OAuth: `if/qwen3.8-max-preview`, `if/qwen3.7-max`, `if/qwen3.7-plus`, `if/kimi-k3`, `if/kimi-k2.7-code`, `if/glm-5.2`, `if/deepseek-v4-pro`, `if/deepseek-v4-flash`, `if/minimax-m3`
 
-**GLM (`glm/`, `glm-cn/`, `zai/`, `glmt/`)** — 0,2–0,6 USD/1M: `glm/glm-5.1`, `glm/glm-5`, `glm/glm-5-turbo`, `glm/glm-4.7`, `glm/glm-4.7-flash`, `glm/glm-4.6`, `glm/glm-4.6v`, `glm/glm-4.5`, `glm/glm-4.5v`, `glm/glm-4.5-air`
+**GLM (`glm/`, `glm-cn/`, `zai/`, `glmt/`)** — $0.2–0.6/1M: `glm/glm-5.1`, `glm/glm-5`, `glm/glm-5-turbo`, `glm/glm-4.7`, `glm/glm-4.7-flash`, `glm/glm-4.6`, `glm/glm-4.6v`, `glm/glm-4.5`, `glm/glm-4.5v`, `glm/glm-4.5-air`
 
-**MiniMax (`minimax/`, `minimax-cn/`)** — 0,2 USD/1M: `minimax/MiniMax-M2.7`, `minimax/MiniMax-M2.7-highspeed`, `minimax/MiniMax-M2.5`, `minimax/MiniMax-M2.5-highspeed`
+**MiniMax (`minimax/`, `minimax-cn/`)** — $0.2/1M: `minimax/MiniMax-M2.7`, `minimax/MiniMax-M2.7-highspeed`, `minimax/MiniMax-M2.5`, `minimax/MiniMax-M2.5-highspeed`
 
-**Kimi (`kimi/`, `kimi-coding/`, `kimi-coding-apikey/`)** — 9 USD/mj. fiksno ili po upotrebi: `kimi/kimi-k2.6`, `kimi/kimi-k2.5`
+**Kimi (`kimi/`, `kimi-coding/`, `kimi-coding-apikey/`)** — $9/mo flat or per-use: `kimi/kimi-k2.6`, `kimi/kimi-k2.5`
 
-**DeepSeek (`ds/`)** — API ključ: `ds/deepseek-v4-pro`, `ds/deepseek-v4-flash`
+**DeepSeek (`ds/`)** — API key: `ds/deepseek-v4-pro`, `ds/deepseek-v4-flash`
 
-**Groq (`groq/`)** — Ultra brzo: `groq/llama-3.3-70b-versatile`, `groq/meta-llama/llama-4-maverick-17b-128e-instruct`, `groq/qwen/qwen3-32b`, `groq/openai/gpt-oss-120b`
+**Groq (`groq/`)** — Ultra-fast: `groq/llama-3.3-70b-versatile`, `groq/meta-llama/llama-4-maverick-17b-128e-instruct`, `groq/qwen/qwen3-32b`, `groq/openai/gpt-oss-120b`
 
-**xAI (`xai/`)** — Izvorni Grok: `xai/grok-4.3`, `xai/grok-4.20-multi-agent-0309`, `xai/grok-4.20-0309-reasoning`, `xai/grok-4.20-0309-non-reasoning`
+**xAI (`xai/`)** — Grok native: `xai/grok-4.3`, `xai/grok-4.20-multi-agent-0309`, `xai/grok-4.20-0309-reasoning`, `xai/grok-4.20-0309-non-reasoning`
 
-**Mistral (`mistral/`)** — Hostiran u EU: `mistral/mistral-large-latest`, `mistral/mistral-medium-3-5`, `mistral/mistral-small-latest`, `mistral/devstral-latest`, `mistral/codestral-latest`
+**Mistral (`mistral/`)** — EU-hosted: `mistral/mistral-large-latest`, `mistral/mistral-medium-3-5`, `mistral/mistral-small-latest`, `mistral/devstral-latest`, `mistral/codestral-latest`
 
-**Perplexity (`pplx/`)** — Pojačano pretraživanjem: `pplx/sonar-deep-research`, `pplx/sonar-reasoning-pro`, `pplx/sonar-pro`, `pplx/sonar`
+**Perplexity (`pplx/`)** — Search-augmented: `pplx/sonar-deep-research`, `pplx/sonar-reasoning-pro`, `pplx/sonar-pro`, `pplx/sonar`
 
-**Together AI (`together/`)** — Otvorenog koda: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo-Free` (besplatno), `together/meta-llama/Llama-Vision-Free`, `together/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-Free`, `together/deepseek-ai/DeepSeek-R1`, `together/Qwen/Qwen3-235B-A22B`, `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`
+**Together AI (`together/`)** — Open-source: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo-Free` (free), `together/meta-llama/Llama-Vision-Free`, `together/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-Free`, `together/deepseek-ai/DeepSeek-R1`, `together/Qwen/Qwen3-235B-A22B`, `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`
 
-**Fireworks AI (`fireworks/`)** — Brzo zaključivanje: `fireworks/accounts/fireworks/models/kimi-k2p6`, `fireworks/accounts/fireworks/models/minimax-m2p7`, `fireworks/accounts/fireworks/models/qwen3p6-plus`, `fireworks/accounts/fireworks/models/glm-5p1`, `fireworks/accounts/fireworks/models/deepseek-v4-pro`
+**Fireworks AI (`fireworks/`)** — Fast inference: `fireworks/accounts/fireworks/models/kimi-k2p6`, `fireworks/accounts/fireworks/models/minimax-m2p7`, `fireworks/accounts/fireworks/models/qwen3p6-plus`, `fireworks/accounts/fireworks/models/glm-5p1`, `fireworks/accounts/fireworks/models/deepseek-v4-pro`
 
-**Cerebras (`cerebras/`)** — Waferske skale: `cerebras/zai-glm-4.7`, `cerebras/gpt-oss-120b`
+**Cerebras (`cerebras/`)** — Wafer-scale: `cerebras/zai-glm-4.7`, `cerebras/gpt-oss-120b`
 
-**Cohere (`cohere/`)** — Usmjeren na RAG: `cohere/command-a-reasoning-08-2025`, `cohere/command-a-vision-07-2025`, `cohere/command-a-03-2025`, `cohere/command-r-08-2024`
+**Cohere (`cohere/`)** — RAG-focused: `cohere/command-a-reasoning-08-2025`, `cohere/command-a-vision-07-2025`, `cohere/command-a-03-2025`, `cohere/command-r-08-2024`
 
-**NVIDIA NIM (`nvidia/`)** — Za poduzeća: `nvidia/z-ai/glm-5.1`, `nvidia/minimaxai/minimax-m2.7`, `nvidia/google/gemma-4-31b-it`, `nvidia/mistralai/mistral-small-4-119b-2603`, `nvidia/mistralai/mistral-large-3-675b-instruct-2512`, `nvidia/qwen/qwen3.5-397b-a17b`, `nvidia/deepseek-ai/deepseek-v4-pro`, `nvidia/openai/gpt-oss-120b`, `nvidia/nvidia/nemotron-3-super-120b-a12b`
+**NVIDIA NIM (`nvidia/`)** — Enterprise: `nvidia/z-ai/glm-5.1`, `nvidia/minimaxai/minimax-m2.7`, `nvidia/google/gemma-4-31b-it`, `nvidia/mistralai/mistral-small-4-119b-2603`, `nvidia/mistralai/mistral-large-3-675b-instruct-2512`, `nvidia/qwen/qwen3.5-397b-a17b`, `nvidia/deepseek-ai/deepseek-v4-pro`, `nvidia/openai/gpt-oss-120b`, `nvidia/nvidia/nemotron-3-super-120b-a12b`
 
 **Baidu Qianfan (`qianfan/`)** — ERNIE: `qianfan/ernie-5.1`, `qianfan/ernie-5.0-thinking-latest`, `qianfan/ernie-x1.1`
 
 **Ollama Cloud (`ollama-cloud/`)**: `ollama-cloud/deepseek-v4-pro`, `ollama-cloud/deepseek-v4-flash`, `ollama-cloud/kimi-k2.6`, `ollama-cloud/glm-5.1`, `ollama-cloud/minimax-m2.7`, `ollama-cloud/gemma4:31b`, `ollama-cloud/qwen3.5:397b`
 
-**Gemini (Google Cloud `gemini/`)**: Sinkronizira se uživo prema API ključu s Googlea — nema statičkog popisa. Povežite ključ u **Dashboard → Providers**, a zatim koristite **Available Models** za uvoz aktualnog kataloga (npr. `gemini/gemini-3-pro`, `gemini/gemini-3-flash`).
+**Gemini (Google Cloud `gemini/`)**: Synced live per API key from Google — no static list. Connect a key in **Dashboard → Providers** then use **Available Models** to import the current catalog (e.g. `gemini/gemini-3-pro`, `gemini/gemini-3-flash`).
 
-**Ostali kompatibilni pružatelji usluga** (odabrani): `cohere`, `databricks`, `snowflake`, `together`, `vertex`, `alibaba`, `alibaba-cn`, `bedrock` (putem `aws-bedrock`), `azure-ai`, `openrouter` (proslijeđeni katalog), `siliconflow`, `hyperbolic`, `huggingface`, `featherless-ai`, `cloudflare-ai`, `scaleway`, `deepinfra`, `vercel-ai-gateway`, `bazaarlink`, `friendliai`, `nous-research`, `reka`, `volcengine`, `ai21`, `gigachat`. Svaki od njih održava svoj vlastiti popis modela u `providerRegistry.ts` i može se automatski sinkronizirati kada pružatelj usluge izloži `/models` krajnju točku.
+**Other compatible providers** (selected): `cohere`, `databricks`, `snowflake`, `together`, `vertex`, `alibaba`, `alibaba-cn`, `bedrock` (via `aws-bedrock`), `azure-ai`, `openrouter` (passthrough catalog), `siliconflow`, `hyperbolic`, `huggingface`, `featherless-ai`, `cloudflare-ai`, `scaleway`, `deepinfra`, `vercel-ai-gateway`, `bazaarlink`, `friendliai`, `nous-research`, `reka`, `volcengine`, `ai21`, `gigachat`. Each maintains its own model list in `providerRegistry.ts` and can be auto-synced when the provider exposes a `/models` endpoint.
 
-**Napomena o ID-ovima modela:** OmniRoute koristi izvorne ID-ove pružatelja usluga (`claude-opus-4-8`, `gpt-5.5`, `glm-5.1`, `MiniMax-M2.7`, `kimi-k2.5`, `grok-4.20-0309-reasoning`). Neki ID-ovi sadrže verzije s točkama jer je to način na koji ih izvorni API očekuje. Ako neki model nije naveden gore, pokrenite `omniroute models --search <pojam>` ili pozovite `GET /api/models/catalog` da potvrdite dostupnost.
+**Note on model IDs:** OmniRoute uses provider-native IDs (`claude-opus-4-8`, `gpt-5.5`, `glm-5.1`, `MiniMax-M2.7`, `kimi-k2.5`, `grok-4.20-0309-reasoning`). Some IDs include dotted versions because that is how the upstream API expects them. If a model is not listed above, run `omniroute models --search <term>` or hit `GET /api/models/catalog` to confirm availability.
 
 </details>
 
 ---
 
-## 🧩 Napredne značajke
+## 🧩 Advanced Features
 
-### Prilagođeni modeli
+### Custom Models
 
-Dodajte bilo koji ID modela bilo kojem pružatelju usluga bez čekanja ažuriranja aplikacije:
+Add any model ID to any provider without waiting for an app update:
 
 ```bash
-# Putem API-ja
+# Via API
 curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
-# Popis: curl http://localhost:20128/api/provider-models?provider=openai
-# Ukloni: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
+# List: curl http://localhost:20128/api/provider-models?provider=openai
+# Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-Ili koristite nadzornu ploču: **Providers → [Provider] → Custom Models**.
+Or use Dashboard: **Providers → [Provider] → Custom Models**.
 
-Napomene:
+Notes:
 
-- OpenRouter i pružatelji usluga kompatibilni s OpenAI/Anthropic upravljaju se samo putem **Available Models**. Ručno dodavanje, uvoz i automatska sinkronizacija svi završavaju u istom popisu dostupnih modela, tako da za te pružatelje usluga ne postoji zaseban odjeljak Custom Models.
-- Odjeljak **Custom Models** namijenjen je pružateljima usluga koji ne izlažu upravljane uvoze dostupnih modela.
+- OpenRouter and OpenAI/Anthropic-compatible providers are managed from **Available Models** only. Manual add, import, and auto-sync all land in the same available-model list, so there is no separate Custom Models section for those providers.
+- The **Custom Models** section is intended for providers that do not expose managed available-model imports.
 
-### Povezivanje OmniRoute vršnjaka (peers) u lanac
+### Chaining OmniRoute Peers
 
-Drugi OmniRoute gateway može se dodati kao **Custom OpenAI-compatible** pružatelj usluga. Koristite
-osnovni URL `/v1` vršnjaka i namjenski API ključ s najmanjim potrebnim ovlastima koji je izdao taj vršnjak.
+Another OmniRoute gateway can be added as a **Custom OpenAI-compatible** provider. Use the
+peer's `/v1` base URL and a dedicated, least-privilege API key issued by that peer.
 
-Za recipročne ili višestruko-preskočne (multi-hop) lance, omogućite opcionalnu zaštitu od petlje na svakom gatewayu:
+For reciprocal or multi-hop chains, enable the opt-in loop guard on every gateway:
 
 ```bash
 # gateway-a
@@ -717,18 +711,18 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-Samo zahtjevi poslani na eksplicitno dozvoljeni URL vršnjaka primaju
-zaglavlje `X-OmniRoute-Peer-Trace`. Gateway odbija ponovljeni ID instance ili iscrpljeni budžet
-preskoka s HTTP statusom `508 Loop Detected`; obični nadređeni (upstream) pružatelji usluga ne primaju nikakve metapodatke o vršnjacima.
+Only requests sent to an explicitly allowlisted peer URL receive the
+`X-OmniRoute-Peer-Trace` header. A gateway rejects a repeated instance ID or exhausted hop
+budget with HTTP `508 Loop Detected`; ordinary upstream providers receive no peer metadata.
 
-Povezivanje vršnjaka u lanac nije replikacija baze podataka niti preusmjeravanje pri kvaru (failover) hosta. Svaki gateway
-održava zasebno SQLite stanje, predmemorije, brojače brzine ograničavanja i sesije. Koristite reverzni proxy s provjerom zdravlja ili preusmjeravanje na strani klijenta
-za aktivnu/pasivnu ili aktivnu/aktivnu dostupnost, i nikad ne montirajte jednu SQLite bazu podataka
-u više pokrenutih OmniRoute instanci istovremeno.
+Peer chaining is not database replication or host failover. Each gateway keeps independent
+SQLite state, caches, rate counters, and sessions. Use a health-checked reverse proxy or client
+failover for active/passive or active/active availability, and never mount one SQLite database
+into multiple running OmniRoute instances.
 
-### Namjenske rute za pružatelje usluga
+### Dedicated Provider Routes
 
-Usmjerite zahtjeve izravno na određenog pružatelja usluga s validacijom modela:
+Route requests directly to a specific provider with model validation:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -736,137 +730,137 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-Prefiks pružatelja usluga automatski se dodaje ako nedostaje. Nepodudarni modeli vraćaju `400`.
+The provider prefix is auto-added if missing. Mismatched models return `400`.
 
-### Konfiguracija mrežnog proxyja
+### Network Proxy Configuration
 
 ```bash
-# Postavi globalni proxy
+# Set global proxy
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
-# Proxy specifičan za pružatelja usluga
+# Per-provider proxy
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
-# Testiraj proxy
+# Test proxy
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Prioritet:** Specifično za ključ → Specifično za kombinaciju → Specifično za pružatelja usluga → Globalno → Okruženje.
+**Precedence:** Key-specific → Combo-specific → Provider-specific → Global → Environment.
 
-### API kataloga modela
+### Model Catalog API
 
 ```bash
 curl http://localhost:20128/api/models/catalog
 ```
 
-Vraća modele grupirane po pružatelju usluga s vrstama (`chat`, `embedding`, `image`).
+Returns models grouped by provider with types (`chat`, `embedding`, `image`).
 
-### Sinkronizacija u oblaku
+### Cloud Sync
 
-- Sinkronizirajte pružatelje usluga, kombinacije i postavke između uređaja
-- Automatska sinkronizacija u pozadini s tajmoutom i brzim otkrivanjem pogreške (fail-fast)
-- U produkciji preferirajte `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` na strani servera
+- Sync providers, combos, and settings across devices
+- Automatic background sync with timeout + fail-fast
+- Prefer server-side `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` in production
 
 ### Cloudflare Quick Tunnel
 
-- Dostupno u **Dashboard → Endpoints** za Docker i druge samostalno hostirane (self-hosted) instalacije
-- Stvara privremeni URL `https://*.trycloudflare.com` koji preusmjerava na vašu trenutnu OpenAI-kompatibilnu krajnju točku `/v1`
-- Prvo omogućavanje instalira `cloudflared` samo kad je potrebno; kasnija ponovna pokretanja koriste isti upravljani binarni program
-- Quick Tunneli se ne obnavljaju automatski nakon ponovnog pokretanja OmniRoutea ili spremnika (kontejnera); ponovno ih omogućite iz nadzorne ploče kad je potrebno
-- URL-ovi tunela su privremeni i mijenjaju se svaki put kad zaustavite/pokrenete tunel
-- Upravljani Quick Tunneli po zadanim postavkama koriste HTTP/2 transport radi izbjegavanja glasnih QUIC UDP upozorenja o baferu u ograničenim spremnicima
-- Postavite `CLOUDFLARED_PROTOCOL=quic` ili `auto` ako želite prebrisati odabir upravljanog transporta
-- Postavite `CLOUDFLARED_BIN` ako preferirate korištenje već instaliranog binarnog programa `cloudflared` umjesto upravljanog preuzimanja
-- Paneli za Cloudflare Quick Tunnel, Tailscale Funnel i ngrok Tunnel mogu se prikazati ili sakriti u **Settings → Appearance**. Skrivanje panela ne zaustavlja pokrenuti tunel.
+- Available in **Dashboard → Endpoints** for Docker and other self-hosted deployments
+- Creates a temporary `https://*.trycloudflare.com` URL that forwards to your current OpenAI-compatible `/v1` endpoint
+- First enable installs `cloudflared` only when needed; later restarts reuse the same managed binary
+- Quick Tunnels are not auto-restored after an OmniRoute or container restart; re-enable them from the dashboard when needed
+- Tunnel URLs are ephemeral and change every time you stop/start the tunnel
+- Managed Quick Tunnels default to HTTP/2 transport to avoid noisy QUIC UDP buffer warnings in constrained containers
+- Set `CLOUDFLARED_PROTOCOL=quic` or `auto` if you want to override the managed transport choice
+- Set `CLOUDFLARED_BIN` if you prefer using a preinstalled `cloudflared` binary instead of the managed download
+- Cloudflare Quick Tunnel, Tailscale Funnel, and ngrok Tunnel panels can be shown or hidden in **Settings → Appearance**. Hiding a panel does not stop a running tunnel.
 
-### LLM Gateway Intelligence (Faza 9)
+### LLM Gateway Intelligence (Phase 9)
 
-- **Semantička predmemorija** — Automatski predmemorira odgovore koji nisu streaming i imaju temperature=0 (zaobiđite pomoću zaglavlja `X-OmniRoute-No-Cache: true`)
-- **Idempotentnost zahtjeva** — Deduplicira zahtjeve u razmaku od 5 sekundi putem zaglavlja `Idempotency-Key` ili `X-Request-Id`
-- **Praćenje napretka** — Opcionalni SSE `event: progress` događaji putem zaglavlja `X-OmniRoute-Progress: true`
-
----
-
-### Playground za prevoditelja (Translator Playground)
-
-Pristupite putem **Dashboard → Translator**. Otklonite pogreške i vizualizirajte kako OmniRoute prevodi API zahtjeve između pružatelja usluga.
-
-| Način rada       | Svrha                                                                                       |
-| ---------------- | ------------------------------------------------------------------------------------------- |
-| **Playground**   | Odaberite izvorni/ciljni format, zalijepite zahtjev i odmah vidite prevedeni izlaz          |
-| **Chat Tester**  | Šaljite uživo poruke chata kroz proxy i pregledajte cijeli ciklus zahtjeva/odgovora         |
-| **Test Bench**   | Pokrenite skupno testiranje na više kombinacija formata radi provjere ispravnosti prijevoda |
-| **Live Monitor** | Pratite prijevode u stvarnom vremenu dok zahtjevi prolaze kroz proxy                        |
-
-**Slučajevi upotrebe:**
-
-- Otklonite pogreške zašto određena kombinacija klijenta/pružatelja usluga ne radi
-- Provjerite da se oznake razmišljanja (thinking tags), pozivi alata (tool calls) i sistemski upiti pravilno prevode
-- Usporedite razlike u formatima između OpenAI, Claude, Gemini i Responses API formata
+- **Semantic Cache** — Auto-caches non-streaming, temperature=0 responses (bypass with `X-OmniRoute-No-Cache: true`)
+- **Request Idempotency** — Deduplicates requests within 5s via `Idempotency-Key` or `X-Request-Id` header
+- **Progress Tracking** — Opt-in SSE `event: progress` events via `X-OmniRoute-Progress: true` header
 
 ---
 
-### Strategije usmjeravanja
+### Translator Playground
 
-Konfigurirajte putem **Dashboard → Settings → Routing**. Nadzorna ploča izlaže šest najkorištenijih strategija; kombinacije i automatski usmjerivač (auto-router) interno podržavaju širi skup.
+Access via **Dashboard → Translator**. Debug and visualize how OmniRoute translates API requests between providers.
 
-**Strategije vidljive na nadzornoj ploči (usmjeravanje na razini računa):**
+| Mode             | Purpose                                                                                |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| **Playground**   | Select source/target formats, paste a request, and see the translated output instantly |
+| **Chat Tester**  | Send live chat messages through the proxy and inspect the full request/response cycle  |
+| **Test Bench**   | Run batch tests across multiple format combinations to verify translation correctness  |
+| **Live Monitor** | Watch real-time translations as requests flow through the proxy                        |
 
-| Strategija                     | Opis                                                                                                                     |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| **Fill First**                 | Koristi račune prema prioritetnom redoslijedu — primarni račun obrađuje sve zahtjeve dok ne postane nedostupan           |
-| **Round Robin**                | Ciklički prolazi kroz sve račune s konfigurabilnim ograničenjem "prianjanja" (sticky limit) (zadano: 3 poziva po računu) |
-| **P2C (Power of Two Choices)** | Odabire 2 nasumična računa i usmjerava na zdraviji — balansira opterećenje uz svijest o zdravlju                         |
-| **Random**                     | Nasumično bira račun za svaki zahtjev koristeći Fisher-Yates algoritam prebacivanja                                      |
-| **Least Used**                 | Usmjerava na račun s najstarijim vremenskim žigom `lastUsedAt`, ravnomjerno distribuirajući promet                       |
-| **Cost Optimized**             | Usmjerava na račun s najnižom vrijednosti prioriteta, optimizirajući za pružatelje usluga s najnižom cijenom             |
+**Use cases:**
 
-**Napredne strategije za kombinacije i automatsko usmjeravanje** (konfigurabilne po kombinaciji ili putem prefiksa `auto/*` — pogledajte [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
+- Debug why a specific client/provider combination fails
+- Verify that thinking tags, tool calls, and system prompts translate correctly
+- Compare format differences between OpenAI, Claude, Gemini, and Responses API formats
 
-- `priority` — strogi redoslijed, nikad ne koristi round-robin
-- `weighted` — proporcionalna podjela prometa prema težinama po modelu
-- `fill-first` — isprazni prvi model dok se ne dosegnu ograničenja
+---
+
+### Routing Strategies
+
+Configure via **Dashboard → Settings → Routing**. The dashboard exposes the six most-used strategies; combos and the auto-router internally support a wider set.
+
+**Dashboard-visible strategies (account-level routing):**
+
+| Strategy                       | Description                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| **Fill First**                 | Uses accounts in priority order — primary account handles all requests until unavailable         |
+| **Round Robin**                | Cycles through all accounts with a configurable sticky limit (default: 3 calls per account)      |
+| **P2C (Power of Two Choices)** | Picks 2 random accounts and routes to the healthier one — balances load with awareness of health |
+| **Random**                     | Randomly selects an account for each request using Fisher-Yates shuffle                          |
+| **Least Used**                 | Routes to the account with the oldest `lastUsedAt` timestamp, distributing traffic evenly        |
+| **Cost Optimized**             | Routes to the account with the lowest priority value, optimizing for lowest-cost providers       |
+
+**Advanced combo and auto strategies** (configurable per combo or via `auto/*` prefixes — see [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
+
+- `priority` — strict order, never round-robins
+- `weighted` — proportional traffic split by per-model weights
+- `fill-first` — drain the first model until limits hit
 - `round-robin` / `strict-random` / `random`
 - `p2c` (Power of Two Choices)
-- `least-used` i `cost-optimized`
-- `auto` — vođeno bodovanjem (score) preko svih kandidata
-- `lkgp` (Last Known Good Provider) — fiksira se na zadnjeg uspješnog pružatelja usluga, zatim se povlači na pravila
-- `context-optimized` — bira model s najvećim slobodnim kontekstnim prozorom
-- `context-relay` — povezuje modele dugog konteksta u lanac za naredne rundе
+- `least-used` and `cost-optimized`
+- `auto` — score-driven across all candidates
+- `lkgp` (Last Known Good Provider) — pins to the last successful provider, then falls back to rules
+- `context-optimized` — picks the model with the largest free context window
+- `context-relay` — chains long-context models for follow-up turns
 
-#### Zaglavlje za vanjsku sesiju "prianjanja" (sticky session)
+#### External Sticky Session Header
 
-Za vanjsku afinitet sesije (na primjer, agenti Claude Code/Codex iza reverznih proxyja), pošaljite:
+For external session affinity (for example, Claude Code/Codex agents behind reverse proxies), send:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-OmniRoute također prihvaća `x_session_id` i vraća efektivni ključ sesije u `X-OmniRoute-Session-Id`.
+OmniRoute also accepts `x_session_id` and returns the effective session key in `X-OmniRoute-Session-Id`.
 
-Ako koristite Nginx i šaljete zaglavlja u obliku s podvlakom, omogućite:
+If you use Nginx and send underscore-form headers, enable:
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Aliasi modela s džokerima (wildcard)
+#### Wildcard Model Aliases
 
-Stvorite uzorke s džokerima za preusmjeravanje naziva modela:
+Create wildcard patterns to remap model names:
 
 ```
 Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
 Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
 ```
 
-Džokeri podržavaju `*` (bilo koji znakovi) i `?` (jedan znak).
+Wildcards support `*` (any characters) and `?` (single character).
 
-#### Rezervni lanci (fallback chains)
+#### Fallback Chains
 
-Definirajte globalne rezervne lance koji se primjenjuju na sve zahtjeve:
+Define global fallback chains that apply across all requests:
 
 ```
 Chain: production-fallback
@@ -877,149 +871,149 @@ Chain: production-fallback
 
 ---
 
-### Otpornost i prekidači kruga (Resilience & Circuit Breakers)
+### Resilience & Circuit Breakers
 
-Konfigurirajte putem **Dashboard → Settings → Resilience**.
+Configure via **Dashboard → Settings → Resilience**.
 
-OmniRoute implementira otpornost na razini pružatelja usluga s pet komponenti:
+OmniRoute implements provider-level resilience with five components:
 
-1. **Red čekanja i tempiranje zahtjeva (Request Queue & Pacing)** — Oblikovanje zahtjeva na razini sustava:
-   - **Zahtjevi po minuti (RPM)** — Maksimalan broj zahtjeva po minuti po računu
-   - **Minimalno vrijeme između zahtjeva** — Minimalni razmak u milisekundama između zahtjeva
-   - **Maksimalno istovremenih zahtjeva** — Maksimalan broj istodobnih zahtjeva po računu
+1. **Request Queue & Pacing** — System-level request shaping:
+   - **Requests Per Minute (RPM)** — Maximum requests per minute per account
+   - **Min Time Between Requests** — Minimum gap in milliseconds between requests
+   - **Max Concurrent Requests** — Maximum simultaneous requests per account
 
-2. **Odgoda veze (Connection Cooldown)** — Konfiguracija po vrsti autentifikacije za jednu vezu nakon pogrešaka koje se mogu ponoviti:
-   - **Osnovna odgoda** — Zadani prozor odgode za pogreške nadređenog sustava (upstream) koje se mogu ponoviti
-   - **Koristi naznake ponovnog pokušaja s nadređenog sustava** — Poštuje autoritativne naznake `Retry-After` ili resetiranja kad su dostupne
-   - **Maksimalni koraci odgode** — Maksimalna razina eksponencijalnog odgađanja za ponavljajuće pogreške
+2. **Connection Cooldown** — Per-auth-type configuration for a single connection after retryable failures:
+   - **Base Cooldown** — Default cooldown window for retryable upstream failures
+   - **Use Upstream Retry Hints** — Honors authoritative `Retry-After` or reset hints when provided
+   - **Max Backoff Steps** — Maximum exponential backoff level for repeated failures
 
-3. **Prekidač kruga pružatelja usluga (Provider Circuit Breaker)** — Prati pogreške pružatelja usluga od kraja do kraja, označava pružatelja usluga kao degradiranog pri konfiguriranom pragu upozorenja, i otvara prekidač kad se dosegne konfigurirani prag pogreške:
-   - **Prag degradacije** — Broj uzastopnih pogrešaka pružatelja usluga prije ulaska u stanje `DEGRADED`
-   - **Prag pogreške** — Broj uzastopnih pogrešaka pružatelja usluga prije ulaska u stanje `OPEN`
-   - **Vrijeme resetiranja** — Vremenski prozor prije nego se pružatelj usluga ponovno testira
-   - **CLOSED** (Zdravo) — Zahtjevi teku normalno
-   - **DEGRADED** — Zahtjevi i dalje teku dok se prate povišene pogreške
-   - **OPEN** — Pružatelj usluga je privremeno blokiran nakon ponavljajućih pogrešaka
-   - **HALF_OPEN** — Testira se je li se pružatelj usluga oporavio
+3. **Provider Circuit Breaker** — Tracks end-to-end provider failures, marks a provider degraded at the configured warning threshold, and opens the breaker when the configured failure threshold is reached:
+   - **Degradation Threshold** — Consecutive provider failures before entering `DEGRADED`
+   - **Failure Threshold** — Consecutive provider failures before entering `OPEN`
+   - **Reset Timeout** — Time window before the provider is tested again
+   - **CLOSED** (Healthy) — Requests flow normally
+   - **DEGRADED** — Requests still flow while elevated failures are tracked
+   - **OPEN** — Provider is temporarily blocked after repeated failures
+   - **HALF_OPEN** — Testing if provider has recovered
 
-   Ograničenja brzine `429` unutar opsega veze ostaju u **Connection Cooldown** i ne ubrajaju se u prekidač kruga pružatelja usluga.
+   Connection-scoped `429` rate limits stay in **Connection Cooldown** and do not count toward the provider breaker.
 
-   Stanje pokretanja prekidača kruga pružatelja usluga prikazuje se samo na **Dashboard → Health**.
+   The provider breaker runtime state is shown on **Dashboard → Health** only.
 
-4. **Čekanje na odgodu (Wait For Cooldown)** — Ako je svaka kandidatska veza već u odgodi, OmniRoute može pričekati najraniju odgodu i automatski ponoviti isti zahtjev klijenta.
+4. **Wait For Cooldown** — If every candidate connection is already cooling down, OmniRoute can wait for the earliest cooldown and retry the same client request automatically.
 
-5. **Automatsko otkrivanje ograničenja brzine** — Kad nadređeni pružatelji usluga vrate izričite prozore čekanja, te naznake nadjačavaju lokalnu odgodu veze kad je postavka omogućena.
+5. **Rate Limit Auto-Detection** — When upstream providers return explicit wait windows, those hints override the local connection cooldown when the setting is enabled.
 
-**Profesionalni savjet:** Koristite stranicu **Health** za pregled i resetiranje aktivnih prekidača kruga pružatelja usluga nakon prekida rada. Stranica Resilience mijenja samo konfiguraciju.
+**Pro Tip:** Use the **Health** page to inspect and reset live provider breakers after an outage. The Resilience page only changes configuration.
 
 ---
 
-### Izvoz/uvoz baze podataka
+### Database Export / Import
 
-Upravljajte sigurnosnim kopijama baze podataka u **Dashboard → Settings → System & Storage**.
+Manage database backups in **Dashboard → Settings → System & Storage**.
 
-| Radnja                   | Opis                                                                                                                                                                         |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Export Database**      | Preuzima trenutnu SQLite bazu podataka kao datoteku `.sqlite`                                                                                                                |
-| **Export All (.tar.gz)** | Preuzima potpunu arhivu sigurnosne kopije koja uključuje: bazu podataka, postavke, kombinacije, veze pružatelja usluga (bez vjerodajnica), metapodatke API ključeva          |
-| **Import Database**      | Prenesite datoteku `.sqlite` za zamjenu trenutne baze podataka. Sigurnosna kopija prije uvoza automatski se stvara osim ako je postavljeno `DISABLE_SQLITE_AUTO_BACKUP=true` |
+| Action                   | Description                                                                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Export Database**      | Downloads the current SQLite database as a `.sqlite` file                                                                                      |
+| **Export All (.tar.gz)** | Downloads a full backup archive including: database, settings, combos, provider connections (no credentials), API key metadata                 |
+| **Import Database**      | Upload a `.sqlite` file to replace the current database. A pre-import backup is automatically created unless `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
 ```bash
-# API: Izvoz baze podataka
+# API: Export database
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: Izvoz svega (potpuna arhiva)
+# API: Export all (full archive)
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
-# API: Uvoz baze podataka
+# API: Import database
 curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Provjera uvoza:** Uvezena datoteka provjerava se za integritet (SQLite pragma provjera), potrebne tablice (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) i veličinu (maksimalno 100 MB).
+**Import Validation:** The imported file is validated for integrity (SQLite pragma check), required tables (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), and size (max 100MB).
 
-**Slučajevi upotrebe:**
+**Use Cases:**
 
-- Migracija OmniRoutea između računala
-- Izrada vanjskih sigurnosnih kopija za oporavak od katastrofe
-- Podjela konfiguracija s članovima tima (izvoz svega → dijeljenje arhive)
-
----
-
-### Nadzorna ploča postavki
-
-Stranica postavki organizirana je u **7 kartica** za lakšu navigaciju:
-
-| Kartica        | Sadržaj                                                                                                                                                                                                        |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **General**    | Alati za sistemsku pohranu, zadano ponašanje, vidljivost tunela krajnje točke                                                                                                                                  |
-| **Appearance** | Kontrole teme (svijetla/tamna/sustav), vidljivost bočne trake, prekidači panela za kartice Cloudflare/Tailscale/ngrok tunela                                                                                   |
-| **AI**         | Budžet razmišljanja (proslijedi bez izmjene / automatsko uklanjanje / prilagođeno / adaptivno — pogledajte [THINKING_BUDGET.md](./THINKING_BUDGET.md)), globalni sistemski upit, statistike predmemorije upita |
-| **Security**   | Postavke prijave/lozinke, kontrola pristupa IP adresama, API autentifikacija za `/models`, blokiranje pružatelja usluga, zaštita od ubrizgavanja upita (prompt-injection)                                      |
-| **Routing**    | Globalna strategija usmjeravanja (Fill First / Round Robin / P2C / Random / Least Used / Cost Optimized), aliasi modela s džokerima, rezervni lanci, zadane postavke kombinacija                               |
-| **Resilience** | Red čekanja zahtjeva, odgoda veze, konfiguracija prekidača kruga pružatelja usluga i ponašanje čekanja na odgodu                                                                                               |
-| **Advanced**   | Globalna konfiguracija proxyja (HTTP/SOCKS5), prebrisi proxyja specifični za pružatelja usluga                                                                                                                 |
-
-General više ne duplicira napomene o zapisivanju i predmemoriji koje se ne mogu uređivati (samo za čitanje). Postavke retencije i
-optimizacije baze podataka trajno se pohranjuju putem `/api/settings/database`; ručno čišćenje predmemorije koristi
-`DELETE /api/cache`. Ograničenja broja redaka za zapise zahtjeva i proxy zapise kontroliraju se putem
-`CALL_LOGS_TABLE_MAX_ROWS` i `PROXY_LOGS_TABLE_MAX_ROWS`.
+- Migrate OmniRoute between machines
+- Create external backups for disaster recovery
+- Share configurations between team members (export all → share archive)
 
 ---
 
-### Upravljanje troškovima i budžetom
+### Settings Dashboard
 
-Pristupite putem **Dashboard → Costs**.
+The settings page is organized into **7 tabs** for easy navigation:
 
-| Kartica     | Svrha                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------------ |
-| **Budget**  | Postavite ograničenja potrošnje po API ključu s dnevnim/tjednim/mjesečnim budžetima i praćenjem u stvarnom vremenu |
-| **Pricing** | Pregledajte i uredite unose cijena modela — cijena po 1K ulaznih/izlaznih tokena po pružatelju usluga              |
+| Tab            | Contents                                                                                                                                                  |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **General**    | System storage tools, default behavior, Endpoint tunnel visibility                                                                                        |
+| **Appearance** | Theme controls (light/dark/system), sidebar visibility, panel toggles for Cloudflare/Tailscale/ngrok tunnel cards                                         |
+| **AI**         | Thinking budget (passthrough / auto-strip / custom / adaptive — see [THINKING_BUDGET.md](./THINKING_BUDGET.md)), global system prompt, prompt cache stats |
+| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, Provider Blocking, prompt-injection guard                                             |
+| **Routing**    | Global routing strategy (Fill First / Round Robin / P2C / Random / Least Used / Cost Optimized), wildcard model aliases, fallback chains, combo defaults  |
+| **Resilience** | Request queue, connection cooldown, provider breaker config, and wait-for-cooldown behavior                                                               |
+| **Advanced**   | Global proxy configuration (HTTP/SOCKS5), per-provider proxy overrides                                                                                    |
+
+General no longer duplicates read-only logging and cache notes. Database retention and
+optimization settings are persisted through `/api/settings/database`; manual cache clearing uses
+`DELETE /api/cache`. Request and proxy log row caps are controlled by
+`CALL_LOGS_TABLE_MAX_ROWS` and `PROXY_LOGS_TABLE_MAX_ROWS`.
+
+---
+
+### Costs & Budget Management
+
+Access via **Dashboard → Costs**.
+
+| Tab         | Purpose                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------- |
+| **Budget**  | Set spending limits per API key with daily/weekly/monthly budgets and real-time tracking |
+| **Pricing** | View and edit model pricing entries — cost per 1K input/output tokens per provider       |
 
 ```bash
-# API: Postavi budžet
+# API: Set a budget
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: Dohvati trenutni status budžeta
+# API: Get current budget status
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Praćenje troškova:** Svaki zahtjev zapisuje korištenje tokena i izračunava trošak koristeći tablicu cijena. Pregledajte raščlambe u **Dashboard → Usage** po pružatelju usluga, modelu i API ključu.
+**Cost Tracking:** Every request logs token usage and calculates cost using the pricing table. View breakdowns in **Dashboard → Usage** by provider, model, and API key.
 
 ---
 
-### Transkripcija zvuka
+### Audio Transcription
 
-OmniRoute podržava transkripciju zvuka putem OpenAI-kompatibilne krajnje točke:
+OmniRoute supports audio transcription via the OpenAI-compatible endpoint:
 
 ```bash
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
-# Primjer s curl
+# Example with curl
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@audio.mp3" \
   -F "model=openai/whisper-1"
 ```
 
-`deepgram/nova-3` je izvorna Deepgram ruta i zahtijeva Deepgram API ključ.
-Ako je konfiguriran samo OpenRouter, koristite `openrouter/deepgram/nova-3`.
+`deepgram/nova-3` is the native Deepgram route and needs a Deepgram API key.
+If only OpenRouter is configured, use `openrouter/deepgram/nova-3`.
 
-Pružatelji usluga za **pretvorbu govora u tekst (transkripciju)**:
+**Speech-to-Text (transcription)** providers:
 
-- `openai/` (kompatibilan s whisper)
+- `openai/` (whisper-compatible)
 - `groq/` (Groq Whisper Turbo)
-- `deepgram/` (obitelj Nova)
+- `deepgram/` (Nova family)
 - `assemblyai/`
 - `nvidia/` (Parakeet, Canary)
-- `huggingface/` (varijante whisper)
+- `huggingface/` (whisper variants)
 - `qwen/`
 
-Pružatelji usluga za **pretvorbu teksta u govor (`POST /v1/audio/speech`)**:
+**Text-to-Speech (`POST /v1/audio/speech`)** providers:
 
 - `openai/` (tts-1, tts-1-hd)
 - `hyperbolic/`
@@ -1036,73 +1030,74 @@ Pružatelji usluga za **pretvorbu teksta u govor (`POST /v1/audio/speech`)**:
 - `coqui/`, `tortoise/`
 - `qwen/`
 
-Podržani zvučni formati za transkripciju: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. Izlazni formati TTS-a ovise o pružatelju usluga (mp3, wav, opus, pcm, mulaw).
+Supported audio formats for transcription: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. TTS output formats depend on the provider (mp3, wav, opus, pcm, mulaw).
 
 ---
 
-### Strategije balansiranja kombinacija
+### Combo Balancing Strategies
 
-Konfigurirajte balansiranje po kombinaciji u **Dashboard → Combos → Create/Edit → Strategy**.
+Configure per-combo balancing in **Dashboard → Combos → Create/Edit → Strategy**.
 
-| Strategija         | Opis                                                                          |
-| ------------------ | ----------------------------------------------------------------------------- |
-| **Round-Robin**    | Kružno rotira kroz modele redom                                               |
-| **Priority**       | Uvijek prvo pokušava prvi model; povlači se na sljedeći samo pri pogrešci     |
-| **Random**         | Bira nasumičan model iz kombinacije za svaki zahtjev                          |
-| **Weighted**       | Usmjerava proporcionalno na temelju dodijeljenih težina po modelu             |
-| **Least-Used**     | Usmjerava na model s najmanje nedavnih zahtjeva (koristi metrike kombinacije) |
-| **Cost-Optimized** | Usmjerava na najjeftiniji dostupni model (koristi tablicu cijena)             |
+| Strategy           | Description                                                              |
+| ------------------ | ------------------------------------------------------------------------ |
+| **Round-Robin**    | Rotates through models sequentially                                      |
+| **Priority**       | Always tries the first model; falls back only on error                   |
+| **Random**         | Picks a random model from the combo for each request                     |
+| **Weighted**       | Routes proportionally based on assigned weights per model                |
+| **Least-Used**     | Routes to the model with the fewest recent requests (uses combo metrics) |
+| **Cost-Optimized** | Routes to the cheapest available model (uses pricing table)              |
 
-Globalne zadane postavke kombinacija mogu se postaviti u **Dashboard → Settings → Routing → Combo Defaults**.
-Vremenska ograničenja cilja kombinacije po zadanim postavkama nasljeđuju trenutno vremensko ograničenje zahtjeva. Koristite postavku **Target timeout
-(seconds)** u zadanim postavkama kombinacija ili pojedinačnoj kombinaciji samo kad kraće ograničenje po cilju
-treba pokrenuti brži prijelaz na rezervni cilj (fallback).
+Global combo defaults can be set in **Dashboard → Settings → Routing → Combo Defaults**.
+Combo target timeouts inherit the current request timeout by default. Use **Target timeout
+(seconds)** on combo defaults or an individual combo only when a shorter per-target limit should
+trigger faster fallback.
 
-Optimizacije kombinacija s nultom latencijom su opcionalne (opt-in). Ostavite **Zero-latency optimizations** onemogućenim da
-biste spriječili da te značajke latencije natječu s rezervnim ciljevima, preskaču ciljeve na temelju
-povijesti TTFT-a, ili komprimiraju rezervne zahtjeve; omogućavanjem toga dopuštate konfigurirano prigušivanje (hedging), prediktivne preskoke TTFT-a
-i proaktivnu kompresiju rezervnog zahtjeva u zamjenu za nižu krajnju latenciju uz manju vjernost usmjeravanja/zahtjeva.
+Zero-latency combo optimizations are opt-in. Leave **Zero-latency optimizations** disabled to
+prevent these latency features from racing fallback targets, skipping targets based on TTFT
+history, or compressing fallback requests; enabling it allows configured hedging, predictive TTFT
+skips, and proactive fallback compression to trade routing/request fidelity for lower tail
+latency.
 
-Onemogućite **Reasoning token buffer** kad nadređeni pružatelji usluga zahtijevaju stroga
-ograničenja `max_tokens` / `maxOutputTokens`. Kad je omogućeno, usmjeravanje kombinacije dodaje prostor za modele razmišljanja
-samo za modele s poznatim izlaznim ograničenjem i ostavlja ograničenje tokena klijenta nepromijenjenim kad bi sigurna vrijednost s prostorom
-premašila to ograničenje. Ako je ograničenje klijenta već iznad poznatog ograničenja,
-OmniRoute ga smanjuje na to ograničenje prije slanja nadređenog (upstream) zahtjeva.
-
----
-
-### Nadzorna ploča zdravlja (Health Dashboard)
-
-Pristupite putem **Dashboard → Health**. Pregled zdravlja sustava u stvarnom vremenu s 6 kartica:
-
-| Kartica               | Što prikazuje                                                               |
-| --------------------- | --------------------------------------------------------------------------- |
-| **System Status**     | Vrijeme radа, verzija, korištenje memorije, direktorij podataka             |
-| **Provider Health**   | Stanje pokretanja globalnog prekidača kruga pružatelja usluga               |
-| **Rate Limits**       | Aktivne odgode veza po računu s preostalim vremenom                         |
-| **Active Lockouts**   | Aktivna blokiranja na razini modela i privremena izuzeća                    |
-| **Signature Cache**   | Statistike predmemorije deduplikacije (aktivni ključevi, postotak pogodaka) |
-| **Latency Telemetry** | Agregacija p50/p95/p99 latencije po pružatelju usluga                       |
-
-**Profesionalni savjet:** Stranica Health automatski se obnavlja svakih 10 sekundi. Koristite karticu prekidača kruga za identificiranje pružatelja usluga koji imaju problema.
+Disable **Reasoning token buffer** when upstream providers require strict
+`max_tokens` / `maxOutputTokens` limits. When enabled, combo routing only adds reasoning-model
+headroom for models with a known output cap and leaves the client token limit unchanged when the
+safe buffered value would exceed that cap. If the client limit is already above a known cap,
+OmniRoute clamps it down to that cap before sending the upstream request.
 
 ---
 
-## 🤖 Automatsko usmjeravanje (bez konfiguracije)
+### Health Dashboard
 
-OmniRoute dolazi s **usmjerivačem temeljenim na bodovanju** koji automatski bira najbolji model za svaki zahtjev među svim povezanim pružateljima usluga — nema potrebe za održavanjem kombinacija. Samo pošaljite zahtjev s jednim od `auto/*` prefiksa i OmniRoute će u hodu sastaviti virtualnu kombinaciju, bodujući kandidate na temelju latencije, troška, stope uspjeha, prilagodbe konteksta, prikladnosti modela za zadatak, nedavnih neuspjeha, kvote i stanja sklopke za prekid (circuit-breaker).
+Access via **Dashboard → Health**. Real-time system health overview with 6 cards:
 
-| Prefiks        | Optimizira za                                                                                         |
-| -------------- | ----------------------------------------------------------------------------------------------------- |
-| `auto`         | Balansirana zadana postavka (latencija × trošak × stopa uspjeha)                                      |
-| `auto/coding`  | Zadaci kodiranja: preferira Claude, GPT-5, GLM, Kimi, Qwen Coder, DeepSeek coder modele               |
-| `auto/cheap`   | Najniža cijena po tokenu, prihvaća veću latenciju                                                     |
-| `auto/fast`    | Najniža latencija, zanemaruje trošak                                                                  |
-| `auto/offline` | Samo lokalni pružatelji (Ollama, vLLM, llama.cpp) — korisno za izolirane (air-gapped) sustave         |
-| `auto/smart`   | Prvenstveno kvaliteta zaključivanja (Opus, GPT-5 xhigh, R1, GLM 5.1 reasoning)                        |
-| `auto/lkgp`    | "Last Known Good Provider" — vezuje se na posljednjeg uspješnog pružatelja, zatim se vraća na pravila |
+| Card                  | What It Shows                                               |
+| --------------------- | ----------------------------------------------------------- |
+| **System Status**     | Uptime, version, memory usage, data directory               |
+| **Provider Health**   | Global provider circuit breaker runtime state               |
+| **Rate Limits**       | Active connection cooldowns per account with remaining time |
+| **Active Lockouts**   | Active model-scoped lockouts and temporary exclusions       |
+| **Signature Cache**   | Deduplication cache stats (active keys, hit rate)           |
+| **Latency Telemetry** | p50/p95/p99 latency aggregation per provider                |
 
-Primjer:
+**Pro Tip:** The Health page auto-refreshes every 10 seconds. Use the circuit breaker card to identify which providers are experiencing issues.
+
+---
+
+## 🤖 Auto-Routing (Zero-config)
+
+OmniRoute ships with a **score-driven auto-router** that picks the best model for each request across every connected provider — no combo to maintain. Just send the request with one of the `auto/*` prefixes and OmniRoute will assemble a virtual combo on the fly, scoring candidates on latency, cost, success rate, context fit, model fitness for the task, recent failures, quota, and circuit-breaker state.
+
+| Prefix         | Optimizes for                                                                               |
+| -------------- | ------------------------------------------------------------------------------------------- |
+| `auto`         | Balanced default (latency × cost × success rate)                                            |
+| `auto/coding`  | Coding tasks: prefers Claude, GPT-5, GLM, Kimi, Qwen Coder, DeepSeek coders                 |
+| `auto/cheap`   | Lowest $/token, accepts higher latency                                                      |
+| `auto/fast`    | Lowest latency, ignores cost                                                                |
+| `auto/offline` | Local-only providers (Ollama, vLLM, llama.cpp) — useful for air-gapped setups               |
+| `auto/smart`   | Reasoning quality first (Opus, GPT-5 xhigh, R1, GLM 5.1 reasoning)                          |
+| `auto/lkgp`    | "Last Known Good Provider" — pins to the last successful provider, then falls back to rules |
+
+Example:
 
 ```bash
 curl -X POST http://localhost:20128/v1/chat/completions \
@@ -1110,28 +1105,28 @@ curl -X POST http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "auto/coding",
-    "messages": [{ "role": "user", "content": "Refaktoriraj ovu Python funkciju" }],
+    "messages": [{ "role": "user", "content": "Refactor this Python function" }],
     "stream": true
   }'
 ```
 
-Automatski usmjerivač je detaljno opisan u [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — uključujući kako podesiti težine bodovanja, staviti pružatelje na crnu listu i pregledati odluke o usmjeravanju u **Dashboard → Auto Combo**.
+The auto-router is fully described in [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — including how to tune scoring weights, blacklist providers, and inspect routing decisions in **Dashboard → Auto Combo**.
 
 ---
 
-## 🔌 Integracija s MCP i A2A
+## 🔌 MCP & A2A Integration
 
-OmniRoute je istovremeno **MCP poslužitelj** (Model Context Protocol) i **A2A poslužitelj** (Agent-to-Agent JSON-RPC 2.0). Svaki IDE ili agentski host kompatibilan s MCP-om može izravno pozivati OmniRoute alate — bez potrebe za dodatnim omotačem.
+OmniRoute is both an **MCP server** (Model Context Protocol) and an **A2A server** (Agent-to-Agent JSON-RPC 2.0). Any MCP-compatible IDE or agent host can call OmniRoute tools directly — no extra wrapper required.
 
-### MCP prijenosi
+### MCP transports
 
 - **SSE**: `http://localhost:20128/api/mcp/sse`
 - **Streamable HTTP**: `http://localhost:20128/api/mcp/stream`
-- **stdio**: `omniroute --mcp` (za IDE dodatke koji preferiraju stdio)
+- **stdio**: `omniroute --mcp` (for IDE plugins that prefer stdio)
 
-### Povezivanje s Claude Desktop
+### Connect Claude Desktop
 
-Uredite `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) ili odgovarajuću datoteku na Windows/Linux sustavu:
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or the equivalent on Windows/Linux:
 
 ```json
 {
@@ -1144,176 +1139,168 @@ Uredite `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS
 }
 ```
 
-### Povezivanje s Cursor / Continue / VS Code MCP
+### Connect Cursor / Continue / VS Code MCP
 
-Koristite SSE URL `http://localhost:20128/api/mcp/sse` i Bearer API ključ generiran u **Dashboard → API Keys**.
+Use the SSE URL `http://localhost:20128/api/mcp/sse` and a Bearer API key generated in **Dashboard → API Keys**.
 
-### Opsezi (Scopes)
+### Scopes
 
-MCP trenutno definira 32 imenovana opsega. Svaki Bearer ključ može se ograničiti na određene opsege — pogledajte [MCP-SERVER.md](../frameworks/MCP-SERVER.md) za autoritativni popis opsega i alata, te [A2A-SERVER.md](../frameworks/A2A-SERVER.md) za JSON-RPC shemu.
-
----
-
-## 🧠 Sustav vještina
-
-OmniRoute izlaže proširivi **okvir vještina** (`src/lib/skills/`) tako da agenti i A2A krajnja točka mogu izvršavati domenski specifične rutine (npr. `code-review`, `summarize`, `extract-facts`, `web-research`).
-
-- **Marketplace sučelje** — Pregledajte i instalirajte vještine putem **Dashboard → Skills**
-- **Opsezi po ključu** — Ograničite koji API ključevi mogu pozivati koje vještine
-- **Prilagođene vještine** — Dodajte TypeScript datoteku u `src/lib/a2a/skills/`, registrirajte je, i odmah postaje pozivljiva putem A2A
-
-Potpuna referenca: [SKILLS.md](../frameworks/SKILLS.md).
+MCP currently defines 32 named scopes. Each Bearer key can be limited to specific scopes — see [MCP-SERVER.md](../frameworks/MCP-SERVER.md) for the authoritative scope and tool inventory and [A2A-SERVER.md](../frameworks/A2A-SERVER.md) for the JSON-RPC schema.
 
 ---
 
-## 💾 Sustav memorije
+## 🧠 Skills System
 
-OmniRoute pohranjuje **dugoročnu konverzacijsku memoriju** s hibridnim dohvaćanjem:
+OmniRoute exposes an extensible **skill framework** (`src/lib/skills/`) so agents and the A2A endpoint can run domain-specific routines (e.g. `code-review`, `summarize`, `extract-facts`, `web-research`).
 
-- **SQLite FTS5** za pretraživanje po ključnim riječima kroz prošle interakcije
-- **Qdrant vektorska pohrana** (opcionalno) za semantičko dosjećanje
-- **Automatsko izdvajanje činjenica** — entiteti, preferencije i odluke sažimaju se nakon svake sesije i pohranjuju u tablicu `memory_facts`
-- Memorije su ograničene po API ključu i po sesiji
+- **Marketplace UI** — Browse and install skills from **Dashboard → Skills**
+- **Per-key scopes** — Restrict which API keys can invoke which skills
+- **Custom skills** — Drop a TypeScript file in `src/lib/a2a/skills/`, register it, and it becomes immediately invocable over A2A
 
-Upravljajte memorijom u **Dashboard → Memory** (pretraživanje, uređivanje, izvoz, brisanje). HTTP sučelje (`/api/memory/*`) omogućuje agentima programsko slanje i upitivanje činjenica — pogledajte [MEMORY.md](../frameworks/MEMORY.md).
+Full reference: [SKILLS.md](../frameworks/SKILLS.md).
+
+---
+
+## 💾 Memory System
+
+OmniRoute persists **long-term conversational memory** with hybrid retrieval:
+
+- **SQLite FTS5** for keyword search across past turns
+- **Qdrant vector store** (optional) for semantic recall
+- **Automatic fact extraction** — entities, preferences, and decisions are summarized after each session and stored in the `memory_facts` table
+- Memories are scoped per API key and per session
+
+Manage memories in **Dashboard → Memory** (search, edit, export, purge). The HTTP surface (`/api/memory/*`) lets agents push and query facts programmatically — see [MEMORY.md](../frameworks/MEMORY.md).
 
 ---
 
 ## 🔔 Webhooks
 
-Pretplatite se na OmniRoute događaje za praćenje i automatizaciju u stvarnom vremenu.
+Subscribe to OmniRoute events for real-time monitoring and automation.
 
-- Kreirajte webhook u **Dashboard → Webhooks** s ciljnim URL-om i HMAC tajnom za potpisivanje
-- Dostupni događaji: `request.completed`, `request.failed`, `provider.unavailable`, `budget.exceeded`, `combo.switched`, `circuit_breaker.opened`, `circuit_breaker.closed`
-- Svaki payload uključuje `X-OmniRoute-Signature` (HMAC-SHA256) za provjeru
-- Ponovni pokušaji: 3 pokušaja s eksponencijalnim odgađanjem, zatim red za neisporučene poruke (dead-letter queue)
+- Create a webhook in **Dashboard → Webhooks** with target URL and HMAC signing secret
+- Available events: `request.completed`, `request.failed`, `provider.unavailable`, `budget.exceeded`, `combo.switched`, `circuit_breaker.opened`, `circuit_breaker.closed`
+- Every payload includes `X-OmniRoute-Signature` (HMAC-SHA256) for verification
+- Retries: 3 attempts with exponential backoff, then dead-letter queue
 
-Potpuna shema u [WEBHOOKS.md](../frameworks/WEBHOOKS.md).
-
----
-
-## ☁️ Cloud Agenti
-
-OmniRoute se integrira s cloud agentima za programiranje (**OpenAI Codex Cloud**, **Devin**, **Jules**, **Antigravity**) tako da možete pokretati dugotrajne zadatke iz istog nadzorne ploče koja upravlja vašim lokalnim usmjeravanjem.
-
-- Kreirajte zadatke u **Dashboard → Cloud Agents** ili putem `POST /api/v1/agents/tasks`
-- Praćenje statusa, zapisa i artefakata po zadatku
-- Vlastiti API ključ za svakog davatelja usluga — vjerodajnice nikada ne izlaze iz OmniRoute instance
-
-Potpuna referenca: [CLOUD_AGENT.md](../frameworks/CLOUD_AGENT.md).
+Full schema in [WEBHOOKS.md](../frameworks/WEBHOOKS.md).
 
 ---
 
-## 🛠️ Programsko upravljanje
+## ☁️ Cloud Agents
 
-Možete upravljati svakim OmniRoute resursom (davatelji usluga, kombinacije, ključevi, postavke) putem HTTP-a koristeći **Bearer ključ s opsegom `manage`**.
+OmniRoute integrates with cloud coding agents (**OpenAI Codex Cloud**, **Devin**, **Jules**, **Antigravity**) so you can dispatch long-running tasks from the same dashboard that handles your local routing.
 
-Generirajte ključ u **Dashboard → API Keys → New Key → Scope: manage**, zatim:
+- Create tasks in **Dashboard → Cloud Agents** or via `POST /api/v1/agents/tasks`
+- Track status, logs, and artifacts per task
+- Bring-your-own API key per provider — credentials never leave the OmniRoute instance
+
+Full reference: [CLOUD_AGENT.md](../frameworks/CLOUD_AGENT.md).
+
+---
+
+## 🛠️ Programmatic Management
+
+You can manage every OmniRoute resource (providers, combos, keys, settings) over HTTP using a **Bearer key with the `manage` scope**.
+
+Generate the key in **Dashboard → API Keys → New Key → Scope: manage**, then:
 
 ```bash
-# Popis davatelja usluga
+# List providers
 curl http://localhost:20128/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 
-# Dodavanje veze s davateljem usluga
+# Add a provider connection
 curl -X POST http://localhost:20128/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "provider": "openai", "apiKey": "sk-...", "name": "main" }'
 
-# Kreiranje kombinacije
+# Create a combo
 curl -X POST http://localhost:20128/api/combos \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "name": "premium", "strategy": "priority", "models": [{ "model": "cc/claude-opus-4-7" }, { "model": "glm/glm-5.1" }] }'
 
-# Popis/kreiranje API ključeva
+# List/create API keys
 curl http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -d '{ "name": "ci-bot", "scopes": ["chat"] }'
 ```
 
-Pogledajte [API_REFERENCE.md](../reference/API_REFERENCE.md) za potpuni katalog krajnjih točaka i sheme zahtjeva/odgovora.
+See [API_REFERENCE.md](../reference/API_REFERENCE.md) for the full endpoint catalog and request/response schemas.
 
 ---
 
-## 💻 Interni CLI
+## 💻 Internal CLI
 
-OmniRoute isporučuje interni CLI (`omniroute …`) za postavljanje, dijagnostiku i kontrolu izvođenja. Ovo je **odvojeno od stranice "CLI Tools" u nadzornoj ploči**, koja konfigurira CLI alate trećih strana (Claude Code, Cursor, Codex, Cline, …) da mogu komunicirati s OmniRoute-om.
+OmniRoute ships an internal CLI (`omniroute …`) for setup, diagnostics, and runtime control. This is **separate from the "CLI Tools" page in the dashboard**, which configures third-party CLIs (Claude Code, Cursor, Codex, Cline, …) so they can talk to OmniRoute.
 
 ```bash
-omniroute setup                    # Interaktivni čarobnjak (lozinka, dobavljači, kombinacije)
-omniroute setup --non-interactive  # Prilagođeno za CI
-omniroute doctor                   # Dijagnostika stanja (podatkovni direktorij, baza podataka, dobavljači, portovi)
-omniroute providers available      # Ispis podržanih dobavljača
-omniroute providers list           # Ispis konfiguriranih veza
-omniroute providers test <id>      # Testiranje veze dobavljača u stvarnom vremenu
-omniroute combos list              # Ispis kombinacija
-omniroute combos switch <name>     # Postavljanje zadane kombinacije
-omniroute models                   # Ispis dostupnih modela (--json, --search)
-omniroute keys add | list | remove # Upravljanje API ključevima iz terminala
-omniroute backup                   # Snimka konfiguracije i baze podataka
-omniroute restore [<timestamp>]    # Vraćanje iz snimke
-omniroute health                   # Detaljno stanje (breakeri, predmemorija, memorija)
-omniroute quota                    # Iskorištenost kvote dobavljača
-omniroute mcp status                # Status MCP servera
-omniroute a2a status                # Status A2A servera
-omniroute tunnel list|create|stop  # Cloudflare/Tailscale/ngrok tuneli
-omniroute reset-password           # Resetiranje administratorske lozinke
-omniroute --mcp                    # Pokretanje MCP servera preko stdio
-omniroute --port 3000              # Pokretanje servera na prilagođenom portu
+omniroute setup                    # Interactive wizard (password, providers, combos)
+omniroute setup --non-interactive  # CI-friendly
+omniroute doctor                   # Health diagnostics (data dir, DB, providers, ports)
+omniroute providers available      # List supported providers
+omniroute providers list           # List configured connections
+omniroute providers test <id>      # Live test a provider connection
+omniroute combos list              # List combos
+omniroute combos switch <name>     # Set default combo
+omniroute models                   # List available models (--json, --search)
+omniroute keys add | list | remove # Manage API keys from the terminal
+omniroute backup                   # Snapshot config + DB
+omniroute restore [<timestamp>]    # Restore from a snapshot
+omniroute health                   # Detailed health (breakers, cache, memory)
+omniroute quota                    # Provider quota usage
+omniroute mcp status               # MCP server status
+omniroute a2a status               # A2A server status
+omniroute tunnel list|create|stop  # Cloudflare/Tailscale/ngrok tunnels
+omniroute reset-password           # Reset the admin password
+omniroute --mcp                    # Start MCP server over stdio
+omniroute --port 3000              # Start the server on a custom port
 ```
 
-Savjet: kombinirajte `omniroute doctor --json` s vašim alatom za nadzor za obavijesti o neispravnim vezama s dobavljačima.
+Tip: pair `omniroute doctor --json` with your monitoring tool to alert on unhealthy provider connections.
 
 ---
 
-## 🖥️ Desktop aplikacija (Electron)
+## 🖥️ Desktop Application (Tauri 2)
 
-OmniRoute je dostupan kao izvorna desktop aplikacija za Windows, macOS i Linux.
+OmniRoute is available as a native desktop application for Windows, macOS, and Linux, built on Tauri 2 (Rust shell + system webview).
 
-### Instalacija
-
-```bash
-# Iz direktorija electron:
-cd electron
-npm install
-
-# Razvojni način rada (spajanje na pokrenuti Next.js razvojni server):
-npm run dev
-
-# Produkcijski način rada (koristi samostalnu (standalone) izgradnju):
-npm start
-```
-
-### Izgradnja instalacijskih paketa
+### Development
 
 ```bash
-cd electron
-npm run build          # Trenutna platforma
-npm run build:win      # Windows (.exe NSIS)
-npm run build:mac      # macOS (.dmg universal)
-npm run build:linux    # Linux (.AppImage)
+# Rust shell + SvelteKit dev server (hot reload):
+cd apps/desktop/src-tauri
+cargo tauri dev
 ```
 
-Izlaz → `electron/dist-electron/`
+### Building the App
 
-### Ključne značajke
+```bash
+cd apps/desktop/src-tauri
+cargo tauri build          # Current platform
+```
 
-| Značajka                                                   | Opis                                                                |
-| ---------------------------------------------------------- | ------------------------------------------------------------------- |
-| **Spremnost servera**                                      | Provjerava server prije prikaza prozora (bez praznog zaslona)       |
-| **Sistemska traka**                                        | Umanjivanje u traku, promjena porta, izlaz iz izbornika trake       |
-| **Upravljanje portovima**                                  | Promjena porta servera iz trake (automatski ponovno pokreće server) |
-| **Politika sigurnosti sadržaja (Content Security Policy)** | Restriktivna CSP putem sesijskih zaglavlja                          |
-| **Jedinstvena instanca**                                   | Samo jedna instanca aplikacije može biti pokrenuta u isto vrijeme   |
-| **Izvanmrežni način rada**                                 | Ugrađeni Next.js server radi bez internetske veze                   |
+Output → `apps/desktop/src-tauri/target/release/bundle/` (`macos/OmniRoute.app`, platform bundles).
 
-### Varijable okoline
+### Key Features
 
-| Varijabla             | Zadano  | Opis                                                        |
-| --------------------- | ------- | ----------------------------------------------------------- |
-| `OMNIROUTE_PORT`      | `20128` | Port servera                                                |
-| `OMNIROUTE_MEMORY_MB` | `512`   | Ograničenje memorijske hrpe (heap) za Node.js (64–16384 MB) |
+| Feature                     | Description                                          |
+| --------------------------- | ---------------------------------------------------- |
+| **Server Readiness**        | Polls server before showing window (no blank screen) |
+| **System Tray**             | Minimize to tray, change port, quit from tray menu   |
+| **Port Management**         | Change server port from tray (auto-restarts server)  |
+| **Content Security Policy** | Restrictive CSP in `tauri.conf.json`                 |
+| **Single Instance**         | Only one app instance can run at a time              |
+| **Offline Mode**            | Embedded SvelteKit frontend works without internet   |
+| **Embedded Frontend**       | SPA bundled into the binary via `custom-protocol`    |
 
-📖 Potpuna dokumentacija: [`electron/README.md`](../../electron/README.md)
+### Environment Variables
+
+| Variable              | Default | Description                      |
+| --------------------- | ------- | -------------------------------- |
+| `OMNIROUTE_PORT`      | `20128` | Server port                      |
+| `OMNIROUTE_MEMORY_MB` | `512`   | Node.js heap limit (64–16384 MB) |
+
+📖 Full documentation: [`apps/desktop/README.md`](../../apps/desktop/README.md)

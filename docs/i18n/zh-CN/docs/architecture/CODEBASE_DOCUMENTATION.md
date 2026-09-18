@@ -33,83 +33,109 @@
 
 ---
 
-## 2. 仓库布局
+## 1. Tech Stack
+
+| Concern       | Choice                                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Web framework | **Next.js 16** (App Router, standalone output, no global middleware)                                                     |
+| Language      | **TypeScript 6.0+** — target `ES2022`, `module: esnext`, `moduleResolution: bundler`, `strict: false`                    |
+| Runtime       | **Node.js** `>=22.22.2 <23` or `>=24.0.0 <27` (enforced via `engines` + `SUPPORTED_NODE_RANGE`)                          |
+| Database      | **SQLite** via `better-sqlite3` (singleton, WAL journaling)                                                              |
+| Desktop       | **Tauri 2** (Rust shell at `apps/desktop/src-tauri/` + system webview)                                                   |
+| Tests         | **Node native test runner** (unit/integration), **Vitest** (MCP, autoCombo, cache), **Playwright** (e2e + protocols-e2e) |
+| Build         | Next.js standalone via `scripts/build/build-next-isolated.mjs`                                                           |
+| Lint/format   | ESLint flat config + Prettier (`lint-staged` via Husky pre-commit)                                                       |
+| Module system | ESM everywhere (`"type": "module"`)                                                                                      |
+| Workspaces    | npm workspace — `open-sse` is the only sub-workspace                                                                     |
+
+Path aliases (`tsconfig.json`):
+
+- `@/*` → `src/*`
+- `@omniroute/open-sse` → `open-sse/index.ts`
+- `@omniroute/open-sse/*` → `open-sse/*`
+
+Default HTTP port: **`20128`** (API and dashboard share the same process). Data
+directory is `DATA_DIR` env var, defaulting to `~/.omniroute/`.
+
+---
+
+## 2. Repository Layout
 
 ```
 OmniRoute/
-├── src/                  Next.js 应用（App Router、库、领域层、服务端、共享模块）
-├── open-sse/             流式传输引擎工作空间（@omniroute/open-sse）
-├── electron/             桌面端封装（Electron 41 主进程 + preload）
-├── bin/                  CLI 入口点（omniroute、reset-password）
-├── tests/                单元、集成、端到端、协议端到端、翻译器、安全、测试夹具
-├── scripts/              构建、同步、检查、迁移及运行时辅助脚本
-├── docs/                 公开文档（本目录）
-├── public/               静态资源、PWA manifest、Service Worker
-├── config/               运行时配置示例
-├── images/               市场/截图资源
-├── _ideia/, _references/, _mono_repo/, _tasks/   内部草稿/规划（不发布）
-├── CLAUDE.md             面向 Claude Code 的仓库规则
-├── AGENTS.md             面向 Agent 的深层架构参考
-├── package.json          v3.8.0，工作空间根目录
-└── tsconfig.json         路径别名 + 核心编译选项
+├── src/                  Next.js application (App Router, libs, domain, server, shared)
+├── open-sse/             Streaming engine workspace (@omniroute/open-sse)
+├── apps/desktop/         Tauri 2 desktop shell (Rust `src-tauri/` + capabilities)
+├── bin/                  CLI entry points (omniroute, reset-password)
+├── tests/                Unit, integration, e2e, protocols-e2e, translator, security, fixtures
+├── scripts/              Build, sync, check, migration, and runtime helper scripts
+├── docs/                 Public documentation (this directory)
+├── public/               Static assets, PWA manifest, service worker
+├── config/               Runtime config samples
+├── images/               Marketing/screenshot assets
+├── _ideia/, _references/, _mono_repo/, _tasks/   Internal scratch / planning (not shipped)
+├── CLAUDE.md             Repo rules for Claude Code
+├── AGENTS.md             Deeper architecture reference for agents
+├── package.json          v3.8.51, workspace root
+└── tsconfig.json         Path aliases + core compiler options
 ```
 
 ---
 
-## 3. `src/` — Next.js 应用
+## 3. `src/` — Next.js Application
 
 ```
 src/
-├── app/                  App Router 页面 + API 路由
-├── lib/                  核心库（DB、auth、OAuth、技能、记忆系统等）
-├── domain/               纯领域层（策略、容灾、成本、锁定等）
-├── server/               服务端专用模块（authz、cors、auth）
-├── shared/               类型、常量、校验、契约、工具（跨边界安全）
-├── mitm/                 面向 CLI 集成的中间人代理辅助工具
-├── models/               本地模型元数据/别名
-├── sse/                  仍在 src/ 下的旧版 SSE 处理器（非 open-sse/）
-├── store/                客户端状态存储
-├── middleware/           路由级中间件工具（非 Next.js 全局中间件）
-├── scripts/              可被应用代码导入的树内脚本
-├── types/                环境类型和共享 TS 类型
-├── i18n/                 语言包
-├── instrumentation.ts    Next.js instrumentation 钩子
+├── app/                  App Router pages + API routes
+├── lib/                  Core libraries (DB, auth, OAuth, skills, memory, …)
+├── domain/               Pure domain layer (policy, fallback, cost, lockout, …)
+├── server/               Server-only modules (authz, cors, auth)
+├── shared/               Types, constants, validation, contracts, utils (cross-boundary safe)
+├── mitm/                 Man-in-the-middle proxy helpers for CLI integration
+├── models/               Local model metadata / aliasing
+├── sse/                  Legacy SSE handlers that still live under src/ (not open-sse/)
+├── store/                Client-side state stores
+├── middleware/           Route-level middleware utilities (not Next.js global middleware)
+├── scripts/              In-tree scripts importable by app code
+├── types/                Ambient and shared TS types
+├── i18n/                 Locale bundles
+├── instrumentation.ts    Next.js instrumentation hook
 ├── instrumentation-node.ts
-├── server-init.ts        进程级引导（环境变量、DB、任务、同步）
-└── proxy.ts              顶层代理引导辅助
+└── proxy.ts              Top-level proxy bootstrap helper
 ```
 
 ### 3.1 `src/app/` — App Router
 
-App Router 同时暴露仪表盘 UI 和公开/管理 HTTP API。**不存在全局中间件** — 拦截在路由级别完成。
+The App Router exposes both the dashboard UI and the public/management HTTP API.
+There is **no global middleware** — interception is done per-route.
 
-`src/app/` 下的顶层段：
+Top-level segments under `src/app/`:
 
-| 路径                                                                          | 用途                                 |
-| ----------------------------------------------------------------------------- | ------------------------------------ |
-| `api/`                                                                        | 所有 HTTP API 路由（详见下文分解）   |
-| `a2a/`                                                                        | A2A JSON-RPC 2.0 端点（`POST /a2a`） |
-| `.well-known/agent.json/`                                                     | A2A Agent Card 发现文档              |
-| `(dashboard)/`                                                                | 仪表盘 UI（路由组，无 URL 前缀）     |
-| `auth/`、`login/`、`forgot-password/`、`callback/`                            | 认证流程                             |
-| `landing/`                                                                    | 市场/落地页                          |
-| `docs/`                                                                       | 嵌入式 API 文档查看器                |
-| `status/`、`maintenance/`、`offline/`                                         | 运维页面                             |
-| `privacy/`、`terms/`                                                          | 法律页面                             |
-| `400/`、`401/`、`403/`、`408/`、`429/`、`500/`、`502/`、`503/`                | 静态错误页面                         |
-| `error.tsx`、`global-error.tsx`、`not-found.tsx`、`forbidden/`、`loading.tsx` | 框架错误/加载边界                    |
-| `layout.tsx`、`page.tsx`、`globals.css`、`manifest.ts`                        | 根外壳                               |
+| Path                                                                          | Purpose                                   |
+| ----------------------------------------------------------------------------- | ----------------------------------------- |
+| `api/`                                                                        | All HTTP API routes (see breakdown below) |
+| `a2a/`                                                                        | A2A JSON-RPC 2.0 endpoint (`POST /a2a`)   |
+| `.well-known/agent.json/`                                                     | A2A Agent Card discovery document         |
+| `(dashboard)/`                                                                | Dashboard UI (route group, no URL prefix) |
+| `auth/`, `login/`, `forgot-password/`, `callback/`                            | Auth flows                                |
+| `landing/`                                                                    | Marketing/landing page                    |
+| `docs/`                                                                       | Embedded API docs viewer                  |
+| `status/`, `maintenance/`, `offline/`                                         | Operational pages                         |
+| `privacy/`, `terms/`                                                          | Legal pages                               |
+| `400/`, `401/`, `403/`, `408/`, `429/`, `500/`, `502/`, `503/`                | Static error pages                        |
+| `error.tsx`, `global-error.tsx`, `not-found.tsx`, `forbidden/`, `loading.tsx` | Framework error/loading boundaries        |
+| `layout.tsx`, `page.tsx`, `globals.css`, `manifest.ts`                        | Root shell                                |
 
-#### 3.1.1 `src/app/(dashboard)/dashboard/` — UI 页面
+#### 3.1.1 `src/app/(dashboard)/dashboard/` — UI pages
 
-`agents`、`analytics`、`api-manager`、`audit`、`auto-combo`、`batch`、`cache`、
-`changelog`、`cli-tools`、`cloud-agents`、`combos`、`compression`、`context`、
-`costs`、`endpoint`、`health`、`limits`、`logs`、`memory`、`onboarding`、
-`playground`、`providers`、`search-tools`、`settings`、`skills`、`system`、
-`translator`、`usage`、`webhooks`，外加根目录 `page.tsx`、`HomePageClient.tsx`、
-`BootstrapBanner.tsx`。
+`agents`, `analytics`, `api-manager`, `audit`, `auto-combo`, `batch`, `cache`,
+`changelog`, `cli-tools`, `cloud-agents`, `combos`, `compression`, `context`,
+`costs`, `endpoint`, `health`, `limits`, `logs`, `memory`, `onboarding`,
+`playground`, `providers`, `search-tools`, `settings`, `skills`, `system`,
+`translator`, `usage`, `webhooks`, plus root `page.tsx`, `HomePageClient.tsx`,
+`BootstrapBanner.tsx`.
 
-#### 3.1.2 `src/app/api/` — 顶层 API 分组
+#### 3.1.2 `src/app/api/` — Top-level API groups
 
 ```
 src/app/api/
@@ -162,415 +188,430 @@ src/app/api/
 ├── token-health/
 ├── translator/
 ├── tunnels/
-├── services/   嵌入式服务管理（9router、cliproxy）— LOCAL_ONLY
+├── services/   Embedded service management (9router, cliproxy) — LOCAL_ONLY
 ├── upstream-proxy/
 ├── usage/
-├── v1/         OpenAI 兼容公开 API
-├── v1beta/     Gemini 风格兼容
+├── v1/         OpenAI-compatible public API
+├── v1beta/     Gemini-style compat
 ├── version-manager/
 └── webhooks/
 ```
 
-#### 3.1.2a `src/app/api/services/` — 嵌入式服务管理
+#### 3.1.2a `src/app/api/services/` — Embedded Services management
 
-用于安装、启动、停止和监控 9Router 与 CLIProxyAPI 的路由。
-所有路径均分类为 **LOCAL_ONLY**（仅 loopback，硬规则 #17），因为它们可能调用 `npm install` 并生成子进程。
+Routes for installing, starting, stopping, and monitoring 9Router and CLIProxyAPI.
+All paths are classified **LOCAL_ONLY** (loopback only, hard rule #17) because they
+can invoke `npm install` and spawn child processes.
 
 ```
 src/app/api/services/
 ├── 9router/
-│   ├── _lib.ts             getOrInitSupervisor() 辅助函数
-│   ├── install/route.ts    POST — 通过 execFile 执行 npm install
+│   ├── _lib.ts             getOrInitSupervisor() helper
+│   ├── install/route.ts    POST — npm install via execFile
 │   ├── start/route.ts      POST — supervisor.start()
 │   ├── stop/route.ts       POST — supervisor.stop()
 │   ├── restart/route.ts    POST — supervisor.restart()
-│   ├── update/route.ts     POST — npm install 更新版本
-│   ├── rotate-key/route.ts POST — 生成新的 API Key 并重启
-│   ├── status/route.ts     GET  — 实时 + DB 状态 + 版本元数据
-│   └── auto-start/route.ts POST — 切换 auto_start 标志
+│   ├── update/route.ts     POST — npm install newer version
+│   ├── rotate-key/route.ts POST — generate new API key + restart
+│   ├── status/route.ts     GET  — live + DB status + version metadata
+│   └── auto-start/route.ts POST — toggle auto_start flag
 ├── cliproxy/
-│   ├── _lib.ts             getOrInitSupervisor() 辅助函数
+│   ├── _lib.ts             getOrInitSupervisor() helper
 │   ├── install/route.ts    POST — npm install
 │   ├── start/route.ts      POST — supervisor.start()
 │   ├── stop/route.ts       POST — supervisor.stop()
 │   ├── restart/route.ts    POST — supervisor.restart()
-│   ├── update/route.ts     POST — npm install 更新版本
-│   ├── status/route.ts     GET  — 实时 + DB 状态 + 版本元数据
-│   └── auto-start/route.ts POST — 切换 auto_start 标志
+│   ├── update/route.ts     POST — npm install newer version
+│   ├── status/route.ts     GET  — live + DB status + version metadata
+│   └── auto-start/route.ts POST — toggle auto_start flag
 └── [name]/
-    └── logs/route.ts       GET  — SSE 日志尾部（所有服务共享）
+    └── logs/route.ts       GET  — SSE log tail (shared by all services)
 ```
 
-对应仪表盘 UI：
-`src/app/(dashboard)/dashboard/providers/services/` — 双标签页（CLIProxyAPI + 9Router）。
-9Router 嵌入式 UI 的反向代理：
-`src/app/(dashboard)/dashboard/providers/services/[name]/embed/[...path]/route.ts`
+Corresponding dashboard UI:
+`src/app/(dashboard)/dashboard/providers/services/` — two-tab page (CLIProxyAPI + 9Router).
+Reverse proxy for 9Router embedded UI:
+`src/app/(dashboard)/dashboard/providers/services/[name]/embed/[[...path]]/route.ts`
 
-深入阅读：`docs/frameworks/EMBEDDED-SERVICES.md`
+Deep-dive: `docs/frameworks/EMBEDDED-SERVICES.md`
 
-#### 3.1.3 `src/app/api/v1/` — OpenAI 兼容公开 API
+#### 3.1.3 `src/app/api/v1/` — OpenAI-compatible public API
 
 ```
 v1/
-├── accounts/[id]/                       账户查询
-├── agents/tasks/[id]/, agents/tasks/    A2A 风格的任务端点
-├── api/                                 v1/api 下暴露的内部 API 辅助工具
+├── accounts/[id]/                       account lookup
+├── agents/tasks/[id]/, agents/tasks/    A2A-flavored task endpoints
+├── api/                                 internal API helpers exposed under v1/api
 ├── audio/{speech, transcriptions}/      TTS + STT
 ├── batches/[id]/{cancel}, batches/      OpenAI Batches API
-├── chat/completions/                    对话补全（主要端点）
-├── completions/                         旧版文本补全
-├── embeddings/                          嵌入
+├── chat/completions/                    Chat Completions (the main endpoint)
+├── completions/                         Legacy text completions
+├── embeddings/                          Embeddings
 ├── files/[id]/, files/                  Files API
-├── _helpers/                            共享路由辅助工具（无公开 URL）
-├── images/{edits, generations}/         图像生成 + 编辑
-├── issues/                              诊断辅助端点
-├── management/{proxies}/                v1 内的管理权限域路由
-├── messages/{count_tokens}/             Anthropic 风格消息兼容
-├── models/                              模型列表（`route.ts`、`catalog.ts`）
-├── moderations/                         内容审核
-├── music/                               音乐生成
-├── providers/[provider]/                按服务商操作
-├── quotas/{check}                       配额探测
-├── registered-keys/                     注册 Key 管理
-├── rerank/                              重排序
-├── responses/[...path]/                 OpenAI Responses API（通配路由）
-├── search/                              网页搜索
-├── videos/                              视频生成
-├── ws/                                  WebSocket 桥接
-└── route.ts                             索引处理器
+├── _helpers/                            Shared route helpers (no public URL)
+├── images/{edits, generations}/         Image gen + edit
+├── issues/                              Triage helper endpoints
+├── management/{proxies}/                Management-scoped routes inside v1
+├── messages/{count_tokens}/             Anthropic-style messages compat
+├── models/                              Model listing (`route.ts`, `catalog.ts`)
+├── moderations/                         Moderation
+├── music/                               Music gen
+├── providers/[provider]/                Per-provider operations
+├── quotas/{check}                       Quota probes
+├── registered-keys/                     Registered key admin
+├── rerank/                              Reranking
+├── responses/[...path]/                 OpenAI Responses API (catch-all)
+├── search/                              Web search
+├── videos/                              Video gen
+├── ws/                                  WebSocket bridge
+└── route.ts                             Index handler
 ```
 
-每个路由文件遵循相同模式：
+Every route file follows the same pattern:
 
 ```
-路由 → CORS 预检 → Zod 请求体验证 → 可选认证
-     → API Key 策略执行 → 处理器委托（open-sse）
+Route → CORS preflight → Zod body validation → optional auth
+      → API key policy enforcement → handler delegation (open-sse)
 ```
 
-`v1beta/` 是 Gemini 风格兼容层（一个薄封装，翻译后进入相同的 `open-sse/handlers/` 管道）。
+`v1beta/` is the Gemini-style compat surface (a thin wrapper that translates into
+the same `open-sse/handlers/` pipeline).
 
-### 3.2 `src/lib/` — 核心库
+### 3.2 `src/lib/` — Core libraries
 
-始终通过这些模块导入数据、同步、OAuth、技能、记忆等。下表按实际目录和重要顶层文件分组。
+Always import data, sync, OAuth, skill, memory, etc. through these modules. The
+table groups the actual directories and notable top-level files.
 
-| 模块              | 用途                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `a2a/`            | A2A 协议服务器：`taskManager.ts`、`streaming.ts`、`taskExecution.ts`、`routingLogger.ts`、`skills/`（6 个技能：成本分析、健康报告、服务商发现、配额管理、智能路由、列出能力）                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `acp/`            | Agent-Control-Protocol：`index.ts`、`manager.ts`、`registry.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `api/`            | 内部 API 辅助工具：`requireManagementAuth.ts`、`requireCliToolsAuth.ts`、`errorResponse.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `auth/`           | `managementPassword.ts`（密码重置/哈希）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `batches/`        | OpenAI Batches API 服务（`service.ts`）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `catalog/`        | OpenRouter 目录同步（`openrouterCatalog.ts`）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `cloudAgent/`     | 云代理注册表：`api.ts`、`baseAgent.ts`、`db.ts`、`index.ts`、`registry.ts`、`types.ts`、`agents/{codex, devin, jules}.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `combos/`         | Combo 解析辅助工具                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `compliance/`     | 审计 + 服务商审计：`index.ts`、`providerAudit.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `config/`         | 运行时配置粘合层                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `db/`             | SQLite 领域模块（见 §3.2.1）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `display/`        | API 响应使用的 UI/展示辅助工具                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `embeddings/`     | 嵌入服务注册表                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `env/`            | 环境变量加载 + 自检                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `evals/`          | 评估框架运行时                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `guardrails/`     | `piiMasker.ts`、`promptInjection.ts`、`visionBridge.ts`、`visionBridgeHelpers.ts`、`registry.ts`、`base.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `jobs/`           | 后台任务（`autoUpdate.ts` 等）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `memory/`         | 持久化记忆：`store.ts`、`cache.ts`、`retrieval.ts`、`summarization.ts`、`extraction.ts`、`injection.ts`、`qdrant.ts`、`settings.ts`、`verify.ts`、`schemas.ts`、`types.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `monitoring/`     | `observability.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `oauth/`          | OAuth 服务商（14 个）：`antigravity`、`claude`、`cline`、`codex`、`cursor`、`gemini`、`github`、`gitlab-duo`、`kilocode`、`kimi-coding`、`kiro`、`qoder`、`qwen`、`windsurf`，以及 `services/`、`utils/{pkce, server, banner, codexAuthFile, ui}`、`constants/oauth.ts`                                                                                                                                                                                                                                                                                                                                                                          |
-| `plugins/`        | 插件加载器（`index.ts`）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `promptCache/`    | `prefixAnalyzer.ts`、`index.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `providerModels/` | 托管模型生命周期：`modelDiscovery.ts`、`managedModelImport.ts`、`managedAvailableModels.ts`、`cursorAgent.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `providers/`      | 服务商辅助工具：`catalog.ts`、`validation.ts`、`imageValidation.ts`、`claudeExtraUsage.ts`、`codexConnectionDefaults.ts`、`codexFastTier.ts`、`webCookieAuth.ts`、`managedAvailableModels.ts`、`requestDefaults.ts`                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `resilience/`     | `settings.ts` — 熔断器、冷却、锁定的设置                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `runtime/`        | 运行时特性检测                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `search/`         | `executeWebSearch.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `services/`       | 嵌入式服务框架：`ServiceSupervisor.ts`（通用子进程管理器，带操作锁、环形缓冲区、健康检查器）、`bootstrap.ts`（进程级注册和自动启动）、`registry.ts`（工具 → 管理器映射）、`apiKey.ts`（AES-256-GCM Key 存储）、`modelSync.ts`（定期模型同步）、`ringBuffer.ts`（5 MB 环形日志缓冲）、`healthCheck.ts`（HTTP 健康探测）、`types.ts`、`embedWsProxy.ts`（WebSocket 代理）、`installers/{ninerouter,cliproxy}.ts`。详见 `docs/frameworks/EMBEDDED-SERVICES.md`                                                                                                                                                                                      |
-| `agentSkills/`    | Agent Skills 目录 + 生成器：`catalog.ts`（getCatalog/getSkillById/filterCatalog/computeCoverage）、`generator.ts`（generateAgentSkills → 写入 `skills/{id}/SKILL.md`）、`openapiParser.ts`（从 OpenAPI 规范提取 REST 端点）、`cliRegistryParser.ts`（从 bin/cli-registry 提取 CLI 子命令）、`schemas.ts`（Zod：AgentSkillSchema、SkillCoverageSchema、ListQuerySchema、GenerateBodySchema）、`types.ts`（AgentSkill、SkillCoverage、SkillMarkdown、GeneratorReport）。被 REST 路由（`/api/agent-skills/*`）、MCP 工具（`omniroute_agent_skills_*`）和 A2A 技能 `list-capabilities` 消费。参见 [AGENT-SKILLS.md](../frameworks/AGENT-SKILLS.md)。 |
-| `skills/`         | 技能框架：`registry.ts`、`executor.ts`、`interception.ts`、`injection.ts`、`sandbox.ts`、`custom.ts`、`hybrid.ts`、`builtins.ts`、`a2a.ts`、`providerSettings.ts`、`schemas.ts`、`skillssh.ts`、`types.ts`，以及 `builtin/browser.ts`                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `spend/`          | `batchWriter.ts`（写后缓冲）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `sync/`           | `bundle.ts`、`tokens.ts`（云同步）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `system/`         | 系统级辅助工具                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `translator/`     | 顶层翻译器粘合层（委托到 `open-sse/translator/`）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `usage/`          | 用量核算：`costCalculator.ts`、`tokenAccounting.ts`、`usageHistory.ts`、`aggregateHistory.ts`、`usageStats.ts`、`callLogs.ts`、`callLogArtifacts.ts`、`fetcher.ts`、`providerLimits.ts`、`migrations.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `versionManager/` | 自动更新 + 版本清单                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `ws/`             | WebSocket 桥接                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `zed-oauth/`      | Zed 编辑器 OAuth 流程                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Module            | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `a2a/`            | A2A protocol server: `taskManager.ts`, `streaming.ts`, `taskExecution.ts`, `routingLogger.ts`, `skills/` (6 skills: cost analysis, health report, provider discovery, quota management, smart routing, list-capabilities)                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `acp/`            | Agent-Control-Protocol: `index.ts`, `manager.ts`, `registry.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `api/`            | Internal API helpers: `requireManagementAuth.ts`, `requireCliToolsAuth.ts`, `errorResponse.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `auth/`           | `managementPassword.ts` (password reset / hashing)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `batches/`        | OpenAI Batches API service (`service.ts`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `catalog/`        | OpenRouter catalog sync (`openrouterCatalog.ts`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `cloudAgent/`     | Cloud agent registry: `api.ts`, `baseAgent.ts`, `db.ts`, `index.ts`, `registry.ts`, `types.ts`, `agents/{codex, devin, jules}.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `combos/`         | Combo resolution helpers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `compliance/`     | Audit + provider audit: `index.ts`, `providerAudit.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `config/`         | Runtime config glue                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `db/`             | SQLite domain modules (see §3.2.1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `display/`        | UI/display helpers used by API responses                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `embeddings/`     | Embedding service registry                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `env/`            | Env loading + introspection                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `evals/`          | Eval runtime                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `guardrails/`     | `piiMasker.ts`, `promptInjection.ts`, `visionBridge.ts`, `visionBridgeHelpers.ts`, `registry.ts`, `base.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `jobs/`           | Background jobs (`autoUpdate.ts`, …)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `memory/`         | Persistent memory: `store.ts`, `cache.ts`, `retrieval.ts`, `summarization.ts`, `extraction.ts`, `injection.ts`, `qdrant.ts`, `settings.ts`, `verify.ts`, `schemas.ts`, `types.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `monitoring/`     | `observability.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `oauth/`          | OAuth/import provider modules (22): `agy`, `antigravity`, `claude`, `cline`, `codebuddy-cn`, `codex`, `cursor`, `devin-desktop`, `ghe-copilot`, `github`, `gitlab-duo`, `grok-cli-oauth`, `grok-cli`, `kilocode`, `kimi-coding`, `kiro`, `openference`, `qoder`, `trae`, `xai-oauth`, `zed-hosted`, `zed`, plus `services/`, `utils/`, and `constants/oauth.ts`                                                                                                                                                                                                                                                                                                                  |
+| `plugins/`        | Plugin loader (`index.ts`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `promptCache/`    | `prefixAnalyzer.ts`, `index.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `providerModels/` | Managed model lifecycle: `modelDiscovery.ts`, `managedModelImport.ts`, `managedAvailableModels.ts`, `cursorAgent.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `providers/`      | Provider helpers: `catalog.ts`, `validation.ts`, `imageValidation.ts`, `claudeExtraUsage.ts`, `codexConnectionDefaults.ts`, `codexFastTier.ts`, `webCookieAuth.ts`, `managedAvailableModels.ts`, `requestDefaults.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `resilience/`     | `settings.ts` — settings for circuit breaker, cooldown, lockout                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `runtime/`        | Runtime feature detection                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `search/`         | `executeWebSearch.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `services/`       | Embedded services framework: `ServiceSupervisor.ts` (generic child-process supervisor with operation lock, ring buffer, health checker), `bootstrap.ts` (process-level registration and auto-start), `registry.ts` (tool → supervisor map), `apiKey.ts` (AES-256-GCM key store), `modelSync.ts` (periodic model sync), `ringBuffer.ts` (5 MB circular log buffer), `healthCheck.ts` (HTTP health probe), `types.ts`, `embedWsProxy.ts` (WebSocket proxy), `installers/{ninerouter,cliproxy}.ts`. See `docs/frameworks/EMBEDDED-SERVICES.md`                                                                                                                                      |
+| `agentSkills/`    | Agent Skills catalog + generator: `catalog.ts` (getCatalog/getSkillById/filterCatalog/computeCoverage), `generator.ts` (generateAgentSkills → writes `skills/{id}/SKILL.md`), `openapiParser.ts` (extracts REST endpoints from OpenAPI spec), `cliRegistryParser.ts` (extracts CLI subcommands from bin/cli-registry), `schemas.ts` (Zod: AgentSkillSchema, SkillCoverageSchema, ListQuerySchema, GenerateBodySchema), `types.ts` (AgentSkill, SkillCoverage, SkillMarkdown, GeneratorReport). Consumed by REST routes (`/api/agent-skills/*`), MCP tools (`omniroute_agent_skills_*`), and A2A skill `list-capabilities`. See [AGENT-SKILLS.md](../frameworks/AGENT-SKILLS.md). |
+| `skills/`         | Skill framework: `registry.ts`, `executor.ts`, `interception.ts`, `injection.ts`, `sandbox.ts`, `custom.ts`, `hybrid.ts`, `builtins.ts`, `a2a.ts`, `providerSettings.ts`, `schemas.ts`, `skillssh.ts`, `types.ts`, plus `builtin/browser.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `spend/`          | `batchWriter.ts` (write-behind buffer)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `sync/`           | `bundle.ts`, `tokens.ts` (Cloud Sync)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `system/`         | System-level helpers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `translator/`     | Top-level translator glue (delegates into `open-sse/translator/`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `usage/`          | Usage accounting: `costCalculator.ts`, `tokenAccounting.ts`, `usageHistory.ts`, `aggregateHistory.ts`, `usageStats.ts`, `callLogs.ts`, `callLogArtifacts.ts`, `fetcher.ts`, `providerLimits.ts`, `migrations.ts`                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `versionManager/` | Auto-update + version manifest                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `ws/`             | WebSocket bridge                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `zed-oauth/`      | Zed editor OAuth flow                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
-`src/lib/` 中的顶层文件：
+Top-level files in `src/lib/`:
 
-- `localDb.ts` — 仅作重新导出层。**切勿**在此添加逻辑。
-- `proxyHealth.ts`、`proxyLogger.ts`、`tokenHealthCheck.ts`、`localHealthCheck.ts`
-- `apiBridgeServer.ts`、`cacheLayer.ts`、`semanticCache.ts`、`settingsCache.ts`
-- `cloudSync.ts`、`initCloudSync.ts`
-- `cloudflaredTunnel.ts`、`ngrokTunnel.ts`、`tailscaleTunnel.ts`
-- `consoleInterceptor.ts`、`container.ts`、`gracefulShutdown.ts`、`idempotencyLayer.ts`
-- `ipUtils.ts`、`logEnv.ts`、`logPayloads.ts`、`logRotation.ts`
-- `modelAliasSeed.ts`、`modelCapabilities.ts`、`modelMetadataRegistry.ts`、`modelsDevSync.ts`
-- `piiSanitizer.ts`、`pricingSync.ts`
-- `apiKeyExposure.ts`、`cacheControlSettings.ts`、`dataPaths.ts`、`toolPolicy.ts`
-- `translatorEvents.ts`、`usageDb.ts`、`usageAnalytics.ts`、`webhookDispatcher.ts`
+- The old `localDb.ts` barrel was removed — consumers import specific `src/lib/db/*` modules directly.
+- `proxyHealth.ts`, `proxyLogger.ts`, `tokenHealthCheck.ts`, `localHealthCheck.ts`
+- `apiBridgeServer.ts`, `cacheLayer.ts`, `semanticCache.ts`, `settingsCache.ts`
+- `cloudSync.ts`, `initCloudSync.ts`
+- `cloudflaredTunnel.ts`, `ngrokTunnel.ts`, `tailscaleTunnel.ts`
+- `consoleInterceptor.ts`, `container.ts`, `gracefulShutdown.ts`, `idempotencyLayer.ts`
+- `ipUtils.ts`, `logEnv.ts`, `logPayloads.ts`, `logRotation.ts`
+- `modelAliasSeed.ts`, `modelCapabilities.ts`, `modelMetadataRegistry.ts`, `modelsDevSync.ts`
+- `piiSanitizer.ts`, `pricingSync.ts`
+- `apiKeyExposure.ts`, `cacheControlSettings.ts`, `dataPaths.ts`, `toolPolicy.ts`
+- `translatorEvents.ts`, `usageDb.ts`, `usageAnalytics.ts`, `webhookDispatcher.ts`
 
 #### 3.2.1 `src/lib/db/`
 
-单例 SQLite 数据库（`core.ts` 中的 `getDbInstance()`，WAL 日志模式）。
-**切勿在路由或处理器中直接写 SQL** — 应通过这些模块访问。
+Singleton SQLite database (`getDbInstance()` in `core.ts`, WAL journaling).
+**Never write raw SQL in routes or handlers** — go through these modules.
 
-![数据库 Schema 概览（精选核心表）](../diagrams/exported/db-schema-overview.svg)
+![Database schema overview (selected core tables)](../diagrams/exported/db-schema-overview.svg)
 
-> 来源：[diagrams/db-schema-overview.mmd](../diagrams/db-schema-overview.mmd)
+> Source: [diagrams/db-schema-overview.mmd](../diagrams/db-schema-overview.mmd)
 
-领域模块（每个模块拥有一张或多张表）：`apiKeys.ts`、`backup.ts`、
-`batches.ts`、`cleanup.ts`、`cliToolState.ts`、`combos.ts`、
-`commandCodeAuth.ts`、`compression.ts`、`compressionAnalytics.ts`、
-`compressionCacheStats.ts`、`compressionCombos.ts`、`compressionScheduler.ts`、
-`contextHandoffs.ts`、`core.ts`、`creditBalance.ts`、`databaseSettings.ts`、
-`detailedLogs.ts`、`domainState.ts`、`encryption.ts`、`evals.ts`、`files.ts`、
-`healthCheck.ts`、`jsonMigration.ts`、`migrationRunner.ts`、
-`modelComboMappings.ts`、`models.ts`、`oneproxy.ts`、`prompts.ts`、
-`providers.ts`、`providerLimits.ts`、`proxies.ts`、`quotaSnapshots.ts`、
-`readCache.ts`、`reasoningCache.ts`、`registeredKeys.ts`、`secrets.ts`、
-`sessionAccountAffinity.ts`、`settings.ts`、`stateReset.ts`、`stats.ts`、
-`syncTokens.ts`、`tierConfig.ts`、`upstreamProxy.ts`、`versionManager.ts`、
-`webhooks.ts`。
+Domain modules (each owns one or more tables): `apiKeys.ts`, `backup.ts`,
+`batches.ts`, `cleanup.ts`, `cliToolState.ts`, `combos.ts`,
+`commandCodeAuth.ts`, `compression.ts`, `compressionAnalytics.ts`,
+`compressionCacheStats.ts`, `compressionCombos.ts`, `compressionScheduler.ts`,
+`contextHandoffs.ts`, `core.ts`, `creditBalance.ts`, `databaseSettings.ts`,
+`detailedLogs.ts`, `domainState.ts`, `encryption.ts`, `evals.ts`, `files.ts`,
+`healthCheck.ts`, `jsonMigration.ts`, `migrationRunner.ts`,
+`modelComboMappings.ts`, `models.ts`, `oneproxy.ts`, `prompts.ts`,
+`providers.ts`, `providerLimits.ts`, `proxies.ts`, `quotaSnapshots.ts`,
+`readCache.ts`, `reasoningCache.ts`, `registeredKeys.ts`, `secrets.ts`,
+`sessionAccountAffinity.ts`, `settings.ts`, `stateReset.ts`, `stats.ts`,
+`syncTokens.ts`, `tierConfig.ts`, `upstreamProxy.ts`, `versionManager.ts`,
+`webhooks.ts`.
 
-`migrations/` 包含 55 个带版本号的 `.sql` 文件（幂等、事务性），由 `migrationRunner.ts` 在启动时执行。
+`migrations/` holds 168 versioned `.sql` files (idempotent, transactional) and is
+executed by `migrationRunner.ts` at boot.
 
-所有迁移中创建的表（52 张总计）：
+Tables created across the migrations (123 total):
 
-`a`、`account_key_limits`、`api_keys`、`batches`、`call_logs`、
-`combo_adaptation_state`、`combos`、`command_code_auth_sessions`、
-`compression_analytics`、`compression_cache_stats`、
-`compression_combo_assignments`、`compression_combos`、`context_handoffs`、
-`daily_usage_summary`、`db_meta`、`domain_budgets`、`domain_circuit_breakers`、
-`domain_cost_history`、`domain_fallback_chains`、`domain_lockout_state`、
-`eval_cases`、`eval_runs`、`eval_suites`、`files`、`hourly_usage_summary`、
-`key_value`、`mcp_tool_audit`、`memories`、`model_combo_mappings`、
-`provider_connections`、`provider_key_limits`、`provider_nodes`、
-`proxy_assignments`、`proxy_logs`、`proxy_registry`、`quota_snapshots`、
-`reasoning_cache`、`registered_keys`、`request_detail_logs`、
-`routing_decisions`、`semantic_cache`、`session_account_affinity`、
-`skill_executions`、`skills`、`sync_tokens`、`tier_assignments`、
-`tier_config`、`upstream_proxy_config`、`usage_history`、`version_manager`、
-`webhooks`（以及用于记忆搜索的 FTS5 虚拟表）。
+`a`, `account_key_limits`, `api_keys`, `batches`, `call_logs`,
+`combo_adaptation_state`, `combos`, `command_code_auth_sessions`,
+`compression_analytics`, `compression_cache_stats`,
+`compression_combo_assignments`, `compression_combos`, `context_handoffs`,
+`daily_usage_summary`, `db_meta`, `domain_budgets`, `domain_circuit_breakers`,
+`domain_cost_history`, `domain_fallback_chains`, `domain_lockout_state`,
+`eval_cases`, `eval_runs`, `eval_suites`, `files`, `hourly_usage_summary`,
+`key_value`, `mcp_tool_audit`, `memories`, `model_combo_mappings`,
+`provider_connections`, `provider_key_limits`, `provider_nodes`,
+`proxy_assignments`, `proxy_logs`, `proxy_registry`, `quota_snapshots`,
+`reasoning_cache`, `registered_keys`, `request_detail_logs`,
+`routing_decisions`, `semantic_cache`, `session_account_affinity`,
+`skill_executions`, `skills`, `sync_tokens`, `tier_assignments`,
+`tier_config`, `upstream_proxy_config`, `usage_history`, `version_manager`,
+`webhooks` (plus FTS5 virtual tables for memory search).
 
-### 3.3 `src/domain/` — 领域层
+### 3.3 `src/domain/` — Domain layer
 
-纯业务逻辑，无 I/O。被路由和处理器导入。
+Pure business logic, no I/O. Imported by routes and handlers.
 
-| 文件                                       | 用途                          |
-| ------------------------------------------ | ----------------------------- |
-| `policyEngine.ts`                          | 顶层策略解析器                |
-| `fallbackPolicy.ts`                        | 容灾决策树                    |
-| `costRules.ts`                             | 成本计算规则                  |
-| `lockoutPolicy.ts`                         | 模型锁定决策                  |
-| `tagRouter.ts`                             | 基于标签的路由                |
-| `comboResolver.ts`                         | Combo 解析（请求 → 目标列表） |
-| `connectionModelRules.ts`                  | 按连接过滤模型                |
-| `modelAvailability.ts`                     | 模型可用性检查                |
-| `degradation.ts`                           | 降级模式切换                  |
-| `providerExpiration.ts`                    | 过期账户/Key 检测             |
-| `quotaCache.ts`                            | 缓存配额决策                  |
-| `responses.ts`、`omnirouteResponseMeta.ts` | 响应格式辅助工具              |
-| `configAudit.ts`                           | 配置变更审计                  |
-| `assessment/`                              | 模型评估（按 RFC，部分实现）  |
-| `types.ts`                                 | 共享领域类型                  |
+| File                                       | Purpose                                           |
+| ------------------------------------------ | ------------------------------------------------- |
+| `policyEngine.ts`                          | Top-level policy resolver                         |
+| `fallbackPolicy.ts`                        | Fallback decision tree                            |
+| `costRules.ts`                             | Cost calculation rules                            |
+| `lockoutPolicy.ts`                         | Model lockout decisions                           |
+| `tagRouter.ts`                             | Tag-based routing                                 |
+| `comboResolver.ts`                         | Combo resolution from request → target list       |
+| `connectionModelRules.ts`                  | Per-connection model filters                      |
+| `modelAvailability.ts`                     | Model availability check                          |
+| `degradation.ts`                           | Degraded-mode transitions                         |
+| `providerExpiration.ts`                    | Expired account/key detection                     |
+| `quotaCache.ts`                            | Cached quota decisions                            |
+| `responses.ts`, `omnirouteResponseMeta.ts` | Response shape helpers                            |
+| `configAudit.ts`                           | Config change audit                               |
+| `assessment/`                              | Model assessment (per RFC, partially implemented) |
+| `types.ts`                                 | Shared domain types                               |
 
-### 3.4 `src/server/` — 服务端专用
+### 3.4 `src/server/` — Server-only
 
-不可从客户端组件导入。
+Cannot be imported from client components.
 
 ```
 server/
 ├── auth/loginGuard.ts
 ├── authz/
-│   ├── classify.ts        将路由分类为公开 vs 管理
-│   ├── assertAuth.ts      断言辅助工具
-│   ├── context.ts         按请求的 authz 上下文
+│   ├── classify.ts        Classifies routes as public vs management
+│   ├── assertAuth.ts      Assertion helper
+│   ├── context.ts         Per-request authz context
 │   ├── headers.ts
-│   ├── pipeline.ts        Authz 管道
-│   ├── policies/          具体策略
+│   ├── pipeline.ts        Authz pipeline
+│   ├── policies/          Concrete policies
 │   └── types.ts
-└── cors/origins.ts        CORS 来源白名单
+└── cors/origins.ts        CORS origin allowlist
 ```
 
-### 3.5 `src/shared/` — 安全共享模块
+### 3.5 `src/shared/` — Safe-to-share
 
-划分为聚焦的子目录：
+Split into focused subdirectories:
 
-- `constants/` — `providers.ts`（经 Zod 校验的服务商目录）、`models.ts`、
-  `modelSpecs.ts`、`modelCompat.ts`、`pricing.ts`、`cliTools.ts`、
-  `cliCompatProviders.ts`、`routingStrategies.ts`、`comboConfigMode.ts`、
-  `headers.ts`、`upstreamHeaders.ts`（拒绝名单）、`mcpScopes.ts`、
-  `errorCodes.ts`、`publicApiRoutes.ts`、`batch.ts`、`batchEndpoints.ts`、
-  `bodySize.ts`、`colors.ts`、`appConfig.ts`、`config.ts`、
-  `sidebarVisibility.ts`、`visionBridgeDefaults.ts`。
-- `validation/` — `schemas.ts`（约 80 个 Zod Schema）、`compressionConfigSchemas.ts`、
-  `providerSchema.ts`、`settingsSchemas.ts`、`helpers.ts`。
-- `contracts/` — 发布到 npm 的公开 API 契约。
-- `types/` — 共享 TS 类型。
-- `utils/` — `circuitBreaker.ts`、`apiAuth.ts`、`apiKey.ts`、`apiKeyPolicy.ts`、
-  `apiResponse.ts`、`api.ts`、`classify429.ts`、`cliCompat.ts`、`clipboard.ts`、
-  `cloud.ts`、`cn.ts`、`cors.ts`、`costEstimator.ts`、`featureFlags.ts`、
-  `fetchTimeout.ts`、`formatting.ts`、`inputSanitizer.ts`、`logger.ts`、
-  `machine.ts`、`machineId.ts`、`maskEmail.ts`、`modelCatalogSearch.ts`、
-  `nodeRuntimeSupport.ts`、`parseApiKeys.ts`、`providerHints.ts`、
-  `providerModelAliases.ts`、`rateLimiter.ts`、`releaseNotes.ts`、
-  `a11yAudit.ts`，以及 `services/`、`network/`、
-  `middleware/`、`schemas/`、`hooks/`、`components/` 下的仪表盘钩子/组件。
+- `constants/` — `providers.ts` (Zod-validated provider catalog), `models.ts`,
+  `modelSpecs.ts`, `modelCompat.ts`, `pricing.ts`, `cliTools.ts`,
+  `cliCompatProviders.ts`, `routingStrategies.ts`, `comboConfigMode.ts`,
+  `headers.ts`, `upstreamHeaders.ts` (denylist), `mcpScopes.ts`,
+  `errorCodes.ts`, `publicApiRoutes.ts`, `batch.ts`, `batchEndpoints.ts`,
+  `bodySize.ts`, `colors.ts`, `appConfig.ts`, `config.ts`,
+  `sidebarVisibility.ts`, `visionBridgeDefaults.ts`.
+- `validation/` — `schemas.ts` (~80 Zod schemas), `compressionConfigSchemas.ts`,
+  `providerSchema.ts`, `settingsSchemas.ts`, `helpers.ts`.
+- `contracts/` — public API contracts shipped to npm.
+- `types/` — shared TS types.
+- `utils/` — `circuitBreaker.ts`, `apiAuth.ts`, `apiKey.ts`, `apiKeyPolicy.ts`,
+  `api.ts`, `classify429.ts`, `cliCompat.ts`, `clipboard.ts`, `cloud.ts`, `cn.ts`,
+  `cors.ts`, `featureFlags.ts`,
+  `fetchTimeout.ts`, `formatting.ts`, `inputSanitizer.ts`, `logger.ts`,
+  `machine.ts`, `machineId.ts`, `maskEmail.ts`, `modelCatalogSearch.ts`,
+  `nodeRuntimeSupport.ts`, `parseApiKeys.ts`, `providerHints.ts`,
+  `providerModelAliases.ts`, `rateLimiter.ts`, `releaseNotes.ts`,
+  `a11yAudit.ts`, plus dashboard hooks/components under `services/`, `network/`,
+  `middleware/`, `schemas/`, `hooks/`, `components/`.
 
 ---
 
-## 4. `open-sse/` — 流式传输引擎工作空间
+## 4. `open-sse/` — Streaming engine workspace
 
-独立的 npm workspace，发布为 `@omniroute/open-sse`。负责请求处理、执行器、翻译器、服务、转换器和 MCP 服务器。
+Separate npm workspace published as `@omniroute/open-sse`. Owns request
+processing, executors, translators, services, transformer, and the MCP server.
 
 ```
 open-sse/
-├── index.ts                公开导出
-├── package.json            工作空间清单
+├── index.ts                Public exports
+├── package.json            Workspace manifest
 ├── tsconfig.json
 ├── types.d.ts
-├── config/                 服务商注册表、请求头配置、身份标识等
-├── handlers/               请求处理器（对话、嵌入、音频、图像等）
-├── executors/              45 个服务商专用 HTTP 执行器
-├── translator/             格式转换（OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro）
-├── transformer/            Responses API ↔ Chat Completions 流式转换器
-├── services/               80+ 服务模块（Combo、容灾、配额、身份等）
-├── utils/                  流式传输辅助、TLS 客户端、AWS SigV4、代理 fetch 等
-└── mcp-server/             MCP 服务器（3 种传输、30 个权限域、94 个工具）
+├── config/                 Provider registries, header profiles, identity, …
+├── handlers/               Request handlers (chat, embeddings, audio, image, …)
+├── executors/              108 provider-specific HTTP executors
+├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
+├── transformer/            Responses API ↔ Chat Completions stream transformer
+├── services/               80+ service modules (combos, fallback, quotas, identity, …)
+├── utils/                  Streaming helpers, TLS client, AWS SigV4, proxy fetch, …
+└── mcp-server/             MCP server (3 transports, 33 scopes, 110 tools)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
-| 处理器                  | 用途                                                 |
-| ----------------------- | ---------------------------------------------------- |
-| `chatCore.ts`           | 主对话管道（缓存、速率限制、Combo 路由、执行器调度） |
-| `responsesHandler.ts`   | OpenAI Responses API 入口                            |
-| `embeddings.ts`         | 嵌入                                                 |
-| `imageGeneration.ts`    | 图像生成                                             |
-| `audioSpeech.ts`        | Text-to-speech                                       |
-| `audioTranscription.ts` | Speech-to-text                                       |
-| `videoGeneration.ts`    | 视频生成                                             |
-| `musicGeneration.ts`    | 音乐生成                                             |
-| `rerank.ts`             | 重排序                                               |
-| `moderations.ts`        | 内容审核                                             |
-| `search.ts`             | 网页搜索                                             |
-| `sseParser.ts`          | SSE 事件解析器                                       |
-| `usageExtractor.ts`     | 从上游流中提取 Token 计数                            |
-| `responseSanitizer.ts`  | 去除服务商专用噪音                                   |
-| `responseTranslator.ts` | 服务商响应与翻译器层之间的粘合                       |
+| Handler                 | Purpose                                                                  |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `chatCore.ts`           | Main chat pipeline (cache, rate limit, combo routing, executor dispatch) |
+| `responsesHandler.ts`   | OpenAI Responses API entry point                                         |
+| `embeddings.ts`         | Embeddings                                                               |
+| `imageGeneration.ts`    | Image generation                                                         |
+| `audioSpeech.ts`        | Text-to-speech                                                           |
+| `audioTranscription.ts` | Speech-to-text                                                           |
+| `videoGeneration.ts`    | Video generation                                                         |
+| `musicGeneration.ts`    | Music generation                                                         |
+| `rerank.ts`             | Reranking                                                                |
+| `moderations.ts`        | Moderation                                                               |
+| `search.ts`             | Web search                                                               |
+| `sseParser.ts`          | SSE event parser                                                         |
+| `usageExtractor.ts`     | Pull token counts out of upstream streams                                |
+| `responseSanitizer.ts`  | Strip provider-specific noise                                            |
+| `responseTranslator.ts` | Glue between provider response and translator layer                      |
 
 ### 4.2 `open-sse/executors/`
 
-107 个服务商执行器，各自扩展 `BaseExecutor`（`base.ts`）：
+108 provider executors, each extending `BaseExecutor` (`base.ts`):
 
-`antigravity`、`azure-openai`、`blackbox-web`、`cliproxyapi`、
-`chatgpt-web-codex`、`cloudflare-ai`、`codex`、`commandCode`、`cursor`、`default`、`devin-cli`、
-`muse-spark-web`、`nlpcloud`、`opencode`、`perplexity-web`、`petals`、
-`pollinations`、`qoder`、`vertex`、`windsurf`，以及 `claudeIdentity.ts`
-（共享身份标识辅助）和 `index.ts`（注册表）。
+`antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
+`chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
+`muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
+`pollinations`, `qoder`, `vertex`, `devin-desktop`, plus `claudeIdentity.ts`
+(shared identity helper) and `index.ts` (registry).
 
-> 注意：未在此列出的服务商由 `default.ts` 通过通用 OpenAI 兼容执行器提供服务。完整的服务商目录（351 条目）位于 `src/shared/constants/providers.ts`。
+> Note: providers not listed here are served by `default.ts` using the generic
+> OpenAI-compatible executor. The full provider catalog (355 providers) lives in
+> `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
-中枢辐射式翻译（OpenAI 为中枢）。
+Hub-and-spoke translation (OpenAI is the hub).
 
-- **9 个请求翻译器**（`translator/request/`）：
-  `antigravity-to-openai`、`claude-to-gemini`、`claude-to-openai`、
-  `gemini-to-openai`、`openai-responses`、`openai-to-claude`、
-  `openai-to-cursor`、`openai-to-gemini`、`openai-to-kiro`。
-- **9 个响应翻译器**（`translator/response/`）：
-  `claude-to-openai`、`cursor-to-openai`、`gemini-to-claude`、`gemini-to-openai`、
-  `kiro-to-openai`、`openai-responses`、`openai-to-antigravity`、
-  `openai-to-claude`。
-- **9 个辅助工具**（`translator/helpers/`）：
-  `claudeHelper`、`geminiHelper`、`geminiToolsSanitizer`、`maxTokensHelper`、
-  `openaiHelper`、`responsesApiHelper`、`schemaCoercion`、`toolCallHelper`，以及
-  辅助工具测试。
-- **图片辅助工具**（`translator/image/sizeMapper.ts`）。
-- 顶层：`bootstrap.ts`、`formats.ts`、`registry.ts`、`index.ts`。
+- **9 request translators** (`translator/request/`):
+  `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
+  `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
+  `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`.
+- **9 response translators** (`translator/response/`):
+  `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
+  `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
+  `openai-to-claude`.
+- **9 helpers** (`translator/helpers/`):
+  `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
+  `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, plus
+  helper tests.
+- **Image helpers** (`translator/image/sizeMapper.ts`).
+- Top-level: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
-- `responsesTransformer.ts` — 基于 `TransformStream` 的 Responses API ↔ Chat
-  Completions 转换器（被 `responses/` 通配路由使用）。
+- `responsesTransformer.ts` — `TransformStream`-based Responses API ↔ Chat
+  Completions converter (used by the `responses/` route catch-all).
 
 ### 4.5 `open-sse/services/`
 
-重点关注（完整列表见 `open-sse/services/`）：
+Highlights (full list under `open-sse/services/`):
 
-| 关注领域        | 文件                                                                                                                                                                                                                                              |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Combo 路由      | `combo.ts`（17 种策略）、`comboConfig.ts`、`comboMetrics.ts`、`comboManifestMetrics.ts`、`comboAgentMiddleware.ts`                                                                                                                                |
-| Auto Combo 引擎 | `autoCombo/` — `engine.ts`、`scoring.ts`、`taskFitness.ts`、`virtualFactory.ts`、`modePacks.ts`、`autoPrefix.ts`、`persistence.ts`、`providerDiversity.ts`、`providerRegistryAccessor.ts`、`routerStrategy.ts`、`selfHealing.ts`、`index.ts`      |
-| 容灾            | `accountFallback.ts`（冷却 + 锁定）、`errorClassifier.ts`、`emergencyFallback.ts`、`rateLimitManager.ts`、`rateLimitSemaphore.ts`、`accountSemaphore.ts`、`accountSelector.ts`                                                                    |
-| 配额            | `quotaMonitor.ts`、`quotaPreflight.ts`、`bailianQuotaFetcher.ts`、`codexQuotaFetcher.ts`、`deepseekQuotaFetcher.ts`、`crofUsageFetcher.ts`、`antigravityCredits.ts`                                                                               |
-| 缓存            | `reasoningCache.ts`、`searchCache.ts`、`signatureCache.ts`、`requestDedup.ts`                                                                                                                                                                     |
-| 路由智能        | `intentClassifier.ts`、`taskAwareRouter.ts`、`backgroundTaskDetector.ts`、`volumeDetector.ts`、`wildcardRouter.ts`、`workflowFSM.ts`、`specificityDetector.ts`、`specificityRules.ts`、`specificityTypes.ts`                                      |
-| 模型处理        | `modelCapabilities.ts`、`modelDeprecation.ts`、`modelFamilyFallback.ts`、`modelStrip.ts`、`model.ts`、`provider.ts`、`providerRequestDefaults.ts`、`providerCostData.ts`、`payloadRules.ts`                                                       |
-| 压缩            | `compression/` — 完整的压缩引擎接线                                                                                                                                                                                                               |
-| Token + 会话    | `tokenRefresh.ts`、`sessionManager.ts`、`apiKeyRotator.ts`、`contextManager.ts`、`contextHandoff.ts`、`systemPrompt.ts`、`roleNormalizer.ts`、`responsesInputSanitizer.ts`、`toolSchemaSanitizer.ts`、`toolLimitDetector.ts`、`thinkingBudget.ts` |
-| 层级 / 清单     | `tierResolver.ts`、`tierConfig.ts`、`tierDefaults.json`、`tierTypes.ts`、`manifestAdapter.ts`                                                                                                                                                     |
-| IP / 网络       | `ipFilter.ts`、`webSearchFallback.ts`                                                                                                                                                                                                             |
-| 批次            | `batchProcessor.ts`                                                                                                                                                                                                                               |
-| 用量            | `usage.ts`                                                                                                                                                                                                                                        |
+| Concern              | Files                                                                                                                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Combo routing        | `combo.ts` (19 strategies), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                             |
+| Auto Combo engine    | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`      |
+| Resilience           | `accountFallback.ts` (cooldown + lockout), `errorClassifier.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                              |
+| Quotas               | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts`                       |
+| Caching              | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                     |
+| Routing intelligence | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                      |
+| Model handling       | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                       |
+| Compression          | `compression/` — full compression engine wiring                                                                                                                                                                                                   |
+| Token + session      | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts` |
+| Tier / manifest      | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                     |
+| IP / network         | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                             |
+| Batches              | `batchProcessor.ts`                                                                                                                                                                                                                               |
+| Usage                | `usage.ts`                                                                                                                                                                                                                                        |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **31 个已注册工具**，在 `server.ts` 中接线（12 个在 `schemas/tools.ts` 下分配了权限域，5 个压缩工具、3 个记忆工具、4 个技能工具，外加通过 `advancedTools.ts` 添加的高级工具）。
-- **3 种传输**：stdio、HTTP Streamable、SSE。
-- **13 个权限域**在 `src/shared/constants/mcpScopes.ts` 中声明。
-- 审计表：`mcp_tool_audit`（由 `audit.ts` 填充）。
-- 文件：`server.ts`、`index.ts`、`httpTransport.ts`、`audit.ts`、`scopeEnforcement.ts`、
-  `runtimeHeartbeat.ts`、`descriptionCompressor.ts`、`schemas/{tools, a2a, audit, index}.ts`、
-  `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`，
-  以及 `__tests__/` 下的测试。
-- 完整工具目录见 [MCP-SERVER.md](../frameworks/MCP-SERVER.md)。
+- **110 unique tools** wired in `server.ts` (45 canonical in `schemas/tools.ts` +
+  memory, skills, GitHub-skills, pool, gamification, plugin, Notion, Obsidian,
+  local-corpus and compression modules — union counted by `countUniqueMcpTools`).
+- **3 transports**: stdio, HTTP Streamable, SSE.
+- **33 scopes** enforced at runtime — base list in `src/shared/constants/mcpScopes.ts`, full set is the union of the scopes declared by each tool module.
+- Audit table: `mcp_tool_audit` (populated by `audit.ts`).
+- Files: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
+  `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
+  `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
+  plus tests under `__tests__/`.
+- See [MCP-SERVER.md](../frameworks/MCP-SERVER.md) for the full tool catalog.
 
 ### 4.7 `open-sse/config/`
 
-服务商注册表（`providerRegistry.ts`、`providerModels.ts`、
-`providerHeaderProfiles.ts`）、按格式的模型注册表（`audioRegistry.ts`、
-`embeddingRegistry.ts`、`imageRegistry.ts`、`moderationRegistry.ts`、
-`musicRegistry.ts`、`rerankRegistry.ts`、`searchRegistry.ts`、`videoRegistry.ts`）、
-身份辅助工具（`codexIdentity.ts`、`codexInstructions.ts`、
-`anthropicHeaders.ts`、`antigravityUpstream.ts`、`antigravityModelAliases.ts`、
-`cliFingerprints.ts`、`toolCloaking.ts`、`defaultThinkingSignature.ts`）、
-凭据辅助工具（`credentialLoader.ts`、`codexClient.ts`）以及云适配器
-（`azureAi.ts`、`bedrock.ts`、`datarobot.ts`、`glmProvider.ts`、
-`maritalk.ts`、`oci.ts`、`petals.ts`、`runway.ts`、`sap.ts`、`watsonx.ts`、
-`ollamaModels.ts`、`errorConfig.ts`、`constants.ts`、`registryUtils.ts`）。
+Provider registries (`providerRegistry.ts`, `providerModels.ts`,
+`providerHeaderProfiles.ts`), per-format model registries (`audioRegistry.ts`,
+`embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
+`musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
+identity helpers (`codexIdentity.ts`, `codexInstructions.ts`,
+`anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
+`cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
+credential helpers (`credentialLoader.ts`, `codexClient.ts`), and cloud
+adapters (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
+`maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
+`ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
 
 ### 4.8 `open-sse/utils/`
 
-流式传输基础和服务商辅助工具：`stream.ts`、`streamHandler.ts`、
-`streamHelpers.ts`、`streamPayloadCollector.ts`、`streamReadiness.ts`、
-`sseHeartbeat.ts`、`proxyFetch.ts`、`proxyDispatcher.ts`、`tlsClient.ts`、
-`networkProxy.ts`、`awsSigV4.ts`、`cacheControlPolicy.ts`、
-`cursorChecksum.ts`、`cursorAgentProtobuf.ts`、`cursorVersionDetector.ts`、
-`comfyuiClient.ts`、`kieTask.ts`、`bypassHandler.ts`、`aiSdkCompat.ts`、
-`thinkTagParser.ts`、`urlSanitize.ts`、`usageTracking.ts`、`requestLogger.ts`、
-`progressTracker.ts`、`cors.ts`、`error.ts`、`logger.ts`、`sleep.ts`、
-`ollamaTransform.ts`。
+Streaming primitives and provider helpers: `stream.ts`, `streamHandler.ts`,
+`streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
+`sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
+`networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,
+`cursorChecksum.ts`, `cursorAgentProtobuf.ts`, `cursorVersionDetector.ts`,
+`comfyuiClient.ts`, `kieTask.ts`, `bypassHandler.ts`, `aiSdkCompat.ts`,
+`thinkTagParser.ts`, `urlSanitize.ts`, `usageTracking.ts`, `requestLogger.ts`,
+`progressTracker.ts`, `cors.ts`, `error.ts`, `logger.ts`, `sleep.ts`,
+`ollamaTransform.ts`.
 
 ---
 
-## 5. `electron/` — 桌面端封装
+## 5. `apps/desktop/` — Desktop shell (Tauri 2)
 
 ```
-electron/
-├── main.js                  Electron 主进程
-├── preload.js               Preload 桥接（contextIsolation 已启用）
-├── types.d.ts
-├── package.json             electron-builder 配置，版本 3.8.0
-├── README.md
-├── assets/                  构建资源（图标、权限声明等）
-├── node_modules/            专用 node_modules（better-sqlite3、electron-updater）
-└── dist-electron/           构建输出（不提交）
+apps/desktop/
+├── src-tauri/
+│   ├── src/main.rs          App entry (tauri::Builder)
+│   ├── src/lifecycle.rs     Window / tray lifecycle and readiness
+│   ├── src/commands.rs      #[tauri::command] IPC handlers
+│   ├── capabilities/        Tauri capability grants (default.json)
+│   ├── tauri.conf.json      App config (product name, version, CSP, bundle)
+│   ├── Entitlements.plist   macOS entitlements
+│   ├── icons/               Bundle icons
+│   └── target/              Build output (not committed)
+├── tests/                   Desktop smoke + parity-contract tests
+└── package.json             Workspace scripts (@omniroute/desktop)
 ```
 
-工作空间根目录下五个 npm 脚本：`electron:dev`、`electron:build`、
-`electron:build:{win,mac,linux}`、`electron:smoke:packaged`。自动更新通过
-`electron-updater` 指向 GitHub Release 源实现。
+The Rust shell owns desktop lifecycle and readiness only; provider routing stays
+in the API/runtime layers. It embeds the frontend SPA through the
+`custom-protocol` feature (a default Cargo feature). Build with `cargo tauri
+build` from `apps/desktop/src-tauri`; artifacts land in
+`src-tauri/target/release/bundle/`. Dev mode: `cargo tauri dev`. See
+`docs/guides/DESKTOP_GUIDE.md`.
 
 ---
 
@@ -578,28 +619,28 @@ electron/
 
 ```
 bin/
-├── omniroute.mjs           主 CLI 入口（Node ESM）
-├── reset-password.mjs      通过 CLI 重置管理密码
-├── mcp-server.mjs          MCP 服务器启动器（stdio）
-├── nodeRuntimeSupport.mjs  Node 版本守卫
+├── omniroute.mjs           Main CLI entry (Node ESM)
+├── reset-password.mjs      Reset the management password from CLI
+├── mcp-server.mjs          MCP server launcher (stdio)
+├── nodeRuntimeSupport.mjs  Node version guard
 └── cli/
-    ├── program.mjs         Commander 程序构建器
-    ├── runtime.mjs         withRuntime 辅助（优先服务器/回退到 DB）
-    ├── output.mjs          输出格式化器（json/jsonl/table/csv）
-    ├── i18n.mjs            t() 辅助，带语言包
-    ├── api.mjs             API fetch 辅助
+    ├── program.mjs         Commander program builder
+    ├── runtime.mjs         withRuntime helper (server-first/db-fallback)
+    ├── output.mjs          Output formatters (json/jsonl/table/csv)
+    ├── i18n.mjs            t() helper with locales
+    ├── api.mjs             API fetch helper
     ├── data-dir.mjs
     ├── encryption.mjs
     ├── sqlite.mjs
     └── commands/
-        ├── registry.mjs    命令注册
+        ├── registry.mjs    Command registration
         ├── setup.mjs
         ├── doctor.mjs
         ├── providers.mjs
-        └── ...             每个命令/组一个文件
+        └── ...             (one file per command/group)
 ```
 
-`package.json` → `bin` 中暴露两个二进制文件：
+Two binaries are exposed in `package.json` → `bin`:
 
 - `omniroute` → `bin/omniroute.mjs`
 - `omniroute-reset-password` → `bin/reset-password.mjs`
@@ -608,191 +649,224 @@ bin/
 
 ## 7. `tests/`
 
-| 目录                                                 | 类型                                                                              |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `tests/unit/`                                        | Node 原生测试运行器的单元测试（1821 个文件，含 `api/`、`auth/`、`authz/` 子目录） |
-| `tests/integration/`                                 | 跨模块 + DB 状态测试                                                              |
-| `tests/e2e/`                                         | Playwright UI 测试                                                                |
-| `tests/protocols-e2e/`                               | MCP/A2A 协议端到端                                                                |
-| `tests/translator/`                                  | 翻译器专用测试                                                                    |
-| `tests/security/`                                    | 安全回归测试                                                                      |
-| `tests/load/`                                        | 负载 / 压力测试                                                                   |
-| `tests/golden-set/`                                  | 翻译器回归参考输出                                                                |
-| `tests/helpers/`、`tests/fixtures/`、`tests/manual/` | 支撑                                                                              |
+| Directory                                            | Type                                                                                        |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `tests/unit/`                                        | Unit tests via Node native test runner (1821 files, plus `api/`, `auth/`, `authz/` subdirs) |
+| `tests/integration/`                                 | Cross-module + DB-state tests                                                               |
+| `tests/e2e/`                                         | Playwright UI tests                                                                         |
+| `tests/e2e/protocol-clients.test.ts`                 | MCP/A2A protocol e2e                                                                        |
+| `tests/translator/`                                  | Translator-specific tests                                                                   |
+| `tests/security/`                                    | Security regressions                                                                        |
+| `tests/load/`                                        | Load / stress tests                                                                         |
+| `tests/golden-set/`                                  | Reference outputs for translator regressions                                                |
+| `tests/helpers/`, `tests/fixtures/`, `tests/manual/` | Support                                                                                     |
 
-常用命令：
+Common commands:
 
-| 命令                                                     | 运行内容                                                |
-| -------------------------------------------------------- | ------------------------------------------------------- |
-| `npm run test:unit`                                      | `tests/unit/*.test.ts` 全部（Node 测试运行器，并发 10） |
-| `npm run test:vitest`                                    | Vitest 套件（MCP、autoCombo、缓存）                     |
-| `npm run test:e2e`                                       | Playwright UI 套件                                      |
-| `npm run test:protocols:e2e`                             | MCP + A2A 协议端到端                                    |
-| `npm run test:coverage`                                  | 覆盖率门槛（行/语句/函数/分支 ≥ 60%）                   |
-| `node --import tsx/esm --test tests/unit/<file>.test.ts` | 单文件运行                                              |
+| Command                                                  | What it runs                                                     |
+| -------------------------------------------------------- | ---------------------------------------------------------------- |
+| `npm run test:unit`                                      | All `tests/unit/*.test.ts` via Node test runner (concurrency 10) |
+| `npm run test:vitest`                                    | Vitest suite (MCP, autoCombo, cache)                             |
+| `npm run test:e2e`                                       | Playwright UI suite                                              |
+| `npm run test:protocols:e2e`                             | MCP + A2A protocol e2e                                           |
+| `npm run test:coverage`                                  | Coverage gate (≥60% lines/statements/functions/branches)         |
+| `node --import tsx/esm --test tests/unit/<file>.test.ts` | Single file run                                                  |
 
 ---
 
 ## 8. `scripts/`
 
-按用途分为 6 个子文件夹。
+Organized into 6 subfolders by purpose.
 
-- **`scripts/build/`** — `build-next-isolated.mjs`、`prepublish.ts`、
-  `prepare-electron-standalone.mjs`、`pack-artifact-policy.ts`、
-  `validate-pack-artifact.ts`、`postinstall.mjs`、`postinstallSupport.mjs`、
-  `uninstall.mjs`、`bootstrap-env.mjs`、`runtime-env.mjs`、
-  `native-binary-compat.mjs`。
-- **`scripts/dev/`** — `run-next.mjs`、`run-next-playwright.mjs`、
-  `run-standalone.mjs`、`standalone-server-ws.mjs`、`responses-ws-proxy.mjs`、
-  `v1-ws-bridge.mjs`、`smoke-electron-packaged.mjs`、
-  `run-playwright-tests.mjs`、`run-ecosystem-tests.mjs`、
-  `run-protocol-clients-tests.mjs`、`sync-env.mjs`、`healthcheck.mjs`、
-  `system-info.mjs`。
-- **`scripts/check/`** — `check-cycles.mjs`、`check-docs-sync.mjs`、
-  `check-docs-counts-sync.mjs`、`check-env-doc-sync.mjs`、
-  `check-deprecated-versions.mjs`、`check-route-validation.mjs`、
-  `check-t11-any-budget.mjs`、`check-pr-test-policy.mjs`、
-  `check-supported-node-runtime.ts`、`test-report-summary.mjs`。
-- **`scripts/docs/`** — `generate-docs-index.mjs`、`gen-provider-reference.ts`。
-- **`scripts/i18n/`** — `generate-multilang.mjs`、`run-visual-qa.mjs`、
-  `generate-qa-checklist.mjs`、`apply-priority-overrides.mjs`、
-  `validate_translation.py`、`check_translations.py`、`i18n_autotranslate.py`、
-  `untranslatable-keys.json`。
-- **`scripts/ad-hoc/`** — `cursor-tap.cjs`、`sync-cursor-models.mjs`、
-  `migrate-env.mjs`、`dbsetup.js`。
+- **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
+  `pack-artifact-policy.ts`,
+  `validate-pack-artifact.ts`, `postinstall.mjs`, `postinstallSupport.mjs`,
+  `uninstall.mjs`, `bootstrap-env.mjs`, `runtime-env.mjs`,
+  `native-binary-compat.mjs`.
+- **`scripts/dev/`** — `run-next.mjs`, `run-next-playwright.mjs`,
+  `run-standalone.mjs`, `standalone-server-ws.mjs`, `responses-ws-proxy.mjs`,
+  `v1-ws-bridge.mjs`, `run-playwright-tests.mjs`, `run-ecosystem-tests.mjs`,
+  `run-protocol-clients-tests.mjs`, `sync-env.mjs`, `healthcheck.mjs`,
+  `system-info.mjs`.
+- **`scripts/check/`** — `check-cycles.mjs`, `check-docs-sync.mjs`,
+  `check-docs-counts-sync.mjs`, `check-env-doc-sync.mjs`,
+  `check-deprecated-versions.mjs`, `check-route-validation.mjs`,
+  `check-t11-any-budget.mjs`, `check-pr-test-policy.mjs`,
+  `check-supported-node-runtime.ts`, `test-report-summary.mjs`.
+- **`scripts/docs/`** — `generate-docs-index.mjs`, `gen-provider-reference.ts`.
+- **`scripts/i18n/`** — `generate-multilang.mjs`, `run-visual-qa.mjs`,
+  `generate-qa-checklist.mjs`, `apply-priority-overrides.mjs`,
+  `validate_translation.py`, `check_translations.py`, `i18n_autotranslate.py`,
+  `untranslatable-keys.json`.
+- **`scripts/ad-hoc/`** — `cursor-tap.cjs`, `sync-cursor-models.mjs`,
+  `migrate-env.mjs`, `dbsetup.js`.
 
 ---
 
-## 9. 请求管道（摘要）
+## 9. Request Pipeline (Summary)
 
-![请求管道（/v1/chat/completions）](../diagrams/exported/request-pipeline.svg)
+![Request pipeline (/v1/chat/completions)](../diagrams/exported/request-pipeline.svg)
 
-> 来源：[diagrams/request-pipeline.mmd](../diagrams/request-pipeline.mmd)
+> Source: [diagrams/request-pipeline.mmd](../diagrams/request-pipeline.mmd)
 
 ```
-客户端请求
+Client request
   → /v1/chat/completions (route.ts)
-     CORS 预检
-     Zod 校验（shared/validation/schemas.ts 中的 chatCompletionsSchema）
-     认证（extractApiKey + isValidApiKey 或 requireManagementAuth）
-     策略引擎（src/server/authz/pipeline.ts）
-     安全护栏（PII 脱敏、提示注入、视觉桥接）
-  → handleChatCore()（open-sse/handlers/chatCore.ts）
-     缓存检查（语义缓存 + 读取缓存）
-     速率限制（rateLimitManager、accountSemaphore）
-     Combo 路由（若模型解析为 Combo）
-       comboResolver → 逐目标循环 → handleSingleModel()
-     translateRequest()（open-sse/translator/request/*）
-     getExecutor(providerId).execute()（open-sse/executors/*）
-       获取上游 → 通过 accountFallback 重试/退避
-     translateResponse()（open-sse/translator/response/*）
-     SSE 流 或 JSON 响应
-     若为 Responses API：通过 open-sse/transformer/responsesTransformer.ts 的 TransformStream
-  → 合规审计（src/lib/compliance/）
-  → 响应到客户端
+     CORS preflight check
+     Zod validation (chatCompletionsSchema in shared/validation/schemas.ts)
+     Auth (extractApiKey + isValidApiKey OR requireManagementAuth)
+     Policy engine (src/server/authz/pipeline.ts)
+     Guardrails (PII masker, prompt injection, vision bridge)
+  → handleChatCore() (open-sse/handlers/chatCore.ts)
+     Cache check (semantic + read cache)
+     Rate limit (rateLimitManager, accountSemaphore)
+     Combo routing (if model resolves to a combo)
+       comboResolver → loop per target → handleSingleModel()
+     translateRequest()  (open-sse/translator/request/*)
+     getExecutor(providerId).execute()  (open-sse/executors/*)
+       fetch upstream → retry/backoff via accountFallback
+     translateResponse() (open-sse/translator/response/*)
+     SSE stream OR JSON response
+     If Responses API: TransformStream via open-sse/transformer/responsesTransformer.ts
+  → Compliance audit (src/lib/compliance/)
+  → Response to client
 ```
 
-### 容灾运行时状态（三种机制）
+### Resilience runtime state (three mechanisms)
 
-| 机制         | 范围                 | 位置                                                                                                       |
-| ------------ | -------------------- | ---------------------------------------------------------------------------------------------------------- |
-| 服务商熔断器 | 整个服务商           | `src/shared/utils/circuitBreaker.ts`，持久化于 `domain_circuit_breakers`                                   |
-| 连接冷却     | 单个账户/Key         | `src/sse/services/auth.ts` 中的 `markAccountUnavailable()`；由 `accountFallback.checkFallbackError()` 消费 |
-| 模型锁定     | 服务商 + 连接 + 模型 | `open-sse/services/accountFallback.ts`，持久化于 `domain_lockout_state`                                    |
+| Mechanism                | Scope                         | Where                                                                                                        |
+| ------------------------ | ----------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Provider circuit breaker | Whole provider                | `src/shared/utils/circuitBreaker.ts`, persisted in `domain_circuit_breakers`                                 |
+| Connection cooldown      | One account/key               | `markAccountUnavailable()` in `src/sse/services/auth.ts`; consumed by `accountFallback.checkFallbackError()` |
+| Model lockout            | Provider + connection + model | `open-sse/services/accountFallback.ts`, persisted in `domain_lockout_state`                                  |
 
-参见 [RESILIENCE_GUIDE.md](./RESILIENCE_GUIDE.md) 和 [CLAUDE.md](../../CLAUDE.md) 中的专门章节。
-
----
-
-## 10. 贡献指南
-
-### 添加新服务商
-
-1. 在 `src/shared/constants/providers.ts` 中注册（加载时 Zod 校验）。
-2. 若需自定义逻辑，在 `open-sse/executors/` 中添加执行器（扩展 `BaseExecutor`）。
-3. 若不使用 OpenAI 格式，在 `open-sse/translator/` 中添加翻译器。
-4. 若基于 OAuth，在 `src/lib/oauth/providers/` 和 `src/lib/oauth/services/` 下添加配置。
-5. 在 `open-sse/config/providerRegistry.ts`（或 `open-sse/config/` 下按格式的注册表）中注册模型。
-6. 在 `tests/unit/` 下编写测试。
-
-### 添加新 API 路由
-
-1. 创建 `src/app/api/your-route/route.ts`。
-2. 遵循模式：CORS → Zod 请求体验证 → 认证 → 处理器委托。
-3. 若是新请求格式：在 `src/shared/validation/schemas.ts` 中添加 Zod Schema。
-4. 仅管理端点：将路径添加到 `src/shared/constants/publicApiRoutes.ts`（公开 API 层拒绝名单）。
-5. 在 `tests/unit/` 下添加测试。
-6. 更新 `docs/reference/API_REFERENCE.md` 和 `docs/openapi.yaml`。
-
-### 添加新 DB 模块
-
-1. 创建 `src/lib/db/yourModule.ts`，从 `./core.ts` 导入 `getDbInstance()`。
-2. 导出你领域的 CRUD 函数。
-3. 若需新表：在 `src/lib/db/migrations/` 下添加迁移文件，按序编号，幂等、事务性。
-4. 从 `src/lib/localDb.ts` 重新导出（仅限重新导出 — **无逻辑**）。
-5. 在 `tests/unit/` 下添加测试。
-
-### 添加新 MCP 工具
-
-1. 在 `open-sse/mcp-server/tools/` 下添加工具定义（或扩展 `open-sse/mcp-server/schemas/tools.ts`）。
-2. 在 `src/shared/constants/mcpScopes.ts` 中分配适当的权限域。
-3. 在 `open-sse/mcp-server/server.ts` 中注册该工具。
-4. 在 `open-sse/mcp-server/__tests__/` 下添加测试。
-5. 更新 [MCP-SERVER.md](../frameworks/MCP-SERVER.md)。
-
-### 添加新 A2A 技能
-
-参见 [A2A-SERVER.md § 添加新技能](../frameworks/A2A-SERVER.md)。技能位于 `src/lib/a2a/skills/`，通过 A2A 任务管理器注册。
+See [RESILIENCE_GUIDE.md](./RESILIENCE_GUIDE.md) and the dedicated section in
+[CLAUDE.md](../../CLAUDE.md).
 
 ---
 
-## 11. 约定
+## 10. How to Contribute
 
-- **代码风格**：2 空格缩进，双引号，100 字符宽度，强制分号，
-  `es5` 尾逗号 — 由 Prettier 通过 `lint-staged` 强制执行。
-- **导入**：外部 → 内部（`@/`、`@omniroute/open-sse`）→ 相对路径。
-- **命名**：文件 `camelCase` 或 `kebab-case`，组件 `PascalCase`，
-  常量 `UPPER_SNAKE`。
-- **ESLint**：`no-eval`、`no-implied-eval`、`no-new-func` = 全局 `error`；
-  `no-explicit-any` = `open-sse/` 和 `tests/` 中 `warn`，其他位置 `error`。
-- **TypeScript**：`strict: false`（历史遗留）。跨模块边界优先显式类型而非类型推断。
-- **数据库**：切勿在路由或处理器中直接写 SQL — 始终通过 `src/lib/db/` 模块。切勿向 `src/lib/localDb.ts` 添加逻辑。
-- **错误处理**：try/catch 使用具体错误类型，以 pino 上下文记录日志。切勿在 SSE 流中静默吞噬错误；使用 abort signal 进行清理。
-- **安全**：切勿使用 `eval()` / `new Function()` / 隐式 eval。所有输入以 Zod 校验。凭据使用 AES-256-GCM 静态加密。保持 `src/shared/constants/upstreamHeaders.ts` 拒绝名单与清洗/校验层对齐。
-- **提交**：Conventional Commits — `feat(scope): subject`。允许的 scope：`db`、`sse`、`oauth`、`dashboard`、`api`、`cli`、`docker`、`ci`、`mcp`、`a2a`、`memory`、`skills`。
-- **分支**：前缀 `feat/`、`fix/`、`refactor/`、`docs/`、`test/`、
-  `chore/`。切勿直接提交到 `main`。
-- **Husky**：pre-commit 运行 `lint-staged` + `check:docs-sync` + `check:any-budget:t11`；pre-push 运行 `check:any-budget:t11` + `check:tracked-artifacts`（快速门禁；不含 `test:unit`）。
+### Add a new provider
+
+1. Register in `src/shared/constants/providers.ts` (Zod-validated at load).
+2. Add an executor in `open-sse/executors/` if custom logic is required
+   (extend `BaseExecutor`).
+3. Add a translator in `open-sse/translator/` if it does not speak OpenAI format.
+4. If OAuth-based, add config under `src/lib/oauth/providers/` and
+   `src/lib/oauth/services/`.
+5. Register models in `open-sse/config/providerRegistry.ts` (or the format-specific
+   registry under `open-sse/config/`).
+6. Write tests under `tests/unit/`.
+
+### Add a new API route
+
+1. Create `src/app/api/your-route/route.ts`.
+2. Follow the pattern: CORS → Zod body validation → auth → handler delegation.
+3. If new request shape: add the Zod schema in `src/shared/validation/schemas.ts`.
+4. If management-only: add the path to `src/shared/constants/publicApiRoutes.ts`
+   (denylist for the public API surface).
+5. Add tests under `tests/unit/`.
+6. Update `docs/reference/API_REFERENCE.md` and `docs/openapi.yaml`.
+
+### Add a new DB module
+
+1. Create `src/lib/db/yourModule.ts` and import `getDbInstance()` from `./core.ts`.
+2. Export CRUD functions for your domain.
+3. If new tables: add a migration under `src/lib/db/migrations/`, numbered
+   sequentially, idempotent, transactional.
+4. Importers use direct imports from `@/lib/db/yourModule` (no barrel — the old `localDb.ts` re-export layer was removed).
+5. Add tests under `tests/unit/`.
+
+### Add a new MCP tool
+
+1. Add the tool definition under `open-sse/mcp-server/tools/` (or extend
+   `open-sse/mcp-server/schemas/tools.ts`).
+2. Assign the appropriate scope(s) in `src/shared/constants/mcpScopes.ts`.
+3. Register the tool in `open-sse/mcp-server/server.ts`.
+4. Add tests under `open-sse/mcp-server/__tests__/`.
+5. Update [MCP-SERVER.md](../frameworks/MCP-SERVER.md).
+
+### Add a new A2A skill
+
+See [A2A-SERVER.md § Adding a New Skill](../frameworks/A2A-SERVER.md). Skills live in
+`src/lib/a2a/skills/` and are registered through the A2A task manager.
 
 ---
 
-## 12. 硬规则（来自 CLAUDE.md）
+## 11. Conventions
 
-1. 切勿提交机密或凭据。
-2. 切勿向 `src/lib/localDb.ts` 添加逻辑。
-3. 切勿使用 `eval()` / `new Function()` / 隐式 eval。
-4. 切勿直接提交到 `main`。
-5. 切勿在路由中直接写 SQL — 始终通过 `src/lib/db/` 模块。
-6. 切勿在 SSE 流中静默吞噬错误。
-7. 始终以 Zod Schema 校验输入。
-8. 修改生产代码时始终包含测试。
-9. 覆盖率必须保持 ≥ 60%（语句、行、函数、分支）。
+- **Code style**: 2-space indent, double quotes, 100 char width, semicolons,
+  `es5` trailing commas — enforced by Prettier via `lint-staged`.
+- **Imports**: external → internal (`@/`, `@omniroute/open-sse`) → relative.
+- **Naming**: files `camelCase` or `kebab-case`, components `PascalCase`,
+  constants `UPPER_SNAKE`.
+- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = `error` everywhere;
+  `no-explicit-any` = `warn` in `open-sse/` and `tests/`, error elsewhere.
+- **TypeScript**: `strict: false` (legacy posture). Prefer explicit types over
+  inference for cross-module boundaries.
+- **Database**: never write raw SQL in routes or handlers — always go through
+  `src/lib/db/` modules. Never barrel-import — use specific `src/lib/db/*` modules directly.
+- **DB-entity typing (#3512)**: a function that writes or reads a DB table's
+  row shape should take/return a named TS interface mirroring that table's
+  columns 1:1, not `any` or an inline anonymous type at the call site. Land
+  the interface next to the function (e.g. `export interface UsageEntry` in
+  `src/lib/usage/usageHistory.ts` above `saveRequestUsage`), keep individual
+  fields optional/nullable when different writers populate the row
+  incrementally, and prefer `unknown` over `any` for a field whose shape
+  varies across callers (documented on the field, e.g. `UsageEntry.tokens`
+  accepts both raw provider-shaped usage and the normalized shape). Once a
+  file's `any` count reaches zero this way, add it to the
+  `check:any-budget:t11` allowlist (`scripts/check/check-t11-any-budget.mjs`,
+  `maxAny: 0`) so it can't regress. This is a first-slice convention — the
+  broader "no anonymous `any`" cleanup is iterative across the rest of the
+  codebase.
+- **Errors**: try/catch with specific error types, log with pino context. Never
+  silently swallow errors in SSE streams; use abort signals for cleanup.
+- **Security**: never use `eval()` / `new Function()` / implied eval. Validate
+  all inputs with Zod. Encrypt credentials at rest (AES-256-GCM). Keep
+  `src/shared/constants/upstreamHeaders.ts` denylist aligned with the
+  sanitize/validation layer.
+- **Commits**: Conventional Commits — `feat(scope): subject`. Allowed scopes:
+  `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`,
+  `a2a`, `memory`, `skills`.
+- **Branches**: prefixes `feat/`, `fix/`, `refactor/`, `docs/`, `test/`,
+  `chore/`. Never commit directly to `main`.
+- **Husky**: pre-commit runs `lint-staged` + `check:docs-sync` +
+  `check:any-budget:t11`; pre-push runs `check:any-budget:t11` + `check:tracked-artifacts` (fast gates; excludes `test:unit`).
 
 ---
 
-## 13. 参见
+## 12. Hard Rules (from CLAUDE.md)
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — 高层架构及模块职责。
-- [API_REFERENCE.md](../reference/API_REFERENCE.md) — 公开 + 管理 API 参考。
-- [FEATURES.md](../guides/FEATURES.md) — 功能矩阵及版本亮点。
-- [RESILIENCE_GUIDE.md](./RESILIENCE_GUIDE.md) — 熔断器、冷却、锁定深入解析。
-- [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — Auto Combo 评分与策略。
-- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — 完整 MCP 工具目录 + 传输。
-- [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A 协议技能与发现。
-- [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman 压缩。
-- [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI 集成。
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md)（如果存在）、[DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md)、[FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md)、[VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md)、[TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md)、[PWA_GUIDE.md](../guides/PWA_GUIDE.md) — 部署目标。
-- [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — 常见运维问题。
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) — 贡献者工作流。
-- [CLAUDE.md](../../CLAUDE.md) — 面向 Claude Code 的仓库规则（上述约定的权威来源）。
-- [AGENTS.md](../../AGENTS.md) — 面向 Agent 的深层架构参考。
+1. Never commit secrets or credentials.
+2. Never barrel-import — use specific `src/lib/db/*` modules directly.
+3. Never use `eval()` / `new Function()` / implied eval.
+4. Never commit directly to `main`.
+5. Never write raw SQL in routes — always go through `src/lib/db/` modules.
+6. Never silently swallow errors in SSE streams.
+7. Always validate inputs with Zod schemas.
+8. Always include tests when changing production code.
+9. Coverage must stay ≥ 60% (statements, lines, functions, branches).
+
+---
+
+## 13. See Also
+
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — high-level architecture and module
+  responsibilities.
+- [API_REFERENCE.md](../reference/API_REFERENCE.md) — public + management API reference.
+- [FEATURES.md](../guides/FEATURES.md) — feature matrix and version highlights.
+- [RESILIENCE_GUIDE.md](./RESILIENCE_GUIDE.md) — circuit breaker, cooldown,
+  lockout deep dive.
+- [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — Auto Combo scoring and strategies.
+- [MCP-SERVER.md](../frameworks/MCP-SERVER.md) — full MCP tool catalog + transports.
+- [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A protocol skills and discovery.
+- [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman compression.
+- [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI integrations.
+- [DESKTOP_GUIDE.md](../guides/DESKTOP_GUIDE.md), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — deployment targets.
+- [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — common operational issues.
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) — contributor workflow.
+- [CLAUDE.md](../../CLAUDE.md) — repo rules for Claude Code (the source of truth
+  for many of the conventions above).
+- [AGENTS.md](../../AGENTS.md) — deeper architecture reference used by agents.

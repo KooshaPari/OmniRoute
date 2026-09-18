@@ -127,77 +127,32 @@ URLs predefiniti:
 
 ---
 
-## Flux ta' Git
-
-> ⚠️ **QATT ma tcommetti direttament għal `main`.** Uża daqsbranches ta' features.
->
-> **Base tal-PR:** targetta l-`release/vX.Y.Z` attiva (mhux `main`). Ara
-> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md) għall-
-> modell release-per-branch + tag-at-ship.
+## Running Tests
 
 ```bash
-# Branch mill-punt release attiv (eżempju: release/v3.8.49)
-git fetch origin
-git checkout -b feat/your-feature-name origin/release/v3.8.49
-# ... agħmel bidla ...
-git commit -m "feat: deskrivi l-bidla tiegħek"
-git push -u origin feat/your-feature-name
-# Iftah Pull Request b'base = release/v3.8.49
-```
-
-### Konvenzjoni ta' Isem tal-Branch
-
-| Prefix      | Skop                             |
-| ----------- | -------------------------------- |
-| `feat/`     | Features ġodda                   |
-| `fix/`      | Fixes ta' bugs                   |
-| `refactor/` | Restrutturazzjoni tal-kod        |
-| `docs/`     | Bidliet fid-dokumentazzjoni      |
-| `test/`     | Aġġornamenti/fixes tat-testijiet |
-| `chore/`    | Tooling, CI, dipendenzi          |
-
-### Messaggi ta' Commit
-
-Sewi [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update SECURITY.md with PII protection
-test: add observability unit tests
-refactor(db): consolidate rate limit tables
-```
-
-Scopes (v3.8): `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`, `cloud-agent`, `guardrails`, `compression`, `auto-combo`, `resilience`, `providers`, `executors`, `translator`, `domain`, `authz`.
-
----
-
-## Qed Tista' Tqies Testijiet
-
-```bash
-# Kollha t-testijiet (unit + vitest + ecosystem + e2e)
+# All tests (unit + vitest + ecosystem + e2e)
 npm run test:all
 
-# Singlu file ta' test (Node.js native test runner — l-aqwa testijiet jutu l-waħda)
+# Single test file (Node.js native test runner — most tests use this)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Biex testijiet unit impattati biss mill-bidla tiegħek (istess TIA selector bħala l-CI gate, #8084)
-npm run test:scoped            # bidliet fil-commit l-aħħar (jew working tree)
-npm run test:scoped:staged     # bidliet staged biss — jaqbad sew b'pre-commit run
-npm run test:scoped:full       # rebildja l-import-graph map l-ewwel (wara li tżid/temmuv file)
-# Exit 1 + "run the full suite" jibni file hub (tsconfig, package.json, …) jew
-# sorgenti unmapped bedlet — is-selektor jiffaġġa safe, ma jmissx silently.
+# Only the unit tests impacted by your change (same TIA selector as the CI gate, #8084)
+npm run test:scoped            # changes in the last commit (or the working tree)
+npm run test:scoped:staged     # staged changes only — pairs well with a pre-commit run
+npm run test:scoped:full       # rebuild the import-graph map first (after adding/moving files)
+# Exit 1 + "run the full suite" means a hub file (tsconfig, package.json, …) or an
+# unmapped source changed — the selector fails safe, it never silently skips.
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
 
-# Testijiet E2E (meħtieġ Playwright)
+# E2E tests (requires Playwright)
 npm run test:e2e
 
 # Protocol clients E2E (MCP transports, A2A)
 npm run test:protocols:e2e
 
-# Testijiet ta' kompatibilità tal-ecosystem
+# Ecosystem compatibility tests
 npm run test:ecosystem
 
 # Coverage gate: 60% statements/lines/functions/branches
@@ -208,73 +163,80 @@ npm run coverage:report
 npm run lint
 npm run check
 
-# Gated real-upstream combo smoke (meħtieġ VPS access + real provider credits)
-# Jipprovokaw PROVIDERS REALE — jiswa ftit. QATT ma jirri fil-CI. Jiskipa clean mingħajr il-gate.
-# Meħtieġ: ssh root@192.168.0.15 access (sources a read-only DB snapshot mill-VPS).
+# Gated real-upstream combo smoke (requires VPS access + real provider credits)
+# Hits REAL providers — costs a little. NEVER runs in CI. Skips cleanly without the gate.
+# Needs: ssh root@192.168.0.15 access (sources a read-only DB snapshot from the VPS).
 RUN_COMBO_LIVE=1 npm run test:combo:live
 
-# Phase-3 VPS live smoke — plain Node ESM scripts, jipprovokaw live .15 server direttament.
-# Meħtieġ: ssh root@192.168.0.15 access (combos created/torn down via SSH sqlite).
-# Jipprovokaw PROVIDERS REALE (kost żgħira). Jikkreaw/jiddilettu biss __live_test__* combos. QATT ma jirri fil-CI.
-# REQUIRE_API_KEY=false fuq .15 għax ebda API key meħtieġa, imma jirispetta COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY jekk msetjup.
+# Phase-3 VPS live smoke — plain Node ESM scripts, hit the live .15 server directly.
+# Requires: ssh root@192.168.0.15 access (combos created/torn down via SSH sqlite).
+# Hits REAL providers (small cost). Creates/deletes only __live_test__* combos. NEVER runs in CI.
+# REQUIRE_API_KEY=false on .15 so no API key needed, but honors COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY if set.
 npm run test:combo:live:vps              # 7 HTTP scenarios (priority/round-robin/weighted/cost/fusion/auto + health)
-npm run test:combo:live:vps:failover     # żieda real cross-provider failover scenario (8 total)
+npm run test:combo:live:vps:failover     # adds a real cross-provider failover scenario (8 total)
 ```
 
-Noti dwar Coverage:
+Coverage notes:
 
-- `npm run test:coverage` jikkalcola source coverage għall-main unit test suite, jieħu barra `tests/**`, u jinkludi `open-sse/**`
-- Pull requests għandhom jibqgħu l-coverage gate b'**60%+**' statements/lines/functions/branches
-- Jekk PR tibdel production code f'`src/`', `open-sse/`', `electron/`', jew `bin/`', għandha tżid jew tagħmel update għat-testijiet awtomatiċi fil-istess PR
-- `npm run coverage:report` tipprinta d-dettaljat file-by-file report mill-aħħar coverage run
-- `npm run test:coverage:legacy` tħalli l-metric l-qadima għal komparazzjoni storika
-- Ara `docs/ops/COVERAGE_PLAN.md` għall-roadmap ta' phased coverage improvement
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the coverage gate at **60%+** statements/lines/functions/branches
+- If a PR changes production code in `src/`, `open-sse/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-### Rekwiziti tal-Pull Request
+### Pull Request Requirements
 
-Qabel ma tiftaħ PR, uża l-
-[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) biex tirri l-focused loop għal
-x'bedlet. L-unit suite sħiħa (4 CI shards), Vitest, il-**60%+** coverage gate, u
-il-production build huma responsabbiltà tal-CI — jirruhom lokalment ma jżidu xejn signal li
-l-PR checks ma jkollokx, u fuq makkini żgħar jistgħu jissaturaw l-host (#8084):
+Before opening a PR, use the
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) to run the focused loop for
+what you changed. The full unit suite (4 CI shards), Vitest, the **60%+** coverage gate, and
+the production build are CI's responsibility — running them locally adds no signal the PR
+checks will not already give you, and on smaller machines it can saturate the host (#8084):
 
-- Irri l-test files li jkopru l-bidla tiegħek: `node --import tsx/esm --test tests/unit/<file>.test.ts`
-- Irri `npm run lint`
-- Inkludi jew agġorna testijiet awtomatiċi fil-istess PR meta production code jibbedel
-- Inkludi l-test files bedlet jew mżidda fid-deskrizzjoni tal-PR meta production code bedlet
-- Chekka r-riżultat ta' SonarQube fuq il-PR meta l-proġett secrets huma konfigurati fil-CI
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-Status attwali tat-testijiet: **122 unit test files** li jkopru:
+Current test status: **122 unit test files** covering:
 
-- Provider translators u format conversion
-- Rate limiting, circuit breaker, u resilience
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
 - Semantic cache, idempotency, progress tracking
-- Database operations u schema (21 DB modules)
-- OAuth flows u authentication
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
 - API endpoint validation (Zod v4)
-- MCP server tools u scope enforcement
-- Memory u Skills systems
+- MCP server tools and scope enforcement
+- Memory and Skills systems
 
-## Stil tal-Kodiċi
+---
 
-- **ESLint** — Ħaddem `npm run lint` qabel ma tagħmel kummitment
-- **Prettier** — Formatjar awtomatiku permezz ta' `lint-staged` fil-kummitment (spazji doppji, punti virgoli, virgoletti doppji, wisa' ta' 100 karattru, virgoli wara l-kkejk ta' l-es5)
-- **TypeScript** — Kull kodiċi ta' `src/` juża `.ts`/`.tsx`; `open-sse/` juża `.ts`/`.js`; iddokumenta permezz ta' TSDoc (`@param`, `@returns`, `@throws`)
-- **Ebda `eval()`** — L-ESLint jinfurza `no-eval`, `no-implied-eval`, `no-new-func`
-- **Validazzjoni Zod** — Uża schemas ta' Zod v4 għal validazzjoni ta' dħul API kollha
-- **Isem**: Fajls = camelCase/kebab-case, komponenti = PascalCase, kostanti = UPPER_SNAKE
+## Code Style
 
-### Tħaddim ta' żbalji / blokki catch vojta
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
 
-Qatt tħalli `catch` mingħajr spjegazzjoni. Klassifikah f'wieħed miż-żewġ kategoriji (joperazzjonalizza l-istrett regola "qatt xwwak b'ssokkżiżzjoni silenzjuża f'xorriet SSE"):
+### Error handling / empty catch blocks
 
-- **Intenzjonali (it-tindif/telemetria ta' l-aħjar effort tagħna stess)** — falliment hawnhekk huwa mistenni u ħażin; żid kumment ta' spjegazzjoni ta' linja waħda, bla logging (logging fuq kull talba huwa l-istorbju li dan il-konvenzjonal jippoġġa):
+Never leave a `catch` unexplained. Classify it into one of two buckets (operationalizes
+the hard rule "never silently swallow errors in SSE streams"):
+
+- **Intentional (our own best-effort cleanup/telemetry)** — a failure here is expected and
+  harmless; add a one-line rationale comment, no logging (logging on every request is the
+  noise this convention avoids).
 
   ```ts
-  } catch {} // il-qbid ta' kontrollur diġà magħluq wara l-klijent jingħaqad huwa mistenni
+  } catch {} // closing an already-closed controller after client disconnect is expected
   ```
 
-- **Għandu jiġi logjat (kodiċi estern/mgħoti mill-issejħa, jew il-xwwak ibiddel il-kontroll)** — iżżomm il-catch (qatt tħallih jikser is-stream) iżda leġġi `console.debug`/`warn` kontestwali sabiex il-falliment jista' jiġi skopert.
+- **Should log (external/caller-supplied code, or the swallow changes control flow)** — keep
+  the catch (never let it break the stream) but emit a contextual `console.debug`/`warn` so the
+  failure is discoverable.
 
   ```ts
   } catch (e) {
@@ -282,144 +244,150 @@ Qatt tħalli `catch` mingħajr spjegazzjoni. Klassifikah f'wieħed miż-żewġ k
   }
   ```
 
-Ara `open-sse/utils/stream.ts` u `open-sse/utils/streamHandler.ts` għal eżempji applikati.
+See `open-sse/utils/stream.ts` and `open-sse/utils/streamHandler.ts` for applied examples.
 
 ---
 
-## Struttura tal-Proġett
+## Project Structure
 
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Paġni tal-dashboard (23 sezzjonijiet)
-│   ├── api/',              # Rotot API (51 direttorju)
-│   └── login/              # Paġni tal-awtentikazzjoni (.tsx)
-├── domain/                 # Magna tal-politika (policyEngine, comboResolver, costRules, eċċ.)
-├── lib/                    # Logika tan-negozju ta' l-qalba (.ts)
-│   ├── a2a/                # Server tal-protokoll A2A v0.3
-│   ├── acp/                # Reġistru tal-Komunikazzjoni tal-Aġent
-│   ├── compliance/         # Magna tal-politika tal-konformità
-│   ├── db/               # Moduli tal-q域 SQLite + 130 migrazzjonijiet
-│   ├── memory/             # Memorja twila tal-konversazzjoni
-│   ├── oauth/              # Fornituri, servizzi, u għodod tal-OAuth
-│   ├── skills/             # Frizat tar-ħiliet estiżibbli
-│   ├── usage/              # Tħassir tal-użu u kalkolu tal-ispiża
-│   └── localDb.ts          # Saff ta' re-export biss — qatt iżid logika hawn
-├── middleware/              # Middleware tal-bżonnijiet (promptInjectionGuard)
-├── mitm/                   # Proxy MITM (ċertifikat, DNS, rotta tal-miri)
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # Komponenti React (.tsx)
-│   ├── constants/          # Definizzjonijiet tal-fornitur (329), ambiti MCP, 19 strateġiji tal-rotta
-│   ├── utils/              # Serparator tal-midja, sanitizer, għodod tal-awtentikazzjoni
-│   └── validation/         # Schemas tal-Zod v4
-└── sse/                    # Provvista tal-rotta SSE
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 19 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # Spazju ta' @omniroute/open-sse
-├── executors/              # 89 modulu ta' implimentazzjoni tal-eżekutur
-├── handlers/               # 11 trattaturi tal-bżonnijiet (chat, risposti, embendings, immaġini, eċċ.)
-├── mcp-server/             # Server MCP (110 għodod uniċi, 3 trasporti, 33 ambiti)
-├── services/               # 178 servizz ta' l-ewwel livell (combo, autoCombo, rateLimitManager, eċċ.)
-├── translator/             # Tradutturi tal-format (OpenAI ↔ Claude ↔ Gemini ↔ Risposti ↔ Ollama)
-├── transformer/            # Traduttur tar-Risposti API
-└── utils/                  # 22 modulu tal-għodod (stream, TLS, proxy, logging)
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 89 executor implementation modules
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # App desktop tal-Electron (pjanforma multipla)
+apps/desktop/               # Tauri 2 desktop app (cross-platform)
 
 tests/
-├── unit/                   # Test runner Node.js (1,574 fajls tal-test)
-├── integration/            # Testijiet tal-integrazzjoni
-├── e2e/                    # Testijiet Playwright
-├── security/               # Testijiet ta' sigurtà
-├── translator/             # Testijiet speċifiċi għat-traduttur
-└── load/                   # Testijiet tal-piż
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/
-├── adr/                     # Rekords tad-deċiżjonijiet tal-arkitettura
-├── architecture/            # Arkitettura tal-isistema u reżiljenza
-├── comparison/              # OmniRoute vs alternattivi
-├── compression/             # Gwidi u regoli tal-kompressjoni
-├── dev/                     # Gwidi tal-iżvilupp
-├── diagrams/                # Dijagrammi tal-arkitettura
-├── frameworks/              # MCP, A2A, OpenCode, Memorja, Ħiliet
-├── guides/                  # Gwida tal-utent, Docker, tħejjija, tifwir
-├── i18n/                    # Traduzzjonijiet internazzjonali tal-README
-├── marketing/               # Materiali tal-kummerċjalizzazzjoni
-├── ops/                     # Tħaddim, proxy, koperanza, rilizzi
-├── providers/               # Dokumenti speċifiċi tal-fornitur
-├── reference/             # Referenza API, varjambli tal-ambjent, għodod CLI, oqsas ħelsien
-├── releases/               # Noti tar-rilizzi
-├── routing/                 # Magna tal-combo awtomatika, riproduzzjoni tar-raguni
-├── screenshots/             # Skrinshots tal-dashboard
-├── security/               # Barriers, konformità, stealth, tokens
-└── specs/                   # Speċifikazzjonijiet tal-disinn
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
+├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
-## Ġdid tal-Foritur
+---
 
-### Pass 1: Irreġistra costanti tal-Foritur
+## Adding a New Provider
 
-Żid f'`src/shared/constants/providers.ts` — validazzjoni Zod waqt it-tniġħis tal-modulu.
+### Step 1: Register Provider Constants
 
-### Pass 2: Żid eżekutur (jekk hemm bżonn loġika custom)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-Oħloq eżekutur f'`open-sse/executors/your-provider.ts` li jestendi l-eżekutur bażi.
+### Step 2: Add Executor (if custom logic needed)
 
-### Pass 3: Żid traduttur (jekk mhux il-format ta' OpenAI)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-Oħloq tradutturi għat-talb/tweġiba f'`open-sse/translator/`.
+### Step 3: Add Translator (if non-OpenAI format)
 
-### Pass 4: Żid kfigurazzjoni OAuth (jekk bbażat fuq OAuth)
+Create request/response translators in `open-sse/translator/`.
 
-Żid kredenzjali OAuth f'`src/lib/oauth/constants/oauth.ts` u s-servizz f'`src/lib/oauth/services/`.
+### Step 4: Add OAuth Config (if OAuth-based)
 
-Jekk il-foritur upstream jidistribwixxi OAuth pubbliku client_id/secret jew Firebase Web API key fil-bundle pubbliku tiegħu / CLI tal-brawżer, **tagħmilx** backup bħala literal string. Uża `resolvePublicCred()` minn `open-sse/utils/publicCreds.ts` u żid entry masquerata f'`EMBEDDED_DEFAULTS`. Il-workflow obbligatorju kollu huwa dokumentat f'[`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
 
-Fis-servizzi l-oħra, il-messaġġi ta' żball li jilħqu l-klijent iridu jgħaddu minn `buildErrorBody()` / `sanitizeErrorMessage()` minn `open-sse/utils/error.ts` — qatt tpoġġi `err.stack` jew `err.message` rwiexi f'korp tal-Response. Ara [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
+If the upstream provider distributes a public OAuth client_id/secret or Firebase Web API key inside its public CLI / browser bundle, **do not** embed it as a string literal. Use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts` and add a masked byte entry to `EMBEDDED_DEFAULTS`. The full mandatory workflow is documented in [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
 
-### Pass 5: Irreġistra mudelli
+Inside handlers/executors, error messages reaching the client must go through `buildErrorBody()` / `sanitizeErrorMessage()` from `open-sse/utils/error.ts` — never put raw `err.stack` or `err.message` in a Response body. See [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
 
-Żid definizzjonijiet tal-mudell f'`open-sse/config/providerRegistry.ts`.
+### Step 5: Register Models
 
-### Pass 6: Żid testijiet
+Add model definitions in `open-sse/config/providerRegistry.ts`.
 
-Ikteb testijiet unitarji f'`tests/unit/` li jkopru mill-inqas:
+### Step 6: Add Tests
 
-- Reġistrazzjoni tal-foritur
-- Traduzzjoni tal-biex/tweġiba
-- Trattament ta' żbalji
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
 
 ---
 
-## Kaxxa tal-Għarfien tal-Pull Request
+## Pull Request Checklist
 
-- [ ] Testijiet għaddew (`npm test`)
-- [ ] Linting għaddew (`npm run lint`)
-- [ ] Build rnexxielu (`npm run build`)
-- [ ] It-Tipijiet TypeScript ġew miżjuda għal funzjonijiet u interfaces ġodda pubbliċi
-- [ ] M'hemm xejn skrin fiżjati ta' sigrieti jew valuri fallback
-- [ ] Kredenzjali upstream pubbliċi ġew imbodding permezz ta' `resolvePublicCred()` (ara [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), qatt bħala literals
-- [ ] Ir-risponsi ta' żball jgħaddu minn `buildErrorBody()` / `sanitizeErrorMessage()` — l-ebda trace rwiexi fil-korp tal-Response (ara [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Il-kmandi shell (`exec` / `spawn`) jgħaddu valuri runtime permezz ta' `env`, mhux permezz ta' interpolarzjoni tal-stringa
-- [ ] Kull input ġie validat permezz ta' skemi Zod
-- [ ] **Fragament** tal-CHANGELOG ġie miżjud taħt `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` għal bidliet li jaffettwaw l-utenti (ara [`changelog.d/README.md`](./changelog.d/README.md)) — tagħmilx direttament editjar `CHANGELOG.md`; il-fragments jiġbru fis-sak ħin tat-tħarir u qatt ma jikkuntrastaw bejn il-PRs
-- [ ] Dukumentazzjoni aġġornata (jekk applicable)
-- [ ] L-ebda ġdida CodeQL / Secret-Scanning alerts miftuħa, jew kollha riżolvuti b'ġustifikazzjoni teknika li tirreferi għad-dokument rilevanti ta' `docs/security/`
-- [ ] Rotot li jħaddmu proċessi iben (`/api/mcp/`, `/api/cli-tools/runtime/`) huma klassifikati bħala `isLocalOnlyPath()` f'`src/server/authz/routeGuard.ts` — ara [Rekwiżiti Ħorox #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] M'hemm l-ebda `Co-Authored-By` trailers fil-messaġġi tal-kommit — il-kommits iridu jidhru biss taħt l-identità Git tal-sid tal-repositorju (Rekwiżit Ħarxa #16)
-
-## Rilaxjar
-
-Ir-rilaxxijiet huma mġedda permezz tal-workflow `/generate-release`. Meta tintefa' Release ġdida fuq GitHub, il-pakkett jitwaħħal **awtomatikament fil-ħanut npm** permezz ta' GitHub Actions.
-
-Għad-displokki VPS, uża `npm run build:release` (mhux `npm run build`) — dan jagħmel tiswif ġdid nadif, jiġbor il-bundle fid-direttorju `dist/`, u jikteb is-sentinel `dist/BUILD_SHA`. Imbagħad uża l-ħiliet `/deploy-vps-*-cc` li jużaw rsync biex iġibu `dist/` fil-direttorju `app/` ir-rimot.
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] Public upstream credentials embedded via `resolvePublicCred()` (see [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), never as literals
+- [ ] Error responses route through `buildErrorBody()` / `sanitizeErrorMessage()` — no raw stack traces in response bodies (see [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) pass runtime values via `env`, not via string interpolation
+- [ ] All inputs validated with Zod schemas
+- [ ] Changelog **fragment** added under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for user-facing changes (see [`changelog.d/README.md`](./changelog.d/README.md)) — do **not** edit `CHANGELOG.md` directly; fragments are aggregated at release time and never conflict between PRs
+- [ ] Documentation updated (if applicable)
+- [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
+- [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
 
 ---
 
-## Kif Tista' Tinkiseb Għajnuna
+## Releasing
 
-- **Arkitettura**: Ara [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **Referenza API**: Ara [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Dokumentazzjoni tas-Sigurtà**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Dokumentazzjoni tal-Operazzjonijiet**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Għaddas ta' Problemi**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: Ara `docs/adr/` għar-rekords tad-deċiżjonijiet tal-arkitettura
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+For VPS deploys, use `npm run build:release` (not `npm run build`) — it performs a clean
+rebuild, assembles the bundle into `dist/`, and writes the `dist/BUILD_SHA` sentinel.
+Then use the `/deploy-vps-*-cc` skills which rsync `dist/` to the remote `app/` directory.
+
+---
+
+## Getting Help
+
+- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Security docs**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Ops docs**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

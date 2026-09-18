@@ -138,229 +138,267 @@ refactor(db): consolidate rate limit tables
 
 ---
 
-## 執行測試
+## Running Tests
 
 ```bash
-# 所有測試（單元 + vitest + 生態系 + e2e）
+# All tests (unit + vitest + ecosystem + e2e)
 npm run test:all
 
-# 單一測試檔案（Node.js 原生測試執行器 — 大部分測試使用此方式）
+# Single test file (Node.js native test runner — most tests use this)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Vitest（MCP 伺服器、autoCombo、快取）
+# Only the unit tests impacted by your change (same TIA selector as the CI gate, #8084)
+npm run test:scoped            # changes in the last commit (or the working tree)
+npm run test:scoped:staged     # staged changes only — pairs well with a pre-commit run
+npm run test:scoped:full       # rebuild the import-graph map first (after adding/moving files)
+# Exit 1 + "run the full suite" means a hub file (tsconfig, package.json, …) or an
+# unmapped source changed — the selector fails safe, it never silently skips.
+
+# Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
 
-# E2E 測試（需要 Playwright）
+# E2E tests (requires Playwright)
 npm run test:e2e
 
-# 協定客戶端 E2E（MCP 傳輸、A2A）
+# Protocol clients E2E (MCP transports, A2A)
 npm run test:protocols:e2e
 
-# 生態系相容性測試
+# Ecosystem compatibility tests
 npm run test:ecosystem
 
-# 覆蓋率閘道：60% statements/lines/functions/branches
+# Coverage gate: 60% statements/lines/functions/branches
 npm run test:coverage
 npm run coverage:report
 
-# Lint + 格式檢查
+# Lint + format check
 npm run lint
 npm run check
 
-# 實際上游 combo 冒煙測試（需要 VPS 存取 + 實際提供者額度）
-# 會打到真實提供者 — 會花一點錢。絕對不會在 CI 中執行。沒有閘道時會乾淨地跳過。
-# 需要：ssh root@192.168.0.15 存取（從 VPS 讀取唯讀資料庫快照）。
+# Gated real-upstream combo smoke (requires VPS access + real provider credits)
+# Hits REAL providers — costs a little. NEVER runs in CI. Skips cleanly without the gate.
+# Needs: ssh root@192.168.0.15 access (sources a read-only DB snapshot from the VPS).
 RUN_COMBO_LIVE=1 npm run test:combo:live
 
-# Phase-3 VPS 實戰冒煙測試 — 純 Node ESM 腳本，直接打到 .15 伺服器。
-# 需要：ssh root@192.168.0.15 存取（combo 透過 SSH sqlite 建立/刪除）。
-# 會打到真實提供者（少量費用）。只會建立/刪除 __live_test__* combo。絕對不會在 CI 中執行。
-# REQUIRE_API_KEY=false on .15 所以不需要 API 金鑰，但如果設定了 COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY 則會遵循。
-npm run test:combo:live:vps              # 7 個 HTTP 情境（priority/round-robin/weighted/cost/fusion/auto + health）
-npm run test:combo:live:vps:failover     # 增加實際跨提供者容錯情境（共 8 個）
+# Phase-3 VPS live smoke — plain Node ESM scripts, hit the live .15 server directly.
+# Requires: ssh root@192.168.0.15 access (combos created/torn down via SSH sqlite).
+# Hits REAL providers (small cost). Creates/deletes only __live_test__* combos. NEVER runs in CI.
+# REQUIRE_API_KEY=false on .15 so no API key needed, but honors COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY if set.
+npm run test:combo:live:vps              # 7 HTTP scenarios (priority/round-robin/weighted/cost/fusion/auto + health)
+npm run test:combo:live:vps:failover     # adds a real cross-provider failover scenario (8 total)
 ```
 
-覆蓋率注意事項：
+Coverage notes:
 
-- `npm run test:coverage` 測量主要單元測試套件的原始碼覆蓋率，排除 `tests/**`，包含 `open-sse/**`
-- Pull Request 必須維持覆蓋率閘道在 **60%+** statements/lines/functions/branches
-- 如果 PR 變更了 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的生產程式碼，必須在同一 PR 中新增或更新自動化測試
-- `npm run coverage:report` 會列印最近一次覆蓋率執行的詳細逐檔案報告
-- `npm run test:coverage:legacy` 保留舊版指標以供歷史比較
-- 請參閱 `docs/ops/COVERAGE_PLAN.md` 了解階段性覆蓋率改善藍圖
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the coverage gate at **60%+** statements/lines/functions/branches
+- If a PR changes production code in `src/`, `open-sse/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-### Pull Request 需求
+### Pull Request Requirements
 
-在開啟或合併 PR 之前：
+Before opening a PR, use the
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) to run the focused loop for
+what you changed. The full unit suite (4 CI shards), Vitest, the **60%+** coverage gate, and
+the production build are CI's responsibility — running them locally adds no signal the PR
+checks will not already give you, and on smaller machines it can saturate the host (#8084):
 
-- 執行 `npm run test:unit`
-- 執行 `npm run test:coverage`
-- 確保覆蓋率閘道維持在 **60%+** statements/lines/functions/branches
-- 當生產程式碼變更時，在 PR 說明中包含已變更或新增的測試檔案
-- 當 CI 中配置了專案密鑰時，檢查 PR 上的 SonarQube 結果
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-目前測試狀態：**122 個單元測試檔案** 涵蓋：
+Current test status: **122 unit test files** covering:
 
-- 提供者轉換器與格式轉換
-- 速率限制、斷路器與彈性
-- 語意快取、冪等性、進度追蹤
-- 資料庫操作與結構（21 個 DB 模組）
-- OAuth 流程與認證
-- API 端點驗證（Zod v4）
-- MCP 伺服器工具與範圍強制
-- 記憶體與技能系統
-
----
-
-## 程式碼風格
-
-- **ESLint** — 提交前執行 `npm run lint`
-- **Prettier** — 透過 `lint-staged` 在提交時自動格式化（2 空格、分號、雙引號、100 字元寬度、es5 尾逗號）
-- **TypeScript** — 所有 `src/` 程式碼使用 `.ts`/`.tsx`；`open-sse/` 使用 `.ts`/`.js`；使用 TSDoc 撰寫文件（`@param`、`@returns`、`@throws`）
-- **不使用 `eval()`** — ESLint 強制禁止 `no-eval`、`no-implied-eval`、`no-new-func`
-- **Zod 驗證** — 所有 API 輸入驗證使用 Zod v4 結構
-- **命名**：檔案 = camelCase/kebab-case，元件 = PascalCase，常數 = UPPER_SNAKE
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
 
 ---
 
-## 專案結構
+## Code Style
+
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+### Error handling / empty catch blocks
+
+Never leave a `catch` unexplained. Classify it into one of two buckets (operationalizes
+the hard rule "never silently swallow errors in SSE streams"):
+
+- **Intentional (our own best-effort cleanup/telemetry)** — a failure here is expected and
+  harmless; add a one-line rationale comment, no logging (logging on every request is the
+  noise this convention avoids).
+
+  ```ts
+  } catch {} // closing an already-closed controller after client disconnect is expected
+  ```
+
+- **Should log (external/caller-supplied code, or the swallow changes control flow)** — keep
+  the catch (never let it break the stream) but emit a contextual `console.debug`/`warn` so the
+  failure is discoverable.
+
+  ```ts
+  } catch (e) {
+    console.debug("[STREAM] onFailure callback error:", e);
+  }
+  ```
+
+See `open-sse/utils/stream.ts` and `open-sse/utils/streamHandler.ts` for applied examples.
+
+---
+
+## Project Structure
 
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # 儀表板頁面（23 個區塊）
-│   ├── api/                # API 路由（51 個目錄）
-│   └── login/              # 認證頁面 (.tsx)
-├── domain/                 # 政策引擎（policyEngine、comboResolver、costRules 等）
-├── lib/                    # 核心業務邏輯 (.ts)
-│   ├── a2a/                # Agent-to-Agent v0.3 協定伺服器
-│   ├── acp/                # Agent 通訊協定註冊表
-│   ├── compliance/         # 合規政策引擎
-│   ├── db/                 # SQLite 資料庫層（110 個頂層模組 + 130 個遷移）
-│   ├── memory/             # 持久對話記憶
-│   ├── oauth/              # OAuth 提供者、服務與工具
-│   ├── skills/             # 可擴展技能框架
-│   ├── usage/              # 用量追蹤與成本計算
-│   └── localDb.ts          # 僅作為重新匯出層 — 永遠不要在此新增邏輯
-├── middleware/              # 請求中介層（promptInjectionGuard）
-├── mitm/                   # MITM 代理（憑證、DNS、目標路由）
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # React 元件 (.tsx)
-│   ├── constants/          # 提供者定義（329）、MCP 範圍、19 種路由策略
-│   ├── utils/              # 斷路器、清理工具、認證輔助
-│   └── validation/         # Zod v4 結構
-└── sse/                    # SSE 代理管線
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 19 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # @omniroute/open-sse 工作區
-├── executors/              # 89 個執行器實作模組
-├── handlers/               # 11 個請求處理器（聊天、回應、嵌入、圖片等）
-├── mcp-server/             # MCP 伺服器（107 個工具、3 種傳輸、32 個範圍）
-├── services/               # 178 個頂層服務（combo、autoCombo、rateLimitManager 等）
-├── translator/             # 格式轉換器（OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama）
-├── transformer/            # Responses API 轉換器
-└── utils/                  # 22 個工具模組（串流、TLS、代理、日誌）
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 89 executor implementation modules
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron 桌面應用程式（跨平台）
+apps/desktop/               # Tauri 2 desktop app (cross-platform)
 
 tests/
-├── unit/                   # Node.js 測試執行器（1,574 個測試檔案）
-├── integration/            # 整合測試
-├── e2e/                    # Playwright 測試
-├── security/               # 安全性測試
-├── translator/             # 轉換器專用測試
-└── load/                   # 負載測試
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/
-├── adr/                     # 架構決策記錄
-├── architecture/            # 系統架構與彈性
-├── comparison/              # OmniRoute 與替代方案比較
-├── compression/             # 壓縮指南與規則
-├── dev/                     # 開發指南
-├── diagrams/                # 架構圖
-├── frameworks/              # MCP、A2A、OpenCode、記憶體、技能
-├── guides/                  # 使用者指南、Docker、設定、疑難排解
-├── i18n/                    # 國際化 README 翻譯
-├── marketing/               # 行銷素材
-├── ops/                     # 部署、代理、覆蓋率、發布
-├── providers/               # 提供者專用文件
-├── reference/               # API 參考、環境變數、CLI 工具、免費方案
-├── releases/                # 版本說明
-├── routing/                 # Auto-combo 引擎、推理重播
-├── screenshots/             # 儀表板截圖
-├── security/                # 護欄、合規、隱蔽、代幣
-└── specs/                   # 設計規格
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
+├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
 ---
 
-## 新增提供者
+## Adding a New Provider
 
-### 步驟 1：註冊提供者常數
+### Step 1: Register Provider Constants
 
-新增至 `src/shared/constants/providers.ts` — 在模組載入時以 Zod 驗證。
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-### 步驟 2：新增執行器（如果需要自訂邏輯）
+### Step 2: Add Executor (if custom logic needed)
 
-在 `open-sse/executors/your-provider.ts` 中建立執行器，擴展基礎執行器。
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-### 步驟 3：新增轉換器（若非 OpenAI 格式）
+### Step 3: Add Translator (if non-OpenAI format)
 
-在 `open-sse/translator/` 中建立請求/回應轉換器。
+Create request/response translators in `open-sse/translator/`.
 
-### 步驟 4：新增 OAuth 設定（若基於 OAuth）
+### Step 4: Add OAuth Config (if OAuth-based)
 
-在 `src/lib/oauth/constants/oauth.ts` 中新增 OAuth 憑證，並在 `src/lib/oauth/services/` 中新增服務。
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
 
-如果上游提供者在其公開 CLI / 瀏覽器套件中分發了公開的 OAuth client_id/secret 或 Firebase Web API 金鑰，**請勿**將其嵌入為字串字面值。請使用 `open-sse/utils/publicCreds.ts` 中的 `resolvePublicCred()`，並在 `EMBEDDED_DEFAULTS` 中新增一個遮罩位元組條目。完整的強制性工作流程記錄於 [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)。
+If the upstream provider distributes a public OAuth client_id/secret or Firebase Web API key inside its public CLI / browser bundle, **do not** embed it as a string literal. Use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts` and add a masked byte entry to `EMBEDDED_DEFAULTS`. The full mandatory workflow is documented in [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
 
-在處理器/執行器內部，傳送到客戶端的錯誤訊息必須通過 `open-sse/utils/error.ts` 的 `buildErrorBody()` / `sanitizeErrorMessage()` — 絕對不要將原始 `err.stack` 或 `err.message` 放入回應主體。請參閱 [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md)。
+Inside handlers/executors, error messages reaching the client must go through `buildErrorBody()` / `sanitizeErrorMessage()` from `open-sse/utils/error.ts` — never put raw `err.stack` or `err.message` in a Response body. See [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
 
-### 步驟 5：註冊模型
+### Step 5: Register Models
 
-在 `open-sse/config/providerRegistry.ts` 中新增模型定義。
+Add model definitions in `open-sse/config/providerRegistry.ts`.
 
-### 步驟 6：新增測試
+### Step 6: Add Tests
 
-在 `tests/unit/` 中撰寫單元測試，至少涵蓋：
+Write unit tests in `tests/unit/` covering at minimum:
 
-- 提供者註冊
-- 請求/回應轉換
-- 錯誤處理
-
----
-
-## Pull Request 檢查清單
-
-- [ ] 測試通過（`npm test`）
-- [ ] Linting 通過（`npm run lint`）
-- [ ] 建置成功（`npm run build`）
-- [ ] 為新的公開函數和介面新增 TypeScript 型別
-- [ ] 無硬編碼密鑰或後備值
-- [ ] 公開上游憑證透過 `resolvePublicCred()` 嵌入（參見 [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)），而非以字面值嵌入
-- [ ] 錯誤回應通過 `buildErrorBody()` / `sanitizeErrorMessage()` 路由 — 回應主體中無原始堆疊追蹤（參見 [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md)）
-- [ ] Shell 命令（`exec` / `spawn`）透過 `env` 傳遞執行時期值，而非透過字串插值
-- [ ] 所有輸入以 Zod 結構驗證
-- [ ] 針對使用者可見的變更，在 `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` 下新增 **Changelog 片段**（參見 [`changelog.d/README.md`](./changelog.d/README.md)）— 請**勿**直接編輯 `CHANGELOG.md`；片段會在發布時彙總，且絕不會在 PR 之間衝突
-- [ ] 文件已更新（如適用）
-- [ ] 無新增的 CodeQL / 密碼掃描警報，或每個警報已附上技術理由並參考相關 `docs/security/` 文件
-- [ ] 啟動子處理程序的路由（`/api/mcp/`、`/api/cli-tools/runtime/`）在 `src/server/authz/routeGuard.ts` 中分類為 `isLocalOnlyPath()` — 參見 [硬規則第 15 條](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] 提交訊息中無 `Co-Authored-By` 尾綴 — 提交必須僅以儲存庫擁有者的 Git 身分出現（硬規則第 16 條）
+- Provider registration
+- Request/response translation
+- Error handling
 
 ---
 
-## 發布
+## Pull Request Checklist
 
-發布透過 `/generate-release` 工作流程管理。當建立新的 GitHub Release 時，套件會透過 GitHub Actions **自動發布到 npm**。
-
-對於 VPS 部署，請使用 `npm run build:release`（而非 `npm run build`）— 它會執行清除重建，將套件組裝到 `dist/`，並寫入 `dist/BUILD_SHA` 哨兵。然後使用 `/deploy-vps-*-cc` 技能，這些技能會將 `dist/` rsync 到遠端 `app/` 目錄。
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] Public upstream credentials embedded via `resolvePublicCred()` (see [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), never as literals
+- [ ] Error responses route through `buildErrorBody()` / `sanitizeErrorMessage()` — no raw stack traces in response bodies (see [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) pass runtime values via `env`, not via string interpolation
+- [ ] All inputs validated with Zod schemas
+- [ ] Changelog **fragment** added under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for user-facing changes (see [`changelog.d/README.md`](./changelog.d/README.md)) — do **not** edit `CHANGELOG.md` directly; fragments are aggregated at release time and never conflict between PRs
+- [ ] Documentation updated (if applicable)
+- [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
+- [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
 
 ---
 
-## 取得協助
+## Releasing
 
-- **架構**：參見 [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API 參考**：參見 [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **安全文件**：[`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md)、[`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md)、[`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)、[`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **運維文件**：[`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **問題回報**：[github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**：參見 `docs/adr/` 了解架構決策記錄
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+For VPS deploys, use `npm run build:release` (not `npm run build`) — it performs a clean
+rebuild, assembles the bundle into `dist/`, and writes the `dist/BUILD_SHA` sentinel.
+Then use the `/deploy-vps-*-cc` skills which rsync `dist/` to the remote `app/` directory.
+
+---
+
+## Getting Help
+
+- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Security docs**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Ops docs**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

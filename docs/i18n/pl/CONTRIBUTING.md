@@ -145,7 +145,7 @@ Scopes (v3.8): `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, 
 
 ---
 
-## Uruchamianie testów
+## Running Tests
 
 ```bash
 # All tests (unit + vitest + ecosystem + e2e)
@@ -153,6 +153,13 @@ npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
 node --import tsx/esm --test tests/unit/your-file.test.ts
+
+# Only the unit tests impacted by your change (same TIA selector as the CI gate, #8084)
+npm run test:scoped            # changes in the last commit (or the working tree)
+npm run test:scoped:staged     # staged changes only — pairs well with a pre-commit run
+npm run test:scoped:full       # rebuild the import-graph map first (after adding/moving files)
+# Exit 1 + "run the full suite" means a hub file (tsconfig, package.json, …) or an
+# unmapped source changed — the selector fails safe, it never silently skips.
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -187,66 +194,67 @@ npm run test:combo:live:vps              # 7 HTTP scenarios (priority/round-robi
 npm run test:combo:live:vps:failover     # adds a real cross-provider failover scenario (8 total)
 ```
 
-Uwagi o coverage:
+Coverage notes:
 
-- `npm run test:coverage` mierzy pokrycie źródeł głównego pakietu testów jednostkowych, wyklucza `tests/**` i obejmuje `open-sse/**`
-- Pull requesty muszą utrzymywać próg coverage na poziomie **60%+** statements/lines/functions/branches
-- Jeśli PR zmienia kod produkcyjny w `src/`, `open-sse/`, `electron/` lub `bin/`, musi dodać lub zaktualizować automatyczne testy w tym samym PR
-- `npm run coverage:report` wypisuje szczegółowy raport plik po pliku z ostatniego uruchomienia coverage
-- `npm run test:coverage:legacy` zachowuje starszą metrykę do porównań historycznych
-- Zobacz `docs/ops/COVERAGE_PLAN.md` dla etapowego planu poprawy coverage
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the coverage gate at **60%+** statements/lines/functions/branches
+- If a PR changes production code in `src/`, `open-sse/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-### Wymagania wobec pull requestów
+### Pull Request Requirements
 
-Przed otwarciem PR uruchom skupioną pętlę dla tego, co zmieniłeś. Pełny pakiet testów
-jednostkowych (4 shardy CI), Vitest, próg coverage **60%+** oraz build produkcyjny to
-odpowiedzialność CI — lokalne ich uruchamianie nie daje sygnału, którego nie dadzą już
-checki PR, a na mniejszych maszynach może nasycić host (#8084):
+Before opening a PR, use the
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) to run the focused loop for
+what you changed. The full unit suite (4 CI shards), Vitest, the **60%+** coverage gate, and
+the production build are CI's responsibility — running them locally adds no signal the PR
+checks will not already give you, and on smaller machines it can saturate the host (#8084):
 
-- Uruchom pliki testów obejmujące Twoją zmianę: `node --import tsx/esm --test tests/unit/<file>.test.ts`
-- Uruchom `npm run lint`
-- Dołącz lub zaktualizuj automatyczne testy w tym samym PR przy każdej zmianie kodu produkcyjnego
-- W opisie PR wymień zmienione lub dodane pliki testów, gdy zmieniał się kod produkcyjny
-- Sprawdź wynik SonarQube na PR, gdy sekrety projektu są skonfigurowane w CI
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-Aktualny status testów: **122 pliki testów jednostkowych** obejmujące:
+Current test status: **122 unit test files** covering:
 
-- Translatory providerów i konwersję formatów
-- Rate limiting, circuit breaker i resilience
-- Semantic cache, idempotency, śledzenie postępu
-- Operacje na bazie danych i schemat (21 modułów DB)
-- Przepływy OAuth i uwierzytelnianie
-- Walidację endpointów API (Zod v4)
-- Narzędzia serwera MCP i egzekwowanie scope’ów
-- Systemy Memory i Skills
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
 
 ---
 
-## Styl kodu
+## Code Style
 
-- **ESLint** — Uruchom `npm run lint` przed commitem
-- **Prettier** — Autoformatowanie przez `lint-staged` przy commicie (2 spacje, średniki, podwójne cudzysłowy, szerokość 100 znaków, przecinki końcowe es5)
-- **TypeScript** — Cały kod w `src/` używa `.ts`/`.tsx`; `open-sse/` używa `.ts`/`.js`; dokumentuj przez TSDoc (`@param`, `@returns`, `@throws`)
-- **Bez `eval()`** — ESLint egzekwuje `no-eval`, `no-implied-eval`, `no-new-func`
-- **Walidacja Zod** — Używaj schematów Zod v4 do walidacji wszystkich wejść API
-- **Nazewnictwo**: Pliki = camelCase/kebab-case, komponenty = PascalCase, stałe = UPPER_SNAKE
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
 
-### Obsługa błędów / puste bloki catch
+### Error handling / empty catch blocks
 
-Nigdy nie zostawiaj `catch` bez wyjaśnienia. Przypisz go do jednego z dwóch kubełków (operacjonalizuje
-twardą regułę „nigdy nie połykaj po cichu błędów w strumieniach SSE”):
+Never leave a `catch` unexplained. Classify it into one of two buckets (operationalizes
+the hard rule "never silently swallow errors in SSE streams"):
 
-- **Zamierzone (nasze własne best-effort cleanup/telemetry)** — awaria tutaj jest oczekiwana i
-  nieszkodliwa; dodaj jednoliniowy komentarz z uzasadnieniem, bez logowania (logowanie przy każdym
-  żądaniu to szum, którego ta konwencja unika).
+- **Intentional (our own best-effort cleanup/telemetry)** — a failure here is expected and
+  harmless; add a one-line rationale comment, no logging (logging on every request is the
+  noise this convention avoids).
 
   ```ts
   } catch {} // closing an already-closed controller after client disconnect is expected
   ```
 
-- **Należy zalogować (kod zewnętrzny/dostarczony przez wywołującego, albo połykanie zmienia flow sterowania)** — zachowaj
-  catch (nigdy nie pozwól mu przerwać streamu), ale wyemituj kontekstowy `console.debug`/`warn`, aby
-  awaria była wykrywalna.
+- **Should log (external/caller-supplied code, or the swallow changes control flow)** — keep
+  the catch (never let it break the stream) but emit a contextual `console.debug`/`warn` so the
+  failure is discoverable.
 
   ```ts
   } catch (e) {
@@ -254,11 +262,11 @@ twardą regułę „nigdy nie połykaj po cichu błędów w strumieniach SSE”)
   }
   ```
 
-Zobacz `open-sse/utils/stream.ts` i `open-sse/utils/streamHandler.ts` jako zastosowane przykłady.
+See `open-sse/utils/stream.ts` and `open-sse/utils/streamHandler.ts` for applied examples.
 
 ---
 
-## Struktura projektu
+## Project Structure
 
 ```
 src/                        # TypeScript (.ts / .tsx)
@@ -271,7 +279,7 @@ src/                        # TypeScript (.ts / .tsx)
 │   ├── a2a/                # Agent-to-Agent v0.3 protocol server
 │   ├── acp/                # Agent Communication Protocol registry
 │   ├── compliance/         # Compliance policy engine
-│   ├── db/                 # SQLite database layer (110 top-level modules + 130 migrations)
+│   ├── db/                 # SQLite domain modules + 130 migrations
 │   ├── memory/             # Persistent conversational memory
 │   ├── oauth/              # OAuth providers, services, and utilities
 │   ├── skills/             # Extensible skill framework
@@ -289,13 +297,13 @@ src/                        # TypeScript (.ts / .tsx)
 open-sse/                   # @omniroute/open-sse workspace
 ├── executors/              # 89 executor implementation modules
 ├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
-├── mcp-server/             # MCP server (107 tools, 3 transports, 32 scopes)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
 ├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
 ├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
 ├── transformer/            # Responses API transformer
 └── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron desktop app (cross-platform)
+apps/desktop/               # Tauri 2 desktop app (cross-platform)
 
 tests/
 ├── unit/                   # Node.js test runner (1,574 test files)
@@ -328,76 +336,76 @@ docs/
 
 ---
 
-## Dodawanie nowego providera
+## Adding a New Provider
 
-### Krok 1: Zarejestruj stałe providera
+### Step 1: Register Provider Constants
 
-Dodaj do `src/shared/constants/providers.ts` — walidacja Zod przy ładowaniu modułu.
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-### Krok 2: Dodaj executor (jeśli potrzebna logika niestandardowa)
+### Step 2: Add Executor (if custom logic needed)
 
-Utwórz executor w `open-sse/executors/your-provider.ts` rozszerzający bazowy executor.
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-### Krok 3: Dodaj translator (jeśli format inny niż OpenAI)
+### Step 3: Add Translator (if non-OpenAI format)
 
-Utwórz translatory request/response w `open-sse/translator/`.
+Create request/response translators in `open-sse/translator/`.
 
-### Krok 4: Dodaj konfigurację OAuth (jeśli oparty o OAuth)
+### Step 4: Add OAuth Config (if OAuth-based)
 
-Dodaj poświadczenia OAuth w `src/lib/oauth/constants/oauth.ts` oraz serwis w `src/lib/oauth/services/`.
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
 
-Jeśli upstream provider dystrybuuje publiczny OAuth client_id/secret lub klucz Firebase Web API w swoim publicznym CLI / pakiecie przeglądarkowym, **nie** osadzaj go jako literału stringowego. Użyj `resolvePublicCred()` z `open-sse/utils/publicCreds.ts` i dodaj zamaskowany wpis bajtowy do `EMBEDDED_DEFAULTS`. Pełny obowiązkowy workflow jest udokumentowany w [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
+If the upstream provider distributes a public OAuth client_id/secret or Firebase Web API key inside its public CLI / browser bundle, **do not** embed it as a string literal. Use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts` and add a masked byte entry to `EMBEDDED_DEFAULTS`. The full mandatory workflow is documented in [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
 
-Wewnątrz handlers/executors komunikaty błędów docierające do klienta muszą przechodzić przez `buildErrorBody()` / `sanitizeErrorMessage()` z `open-sse/utils/error.ts` — nigdy nie umieszczaj surowego `err.stack` ani `err.message` w ciele Response. Zobacz [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
+Inside handlers/executors, error messages reaching the client must go through `buildErrorBody()` / `sanitizeErrorMessage()` from `open-sse/utils/error.ts` — never put raw `err.stack` or `err.message` in a Response body. See [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
 
-### Krok 5: Zarejestruj modele
+### Step 5: Register Models
 
-Dodaj definicje modeli w `open-sse/config/providerRegistry.ts`.
+Add model definitions in `open-sse/config/providerRegistry.ts`.
 
-### Krok 6: Dodaj testy
+### Step 6: Add Tests
 
-Napisz testy jednostkowe w `tests/unit/` obejmujące co najmniej:
+Write unit tests in `tests/unit/` covering at minimum:
 
-- Rejestrację providera
-- Translację request/response
-- Obsługę błędów
-
----
-
-## Checklista pull requesta
-
-- [ ] Testy przechodzą (`npm test`)
-- [ ] Linting przechodzi (`npm run lint`)
-- [ ] Build się udaje (`npm run build`)
-- [ ] Dodane typy TypeScript dla nowych publicznych funkcji i interfejsów
-- [ ] Brak zahardkodowanych sekretów lub wartości fallback
-- [ ] Publiczne poświadczenia upstream osadzone przez `resolvePublicCred()` (zobacz [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nigdy jako literały
-- [ ] Odpowiedzi błędów idą przez `buildErrorBody()` / `sanitizeErrorMessage()` — bez surowych stack trace’ów w ciałach odpowiedzi (zobacz [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Komendy powłoki (`exec` / `spawn`) przekazują wartości runtime przez `env`, nie przez interpolację stringów
-- [ ] Wszystkie wejścia walidowane schematami Zod
-- [ ] Dodany **fragment** changelogu w `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` dla zmian widocznych dla użytkownika (zobacz [`changelog.d/README.md`](./changelog.d/README.md)) — **nie** edytuj `CHANGELOG.md` bezpośrednio; fragmenty są agregowane w czasie release i nigdy nie kolidują między PR-ami
-- [ ] Zaktualizowana dokumentacja (jeśli dotyczy)
-- [ ] Brak nowych alertów CodeQL / Secret-Scanning, albo każdy odrzucony z technicznym uzasadnieniem odwołującym się do odpowiedniego dokumentu w `docs/security/`
-- [ ] Trasy uruchamiające procesy potomne (`/api/mcp/`, `/api/cli-tools/runtime/`) sklasyfikowane jako `isLocalOnlyPath()` w `src/server/authz/routeGuard.ts` — zobacz [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Brak trailerów `Co-Authored-By` w komunikatach commitów — commity muszą figurować wyłącznie pod tożsamością Git właściciela repozytorium (Hard Rule #16)
+- Provider registration
+- Request/response translation
+- Error handling
 
 ---
 
-## Wydawanie wersji
+## Pull Request Checklist
 
-Wydania są zarządzane przez workflow `/generate-release`. Gdy tworzony jest nowy GitHub Release, pakiet jest **automatycznie publikowany do npm** przez GitHub Actions.
-
-Do deployów VPS używaj `npm run build:release` (nie `npm run build`) — wykonuje czysty
-rebuild, składa pakiet do `dist/` i zapisuje sentinel `dist/BUILD_SHA`.
-Następnie użyj skilli `/deploy-vps-*-cc`, które robią rsync `dist/` do zdalnego katalogu `app/`.
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] Public upstream credentials embedded via `resolvePublicCred()` (see [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), never as literals
+- [ ] Error responses route through `buildErrorBody()` / `sanitizeErrorMessage()` — no raw stack traces in response bodies (see [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) pass runtime values via `env`, not via string interpolation
+- [ ] All inputs validated with Zod schemas
+- [ ] Changelog **fragment** added under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for user-facing changes (see [`changelog.d/README.md`](./changelog.d/README.md)) — do **not** edit `CHANGELOG.md` directly; fragments are aggregated at release time and never conflict between PRs
+- [ ] Documentation updated (if applicable)
+- [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
+- [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
 
 ---
 
-## Pomoc
+## Releasing
 
-- **Architektura**: Zobacz [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **Dokumentacja API**: Zobacz [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Dokumenty bezpieczeństwa**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Dokumenty ops**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+For VPS deploys, use `npm run build:release` (not `npm run build`) — it performs a clean
+rebuild, assembles the bundle into `dist/`, and writes the `dist/BUILD_SHA` sentinel.
+Then use the `/deploy-vps-*-cc` skills which rsync `dist/` to the remote `app/` directory.
+
+---
+
+## Getting Help
+
+- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Security docs**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Ops docs**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-y**: Zobacz `docs/adr/` dla architectural decision records
+- **ADRs**: See `docs/adr/` for architectural decision records

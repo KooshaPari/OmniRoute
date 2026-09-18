@@ -56,7 +56,7 @@
 ![NPM Monthly](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 ![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+![Desktop Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=desktop%20downloads&logo=desktop&color=47848F)
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 
 <br/>
@@ -333,18 +333,18 @@ Combo: "always-on"                         strategy: priority
 
 </div>
 
-| Платформа                 | Установка                                | Плюсы                          |
-| ------------------------- | ---------------------------------------- | ------------------------------ |
-| 📦 **npm (global)**       | `npm install -g omniroute`               | Одна команда, любая ОС         |
-| 🐳 **Docker**             | `docker run … diegosouzapw/omniroute`    | **AMD64 + ARM64**              |
-| 🖥️ **Desktop (Electron)** | `npm run electron:build`                 | Окно + tray — Win/macOS/Linux  |
-| 💪 **ARM**                | native `arm64`                           | Pi, ARM servers, Apple Silicon |
-| 📱 **Android (Termux)**   | `pkg install nodejs && npx -y omniroute` | На телефоне 24/7, без root     |
-| 📲 **PWA**                | «Add to Home Screen»                     | Fullscreen, offline            |
-| 🧩 **OpenCode plugin**    | `@omniroute/opencode-provider`           | Нативная интеграция            |
-| 🛠️ **Из исходников**      | `npm install && npm run dev`             | Хакинг и контрибьют            |
+| Платформа                | Установка                                | Плюсы                          |
+| ------------------------ | ---------------------------------------- | ------------------------------ |
+| 📦 **npm (global)**      | `npm install -g omniroute`               | Одна команда, любая ОС         |
+| 🐳 **Docker**            | `docker run … diegosouzapw/omniroute`    | **AMD64 + ARM64**              |
+| 🖥️ **Desktop (Tauri 2)** | `cargo tauri build`                      | Окно + tray — Win/macOS/Linux  |
+| 💪 **ARM**               | native `arm64`                           | Pi, ARM servers, Apple Silicon |
+| 📱 **Android (Termux)**  | `pkg install nodejs && npx -y omniroute` | На телефоне 24/7, без root     |
+| 📲 **PWA**               | «Add to Home Screen»                     | Fullscreen, offline            |
+| 🧩 **OpenCode plugin**   | `@omniroute/opencode-provider`           | Нативная интеграция            |
+| 🛠️ **Из исходников**     | `npm install && npm run dev`             | Хакинг и контрибьют            |
 
-<sub>📖 [Docker](../../guides/DOCKER_GUIDE.md) · [Desktop](../../../electron/README.md) · [Termux](../../guides/TERMUX_GUIDE.md) · [PWA](../../guides/PWA_GUIDE.md) · [OpenCode](../../frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker](../../guides/DOCKER_GUIDE.md) · [Desktop](../../../docs/guides/DESKTOP_GUIDE.md) · [Termux](../../guides/TERMUX_GUIDE.md) · [PWA](../../guides/PWA_GUIDE.md) · [OpenCode](../../frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -782,7 +782,7 @@ Combo: "free-tier-fallback"
 - **Validation:** Zod
 - **Protocols:** MCP (stdio/HTTP/SSE) + A2A (JSON-RPC 2.0 + SSE)
 - **Auth:** OAuth 2.0 (PKCE) + JWT + API keys + MCP scopes
-- **Platforms:** Electron desktop, Termux, PWA
+- **Platforms:** Tauri 2 desktop, Termux, PWA
 - **CI/CD:** GitHub Actions → npm + Docker Hub
 - **Resilience:** circuit breakers, backoff, anti-thundering-herd, TLS stealth, auto-combo
 
@@ -790,93 +790,9 @@ Combo: "free-tier-fallback"
 
 <div align="center">
 
-## 📖 Документация
+**[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
+
+<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
-
-### 📘 Старт
-
-| Документ                                       | О чём                                     |
-| ---------------------------------------------- | ----------------------------------------- |
-| [User Guide](../../guides/USER_GUIDE.md)       | Провайдеры, комбо, CLI, deploy            |
-| [Setup Guide](../../guides/SETUP_GUIDE.md)     | Установка, CLI tools, protocols, timeouts |
-| [CLI Tools](../../reference/CLI-TOOLS.md)      | Claude Code, Codex, Cursor, Cline…        |
-| [Remote Mode](../../guides/REMOTE-MODE.md)     | CLI с ноутбука → OmniRoute на VPS         |
-| [Quick Start](../../../README.md#-quick-start) | EN root: install → connect → point        |
-
-### 🔧 Ops
-
-| Документ                                          | О чём                        |
-| ------------------------------------------------- | ---------------------------- |
-| [Docker Guide](../../guides/DOCKER_GUIDE.md)      | Run, Compose, Caddy, tunnels |
-| [Podman](../../../contrib/podman/README.md)       | Quadlet, SELinux             |
-| [VM Deployment](../../ops/VM_DEPLOYMENT_GUIDE.md) | VM + nginx + Cloudflare      |
-| [Termux](../../guides/TERMUX_GUIDE.md)            | Android                      |
-| [Environment](../../reference/ENVIRONMENT.md)     | Полный `.env` reference      |
-
-### 🧠 Архитектура и фичи
-
-| Документ                                                    | О чём                     |
-| ----------------------------------------------------------- | ------------------------- |
-| [Architecture](../../architecture/ARCHITECTURE.md)          | Система и data flow       |
-| [Compression Guide](../../compression/COMPRESSION_GUIDE.md) | Pipeline сжатия           |
-| [Resilience Guide](../../architecture/RESILIENCE_GUIDE.md)  | Breakers, cooldown, queue |
-| [Auto-Combo](../../routing/AUTO-COMBO.md)                   | Scoring и self-heal       |
-| [Proxy Guide](../../ops/PROXY_GUIDE.md)                     | 3-level proxy             |
-| [Free Tiers](../../reference/FREE_TIERS.md)                 | Free catalog              |
-
-### 🤖 Протоколы и API
-
-| Документ                                          | О чём             |
-| ------------------------------------------------- | ----------------- |
-| [API Reference](../../reference/API_REFERENCE.md) | Все endpoints     |
-| [MCP Server](../../frameworks/MCP-SERVER.md)      | Tools, transports |
-| [A2A Server](../../frameworks/A2A-SERVER.md)      | Skills, streaming |
-
-### 📋 Проект
-
-| Документ                                 | О чём                        |
-| ---------------------------------------- | ---------------------------- |
-| [CONTRIBUTING](../../../CONTRIBUTING.md) | Dev setup                    |
-| [CHANGELOG](../../../CHANGELOG.md)       | История релизов              |
-| [SECURITY](../../../SECURITY.md)         | Vulnerability reporting      |
-| [I18N](../../guides/I18N.md)             | 42 языка, pipeline переводов |
-
----
-
-<div align="center">
-
-## 👥 Как внести вклад
-
-</div>
-
-1. Fork репозитория
-2. Ветка: `git checkout -b docs/ru-readme-full-translation`
-3. Commit: `git commit -m "docs(i18n): full Russian README rewrite"`
-4. Push и **Pull Request** в upstream
-
-Полный гайд: [CONTRIBUTING.md](../../../CONTRIBUTING.md).
-
-[![Contributors](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=100&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
-
----
-
-<div align="center">
-
-## 📊 Star History
-
-<a href="https://www.star-history.com/?repos=diegosouzapw%2Fomniroute&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
- </picture>
-</a>
-
-<br/><br/>
-
-**Сделано с ❤️ open-source сообществом · MIT License · [omniroute.online](https://omniroute.online)**
-
-⭐ Если OmniRoute помог сэкономить — поставьте star репозиторию.
-
-</div>
+<!-- GitHub Discussions enabled for community Q&A -->

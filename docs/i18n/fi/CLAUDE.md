@@ -56,7 +56,7 @@ Koko testimatriisin näkemiseksi katso `CONTRIBUTING.md` → "Testien suorittami
 | Taidot          | `src/lib/skills/`       | Laajennettavissa oleva taitokehys                                         |
 | Muisti          | `src/lib/memory/`       | Kestävä keskustelumuisti                                                  |
 
-Monorepo: `src/` (Next.js 16 -sovellus), `open-sse/` (suoratoistoalustatyötila), `electron/` (työpöytäsovellus), `tests/`, `bin/` (CLI-sisäänkäynti).
+Monorepo: `src/` (Next.js 16 -sovellus), `open-sse/` (suoratoistoalustatyötila), `apps/desktop/` (työpöytäsovellus), `tests/`, `bin/` (CLI-sisäänkäynti).
 
 ## Pyyntöputki
 
@@ -78,338 +78,64 @@ API-reitit noudattavat johdonmukaista kaavaa: `Reitti → CORS-esivalmistelu →
 
 ---
 
-## Resilienssin Suorituskykytila
-
-OmniRoute:lla on kolme liittyvää mutta erilaista tilapäisen epäonnistumisen mekanismia. Pidä niiden
-alueet erillään reitityskäyttäytymisen vianetsinnässä. Katso
-[3-kerroksinen resilienssikaavio](./docs/diagrams/exported/resilience-3layers.svg)
-(lähde: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
-nopeaa karttaa varten.
-
-### Palveluntarjoajan Piirikytkin
-
-**Alue**: koko palveluntarjoaja, esim. `glm`, `openai`, `anthropic`.
-
-**Tarkoitus**: lopettaa liikenteen lähettäminen palveluntarjoajalle, joka epäonnistuu toistuvasti
-ylävirrassa/palvelutasolla, jotta yksi epäterveellinen palveluntarjoaja ei hidasta jokaista pyyntöä.
-
-**Toteutus**:
-
-- Ydinluokka: `src/shared/utils/circuitBreaker.ts`
-- Chat-portti/suorituskykykaapeli: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
-- Suorituskykytila API: `src/app/api/monitoring/health/route.ts`
-- Jaetut kääreet: `open-sse/services/accountFallback.ts`
-- Kestävän tilan taulukko: `domain_circuit_breakers`
-
-**Tilat**:
-
-- `CLOSED`: normaali liikenne on sallittu.
-- `OPEN`: palveluntarjoaja on tilapäisesti estetty; kutsujat saavat palveluntarjoaja-piirikytkin-avoin -vastauksen
-  tai yhdistelmäreittaus ohittaa toiseen kohteeseen.
-- `HALF_OPEN`: nollaus-aika on kulunut; salli koepyyntö. Onnistuminen sulkee
-  kytkimen, epäonnistuminen avaa sen uudelleen.
-
-**Oletusarvot** (`open-sse/config/constants.ts`):
-
-- OAuth-palveluntarjoajat: kynnys `3`, nollausaika `60s`.
-- API-avaimen palveluntarjoajat: kynnys `5`, nollausaika `30s`.
-- Paikalliset palveluntarjoajat: kynnys `2`, nollausaika `15s`.
-
-Vain palveluntarjoajatasoiset epäonnistumistilat saavat aktivoida palveluntarjoajan kytkimen:
-
-```ts
-(408, 500, 502, 503, 504);
-```
-
-Älä aktivoi koko palveluntarjoajan kytkintä normaaleille tili/avain/malli-virheille, kuten useimmille
-`401`, `403` tai `429` tapauksille. Ne kuuluvat yleensä yhteyden jäähdytysaikaan tai mallin
-lukitsemiseen. Yleinen API-avaimen palveluntarjoajan `403` pitäisi olla palautettavissa, ellei sitä luokitella
-terminaaliseksi palveluntarjoaja/tilivirheeksi.
-
-Kytkin käyttää laiskaa palautumista, ei taustakelloa. Kun `OPEN` vanhenee, lukemiset kuten
-`getStatus()`, `canExecute()`, ja `getRetryAfterMs()` päivittävät tilan `HALF_OPEN`:ksi, jotta
-koontinäytöt ja yhdistelmäehdokkaat eivät jatkuvasti sulje vanhentunutta palveluntarjoajaa.
-
-### Yhteyden Jäähdytys
-
-**Alue**: yksi palveluntarjoajan yhteys/tili/avain.
-
-**Tarkoitus**: ohittaa tilapäisesti yksi huono avain/tili samalla kun sallitaan muiden yhteyksien
-saman palveluntarjoajan jatkaa pyyntöjen palvelemista.
-
-**Toteutus**:
-
-- Kirjoitus/päivityspolku: `src/sse/services/auth.ts::markAccountUnavailable()`
-- Tilin valinta/suodatus: `src/sse/services/auth.ts::getProviderCredentials...`
-- Jäähdytyksen laskenta: `open-sse/services/accountFallback.ts::checkFallbackError()`
-- Asetukset: `src/lib/resilience/settings.ts`
-
-Tärkeitä kenttiä palveluntarjoajan yhteyksissä:
-
-```ts
-rateLimitedUntil;
-testStatus: "unavailable";
-lastError;
-lastErrorType;
-errorCode;
-backoffLevel;
-```
-
-Tilivalinnan aikana yhteys ohitetaan, kun:
-
-```ts
-new Date(rateLimitedUntil).getTime() > Date.now();
-```
-
-Jäähdytykset ovat myös laiskoja: kun `rateLimitedUntil` on menneisyydessä, yhteys tulee
-uudelleen kelpoiseksi. Onnistuneessa käytössä `clearAccountError()` tyhjentää `testStatus`,
-`rateLimitedUntil`, virhekentät ja `backoffLevel`.
-
-Oletusarvoinen yhteyden jäähdytys käyttäytyminen:
-
-- OAuth-perusjäähdytys: `5s`.
-- API-avaimen perusjäähdytys: `3s`.
-- API-avaimen `429` pitäisi suosia ylävirran uudelleenyritysohjeita (`Retry-After`, nollausotsikot tai
-  parsittava nollusteksti) kun saatavilla.
-- Toistuvat palautettavat epäonnistumiset käyttävät eksponentiaalista taaksepäin:
-
-```ts
-baseCooldownMs * 2 ** failureIndex;
-```
-
-Anti-thundering-herd-suoja estää samanaikaisia epäonnistumisia samalla yhteydellä toistuvasti
-pidentämästä jäähdytystä tai kaksinkertaistamasta `backoffLevel`:ia.
-
-Terminologiset tilat eivät ole jäähdytyksiä. `banned`, `expired`, ja `credits_exhausted` on
-tarkoitettu pysymään saatavilla, kunnes tunnistetiedot/asetukset muuttuvat tai operaattori nollaa
-ne. Älä ylikirjoita terminologisia tiloja tilapäisellä jäähdytystilalla.
-
-### Mallin Lukitus
-
-**Alue**: palveluntarjoaja + yhteys + malli.
-
-**Tarkoitus**: välttää koko yhteyden estämistä, kun vain yksi malli on saatavilla tai
-kiintiörajoitettu tälle yhteydelle.
-
-Esimerkkejä:
-
-- Per-malli kiintiöpalveluntarjoajat, jotka palauttavat `429`.
-- Paikalliset palveluntarjoajat, jotka palauttavat `404` yhdelle puuttuvasta mallista.
-- Palveluntarjoajakohtaiset tila/mallilupa epäonnistumiset, kuten valitut Grok-tilat.
-
-Mallin lukitus sijaitsee `open-sse/services/accountFallback.ts` ja sallii saman
-yhteyden jatkaa muiden mallien palvelemista.
-
-### Vianetsintäohjeet
-
-- Jos kaikki avaimet palveluntarjoajalle ohitetaan, tarkista sekä palveluntarjoajan kytkimen tila että jokaisen
-  yhteyden `rateLimitedUntil`/`testStatus`.
-- Jos palveluntarjoaja näyttää pysyvästi suljetulta nollausikkunan jälkeen, tarkista, lukevatko koodi
-  raakaa `state`:a sen sijaan, että käyttäisivät `getStatus()`/`canExecute()`.
-- Jos yksi palveluntarjoajan avain epäonnistuu, mutta muiden pitäisi toimia, suosii yhteyden jäähdytystä palveluntarjoajan kytkimen yli.
-- Jos vain yksi malli epäonnistuu, suosii mallin lukitusta yhteyden jäähdytyksen yli.
-- Jos tilan pitäisi palautua itsestään, sillä pitäisi olla tuleva aikaleima/nollausaika ja
-  lukupolku, joka päivittää vanhentuneen tilan. Pysyvät tilat vaativat manuaalisia tunnistetietoja
-  tai konfiguraatiomuutoksia.
-
-## Avain Konventiot
-
-### Koodityyli
-
-- **2 välilyöntiä**, puolipisteet, kaksoisviittaukset, 100 merkin leveys, es5 loppupisteet (pakotettu lint-stagedin kautta Prettierillä)
-- **Tuonnit**: ulkoiset → sisäiset (`@/`, `@omniroute/open-sse`) → suhteelliset
-- **Nimeäminen**: tiedostot=camelCase/kebab, komponentit=PascalCase, vakioarvot=UPPER_SNAKE
-- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = virhe kaikkialla; `no-explicit-any` = varoitus `open-sse/` ja `tests/`
-- **TypeScript**: `strict: false`, kohde ES2022, moduuli esnext, resoluutio bundler. Suosi eksplisiittisiä tyyppejä.
-
-### Tietokanta
-
-- **Aina** käytä `src/lib/db/` alueen moduuleja — **älä koskaan** kirjoita raakaa SQL:ta reiteille tai käsittelijöille
-- **Älä koskaan** lisää logiikkaa `src/lib/localDb.ts` (vain uudelleenvienti kerros)
-- **Älä koskaan** barrel-importoi `localDb.ts` — tuo spesifisiä `db/` moduuleja sen sijaan
-- DB singleton: `getDbInstance()` `src/lib/db/core.ts` (WAL lokitus)
-- Migraatiot: `src/lib/db/migrations/` — versioidut SQL-tiedostot, idempotentit, suoritetaan transaktioissa
-
-### Virheiden käsittely
-
-- try/catch tietyillä virhetyypeillä, lokita pino kontekstilla
-- Älä koskaan niele virheitä SSE-virroissa — käytä keskeytyssignaaleja siivoukseen
-- Palauta oikeat HTTP-tilakoodit (4xx/5xx)
-
-### Turvallisuus
-
-- **Älä koskaan** käytä `eval()`, `new Function()`, tai implikoitua evalia
-- Vahvista kaikki syötteet Zod-skeemoilla
-- Salaa tunnistetiedot levossa (AES-256-GCM)
-- Ylöspäin suuntautuvan otsikon estolista: `src/shared/constants/upstreamHeaders.ts` — pidä puhdistus, Zod-skeemat ja yksikkötestit synkronoituna muokkaamisen aikana
-- **Julkiset ylöspäin suuntautuvat tunnistetiedot** (Gemini/Antigravity/Windsurf-tyylinen OAuth client_id/salaisuus + Firebase Web -avaimet, jotka on saatu julkisista CLI:stä): **ON** upotettava `resolvePublicCred()` kautta `open-sse/utils/publicCreds.ts` — **älä koskaan** merkkijonolitteraalina. Katso `docs/security/PUBLIC_CREDS.md` pakollisesta mallista.
-- **Virhevastaukset** (HTTP / SSE / suorittaja / MCP-käsittelijä): **ON** ohjattava `buildErrorBody()` tai `sanitizeErrorMessage()` kautta `open-sse/utils/error.ts` — **älä koskaan** laita raakaa `err.stack` tai `err.message` vastauskehoon. Katso `docs/security/ERROR_SANITIZATION.md`.
-- **Shell-komennot, jotka on rakennettu muuttujista**: kun kutsut `exec()`/`spawn()` skriptiä, joka tarvitsee ajonaikaisia arvoja, siirrä ne `env`-vaihtoehdon kautta (shell-escape automaattisesti) — **älä koskaan** merkkijonointerpoloi luotettomia/ulkopuolisia polkuja skriptin kehoon. Viite: `src/mitm/cert/install.ts::updateNssDatabases`.
-- **Oletusarvoisesti turvalliset kirjastot** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): suosi Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink yli mukautettujen toteutusten aina, kun lisäät uusia turvallisuuteen liittyviä pintoja.
-
----
-
-## Yleiset Muokkausskenaariot
-
-### Uuden Palveluntarjoajan Lisääminen
-
-1. Rekisteröi `src/shared/constants/providers.ts` (Zod-vahvistettu latauksessa)
-2. Lisää suorittaja `open-sse/executors/` jos tarvitaan mukautettua logiikkaa (laajenna `BaseExecutor`)
-3. Lisää kääntäjä `open-sse/translator/` jos ei-OpenAI-muoto
-4. Lisää OAuth-konfiguraatio `src/lib/oauth/constants/oauth.ts` jos perustuu OAuth:iin — jos ylöspäin suuntautuva CLI toimittaa julkisen client_id/salaisuuden, upota `resolvePublicCred()` kautta (katso `docs/security/PUBLIC_CREDS.md`), **älä koskaan** litteraalina
-5. Rekisteröi mallit `open-sse/config/providerRegistry.ts`
-6. Kirjoita testit `tests/unit/` (sisällytä publicCreds-muodon vahvistus, jos lisäsit uuden upotetun oletuksen)
-
-### Uuden API-reitin Lisääminen
-
-1. Luo hakemisto `src/app/api/v1/your-route/`
-2. Luo `route.ts` `GET`/`POST` käsittelijöillä
-3. Noudata kaavaa: CORS → Zod-kehon vahvistus → valinnainen todennus → käsittelijän delegointi
-4. Käsittelijä menee `open-sse/handlers/` (tuo sieltä, ei inline)
-5. Virhevastaukset käyttävät `buildErrorBody()` / `errorResponse()` `open-sse/utils/error.ts` (automaattisesti puhdistettu — älä koskaan laita `err.stack` tai `err.message` raakana kehoon). Katso `docs/security/ERROR_SANITIZATION.md`.
-6. Lisää testit — mukaan lukien vähintään yksi vahvistus, että virhevastaukset eivät vuoda pinojälkiä (`!body.error.message.includes("at /")`)
-
-### Uuden DB-moduulin Lisääminen
-
-1. Luo `src/lib/db/yourModule.ts` — tuo `getDbInstance` `./core.ts`:stä
-2. Vie CRUD-toiminnot alueen taulukoillesi
-3. Lisää migraatio `src/lib/db/migrations/` jos uusia tauluja tarvitaan
-4. Uudelleenvienti `src/lib/localDb.ts` (lisää vain uudelleenvientiluetteloon)
-5. Kirjoita testit
-
-### Uuden MCP-työkalun Lisääminen
-
-1. Lisää työkalun määritelmä `open-sse/mcp-server/tools/` Zod-syöteskeeman + asynkronisen käsittelijän kanssa
-2. Rekisteröi työkalusarjaan (kytketty `createMcpServer()` kautta)
-3. Määritä sopiville alueille
-4. Kirjoita testit (työkalun kutsu lokitetaan `mcp_audit` tauluun)
-
-### Uuden A2A-taidon Lisääminen
-
-1. Luo taito `src/lib/a2a/skills/` (5 on jo olemassa: älykäs-reititys, kiintiöhallinta, palveluntarjoajan-haku, kustannusanalyysi, terveysraportti)
-2. Taito saa tehtäväkontekstin (viestit, metatiedot) → palauttaa rakenteellisen tuloksen
-3. Rekisteröi `A2A_SKILL_HANDLERS` `src/lib/a2a/taskExecution.ts` tiedostossa
-4. Altista `src/app/.well-known/agent.json/route.ts` (Agent Card)
-5. Kirjoita testit `tests/unit/`
-6. Dokumentoi `docs/frameworks/A2A-SERVER.md` taitotaulukossa
-
-### Uuden Pilviagentin Lisääminen
-
-1. Luo agenttiluokka `src/lib/cloudAgent/agents/` laajentamalla `CloudAgentBase` (3 on jo olemassa: codex-cloud, devin, jules)
-2. Toteuta `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
-3. Rekisteröi `src/lib/cloudAgent/registry.ts`
-4. Lisää OAuth/tunnistetietojen käsittely tarvittaessa (`src/lib/oauth/providers/`)
-5. Testit + dokumentoi `docs/frameworks/CLOUD_AGENT.md`
-
-### Uuden Guardrail / Eval / Taito / Webhook-tapahtuman Lisääminen
-
-- Guardrail: `src/lib/guardrails/` → dokumentaatio: `docs/security/GUARDRAILS.md`
-- Eval-sarja: `src/lib/evals/` → dokumentaatio: `docs/frameworks/EVALS.md`
-- Taito (sandbox): `src/lib/skills/` → dokumentaatio: `docs/frameworks/SKILLS.md`
-- Webhook-tapahtuma: `src/lib/webhookDispatcher.ts` → dokumentaatio: `docs/frameworks/WEBHOOKS.md`
-
-## Viiteasiakirja
-
-Mikäli teet ei-triviaalia muutosta, lue ensin vastaava syväsukellus:
-
-| Alue                                                 | Asiakirja                                                         |
-| ---------------------------------------------------- | ----------------------------------------------------------------- |
-| Repo-navigointi                                      | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Arkkitehtuuri                                        | `docs/architecture/ARCHITECTURE.md`                               |
-| Insinööriviite                                       | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md`                                      |
-| Kestävyys (3 mekanismia)                             | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Perustelujen toisto                                  | `docs/routing/REASONING_REPLAY.md`                                |
-| Taitojen kehys                                       | `docs/frameworks/SKILLS.md`                                       |
-| Muistijärjestelmä (FTS5 + Qdrant)                    | `docs/frameworks/MEMORY.md`                                       |
-| Pilviagentit                                         | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Suojakaiteet (PII / injektio / visio)                | `docs/security/GUARDRAILS.md`                                     |
-| Julkiset ylävirran tunnistetiedot (Gemini/ym.)       | `docs/security/PUBLIC_CREDS.md`                                   |
-| Virheilmoitusten puhdistus                           | `docs/security/ERROR_SANITIZATION.md`                             |
-| Arvioinnit                                           | `docs/frameworks/EVALS.md`                                        |
-| Vaatimustenmukaisuus / auditointi                    | `docs/security/COMPLIANCE.md`                                     |
-| Webhookit                                            | `docs/frameworks/WEBHOOKS.md`                                     |
-| Valtuutusputki                                       | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Piilottelu (TLS / sormenjälki)                       | `docs/security/STEALTH_GUIDE.md`                                  |
-| Agenttiprotokollat (A2A / ACP / Pilvi)               | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| MCP-palvelin                                         | `docs/frameworks/MCP-SERVER.md`                                   |
-| A2A-palvelin                                         | `docs/frameworks/A2A-SERVER.md`                                   |
-| API-viite + OpenAPI                                  | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
-| Palveluntarjoajan luettelo (automaattisesti luotu)   | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Julkaisuprosessi                                     | `docs/ops/RELEASE_CHECKLIST.md`                                   |
-
----
-
-## Testaus
-
-| Mikä                     | Komento                                                               |
-| ------------------------ | --------------------------------------------------------------------- |
-| Yksikkötestit            | `npm run test:unit`                                                   |
-| Yksi tiedosto            | `node --import tsx/esm --test tests/unit/file.test.ts`                |
-| Vitest (MCP, autoCombo)  | `npm run test:vitest`                                                 |
-| E2E (Playwright)         | `npm run test:e2e`                                                    |
-| Protokolla E2E (MCP+A2A) | `npm run test:protocols:e2e`                                          |
-| Ekosysteemi              | `npm run test:ecosystem`                                              |
-| Peittoportti             | `npm run test:coverage` (75/75/75/70 — lauseet/rivit/funktiot/haarat) |
-| Peittoraportti           | `npm run coverage:report`                                             |
-
-**PR-sääntö**: Jos muutat tuotantokoodia kansioissa `src/`, `open-sse/`, `electron/` tai `bin/`, sinun on sisällytettävä tai päivitettävä testit samaan PR:ään.
-
-**Testikerroksen mieltymys**: yksikkö ensin → integraatio (moni-moduuli tai DB-tila) → e2e (UI/työnkulku vain). Koodivirheiden toistot on koodattava automatisoiduiksi testeiksi ennen tai rinnakkain korjauksen kanssa.
-
-**Copilot-peittopolitiikka**: Kun PR muuttaa tuotantokoodia ja peitto on alle 75% (lauseet/rivit/funktiot) tai 70% (haarat), älä vain raportoi — lisää tai päivitä testit, suorita peittoportti uudelleen ja pyydä sitten vahvistusta. Sisällytä suoritettavat komennot, muutetut testitiedostot ja lopullinen peittotulos PR-raporttiin.
-
----
-
-## Git-työprosessi
-
-```bash
-# Älä koskaan tee suoria sitoumuksia päähaaraan
-git checkout -b feat/your-feature
-git commit -m "feat: kuvaa muutoksesi"
-git push -u origin feat/your-feature
-```
-
-**Haaraetuliitteet**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
-
-**Sitoutumismuoto** (Conventional Commits): `feat(db): lisää piiri katkaisin` — laajuudet: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`
-
-**Husky-koukut**:
-
-- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
-- **pre-push**: `npm run test:unit`
-
----
-
-## Ympäristö
-
-- **Suoritusaika**: Node.js ≥20.20.2 <21 |
-  | ≥22.22.2 <23 |
-  | ≥24 <25, ES-moduulit
-- **TypeScript**: 5.9+, kohde ES2022, moduuli esnext, resoluutio bundler
-- **Polkualias**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
-- **Oletusportti**: 20128 (API + dashboard samalla portilla)
-- **Tietohakemisto**: `DATA_DIR` ympäristömuuttuja, oletuksena `~/.omniroute/`
-- **Avain ympäristömuuttujat**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
-- Asetus: `cp .env.example .env` ja sitten luo `JWT_SECRET` (`openssl rand -base64 48`) ja `API_KEY_SECRET` (`openssl rand -hex 32`)
-
----
-
-## Tiukat säännöt
-
-1. Älä koskaan sitoudu salaisuuksia tai tunnistetietoja
-2. Älä koskaan lisää logiikkaa `localDb.ts`
-3. Älä koskaan käytä `eval()` / `new Function()` / implisiittistä eval
-4. Älä koskaan tee suoria sitoumuksia `main`-haaraan
-5. Älä koskaan kirjoita raakaa SQL:ta reitteihin — käytä `src/lib/db/` moduuleja
-6. Älä koskaan hiljaa niele virheitä SSE-virroissa
-7. Varmista aina syötteet Zod-skeemoilla
-8. Sisällytä aina testit, kun muutat tuotantokoodia
-9. Peiton on pysyttävä ≥75% (lauseet, rivit, funktiot) / ≥70% (haarat). Nykyinen mittaus: ~82%.
-10. Älä koskaan ohita Husky-koukkuja (`--no-verify`, `--no-gpg-sign`) ilman nimenomaista operaattorin hyväksyntää.
-11. Älä koskaan upota julkisia ylävirran OAuth client_id/salaisuutta tai Firebase Web -avaimia merkkijonolittereinä — käytä aina `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`). Katso `docs/security/PUBLIC_CREDS.md`.
-12. Älä koskaan palauta raakaa `err.stack` / `err.message` HTTP / SSE / suorittimen vastauksissa — ohjaa aina `buildErrorBody()` tai `sanitizeErrorMessage()` kautta (`open-sse/utils/error.ts`). Katso `docs/security/ERROR_SANITIZATION.md`.
-13. Älä koskaan merkkijonointerpoloi ulkoisia polkuja tai suoritusaikaisia arvoja shell-skripteihin, jotka annetaan `exec()`/`spawn()` — siirrä sen sijaan `env`-vaihtoehdon kautta. Viite: `src/mitm/cert/install.ts::updateNssDatabases`.
-14. Älä koskaan hylkää CodeQL / Secret-Scanning -ilmoitusta ilman (a) ensin tarkistamalla yllä olevat kaaviodokumentit nähdäksesi, soveltuuko apuri, ja (b) kirjaamalla tekninen perustelu hylkäyskommenttiin. Ennakkotapaus: `js/stack-trace-exposure`, joka nostettiin kutsupaikoissa, jotka jo ohjaavat `sanitizeErrorMessage()` kautta, on tunnettu CodeQL-rajoitus (räätälöityjä puhdistimia ei tunnisteta) — hylkää `false positive` viitaten `docs/security/ERROR_SANITIZATION.md`.
-15. Älä koskaan paljasta reittejä, jotka käynnistävät lapsiprosesseja (`/api/mcp/`, `/api/cli-tools/runtime/`) ilman `isLocalOnlyPath()` luokittelua `src/server/authz/routeGuard.ts`. Loopback-valvonta tapahtuu ehdottomasti ennen mitään todennustarkistusta — vuotanut JWT tunnelin kautta ei voi laukaista prosessin käynnistämistä. Katso `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Älä koskaan sisällytä `Co-Authored-By`-liitteitä, jotka antavat kunnian tekoälyavustajalle, LLM:lle tai automaatiotilille (esim. nimet, joissa esiintyy "Claude", "GPT", "Copilot", "Bot"; sähköpostit osoitteissa `anthropic.com` / `openai.com` / bottien omistamissa `noreply.github.com`-osoitteissa). Tällaiset liitteet ohjaavat commit-attribuution bottitilille GitHubissa, piilottaen oikean kirjoittajan (`diegosouzapw`) PR-historiassa. Inhimilliset avustajat — mukaan lukien upstream-PR:n kirjoittajat ja issue-raportoijat, joita portataan OmniRouteen — VOIVAT ja PITÄISI saada kunnian vakiomuotoisilla `Co-authored-by: Name <email>`-liitteillä; upstream-port-työnkulut (`/port-upstream-features`, `/port-upstream-issues`) riippuvat tästä.
+## Worktree isolation — Claude Code specifics
+
+The full mandatory worktree protocol (base-branch confirmation, `.claude/worktrees/` canonical
+path, `cp -al` node_modules, teardown rules) is in `AGENTS.md` → Git Workflow → "Worktree
+isolation". Claude-Code-specific points:
+
+- Confirm the base branch with the operator via `AskUserQuestion` (Hard Rule #19) unless they
+  already told you.
+- Prefer the native `EnterWorktree` tool — it already creates worktrees under
+  `.claude/worktrees/` (the canonical path). Create the worktree with the documented `git
+worktree add` command, then call `EnterWorktree` with its `path`.
+
+## Cross-session safety — Claude Code specifics
+
+Hard Rules #19/#21/#22 (in `AGENTS.md`) govern parallel sessions. Operational reminders for this
+harness:
+
+- **Replicate the `git stash` ban verbatim in the prompt of every subagent that touches git**
+  (Agent tool / Workflow scripts) — subagents do not inherit this file, and the recorded
+  recurrence of the stash incident came through a subagent.
+- Before merging or pushing to any PR you did not create _this session_, run `git worktree list`
+  and re-check `gh pr view <N> --json state,headRefOid` (Hard Rule #22b).
+- End every session with the main checkout on the branch it started on.
+
+## Superpowers / planning artifacts — path overrides
+
+The `_tasks/` convention is defined in `AGENTS.md` → "Planning & Research Artifacts". The
+superpowers skills ship with defaults that point at `docs/…` — those defaults are **overridden
+here**. When a superpowers skill announces a path like "saved to `docs/superpowers/plans/…`",
+rewrite it to the `_tasks/…` equivalent before writing:
+
+| Artifact (skill)                   | Default (do NOT use)      | Save here instead                                             |
+| ---------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| Plans (`writing-plans`)            | `docs/superpowers/plans/` | `_tasks/superpowers/plans/YYYY-MM-DD-<feature>.md`            |
+| Specs / design (`brainstorming`)   | `docs/superpowers/specs/` | `_tasks/superpowers/specs/YYYY-MM-DD-<topic>-design.md`       |
+| Research (`deep-research`, ad-hoc) | `docs/research/`          | `_tasks/research/…`                                           |
+| Hand-offs (`/handoff`)             | —                         | `_tasks/hands-off/<YYYY-MM-DD>_<branch>_v<versão>_sess-<id>/` |
+
+Commit those artifacts inside the `_tasks/` repo (`git -C _tasks …`), never in the main repo.
+
+## Scratch / temporary files — use `_artifacts/`, not `/tmp`
+
+This project overrides the harness's default session scratchpad (`/tmp/claude-*/…`). Write
+temporary/working files — exports, generated zips, one-off intermediate outputs, anything you'd
+otherwise put in `/tmp` — to `/home/diegosouzapw/dev/proxys/OmniRoute/_artifacts/` instead.
+
+- `_artifacts/` is a root `_*` path: already gitignored (`AGENTS.md` → "Root `_*` paths"), lives
+  on disk only, never tracked.
+- Reason: keeping scratch output inside the project (vs `/tmp`) makes it trivial for the operator
+  to find and delete everything temporary in one place, instead of hunting across ephemeral
+  session-specific `/tmp` directories that vanish or accumulate untracked.
+- Do **not** confuse this with `_tasks/` (Hard Rule #23, its own private git repo for durable
+  plans/specs/research/hand-offs) — `_artifacts/` is for disposable working files only, nothing
+  here needs to survive or be versioned.
+
+## Base-green before opening PRs
+
+Before cutting a branch or opening a PR, run the base-green check (`AGENTS.md` → Git Workflow →
+"Base-green check"; project skills reference it as `.agents/skills/_shared/base-green.md`). A PR
+opened while the base tip is red must carry `⚠️ base-red inherited: #<issue>` in its body. To
+drain an accumulated red state (base tip + red PRs), use the `/sweep-reds` skill.

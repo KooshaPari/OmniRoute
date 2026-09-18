@@ -11,56 +11,46 @@ version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# OmniRoute — Συλλογή Χαρακτηριστικών Πίνακα Ελέγχου
+## ✨ v3.8.0 Highlights
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth flows, deeper resilience, and a much richer CLI experience. Headline features below — full details further in the document and in linked specs.
 
-Οπτικός οδηγός για κάθε τμήμα του πίνακα ελέγχου OmniRoute.
+- 🤖 **Auto Combo / Zero-config auto-routing** — use prefixes `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Backed by a 16-factor scoring engine and 6 curated **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
+- 🆕 **Command Code provider** (#2199) — first-class registration with model catalog and quota tracking
+- 🆕 **Z.AI provider** — new free-tier provider with quota labels
+- 🎬 **KIE media expansion** — extended catalog including video generation models
+- 🔐 **Devin authentication** — Desktop imports an existing Devin API key; the CLI uses local `devin auth login` credentials
+- 🆓 **8 new free providers** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🎯 **Manifest-aware tier routing W1–W4** — provider manifests drive weighted tier selection
+- 🎨 **Cursor full OpenAI parity** — tool calls, streaming, session management end-to-end
+- 📊 **Cursor Pro plan usage** — quota & cycle data surfaced in the provider-limits dashboard
+- ⚡ **Service tier breakdown / Codex fast tier analytics** — per-tier consumption visibility
+- 📌 **Per-session sticky routing** — Codex sessions pin to the same account between turns
+- 🔊 **Inworld TTS enhancements** — voice catalogs, streaming, and latency improvements
+- 🔑 **Kiro headless auth** — login via local `kiro-cli` SQLite store, no browser required
+- 📉 **DeepSeek quota and limit monitoring** — daily/monthly usage exposed via dashboard
+- 🔄 **Reset-aware routing strategy** — combos now prefer accounts whose quota window resets soonest
+- ⏱️ **`fallbackDelayMs`** and **dynamic tool limit detection** — finer fallback timing + per-provider tool-count limits
+- 🔧 **Background mode degradation (Responses API)** — falls back to synchronous mode with a structured warning when an upstream lacks background polling
+- 🚦 **Per-provider 429 classification** + `useUpstream429BreakerHints` toggle — finer breaker behavior using upstream rate-limit hints
+- 🩺 **Model cooldowns dashboard** — observe per-model lockouts and manually re-enable from the UI
+- 🔒 **MITM dynamic Linux cert detection** — works across Debian/Ubuntu, Fedora/RHEL, Arch, and other distros
+- 💻 **CLI enhancement suite** — 20+ commands including `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- 🔍 **Qdrant embedding model discovery** — automatic vector-store model probe
+- 🔑 **API Keys / Bearer keys with `manage` scope** — perform admin operations programmatically via API
+- 🏥 **Combo target health analytics** + **structured combo builder** — per-target health & UI builder for assembling `(provider, model, connection)` steps
+- 🤝 **GitLab Duo OAuth provider** — login with GitLab credentials
+- 🧠 **Reasoning Replay Cache** — hybrid in-memory + SQLite persistence of reasoning traces
 
-> 📅 **Τελευταία ενημέρωση:** 2026-06-28 — **v3.8.40**
-
----
-
-## ✨ Κυριότερα Χαρακτηριστικά v3.8.0
-
-Ο κύκλος v3.7.x → v3.8.0 πρόσθεσε αυτόματη δρομολόγηση χωρίς ρύθμιση, νέους παρόχους, ροές OAuth, βαθύτερη ανθεκτικότητα και μια πολύ πλουσιότερη εμπειρία CLI. Τα κύρια χαρακτηριστικά παρακάτω — πλήρεις λεπτομέρειες στη συνέχεια του εγγράφου και στις συνδεδεμένες προδιαγραφές.
-
-- 🤖 **Auto Combo / Αυτόματη δρομολόγηση χωρίς ρύθμιση** — χρησιμοποιήστε προθέματα `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Υποστηρίζεται από μηχανή βαθμολόγησης 16 παραγόντων και 6 επιμελημένα **πακέτα λειτουργιών** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
-- 🆕 **Πάροχος Command Code** (#2199) — πρωτοβάθμια εγγραφή με κατάλογο μοντέλων και παρακολούθηση ποσοστώσεων
-- 🆕 **Πάροχος Z.AI** — νέος πάροχος δωρεάν βαθμίδας με ετικέτες ποσοστώσεων
-- 🎬 **Επέκταση πολυμέσων KIE** — εκτεταμένος κατάλογος συμπεριλαμβανομένων μοντέλων δημιουργίας βίντεο
-- 🔐 **Πιστοποίηση Devin** — η επιφάνεια εργασίας εισάγει υπάρχον κλειδί Devin API· το CLI χρησιμοποιεί τοπικά διαπιστευτήρια `devin auth login`
-- 🆓 **8 νέοι δωρεάν πάροχοι** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
-- 🎯 **Δρομολόγηση βαθμίδων W1–W4 με επίγνωση manifest** — τα manifests παρόχων οδηγούν σταθμισμένη επιλογή βαθμίδας
-- 🎨 **Πλήρης ισοτιμία Cursor με OpenAI** — κλήσεις εργαλείων, ροή δεδομένων και διαχείριση συνεδριών από άκρο σε άκρο
-- 📊 **Χρήση πλάνου Cursor Pro** — δεδομένα ποσοστώσεων και κύκλου στον πίνακα ελέγχου ορίων παρόχων
-- ⚡ **Ανάλυση βαθμίδων υπηρεσίας / Αναλυτικά γρήγορης βαθμίδας Codex** — ορατότητα κατανάλωσης ανά βαθμίδα
-- 📌 **Σταθερή δρομολόγηση ανά συνεδρία** — οι συνεδρίες Codex καρφιτσώνονται στον ίδιο λογαριασμό μεταξύ σειρών
-- 🔊 **Βελτιώσεις Inworld TTS** — κατάλογοι φωνών, ροή δεδομένων και βελτιώσεις καθυστέρησης
-- 🔑 **Πιστοποίηση Kiro χωρίς προγράμματος περιήγησης** — σύνδεση μέσω τοπικής αποθήκης SQLite `kiro-cli`, χωρίς πρόγραμμα περιήγησης
-- 📉 **Παρακολούθηση ποσοστώσεων και ορίων DeepSeek** — ημερήσια/μηνιαία χρήση εμφανίζεται στον πίνακα ελέγχου
-- 🔄 **Στρατηγική δρομολόγησης με επίγνωση επαναφοράς** — τα combos προτιμούν πλέον λογαριασμούς με το πλησιέστερο παράθυρο επαναφοράς ποσοστώσεων
-- ⏱️ **`fallbackDelayMs`** και **δυναμική ανίχνευση ορίων εργαλείων** — πιο ακριβής χρονισμός εναλλακτικής εκτέλεσης + όρια πλήθους εργαλείων ανά πάροχο
-- 🔧 **Υποβάθμιση λειτουργίας παρασκηνίου (Responses API)** — επιστρέφει σε σύγχρονη λειτουργία με δομημένη προειδοποίηση όταν ένα upstream δεν υποστηρίζει παρακολούθηση παρασκηνίου
-- 🚦 **Κατάταξη 429 ανά πάροχο** + εναλλαγή `useUpstream429BreakerHints` — πιο λεπτομερής συμπεριφορά διακόπτη χρησιμοποιώντας υποδείξεις ορίου ρυθμού upstream
-- 🩺 **Πίνακας ελέγχου ψύξης μοντέλων** — παρακολούθηση αποκλεισμών ανά μοντέλο και χειροκίνητη επανενεργοποίηση από το περιβάλλον εργασίας
-- 🔒 **Δυναμική ανίχνευση πιστοποιητικού MITM σε Linux** — λειτουργεί σε Debian/Ubuntu, Fedora/RHEL, Arch και άλλες διανομές
-- 💻 **Σουίτα βελτιώσεων CLI** — 20+ εντολές συμπεριλαμβανομένων `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
-- 🔍 **Ανακάλυψη μοντέλου ενσωμάτωσης Qdrant** — αυτόματη ανίχνευση μοντέλου διανυσματικής αποθήκης
-- 🔑 **Κλειδιά API / Κλειδιά Bearer με εύρος `manage`** — εκτέλεση διαχειριστικών λειτουργιών μέσω προγραμματισμού μέσω API
-- 🏥 **Αναλυτικά υγείας στόχων Combo** + **δομημένος κατασκευαστής combo** — υγεία ανά στόχο και κατασκευαστής περιβάλλοντος εργασίας για συναρμολόγηση βημάτων `(πάροχος, μοντέλο, σύνδεση)`
-- 🤝 **Πάροχος OAuth GitLab Duo** — σύνδεση με διαπιστευτήρια GitLab
-- 🧠 **Κρυφή μνήμη επανάληψης συλλογισμού** — υβριδική επιμονή στη μνήμη και SQLite ιχνών συλλογισμού
-
-📚 **Σχετικά έγγραφα:** [Πλαίσιο Δεξιοτήτων](../frameworks/SKILLS.md) · [Σύστημα Μνήμης](../frameworks/MEMORY.md) · [Πράκτορες Cloud](../frameworks/CLOUD_AGENT.md) · [Webhooks](../frameworks/WEBHOOKS.md) · [Κρυφή Μνήμη Επανάληψης Συλλογισμού](../routing/REASONING_REPLAY.md)
+📚 **Related docs:** [Skills Framework](../frameworks/SKILLS.md) · [Memory System](../frameworks/MEMORY.md) · [Cloud Agents](../frameworks/CLOUD_AGENT.md) · [Webhooks](../frameworks/WEBHOOKS.md) · [Reasoning Replay Cache](../routing/REASONING_REPLAY.md)
 
 ---
 
-## 🔌 Πάροχοι
+## 🔌 Providers
 
-Διαχείριση συνδέσεων παρόχων AI: πάροχοι OAuth (Claude Code, Codex), πάροχοι με κλειδί API (Groq, DeepSeek, OpenRouter) και δωρεάν πάροχοι (Qoder, Kiro). Οι λογαριασμοί Kiro περιλαμβάνουν παρακολούθηση υπολοίπου πιστώσεων — οι εναπομείνασες πιστώσεις, το συνολικό όριο και η ημερομηνία ανανέωσης εμφανίζονται στο Dashboard → Usage.
+Manage AI provider connections: OAuth providers (Claude Code, Codex), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
 
-Οι συνδέσεις OpenRouter μπορούν να αποθηκεύουν ένα `preset` ανά σύνδεση στις Ρυθμίσεις για Προχωρημένους. Όταν οριστεί, το OmniRoute το αποστέλλει ως πεδίο κορυφαίου επιπέδου του αιτήματος OpenRouter, για παράδειγμα `"preset": "email-copywriter"`, εκτός αν το αίτημα του πελάτη έχει ήδη παρέχει το δικό του `preset`.
+OpenRouter connections can store a per-connection `preset` in Advanced Settings. When set, OmniRoute sends it as the OpenRouter top-level request field, for example `"preset": "email-copywriter"`, unless the client request already supplied its own `preset`.
 
 ![Providers Dashboard](../screenshots/01-providers.png)
 
@@ -68,25 +58,25 @@ lastUpdated: 2026-06-28
 
 ## 🎨 Combos
 
-Δημιουργήστε combos δρομολόγησης μοντέλων με 19 δημόσιες στρατηγικές: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (αποστολή σε ομάδα μοντέλων παράλληλα, στη συνέχεια σύνθεση μίας απάντησης μέσω κριτή) και **pipeline**. Κάθε combo συνδυάζει πολλαπλά μοντέλα με αυτόματη εναλλακτική δρομολόγηση και περιλαμβάνει γρήγορα πρότυπα και ελέγχους ετοιμότητας.
+Create model routing combos with 19 public strategies: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (fan out to a panel of models in parallel, then synthesize one answer via a judge), and **pipeline**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
 
-Πρόσφατες βελτιώσεις combo:
+Recent combo improvements:
 
-- **Δομημένος κατασκευαστής combo** — δημιουργήστε κάθε βήμα επιλέγοντας πάροχο, μοντέλο και συγκεκριμένο λογαριασμό/σύνδεση
-- **Υποστήριξη επαναλαμβανόμενου παρόχου** — επαναχρησιμοποιήστε τον ίδιο πάροχο πολλές φορές σε ένα combo, εφόσον το πλειάδα `(provider, model, connection)` είναι μοναδική
-- **Υγεία στόχου combo** — τα analytics και η υγεία εμφανίζουν πλέον ξεχωριστά τους μεμονωμένους στόχους/βήματα combo αντί να τα συμπτύσσουν σε συμβολοσειρές μοντέλων
-- **Σύνθετη διάταξη επιπέδων** — το `defaultTier -> fallbackTier` επηρεάζει πλέον τη σειρά εκτέλεσης/εναλλακτικής δρομολόγησης κατά τη διάρκεια εκτέλεσης για βήματα combo κορυφαίου επιπέδου
-- **Πρότυπα system prompt** — το `system_message` του combo υποστηρίζει από την πλευρά του διακομιστή τα
-  placeholders `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` και `{{FINGERPRINT}}`,
-  τα οποία αναπτύσσονται από τον πραγματικά δρομολογημένο στόχο ακριβώς πριν την αποστολή.
-  Βρίσκονται σε λίστα επιτρεπόμενων και είναι μη αναδρομικά· άγνωστα placeholders παραμένουν κυριολεκτικά· οι κενές τιμές
-  αναπτύσσονται σε κενό· τα system prompts του πελάτη δεν επανεγγράφονται ποτέ. Το `{{FINGERPRINT}}`
-  επιλύεται μόνο για δωρεάν παρόχους βασισμένους σε fingerprint με καρφιτσωμένο ή
-  αυτόματα εναλλασσόμενο fingerprint — αναπτύσσεται σε κενό αλλού (π.χ.
-  συνδέσεις με μονό fingerprint, πάροχοι χωρίς fp). Η ανάπτυξη καλύπτει τον
-  τυπικό βρόχο αποστολής, round-robin και συνεδρίες context-cache με καρφίτσωμα·
-  οι στρατηγικές fusion, chaos, pipeline και nested-execute δεν αναπτύσσουν
-  placeholders ακόμη.
+- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
+- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
+- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
+- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+- **System prompt templates** — combo `system_message` supports server-side
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` and `{{FINGERPRINT}}`
+  placeholders, expanded from the actually-routed target right before dispatch.
+  Allowlisted and non-recursive; unknown placeholders stay literal; empty values
+  expand to empty; client system prompts are never rewritten. `{{FINGERPRINT}}`
+  resolves only for fingerprint-based free providers with a pinned or
+  auto-rotated fingerprint — it expands to empty elsewhere (e.g.
+  single-fingerprint connections, non-fp providers). Expansion covers the
+  standard dispatch loop, round-robin, and pinned context-cache sessions;
+  fusion, chaos, pipeline and nested-execute strategies do not expand
+  placeholders yet.
 
 ![Combos Dashboard](../screenshots/02-combos.png)
 
@@ -94,23 +84,23 @@ lastUpdated: 2026-06-28
 
 ## 📊 Analytics
 
-Ολοκληρωμένα analytics χρήσης με κατανάλωση token, εκτιμήσεις κόστους, χάρτες θερμότητας δραστηριότητας, γραφήματα εβδομαδιαίας κατανομής και αναλυτικά στοιχεία ανά πάροχο.
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
 
 ![Analytics Dashboard](../screenshots/03-analytics.png)
 
 ---
 
-## 🏥 Υγεία Συστήματος
+## 🏥 System Health
 
-Παρακολούθηση σε πραγματικό χρόνο: uptime, μνήμη, έκδοση, εκατοστημόρια καθυστέρησης (p50/p95/p99), στατιστικά cache, καταστάσεις circuit breaker παρόχων, ενεργές συνεδρίες με παρακολούθηση quota και υγεία στόχου combo.
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
 
 ![Health Dashboard](../screenshots/04-health.png)
 
 ---
 
-## 🔧 Playground Μεταφραστή
+## 🔧 Translator Playground
 
-Τέσσερις λειτουργίες για αποσφαλμάτωση μεταφράσεων API: **Playground** (μετατροπέας μορφής), **Chat Tester** (ζωντανά αιτήματα), **Test Bench** (μαζικές δοκιμές) και **Live Monitor** (ροή σε πραγματικό χρόνο).
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
 
 ![Translator Playground](../screenshots/05-translator.png)
 
@@ -118,35 +108,35 @@ lastUpdated: 2026-06-28
 
 ## 🎮 Model Playground _(v2.0.9+)_
 
-Δοκιμάστε οποιοδήποτε μοντέλο απευθείας από τον πίνακα ελέγχου. Επιλέξτε πάροχο, μοντέλο και endpoint, γράψτε προτροπές με το Monaco Editor, κάντε streaming απαντήσεων σε πραγματικό χρόνο, διακόψτε στη μέση της ροής και δείτε μετρήσεις χρόνου εκτέλεσης.
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
 
 ---
 
-## 🎨 Θέματα _(v2.0.5+)_
+## 🎨 Themes _(v2.0.5+)_
 
-Προσαρμόσιμα θέματα χρωμάτων για ολόκληρο τον πίνακα ελέγχου. Επιλέξτε από 7 προκαθορισμένα χρώματα (Coral, Blue, Red, Green, Violet, Orange, Cyan) ή δημιουργήστε ένα προσαρμοσμένο θέμα επιλέγοντας οποιοδήποτε χρώμα hex. Υποστηρίζει λειτουργία φωτεινή, σκοτεινή και συστήματος.
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
 
 ---
 
-## ⚙️ Ρυθμίσεις
+## ⚙️ Settings
 
-Πλήρης πίνακας ρυθμίσεων με **7 καρτέλες**:
+Comprehensive settings panel with **7 tabs**:
 
-- **General** — Αποθήκευση συστήματος, διαχείριση αντιγράφων ασφαλείας (εξαγωγή/εισαγωγή βάσης δεδομένων)
-- **Appearance** — Επιλογέας θέματος (σκοτεινό/φωτεινό/σύστημα), προεπιλογές θέματος χρωμάτων και προσαρμοσμένα χρώματα, ορατότητα αρχείου καταγραφής υγείας, έλεγχοι ορατότητας στοιχείων και διαχωριστικών ομάδων της πλαϊνής γραμμής, έλεγχοι ορατότητας tunnel Endpoint
-- **AI** — Λειτουργίες βοηθού AI, προεπιλεγμένες ρυθμίσεις δρομολόγησης (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), κρυφή μνήμη αναπαραγωγής συλλογισμού και εναλλαγές δεξιοτήτων/μνήμης
-- **Security** — Προστασία endpoint API, αποκλεισμός προσαρμοσμένων παρόχων, φιλτράρισμα IP, πληροφορίες συνεδρίας
-- **Routing** — Ψευδώνυμα μοντέλων, υποβάθμιση εργασιών παρασκηνίου, δρομολόγηση επιπέδου με επίγνωση manifest (W1–W4), `fallbackDelayMs`, σταθερή δρομολόγηση ανά συνεδρία
-- **Resilience** — Διατήρηση ορίου ρυθμού, ρύθμιση circuit breaker, αυτόματη απενεργοποίηση αποκλεισμένων λογαριασμών, παρακολούθηση λήξης παρόχου, κατώφλι παράδοσης **Context Relay** και διαμόρφωση μοντέλου περίληψης, ταξινόμηση 429 ανά πάροχο & εναλλαγή `useUpstream429BreakerHints`, ψύξη μοντέλων
-- **Advanced** — Παρακάμψεις διαμόρφωσης, ίχνος ελέγχου διαμόρφωσης, λειτουργία υποβάθμισης fallback, υποβάθμιση λειτουργίας παρασκηνίου για Responses API
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item and group separator visibility controls, Endpoint tunnel visibility controls
+- **AI** — AI assistant features, default routing presets (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), reasoning replay cache, and skill/memory toggles
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation, manifest-aware tier routing (W1–W4), `fallbackDelayMs`, per-session sticky routing
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration, per-provider 429 classification & `useUpstream429BreakerHints` toggle, model cooldowns
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode, background mode degradation for Responses API
 
 ![Settings Dashboard](../screenshots/06-settings.png)
 
 ---
 
-## 🔧 Εργαλεία CLI
+## 🔧 CLI Tools
 
-Διαμόρφωση με ένα κλικ για εργαλεία κωδικοποίησης AI: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor και Factory Droid. Διαθέτει αυτοματοποιημένη εφαρμογή/επαναφορά ρυθμίσεων, προφίλ σύνδεσης και αντιστοίχιση μοντέλων.
+One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
 
 ![CLI Tools Dashboard](../screenshots/07-cli-tools.png)
 
@@ -154,192 +144,194 @@ lastUpdated: 2026-06-28
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Πίνακας ελέγχου για ανακάλυψη και διαχείριση CLI agents. Εμφανίζει ένα πλέγμα 16 ενσωματωμένων agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) με:
+Dashboard for discovering and managing CLI agents. Shows a grid of 16 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
-- **Κατάσταση εγκατάστασης** — Εγκατεστημένο / Δεν βρέθηκε με ανίχνευση έκδοσης
-- **Σήματα πρωτοκόλλου** — stdio, HTTP κ.λπ.
-- **Προσαρμοσμένοι agents** — Καταχωρίστε οποιοδήποτε εργαλείο CLI μέσω φόρμας (όνομα, δυαδικό αρχείο, εντολή έκδοσης, ορίσματα εκκίνησης)
-- **CLI Fingerprint Matching** — Εναλλαγή ανά πάροχο για αντιστοίχιση των υπογραφών αιτημάτων του εγγενούς CLI, μειώνοντας τον κίνδυνο αποκλεισμού διατηρώντας παράλληλα την IP του proxy
-- **Τοπικός έλεγχος ταυτότητας Devin** — Το Devin CLI χρησιμοποιεί `devin auth login`· δεν απαιτείται ροή OAuth μέσω προγράμματος περιήγησης
-
----
-
-## 🔗 Αναμετάδοση Πλαισίου _(v3.5.5+)_
-
-Μια στρατηγική combo που διατηρεί τη συνέχεια της συνεδρίας όταν η εναλλαγή λογαριασμών γίνεται στη μέση μιας συνομιλίας. Πριν εξαντληθεί ο ενεργός λογαριασμός, το OmniRoute δημιουργεί στο παρασκήνιο μια δομημένη περίληψη παράδοσης. Αφού το επόμενο αίτημα επιλυθεί σε διαφορετικό λογαριασμό, η περίληψη εισάγεται ως μήνυμα συστήματος, ώστε ο νέος λογαριασμός να συνεχίσει με πλήρες πλαίσιο.
-
-Διαμορφώσιμο μέσω ρυθμίσεων combo ή καθολικών ρυθμίσεων:
-
-- **Κατώφλι Παράδοσης** — Ποσοστό χρήσης ορίου που ενεργοποιεί τη δημιουργία περίληψης (προεπιλογή 85%)
-- **Μέγιστα Μηνύματα για Περίληψη** — Πόσο πρόσφατο ιστορικό θα συμπυκνωθεί
-- **Μοντέλο Περίληψης** — Προαιρετικό μοντέλο αντικατάστασης για τη δημιουργία της περίληψης παράδοσης
-
-Υποστηρίζει προς το παρόν εναλλαγή λογαριασμών Codex. Δείτε την [τεκμηρίωση Αναμετάδοσης Πλαισίου](../architecture/ARCHITECTURE.md).
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+- **Local Devin authentication** — Devin CLI uses `devin auth login`; no browser OAuth flow is required
 
 ---
 
-## 🗜️ Συμπίεση Prompt _(v3.7.9+)_
+## 🔗 Context Relay _(v3.5.5+)_
 
-Το Context & Cache παρέχει πλέον αποκλειστικές σελίδες για Caveman, RTK και Compression Combos:
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
 
-- **Caveman** — πακέτα κανόνων με επίγνωση γλώσσας, προεπισκόπηση, στοιχεία ελέγχου λειτουργίας εξόδου και αναλυτικά στοιχεία
-- **RTK** — συμπίεση με επίγνωση εντολών για shell, git, test, build, package, Docker, infra, JSON και εξόδους stack-trace
-- **Compression Combos** — ονομαστικές αλυσίδες επεξεργασίας όπως `rtk -> caveman` που αντιστοιχίζονται σε routing combos· η προεπιλεγμένη στοιβαγμένη μαθηματική επίδοση φτάνει κατά μέσο όρο `~89%` και εξοικονόμηση `78-95%` στο αποδεκτό πλαίσιο όταν εφαρμόζονται και οι δύο μηχανές
-- **Ανάκτηση ακατέργαστης εξόδου** — προαιρετικοί δείκτες ακατέργαστης εξόδου RTK με επεξεργασία για αποσφαλμάτωση αποτυχιών συμπίεσης
+Configurable via combo-level or global settings:
 
-Δείτε τον [Οδηγό Συμπίεσης](../compression/COMPRESSION_GUIDE.md), [RTK Compression](../compression/RTK_COMPRESSION.md) και
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
+
+Currently supports Codex account rotation. See [Context Relay documentation](../architecture/ARCHITECTURE.md).
+
+---
+
+## 🗜️ Prompt Compression _(v3.7.9+)_
+
+Context & Cache now exposes dedicated pages for Caveman, RTK, and Compression Combos:
+
+- **Caveman** — language-aware rule packs, preview, output-mode controls, and analytics
+- **RTK** — command-aware compression for shell, git, test, build, package, Docker, infra, JSON, and stack-trace output
+- **Compression Combos** — named pipelines such as `rtk -> caveman` assigned to routing combos; the default stacked math reaches `~89%` average and `78-95%` eligible-context savings when both engines apply
+- **Raw-output recovery** — optional redacted RTK raw-output pointers for debugging compressed failures
+
+See [Compression Guide](../compression/COMPRESSION_GUIDE.md), [RTK Compression](../compression/RTK_COMPRESSION.md), and
 [Compression Engines](../compression/COMPRESSION_ENGINES.md).
 
 ---
 
-## 🛡️ Ενίσχυση Proxy _(v3.5.5+)_
+## 🛡️ Proxy Hardening _(v3.5.5+)_
 
-Ολοκληρωμένη επιβολή διαμόρφωσης proxy σε ολόκληρη την αλυσίδα αιτημάτων:
+Comprehensive proxy configuration enforcement across the entire request pipeline:
 
-- **Έλεγχος Υγείας Token** — Η ανανέωση OAuth στο παρασκήνιο επιλύει πλέον τη διαμόρφωση proxy ανά σύνδεση, αποτρέποντας αποτυχίες σε περιβάλλοντα που απαιτούν proxy
-- **Επαλήθευση Κλειδιού API** — Η επαλήθευση κλειδιού παρόχου (`POST /api/providers/validate`) δρομολογείται μέσω `runWithProxyContext`, τηρώντας τις ρυθμίσεις proxy σε επίπεδο παρόχου και σε καθολικό επίπεδο
-- **Διόρθωση undici Dispatcher** — Οι αποστολείς proxy χρησιμοποιούν τη δική του υλοποίηση fetch του undici αντί για το ενσωματωμένο fetch του Node, επιλύοντας σφάλματα `invalid onRequestStart method` στο Node.js 22
-- **Ανίχνευση Έκδοσης Node.js** — Η σελίδα σύνδεσης εντοπίζει προληπτικά μη συμβατές εκδόσεις Node.js (24+) και εμφανίζει ένα προειδοποιητικό banner με οδηγίες για χρήση Node 22 LTS
-
----
-
-## 📧 Απόκρυψη Απορρήτου Email _(v3.5.6+)_
-
-Τα email λογαριασμών OAuth αποκρύπτονται από προεπιλογή (π.χ. `di*****@g****.com`) για την αποτροπή τυχαίας έκθεσης κατά την κοινή χρήση στιγμιότυπων οθόνης ή εγγραφή επιδείξεων. Χρησιμοποιήστε Ρυθμίσεις → Εμφάνιση → Ορατότητα email λογαριασμού για να εμφανίσετε ή να αποκρύψετε πλήρη email λογαριασμών καθολικά σε παρόχους, combos, αρχεία καταγραφής, όρια χρήσης και οθόνες playground.
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
 
 ---
 
-## 👁️ Εναλλαγή Ορατότητας Μοντέλου _(v3.5.6+)_
+## 📧 Email Privacy Masking _(v3.5.6+)_
 
-Η λίστα μοντέλων της σελίδας παρόχου περιλαμβάνει πλέον:
-
-- **Γραμμή αναζήτησης/φίλτρου σε πραγματικό χρόνο** — Γρήγορη εύρεση συγκεκριμένων μοντέλων
-- **Εναλλαγή ορατότητας ανά μοντέλο** (εικονίδιο 👁) — Τα κρυφά μοντέλα εμφανίζονται με γκρι χρώμα και εξαιρούνται από τον κατάλογο `/v1/models`
-- **Σήμα ενεργών** (`N/M active`) — Εμφανίζει με μια ματιά πόσα μοντέλα είναι ενεργοποιημένα σε σχέση με το σύνολο
-
-## 🔧 Επισκευή Περιβάλλοντος OAuth _(v3.6.1+)_
-
-Ενέργεια "Επισκευή περιβάλλοντος" με ένα κλικ για παρόχους OAuth που επαναφέρει τις ελλείπουσες μεταβλητές περιβάλλοντος και διορθώνει κατεστραμμένη κατάσταση αυθεντικοποίησης. Προσβάσιμο από `Dashboard → Providers → [OAuth Provider] → Repair env`. Εντοπίζει και επισκευάζει αυτόματα:
-
-- Ελλείπουσα διαπιστευτήρια OAuth client
-- Κατεστραμμένες καταχωρήσεις αρχείου περιβάλλοντος
-- Εξυγίανση διαδρομών αντιγράφων ασφαλείας
+OAuth account emails are masked by default (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. Use Settings → Appearance → Account email visibility to reveal or mask full account emails globally across providers, combos, logs, quota, and playground screens.
 
 ---
 
-## 🗑️ Απεγκατάσταση / Πλήρης Απεγκατάσταση _(v3.6.2+)_
+## 👁️ Model Visibility Toggle _(v3.5.6+)_
 
-Σενάρια καθαρής αφαίρεσης για όλες τις μεθόδους εγκατάστασης:
+The provider page model list now includes:
 
-| Εντολή                   | Ενέργεια                                                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Αφαιρεί την εφαρμογή συστήματος αλλά **διατηρεί τη βάση δεδομένων και τις ρυθμίσεις σας** στο `~/.omniroute`. |
-| `npm run uninstall:full` | Αφαιρεί την εφαρμογή ΚΑΙ **διαγράφει μόνιμα όλες τις ρυθμίσεις, τα κλειδιά και τις βάσεις δεδομένων**.        |
-
----
-
-## 🖼️ Πολυμέσα _(v2.0.3+)_
-
-Δημιουργία εικόνων, βίντεο και μουσικής από τον πίνακα ελέγχου. Υποστηρίζει OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open και MusicGen.
+- **Real-time search/filter bar** — Quickly find specific models
+- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
+- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
 
 ---
 
-## 📝 Αρχεία Καταγραφής Αιτημάτων
+## 🔧 OAuth Env Repair _(v3.6.1+)_
 
-Καταγραφή αιτημάτων σε πραγματικό χρόνο με φιλτράρισμα ανά πάροχο, μοντέλο, λογαριασμό και κλειδί API. Εμφανίζει κωδικούς κατάστασης, χρήση token, καθυστέρηση και λεπτομέρειες απόκρισης.
+One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
+
+- Missing OAuth client credentials
+- Corrupted env file entries
+- Backup path sanitization
+
+---
+
+## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
+
+Clean removal scripts for all installation methods:
+
+| Command                  | Action                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+
+---
+
+## 🖼️ Media _(v2.0.3+)_
+
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
+
+## 📝 Request Logs
+
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
 
 ![Usage Logs](../screenshots/08-usage.png)
 
 ---
 
-## 🌐 Τελικό Σημείο API
+## 🌐 API Endpoint
 
-Το ενοποιημένο τελικό σημείο API σας με ανάλυση δυνατοτήτων: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations και καταχωρημένα κλειδιά API. Διατίθεται υποστήριξη Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel και cloud proxy για απομακρυσμένη πρόσβαση.
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel, and cloud proxy support are available for remote access.
 
 ![Endpoint Dashboard](../screenshots/09-endpoint.png)
 
 ---
 
-## 🔑 Διαχείριση Κλειδιών API
+## 🔑 API Key Management
 
-Δημιουργία, περιορισμός εύρους και ανάκληση κλειδιών API. Κάθε κλειδί μπορεί να περιοριστεί σε συγκεκριμένα μοντέλα/παρόχους με πλήρη πρόσβαση ή δικαιώματα μόνο ανάγνωσης. Οπτική διαχείριση κλειδιών με παρακολούθηση χρήσης.
-
----
-
-## 📋 Αρχείο Καταγραφής Ελέγχου
-
-Παρακολούθηση διαχειριστικών ενεργειών με φιλτράρισμα ανά τύπο ενέργειας, φορέα, στόχο, διεύθυνση IP και χρονική σήμανση. Πλήρες ιστορικό συμβάντων ασφαλείας.
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
 
 ---
 
-## 🖥️ Εφαρμογή Επιφάνειας Εργασίας
+## 📋 Audit Log
 
-Εγγενής εφαρμογή επιφάνειας εργασίας Electron για Windows, macOS και Linux. Εκτελέστε το OmniRoute ως αυτόνομη εφαρμογή με ενσωμάτωση στο δίσκο συστήματος, υποστήριξη εκτός σύνδεσης, αυτόματη ενημέρωση και εγκατάσταση με ένα κλικ.
-
-Βασικά χαρακτηριστικά:
-
-- Παρακολούθηση ετοιμότητας διακομιστή (χωρίς κενή οθόνη κατά την ψυχρή εκκίνηση)
-- Δίσκος συστήματος με διαχείριση θύρας
-- Πολιτική Ασφαλείας Περιεχομένου
-- Κλείδωμα μεμονωμένης παρουσίας
-- Αυτόματη ενημέρωση κατά την επανεκκίνηση
-- Περιβαλλοντικά εξαρτημένο UI πλατφόρμας (φώτα κυκλοφορίας macOS, προεπιλεγμένη γραμμή τίτλου Windows/Linux)
-- Σκληρυμένη συσκευασία Electron build — τα συνδεδεμένα με symlink `node_modules` στο αυτόνομο πακέτο εντοπίζονται και απορρίπτονται πριν από τη συσκευασία, αποτρέποντας την εξάρτηση χρόνου εκτέλεσης από το μηχάνημα κατασκευής (v2.5.5+)
-- **Ομαλή τερματισμός** — το `before-quit` του Electron τερματίζει το Next.js καθαρά, αποτρέποντας κλειδώματα βάσης δεδομένων SQLite WAL (v3.6.2+)
-
-📖 Δείτε [`electron/README.md`](../../electron/README.md) για πλήρη τεκμηρίωση.
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
 
 ---
 
-## 🌐 Γέφυρα V1 WebSocket _(v3.6.6+)_
+## 🖥️ Desktop Application
 
-Το OmniRoute υποστηρίζει πλέον **WebSocket clients συμβατούς με OpenAI** μέσω του τελικού σημείου αναβάθμισης `/v1/ws`. Ο προσαρμοσμένος διακομιστής `scripts/dev/v1-ws-bridge.mjs` αναδιπλώνει το Next.js και αναβαθμίζει τις συνδέσεις WS σε πλήρεις αμφίδρομες συνεδρίες ροής. Η αυθεντικοποίηση χρησιμοποιεί το ίδιο κλειδί API ή cookie συνεδρίας με τα αιτήματα HTTP.
+Native Tauri 2 desktop app (Rust shell + system webview, `apps/desktop/`) for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-Βασικές συμπεριφορές:
+Key features:
 
-- Η αναβάθμιση WS επαληθεύεται από το `src/lib/ws/handshake.ts` πριν από τη δημιουργία της σύνδεσης
-- Οι ροές τερματίζονται καθαρά κατά το κλείσιμο συνεδρίας ή σφάλμα upstream
-- Λειτουργεί παράλληλα με την υπάρχουσα διαδρομή ροής HTTP+SSE ταυτόχρονα
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Tauri 2 build packaging — hardened standalone bundle validation detects symlinked `node_modules` and rejects it before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+- **Graceful shutdown** — Tauri lifecycle hooks shut down the API server cleanly, preventing SQLite WAL database locks (v3.6.2+)
 
----
-
-## 🔑 Συγχρονισμός Tokens & Πακέτο Ρυθμίσεων _(v3.6.6+)_
-
-Η πρόσβαση πολλαπλών συσκευών και εξωτερικών χειριστών είναι πλέον δυνατή μέσω **tokens συγχρονισμού περιορισμένου πεδίου**:
-
-- **`POST /api/sync/tokens`** — Έκδοση νέου sync token (περιορισμένου πεδίου, με προαιρετική λήξη)
-- **`DELETE /api/sync/tokens/:id`** — Ανάκληση ενός token
-- **`GET /api/sync/bundle`** — Λήψη ενός εκδοχοποιημένου στιγμιότυπου JSON με κλειδί ETag για όλες τις μη ευαίσθητες ρυθμίσεις (οι κωδικοί πρόσβασης αποκρύπτονται)
-
-Το πακέτο ρυθμίσεων δημιουργείται από το `src/lib/sync/bundle.ts`. Οι καταναλωτές συγκρίνουν την κεφαλίδα απόκρισης `ETag` για να εντοπίσουν αλλαγές χωρίς να κατεβάσουν εκ νέου ολόκληρο το περιεχόμενο.
+📖 See [`apps/desktop/README.md`](../../apps/desktop/README.md) for full documentation.
 
 ---
 
-## 🧠 Προεπιλογή GLM Thinking _(v3.6.6+)_
+## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
 
-Το **GLM Thinking (`glmt`)** είναι πλέον καταχωρημένος πάροχος πρώτης κατηγορίας: 65 536 μέγιστα tokens εξόδου, προϋπολογισμός σκέψης 24 576, προεπιλεγμένο timeout 900 s, μορφή API συμβατή με Claude, και κοινός συγχρονισμός χρήσης με την οικογένεια GLM.
+OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/dev/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
 
-Η **υβριδική καταμέτρηση tokens** κάνει επίσης την εμφάνισή της στην v3.6.6: όταν ένας πάροχος συμβατός με Claude εκθέτει το `/messages/count_tokens`, το OmniRoute το καλεί πριν από μεγάλα αιτήματα με χαριτωμένη εναλλακτική εκτίμηση σε περίπτωση αποτυχίας.
+Key behaviours:
 
----
-
-## 🛡️ Ασφαλής Εξερχόμενη Ανάκτηση & Προστασία SSRF _(v3.6.6+)_
-
-Όλες οι κλήσεις επικύρωσης παρόχων και ανακάλυψης μοντέλων διέρχονται πλέον από μια διπλής στρώσης εξερχόμενη προστασία:
-
-1. **Φρουρός URL** (`src/shared/network/outboundUrlGuard.ts`) — Αποκλείει ιδιωτικές/loopback/link-local περιοχές IP πριν ανοίξει το socket.
-2. **Ασφαλής περιτύλιξη fetch** (`src/shared/network/safeOutboundFetch.ts`) — Εφαρμόζει τον φρουρό URL, ομαλοποιεί τα timeouts και επαναλαμβάνει μεταβατικά σφάλματα με εκθετική υποχώρηση.
-
-Οι παραβιάσεις του φρουρού εμφανίζονται ως HTTP 422 (`URL_GUARD_BLOCKED`) και καταγράφονται στο αρχείο ελέγχου συμμόρφωσης μέσω του `providerAudit.ts`.
+- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
+- Streams terminated cleanly on session close or upstream error
+- Works alongside the existing HTTP+SSE streaming path simultaneously
 
 ---
 
-## 🔄 Επαναλήψεις με Επίγνωση Cooldown _(v3.6.6+)_
+## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
 
-Τα αιτήματα συνομιλίας πλέον **επαναλαμβάνονται αυτόματα** όταν ένας ανάντη πάροχος επιστρέφει cooldown περιορισμένο σε μοντέλο. Διαμορφώσιμο μέσω `REQUEST_RETRY` (προεπιλογή: 2) και `MAX_RETRY_INTERVAL_SEC` (προεπιλογή: 30 s). Η εκμάθηση κεφαλίδων ορίου ρυθμού βελτιώθηκε στα `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens` και `Retry-After` — η κατάσταση cooldown ανά μοντέλο είναι ορατή στον πίνακα ελέγχου Ανθεκτικότητας.
+Multi-device and external operator access is now possible via **scoped sync tokens**:
+
+- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
+- **`DELETE /api/sync/tokens/:id`** — Revoke a token
+- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
+
+The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
 
 ---
 
-## 📋 Έλεγχος Συμμόρφωσης v2 _(v3.6.6+)_
+## 🧠 GLM Thinking Preset _(v3.6.6+)_
 
-Το αρχείο ελέγχου έχει επεκταθεί με σελιδοποίηση βάσει cursor, εμπλουτισμό πλαισίου αιτήματος (αναγνωριστικό αιτήματος, user agent, IP), δομημένα συμβάντα αυθεντικοποίησης, συμβάντα CRUD παρόχων με πλαίσιο διαφοράς, και καταγραφή επικύρωσης αποκλεισμένων από SSRF. Νέα συμβάντα εκπέμπονται από το `src/lib/compliance/providerAudit.ts`.
+**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+
+**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+
+---
+
+## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
+
+All provider validation and model discovery calls now go through a two-layer outbound guard:
+
+1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
+2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
+
+Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+
+---
+
+## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+
+Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+
+---
+
+## 📋 Compliance Audit v2 _(v3.6.6+)_
+
+The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.

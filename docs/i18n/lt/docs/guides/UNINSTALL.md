@@ -11,57 +11,49 @@ version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# OmniRoute — pašalinimo vadovas
+## Quick Uninstall (v3.6.2+)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/UNINSTALL.md) · 🇸🇦 [ar](../../../ar/docs/guides/UNINSTALL.md) · 🇦🇿 [az](../../../az/docs/guides/UNINSTALL.md) · 🇧🇬 [bg](../../../bg/docs/guides/UNINSTALL.md) · 🇧🇩 [bn](../../../bn/docs/guides/UNINSTALL.md) · 🇨🇿 [cs](../../../cs/docs/guides/UNINSTALL.md) · 🇩🇰 [da](../../../da/docs/guides/UNINSTALL.md) · 🇩🇪 [de](../../../de/docs/guides/UNINSTALL.md) · 🇬🇷 [el](../../../el/docs/guides/UNINSTALL.md) · 🇪🇸 [es](../../../es/docs/guides/UNINSTALL.md) · 🇪🇪 [et](../../../et/docs/guides/UNINSTALL.md) · 🇮🇷 [fa](../../../fa/docs/guides/UNINSTALL.md) · 🇫🇮 [fi](../../../fi/docs/guides/UNINSTALL.md) · 🇫🇷 [fr](../../../fr/docs/guides/UNINSTALL.md) · 🇮🇪 [ga](../../../ga/docs/guides/UNINSTALL.md) · 🇮🇳 [gu](../../../gu/docs/guides/UNINSTALL.md) · 🇮🇱 [he](../../../he/docs/guides/UNINSTALL.md) · 🇮🇳 [hi](../../../hi/docs/guides/UNINSTALL.md) · 🇭🇷 [hr](../../../hr/docs/guides/UNINSTALL.md) · 🇭🇺 [hu](../../../hu/docs/guides/UNINSTALL.md) · 🇮🇩 [id](../../../id/docs/guides/UNINSTALL.md) · 🇮🇹 [it](../../../it/docs/guides/UNINSTALL.md) · 🇯🇵 [ja](../../../ja/docs/guides/UNINSTALL.md) · 🇰🇷 [ko](../../../ko/docs/guides/UNINSTALL.md) · 🇱🇻 [lv](../../../lv/docs/guides/UNINSTALL.md) · 🇮🇳 [mr](../../../mr/docs/guides/UNINSTALL.md) · 🇲🇾 [ms](../../../ms/docs/guides/UNINSTALL.md) · 🇲🇹 [mt](../../../mt/docs/guides/UNINSTALL.md) · 🇳🇱 [nl](../../../nl/docs/guides/UNINSTALL.md) · 🇳🇴 [no](../../../no/docs/guides/UNINSTALL.md) · 🇵🇭 [phi](../../../phi/docs/guides/UNINSTALL.md) · 🇵🇱 [pl](../../../pl/docs/guides/UNINSTALL.md) · 🇵🇹 [pt](../../../pt/docs/guides/UNINSTALL.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/UNINSTALL.md) · 🇷🇴 [ro](../../../ro/docs/guides/UNINSTALL.md) · 🇷🇺 [ru](../../../ru/docs/guides/UNINSTALL.md) · 🇸🇰 [sk](../../../sk/docs/guides/UNINSTALL.md) · 🇸🇮 [sl](../../../sl/docs/guides/UNINSTALL.md) · 🇷🇸 [sr](../../../sr/docs/guides/UNINSTALL.md) · 🇸🇪 [sv](../../../sv/docs/guides/UNINSTALL.md) · 🇰🇪 [sw](../../../sw/docs/guides/UNINSTALL.md) · 🇮🇳 [ta](../../../ta/docs/guides/UNINSTALL.md) · 🇮🇳 [te](../../../te/docs/guides/UNINSTALL.md) · 🇹🇭 [th](../../../th/docs/guides/UNINSTALL.md) · 🇹🇷 [tr](../../../tr/docs/guides/UNINSTALL.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/UNINSTALL.md) · 🇵🇰 [ur](../../../ur/docs/guides/UNINSTALL.md) · 🇻🇳 [vi](../../../vi/docs/guides/UNINSTALL.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/UNINSTALL.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/UNINSTALL.md)
+OmniRoute provides two built-in scripts for clean removal:
 
-Šiame vadove aprašoma, kaip tinkamai pašalinti „OmniRoute“ iš sistemos.
-
----
-
-## Greitas pašalinimas (v3.6.2+)
-
-„OmniRoute“ pateikia du integruotus scenarijus, skirtus tinkamai pašalinti programą:
-
-### Duomenų išsaugojimas
+### Keep Your Data
 
 ```bash
 npm run uninstall
 ```
 
-Ši komanda pašalina „OmniRoute“ programą, bet **išsaugo** jūsų duomenų bazę, konfigūracijas, API raktus ir teikėjų nuostatas kataloge `~/.omniroute/`. Naudokite ją, jei planuojate vėliau įdiegti programą iš naujo ir norite išsaugoti savo sąranką.
+This removes the OmniRoute application but **preserves** your database, configurations, API keys, and provider settings in `~/.omniroute/`. Use this if you plan to reinstall later and want to keep your setup.
 
-### Visiškas pašalinimas
+### Full Removal
 
 ```bash
 npm run uninstall:full
 ```
 
-Ši komanda pašalina programą **ir visam laikui ištrina** visus duomenis:
+This removes the application **and permanently erases** all data:
 
-- Duomenų bazę (`storage.sqlite`)
-- Teikėjų konfigūracijas ir API raktus
-- Atsarginių kopijų failus
-- Žurnalų failus
-- Visus kataloge `~/.omniroute/` esančius failus
+- Database (`storage.sqlite`)
+- Provider configurations and API keys
+- Backup files
+- Log files
+- All files in the `~/.omniroute/` directory
 
-> ⚠️ **Įspėjimas:** `npm run uninstall:full` veiksmo atšaukti negalima. Visi jūsų teikėjų ryšiai, deriniai, API raktai ir naudojimo istorija bus ištrinti visam laikui.
+> ⚠️ **Warning:** `npm run uninstall:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
 
 ---
 
-## Pašalinimas rankiniu būdu
+## Manual Uninstall
 
-### Visuotinis diegimas naudojant NPM
+### NPM Global Install
 
 ```bash
-# Pašalinkite visuotinį paketą
+# Remove the global package
 npm uninstall -g omniroute
 
-# (Pasirinktinai) Pašalinkite duomenų katalogą
+# (Optional) Remove data directory
 rm -rf ~/.omniroute
 ```
 
-### Visuotinis diegimas naudojant pnpm
+### pnpm Global Install
 
 ```bash
 pnpm uninstall -g omniroute
@@ -71,97 +63,97 @@ rm -rf ~/.omniroute
 ### Docker
 
 ```bash
-# Sustabdykite ir pašalinkite konteinerį
+# Stop and remove the container
 docker stop omniroute
 docker rm omniroute
 
-# Pašalinkite tomą (bus ištrinti visi duomenys)
+# Remove the volume (deletes all data)
 docker volume rm omniroute-data
 
-# (Pasirinktinai) Pašalinkite atvaizdą
+# (Optional) Remove the image
 docker rmi diegosouzapw/omniroute:latest
 ```
 
 ### Docker Compose
 
 ```bash
-# Sustabdykite ir pašalinkite konteinerius
+# Stop and remove containers
 docker compose down
 
-# Taip pat pašalinkite tomus (bus ištrinti visi duomenys)
+# Also remove volumes (deletes all data)
 docker compose down -v
 ```
 
-### Electron darbalaukio programa
+### Tauri Desktop App
 
 **Windows:**
 
-- Atidarykite `Nustatymai → Programėlės → OmniRoute → Pašalinti`
-- Arba paleiskite NSIS šalinimo programą iš diegimo katalogo
+- Open `Settings → Apps → OmniRoute → Uninstall`
+- Or run the NSIS uninstaller from the install directory
 
 **macOS:**
 
-- Nuvilkite `OmniRoute.app` iš `/Applications` į šiukšlinę
-- Pašalinkite duomenis: `rm -rf ~/Library/Application Support/omniroute`
+- Drag `OmniRoute.app` from `/Applications` to Trash
+- Remove data: `rm -rf ~/Library/Application Support/omniroute`
 
 **Linux:**
 
-- Pašalinkite AppImage failą
-- Pašalinkite duomenis: `rm -rf ~/.omniroute`
+- Remove the AppImage file
+- Remove data: `rm -rf ~/.omniroute`
 
-### Diegimas iš šaltinio kodo (git clone)
+### Source Install (git clone)
 
 ```bash
-# Pašalinkite klonuotą katalogą
+# Remove the cloned directory
 rm -rf /path/to/omniroute
 
-# (Pasirinktinai) Pašalinkite duomenų katalogą
+# (Optional) Remove data directory
 rm -rf ~/.omniroute
 ```
 
 ---
 
-## Duomenų katalogai
+## Data Directories
 
-Pagal numatytuosius nustatymus OmniRoute saugo duomenis šiose vietose:
+OmniRoute stores data in the following locations by default:
 
-| Platforma         | Numatytasis kelias              | Keitimas                              |
-| ----------------- | ------------------------------- | ------------------------------------- |
-| Linux             | `~/.omniroute/`                 | `DATA_DIR` aplinkos kintamasis        |
-| macOS             | `~/.omniroute/`                 | `DATA_DIR` aplinkos kintamasis        |
-| Windows           | `%APPDATA%/omniroute/`          | `DATA_DIR` aplinkos kintamasis        |
-| Docker            | `/app/data/` (prijungtas tomas) | `DATA_DIR` aplinkos kintamasis        |
-| Suderinama su XDG | `$XDG_CONFIG_HOME/omniroute/`   | `XDG_CONFIG_HOME` aplinkos kintamasis |
+| Platform      | Default Path                  | Override                  |
+| ------------- | ----------------------------- | ------------------------- |
+| Linux         | `~/.omniroute/`               | `DATA_DIR` env var        |
+| macOS         | `~/.omniroute/`               | `DATA_DIR` env var        |
+| Windows       | `%APPDATA%/omniroute/`        | `DATA_DIR` env var        |
+| Docker        | `/app/data/` (mounted volume) | `DATA_DIR` env var        |
+| XDG-compliant | `$XDG_CONFIG_HOME/omniroute/` | `XDG_CONFIG_HOME` env var |
 
-### Duomenų kataloge esantys failai
+### Files in the data directory
 
-| Failas / katalogas   | Aprašymas                                                        |
-| -------------------- | ---------------------------------------------------------------- |
-| `storage.sqlite`     | Pagrindinė duomenų bazė (teikėjai, deriniai, nustatymai, raktai) |
-| `storage.sqlite-wal` | SQLite išankstinio įrašymo žurnalas (laikinas)                   |
-| `storage.sqlite-shm` | SQLite bendroji atmintis (laikina)                               |
-| `call_logs/`         | Užklausų duomenų archyvai                                        |
-| `backups/`           | Automatinės duomenų bazės atsarginės kopijos                     |
-| `log.txt`            | Senasis užklausų žurnalas (pasirinktinis)                        |
+| File/Directory       | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| `storage.sqlite`     | Main database (providers, combos, settings, keys) |
+| `storage.sqlite-wal` | SQLite write-ahead log (temporary)                |
+| `storage.sqlite-shm` | SQLite shared memory (temporary)                  |
+| `call_logs/`         | Request payload archives                          |
+| `backups/`           | Automatic database backups                        |
+| `log.txt`            | Legacy request log (optional)                     |
 
 ---
 
-## Visiško pašalinimo patikrinimas
+## Verify Complete Removal
 
-Pašalinę patikrinkite, ar neliko jokių failų:
+After uninstalling, verify there are no remaining files:
 
 ```bash
-# Patikrinkite, ar neliko visuotinio npm paketo
+# Check for global npm package
 npm list -g omniroute 2>/dev/null
 
-# Patikrinkite, ar neliko duomenų katalogo
+# Check for data directory
 ls -la ~/.omniroute/ 2>/dev/null
 
-# Patikrinkite, ar nėra veikiančių procesų
+# Check for running processes
 pgrep -f omniroute
 ```
 
-Jei kuris nors procesas vis dar veikia, sustabdykite jį:
+If any process is still running, stop it:
 
 ```bash
 pkill -f omniroute

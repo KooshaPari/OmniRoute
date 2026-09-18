@@ -127,159 +127,116 @@ Vaikimisi URL-id:
 
 ---
 
-## Giti töövoog
-
-> ⚠️ **ÄRA KUNAGI commiti otse harusse `main`.** Kasuta alati funktsionaalsusharusid.
->
-> **PR-i baasharu:** sihi aktiivset haru `release/vX.Y.Z` (mitte `main`). Harupõhise väljalaske
-> ja avaldamisel sildistamise mudelit kirjeldab
-> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md).
+## Running Tests
 
 ```bash
-# Loo haru aktiivse väljalaske tipust (näide: release/v3.8.49)
-git fetch origin
-git checkout -b feat/your-feature-name origin/release/v3.8.49
-# ... tee muudatused ...
-git commit -m "feat: describe your change"
-git push -u origin feat/your-feature-name
-# Ava Pull Request, mille base = release/v3.8.49
-```
-
-### Harude nimetamine
-
-| Prefiks     | Otstarve                     |
-| ----------- | ---------------------------- |
-| `feat/`     | Uued funktsioonid            |
-| `fix/`      | Veaparandused                |
-| `refactor/` | Koodi ümberstruktureerimine  |
-| `docs/`     | Dokumentatsiooni muudatused  |
-| `test/`     | Testide lisamised/parandused |
-| `chore/`    | Tööriistad, CI, sõltuvused   |
-
-### Commiti sõnumid
-
-Järgi standardit [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update SECURITY.md with PII protection
-test: add observability unit tests
-refactor(db): consolidate rate limit tables
-```
-
-Ulatused (v3.8): `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`, `cloud-agent`, `guardrails`, `compression`, `auto-combo`, `resilience`, `providers`, `executors`, `translator`, `domain`, `authz`.
-
----
-
-## Testide käitamine
-
-```bash
-# Kõik testid (ühiktestid + vitest + ökosüsteem + e2e)
+# All tests (unit + vitest + ecosystem + e2e)
 npm run test:all
 
-# Üks testifail (Node.js-i sisseehitatud testikäitaja — enamik teste kasutab seda)
+# Single test file (Node.js native test runner — most tests use this)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Ainult sinu muudatusest mõjutatud ühiktestid (sama TIA valija nagu CI kontrollis, #8084)
-npm run test:scoped            # viimase commiti muudatused (või tööpuu muudatused)
-npm run test:scoped:staged     # ainult etapistatud muudatused — sobib hästi commiti-eelse käitusega
-npm run test:scoped:full       # loo esmalt uuesti impordigraafi kaart (pärast failide lisamist/teisaldamist)
-# Väljumiskood 1 + „käita kogu komplekt“ tähendab, et muutus keskne fail (tsconfig, package.json, …) või
-# kaardistamata lähtekood — valija rakendab turvalist tõrget ega jäta kunagi midagi märkamatult vahele.
+# Only the unit tests impacted by your change (same TIA selector as the CI gate, #8084)
+npm run test:scoped            # changes in the last commit (or the working tree)
+npm run test:scoped:staged     # staged changes only — pairs well with a pre-commit run
+npm run test:scoped:full       # rebuild the import-graph map first (after adding/moving files)
+# Exit 1 + "run the full suite" means a hub file (tsconfig, package.json, …) or an
+# unmapped source changed — the selector fails safe, it never silently skips.
 
-# Vitest (MCP server, autoCombo, vahemälu)
+# Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
 
-# E2E-testid (nõuab Playwrighti)
+# E2E tests (requires Playwright)
 npm run test:e2e
 
-# Protokolliklientide E2E (MCP transpordid, A2A)
+# Protocol clients E2E (MCP transports, A2A)
 npm run test:protocols:e2e
 
-# Ökosüsteemi ühilduvustestid
+# Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Katvuse kontroll: 60% lausetest/ridadest/funktsioonidest/harudest
+# Coverage gate: 60% statements/lines/functions/branches
 npm run test:coverage
 npm run coverage:report
 
-# Lintimise + vorminduse kontroll
+# Lint + format check
 npm run lint
 npm run check
 
-# Kontrollitud päris ülesvoolu kombinatsiooni suitsutest (nõuab VPS-i juurdepääsu + päris teenusepakkuja krediiti)
-# Pöördub PÄRIS teenusepakkujate poole — maksab veidi. Seda EI käitata KUNAGI CI-s. Ilma kontrollmuutujata jäetakse test korrektselt vahele.
-# Nõuab: ssh root@192.168.0.15 juurdepääsu (laadib VPS-ist kirjutuskaitstud DB hetktõmmise).
+# Gated real-upstream combo smoke (requires VPS access + real provider credits)
+# Hits REAL providers — costs a little. NEVER runs in CI. Skips cleanly without the gate.
+# Needs: ssh root@192.168.0.15 access (sources a read-only DB snapshot from the VPS).
 RUN_COMBO_LIVE=1 npm run test:combo:live
 
-# 3. etapi VPS-i reaalne suitsutest — tavalised Node ESM-i skriptid, mis pöörduvad otse töötava .15 serveri poole.
-# Nõuab: ssh root@192.168.0.15 juurdepääsu (kombinatsioonid luuakse/eemaldatakse SSH kaudu sqlite'is).
-# Pöördub PÄRIS teenusepakkujate poole (väike kulu). Loob/kustutab ainult __live_test__* kombinatsioone. Seda EI käitata KUNAGI CI-s.
-# REQUIRE_API_KEY=false serveris .15, seega API-võtit pole vaja, kuid kasutab määramise korral väärtusi COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY.
-npm run test:combo:live:vps              # 7 HTTP-stsenaariumi (prioriteet/tsükliline/kaalutud/kulu/fusioon/automaatne + seisund)
-npm run test:combo:live:vps:failover     # lisab päris teenusepakkujatevahelise tõrkesiirde stsenaariumi (kokku 8)
+# Phase-3 VPS live smoke — plain Node ESM scripts, hit the live .15 server directly.
+# Requires: ssh root@192.168.0.15 access (combos created/torn down via SSH sqlite).
+# Hits REAL providers (small cost). Creates/deletes only __live_test__* combos. NEVER runs in CI.
+# REQUIRE_API_KEY=false on .15 so no API key needed, but honors COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY if set.
+npm run test:combo:live:vps              # 7 HTTP scenarios (priority/round-robin/weighted/cost/fusion/auto + health)
+npm run test:combo:live:vps:failover     # adds a real cross-provider failover scenario (8 total)
 ```
 
-Märkused katvuse kohta:
+Coverage notes:
 
-- `npm run test:coverage` mõõdab peamise ühiktestide komplekti lähtekoodi katvust, välistab `tests/**` ja hõlmab `open-sse/**`
-- Pull Requestid peavad säilitama katvuse kontrollis lausete/ridade/funktsioonide/harude katvuse tasemel **60%+**
-- Kui PR muudab tootmiskoodi kataloogis `src/`, `open-sse/`, `electron/` või `bin/`, tuleb samas PR-is lisada või värskendada automatiseeritud teste
-- `npm run coverage:report` väljastab viimase katvuskäituse üksikasjaliku failipõhise aruande
-- `npm run test:coverage:legacy` säilitab ajalooliseks võrdluseks vanema mõõdiku
-- Katvuse parandamise etapiviisilist tegevuskava kirjeldab `docs/ops/COVERAGE_PLAN.md`
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the coverage gate at **60%+** statements/lines/functions/branches
+- If a PR changes production code in `src/`, `open-sse/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-### Pull Requesti nõuded
+### Pull Request Requirements
 
-Enne PR-i avamist kasuta juhendit
-[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md), et käitada tehtud
-muudatustele keskenduv tsükkel. Täielik ühiktestide komplekt (4 CI jaotist), Vitest, **60%+**
-katvuse kontroll ja tootmisjärk on CI vastutusel — nende kohalik käitamine ei anna lisateavet,
-mida PR-i kontrollid juba ei annaks, ning väiksemates masinates võib see süsteemi üle koormata (#8084):
+Before opening a PR, use the
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) to run the focused loop for
+what you changed. The full unit suite (4 CI shards), Vitest, the **60%+** coverage gate, and
+the production build are CI's responsibility — running them locally adds no signal the PR
+checks will not already give you, and on smaller machines it can saturate the host (#8084):
 
-- Käita oma muudatust katvaid testifaile: `node --import tsx/esm --test tests/unit/<file>.test.ts`
-- Käita `npm run lint`
-- Tootmiskoodi muutmisel lisa või värskenda samas PR-is automatiseeritud teste
-- Kui tootmiskood muutus, lisa muudetud või lisatud testifailid PR-i kirjeldusse
-- Kontrolli PR-is SonarQube'i tulemust, kui projekti saladused on CI-s seadistatud
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-Testide praegune olek: **122 ühiktestifaili**, mis hõlmavad järgmist:
+Current test status: **122 unit test files** covering:
 
-- Teenusepakkujate tõlkijad ja vormingute teisendamine
-- Kiiruse piiramine, kaitselüliti ja tõrkekindlus
-- Semantiline vahemälu, idempotentsus ja edenemise jälgimine
-- Andmebaasitoimingud ja skeem (21 DB moodulit)
-- OAuthi vood ja autentimine
-- API otspunktide valideerimine (Zod v4)
-- MCP serveri tööriistad ja ulatuse jõustamine
-- Mälu- ja oskustesüsteemid
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
 
 ---
 
-## Koodistiil
+## Code Style
 
-- **ESLint** — Käivita `npm run lint` enne commitimist
-- **Prettier** — Automaatselt vormindatud `lint-staged` abil commitimisel (2 tühikut, semikoolonid, kahekordsed jutumärgid, 100 märgi laius, es5 järgnevad komad)
-- **TypeScript** — Kogu `src/` kood kasutab `.ts`/`.tsx`; `open-sse/` kasutab `.ts`/`.js`; dokumendi TSDoc-ga (`@param`, `@returns`, `@throws`)
-- **Keelatud `eval()`** — ESLint rakendab `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod valideerimine** — Kasuta Zod v4 skeeme kõigi API sisendi valideerimiseks
-- **Nimetamine**: Failid = camelCase/kebab-case, komponendid = PascalCase, konstantid = UPPER_SNAKE
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
 
-### Vigade töötlemine / tühjad catch-blokid
+### Error handling / empty catch blocks
 
-Ära jäta `catch` kunagi selgitamata. Klasifitseeri see kahe kategooriasse (operationaliseerib kange reegli "mitte kunagi vaikselt loe SSE voogudes vigu"):
+Never leave a `catch` unexplained. Classify it into one of two buckets (operationalizes
+the hard rule "never silently swallow errors in SSE streams"):
 
-- **Intentsionaalne (oma parima püüdluse puhastus/telemeetria)** — ebaõnnestumine siin on oodatud ja
-  kahjutus; lisa ühe rea põhjendav kommentaar, logimata (iga päringu logimine on see müra, mida see konventsioon vältib).
+- **Intentional (our own best-effort cleanup/telemetry)** — a failure here is expected and
+  harmless; add a one-line rationale comment, no logging (logging on every request is the
+  noise this convention avoids).
 
   ```ts
-  } catch {} // juba suletud kontrolleri sulgemine kliendi discconnecti järel on oodatud
+  } catch {} // closing an already-closed controller after client disconnect is expected
   ```
 
-- **Peab logima (väline/hüvitaja kood, või niitamine muudab kontrollivoolu)** — hoia
-  catch (kunagi lase see voogu murda) aga emiteeri kontekstuaalne `console.debug`/`warn`, et
-  ebaõnnestumine on avastatav.
+- **Should log (external/caller-supplied code, or the swallow changes control flow)** — keep
+  the catch (never let it break the stream) but emit a contextual `console.debug`/`warn` so the
+  failure is discoverable.
 
   ```ts
   } catch (e) {
@@ -287,148 +244,150 @@ Testide praegune olek: **122 ühiktestifaili**, mis hõlmavad järgmist:
   }
   ```
 
-Vaata `open-sse/utils/stream.ts` ja `open-sse/utils/streamHandler.ts` rakendatud näidete jaoks.
+See `open-sse/utils/stream.ts` and `open-sse/utils/streamHandler.ts` for applied examples.
 
 ---
 
-## Projekti struktuur
+## Project Structure
 
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Dashboard lehed (23 sektsiooni)
-│   ├── api/                # API marsruudid (51 kataloogi)
-│   └── login/              # Autentimise lehed (.tsx)
-├── domain/                 # Poliitika mootor (policyEngine, comboResolver, costRules, jne)
-├── lib/                    # Põhiline äriloogika (.ts)
-│   ├── a2a/                # Agent-to-Agent v0.3 protokolli server
-│   ├── acp/                # Agent Communication Protocol registri
-│   ├── compliance/         # Vastavuse poliitika mootor
-│   ├── db/                 # SQLite domeeni moodulid + 130 migreerimist
-│   ├── memory/             # Pidev konversatsioonimälu
-│   ├── oauth/              # OAuth pakkujad, teenused ja utiliidid
-│   ├── skills/             # Laiendatav oskuste raamistik
-│   ├── usage/              # Kasutuse jälgimine ja kulude arvutamine
-│   └── localDb.ts          # Ainult re-eksporti kihi — kunagi ei lisa loogikat siia
-├── middleware/              # Päringu middleware (promptInjectionGuard)
-├── mitm/                   # MITM proksi (sert, DNS, sihtmarsruutimine)
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # React komponendid (.tsx)
-│   ├── constants/          # Pakkuja definitsioonid (329), MCP skoobid, 19 marsruutimisstrategiat
-│   ├── utils/              # Ringi katkestaja, sanitaizer, autentimise abid
-│   └── validation/         # Zod v4 skeemid
-└── sse/                    # SSE proksi pipeline
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 19 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # @omniroute/open-sse tööruum
-├── executors/              # 89 eksikuteeri implementatsiooni moodulit
-├── handlers/               # 11 päringu käsitlejat (vestlus, vastused, embeddings, pildid, jne)
-├── mcp-server/             # MCP server (110 unikaalset tööriista, 3 transpordi, 33 skoobi)
-├── services/               # 178 ülemise taseme teenust (combo, autoCombo, rateLimitManager, jne)
-├── translator/             # Formaadi tõlkijad (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Responses API transformeri
-└── utils/                  # 22 utiliidi moodulit (voog, TLS, proksi, logimine)
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 89 executor implementation modules
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electroni töölauarakendus (cross-platform)
+apps/desktop/               # Tauri 2 desktop app (cross-platform)
 
 tests/
-├── unit/                   # Node.js test runner (1,574 testifaili)
-├── integration/            # Integratsioonitestid
-├── e2e/                    # Playwright testid
-├── security/               # Turvatestid
-├── translator/             # Tõlke-spetsiifilised testid
-└── load/                   # Koormustestid
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/
-├── adr/                     # Arhitektuuripõhiste otsuste kirjed
-├── architecture/            # Süsteemi arhitektuur ja vastupidavus
-├── comparison/              # OmniRoute vs alternatiivid
-├── compression/             # Pakkimise juhised ja reeglid
-├── dev/                     # Arendamise juhised
-├── diagrams/                # Arhitektuuridiagrammid
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
 ├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
-├── guides/                  # Kasutajajuhend, Docker, seadistamine, tõrkeotsing
-├── i18n/                    # Rahvusvahelised README tõlked
-├── marketing/               # Turundusmaterjalid
-├── ops/                     # Juurutamine, proksi, katvus, väljalasked
-├── providers/               # Pakkuja-spetsiifilised dokumendid
-├── reference/               # API viide, keskkonna muutujad, CLI tööriistad, tasuta kihid
-├── releases/                # Väljalaskemärkmed
-├── routing/                 # Auto-combo mootor, põhjenduse uuesti mängimine
-├── screenshots/             # Dashboardi ekraanipildid
-├── security/                # Kaitsekaitsed, vastavus, saladus, märgid
-└── specs/                   # Disainispetsifikatsioonid
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
-## Uue tarnija lisamine
+---
 
-### 1. samm: Registreeri tarnija konstandid
+## Adding a New Provider
 
-Lisa `src/shared/constants/providers.ts` — Zod-valideeritud moduli laadimisel.
+### Step 1: Register Provider Constants
 
-### 2. samm: Lisa käivitaja (kui on vaja kohandatud loogikat)
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-Loo käivitaja `open-sse/executors/your-provider.ts`, laiendades baaskäivitajat.
+### Step 2: Add Executor (if custom logic needed)
 
-### 3. samm: Lisa tõlkija (kui formaat pole OpenAI)
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-Loo päringu/vastuse tõlkijad `open-sse/translator/` kataloogi.
+### Step 3: Add Translator (if non-OpenAI format)
 
-### 4. samm: Lisa OAuth konfiguratsioon (kui põhineb OAuth-il)
+Create request/response translators in `open-sse/translator/`.
 
-Lisa OAuth volikirjad `src/lib/oauth/constants/oauth.ts` ja teenus `src/lib/oauth/services/` kataloogi.
+### Step 4: Add OAuth Config (if OAuth-based)
 
-Kui ülemine tarnija levitab avalikku OAuth kliendi_id/secret või Firebase Web API võtit oma avalikus CLI / brauseri paketis, **ära** pea seda sõna-sõnalt stringina. Kasuta `resolvePublicCred()` funktsiooni `open-sse/utils/publicCreds.ts` failist ja lis maskeeritud baitide kiri `EMBEDDED_DEFAULTS` massiivi. Täielik kohustuslik töövoog on dokumenteeritud [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md) dokumendis.
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
 
-Käitlejate/käivitajate sees peavad kliendini jõudvad veateated läbima `buildErrorBody()` / `sanitizeErrorMessage()` funktsioonid `open-sse/utils/error.ts` failist — ära pane kunagi tooret `err.stack` või `err.message` Response kehasse. Vaata [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md) dokumenti.
+If the upstream provider distributes a public OAuth client_id/secret or Firebase Web API key inside its public CLI / browser bundle, **do not** embed it as a string literal. Use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts` and add a masked byte entry to `EMBEDDED_DEFAULTS`. The full mandatory workflow is documented in [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
 
-### 5. samm: Registreeri mudelid
+Inside handlers/executors, error messages reaching the client must go through `buildErrorBody()` / `sanitizeErrorMessage()` from `open-sse/utils/error.ts` — never put raw `err.stack` or `err.message` in a Response body. See [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
 
-Lisa määratlused `open-sse/config/providerRegistry.ts` failis.
+### Step 5: Register Models
 
-### 6. samm: Lisa testid
+Add model definitions in `open-sse/config/providerRegistry.ts`.
 
-Kirjuta üksiktestid `tests/unit/` kataloogi, kattes vähemalt:
+### Step 6: Add Tests
 
-- Tarnija registreerimine
-- Päringu/vastuse tõlkimine
-- Vigade käsitlemine
+Write unit tests in `tests/unit/` covering at minimum:
+
+- Provider registration
+- Request/response translation
+- Error handling
 
 ---
 
-## Pull requesti kontrollnimekiri
+## Pull Request Checklist
 
-- [ ] Testid läbivad (`npm test`)
-- [ ] Linting läbib (`npm run lint`)
-- [ ] Ehitamine õnnestub (`npm run build`)
-- [ ] TypeScripti tüübid lisatud uutele avalikele funktsioonidele ja liidestele
-- [ ] Pole peidetud salajasi väärtusi ega fallback väärtusi
-- [ ] Avalikud ülemised volikirjad sisestatud `resolvePublicCred()` kaudu (vaata [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), mitte kunagi sõna-sõnalt
-- [ ] Vigavastused suunatakse läbi `buildErrorBody()` / `sanitizeErrorMessage()` — vastuste kehades ei ole toored stack trace'id (vaata [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Käsurea käsud (`exec` / `spawn`) edastavad käitusväärtused `env` kaudu, mitte stringi interpoleerimise teel
-- [ ] Kõik sisendid valideeritud skeemidega
-- [ ] Muudatuste logi **fragment** lisatud `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` alla kasutajate suunatud muudatuste jaoks (vaata [`changelog.d/README.md`](./changelog.d/README.md)) — **ära** muuda `CHANGELOG.md` otse; fragmendid kogutakse väljaandmise ajal ja ei tekki kunagi konflikte
-- [ ] Dokumentatsioon uuendatud (kohaldatavatel juhtudel)
-- [ ] Uusi CodeQL / Secret-Scanning hoiatusi ei avatud, või iga neist lükati tagasi tehnilise põhjendusega, viidates asjakohasele `docs/security/` dokumendile
-- [ ] Marsruudid, mis käivitavad lapseprotsesse (`/api/mcp/`, `/api/cli-tools/runtime/`), on klassifitseeritud `isLocalOnlyPath()` abil `src/server/authz/routeGuard.ts` failis — vaata [Rangedreegel nr 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Kommitedetsioonides pole `Co-Authored-By` trailerid — kommid peavad ilmuma ainult hoidla omaniku Git identiteedi all (Rangedreegel nr 16)
-
----
-
-## Avaldamine
-
-Avaldusi haldab töövoog `/generate-release`. Kui luuakse uus GitHub Release, avaldatakse pakett **automaatselt npm-i** GitHub Actions'i kaudu.
-
-VPS desployimiseks kasuta käsku `npm run build:release` (mitte `npm run build`) — see teostab puhta
-taastöötluse, koondab kimpude kokku kausta `dist/` ja kirjutab lähtefaili `dist/BUILD_SHA`.
-Seejärel kasuta töövooge `/deploy-vps-*-cc`, mis kasutavad rsync-i `dist/` edastamiseks kaugserveri kataloogi `app/`.
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] Public upstream credentials embedded via `resolvePublicCred()` (see [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), never as literals
+- [ ] Error responses route through `buildErrorBody()` / `sanitizeErrorMessage()` — no raw stack traces in response bodies (see [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) pass runtime values via `env`, not via string interpolation
+- [ ] All inputs validated with Zod schemas
+- [ ] Changelog **fragment** added under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for user-facing changes (see [`changelog.d/README.md`](./changelog.d/README.md)) — do **not** edit `CHANGELOG.md` directly; fragments are aggregated at release time and never conflict between PRs
+- [ ] Documentation updated (if applicable)
+- [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
+- [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
 
 ---
 
-## Abi saamine
+## Releasing
 
-- **Arhitektuur**: Vaata [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API viide**: Vaata [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Turvadokumendid**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Toimingute dokumendid**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Probleemid**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **Arhitektuurilised otsused**: Vaata kausta `docs/adr/` arhitektuuriliste otsuste kirjelduste jaoks
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+For VPS deploys, use `npm run build:release` (not `npm run build`) — it performs a clean
+rebuild, assembles the bundle into `dist/`, and writes the `dist/BUILD_SHA` sentinel.
+Then use the `/deploy-vps-*-cc` skills which rsync `dist/` to the remote `app/` directory.
+
+---
+
+## Getting Help
+
+- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Security docs**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Ops docs**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

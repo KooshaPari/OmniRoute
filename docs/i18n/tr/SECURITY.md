@@ -155,30 +155,13 @@ PII_RESPONSE_SANITIZATION=true  # isteğe bağlı: istemcilere döndürülen sa�
 
 ---
 
-## Gerekli Ortam Değişkenleri
+## Docker Security
 
-Sunucuyu başlatmadan önce tüm gizli anahtarlar ayarlanmalıdır. Eksik veya zayıf olmaları durumunda sunucu **hızlı bir şekilde hata vererek (fail fast)** durur.
-
-```bash
-# GEREKLİ — sunucu bunlar olmadan başlamaz:
-JWT_SECRET=$(openssl rand -base64 48)     # min 32 karakter
-API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 karakter
-
-# ÖNERİLEN — dinlenmede şifrelemeyi etkinleştirir:
-STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
-
-Sunucu `changeme`, `secret` veya `password` gibi bilinen zayıf değerleri açıkça reddeder.
-
----
-
-## Docker Güvenliği
-
-- Üretimde root olmayan bir kullanıcı kullanın
-- Gizli anahtarları salt okunur birimler (read-only volumes) olarak bağlayın
-- `.env` dosyalarını asla Docker imajlarına kopyalamayın
-- Hassas dosyaları hariç tutmak için `.dockerignore` kullanın
-- HTTPS arkasındayken `AUTH_COOKIE_SECURE=true` ayarlayın
+- Use non-root user in production
+- Mount secrets as read-only volumes
+- Never copy `.env` files into Docker images
+- Use `.dockerignore` to exclude sensitive files
+- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
 
 ```bash
 docker run -d \
@@ -195,52 +178,71 @@ docker run -d \
 
 ---
 
-## Bağımlılıklar
+## Dependencies
 
-- Düzenli olarak `npm audit` çalıştırın (`npm run audit:deps` ana projeyi + electron'u kapsar)
-- Bağımlılıkları güncel tutun
-- Proje, commit öncesi kontroller için `husky` + `lint-staged` kullanır (lint-staged + check-docs-sync + check:any-budget:t11)
-- CI hattı her push işleminde ESLint güvenlik kurallarını çalıştırır (`no-eval`, `no-implied-eval`, `no-new-func` = hata)
-- Sağlayıcı sabitleri modül yükleme sırasında Zod aracılığıyla doğrulanır (`src/shared/validation/schemas.ts`)
-- Varsayılan olarak güvenli kütüphaneler kullanılır: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (parametreli sorgularla sıfır SQLi riski), `bcryptjs` (şifre karma)
+- Run `npm audit` regularly (`npm run audit:deps` audits the root package)
+- Keep dependencies updated
+- The project uses `husky` + `lint-staged` for pre-commit checks (lint-staged + check-docs-sync + check:any-budget:t11)
+- CI pipeline runs ESLint security rules on every push (`no-eval`, `no-implied-eval`, `no-new-func` = error)
+- Provider constants validated at module load via Zod (`src/shared/validation/schemas.ts`)
+- Secure-by-default libraries used: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (no SQLi risk via parameterized queries), `bcryptjs` (password hashing)
 
-## Katı Güvenlik Kuralları (Hard Security Rules)
+## Hard Security Rules
 
-Bu kurallar araçlar ve inceleyiciler tarafından zorunlu kılınmıştır:
+These rules are enforced by tooling and reviewers:
 
-1. **Sırları asla commit etmeyin** — `.env` gitignore edilmiştir; `.env.example` şablondur (sabit değerler yok, yalnızca yorumlar — bkz. PUBLIC_CREDS.md)
-2. **Asla `eval()`, `new Function()` veya dolaylı eval kullanmayın** — ESLint tarafından zorunlu kılınır
-3. **Husky kancalarını asla atlamayın** (`--no-verify`, `--no-gpg-sign`), açık operatör onayı olmadan
-4. **Rotalarda asla ham SQL yazmayın** — her zaman `src/lib/db/` üzerinden geçin (parametrelendirilmiş)
-5. **Girdileri her zaman Zod ile doğrulayın** — `src/shared/validation/schemas.ts`
-6. **Yukarı akış başlıklarını her zaman temizleyin** — `src/shared/constants/upstreamHeaders.ts` içindeki engelleme listesi
-7. **Kimlik bilgilerini dinlenmede şifreleyin** — `src/lib/db/encryption.ts` aracılığıyla AES-256-GCM
-8. **Genel yukarı akış OAuth kimlikleri `resolvePublicCred()` aracılığıyla kullanılmalıdır** — kaynak koda asla `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` sabit değerlerini gömmeyin. Bkz. [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
-9. **Hata yanıtları `buildErrorBody()` / `sanitizeErrorMessage()` üzerinden geçmelidir** — HTTP / SSE / executor / MCP yanıt gövdelerine asla ham `err.stack` / `err.message` koymayın. Bkz. [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
-10. **`exec()` / `spawn()` çalışma zamanı değerleri `env` seçeneği üzerinden iletilmelidir** — kabuk komutlarına harici yolları veya güvenilmeyen değerleri asla dize birleştirme ile eklemeyin. Referans: `src/mitm/cert/install.ts::updateNssDatabases`.
-11. **Varsayılan olarak güvenli kütüphaneleri tercih edin** — bkz. [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Kendi çözümünüzü yazmadan önce bunlara başvurun.
+1. **Never commit secrets** — `.env` is gitignored; `.env.example` is the template (no literals, comments only — see PUBLIC_CREDS.md below)
+2. **Never use `eval()`, `new Function()`, or implied eval** — ESLint enforces
+3. **Never bypass Husky hooks** (`--no-verify`, `--no-gpg-sign`) without explicit operator approval
+4. **Never write raw SQL in routes** — always go through `src/lib/db/` (parameterized)
+5. **Always validate inputs with Zod** — `src/shared/validation/schemas.ts`
+6. **Always sanitize upstream headers** — denylist in `src/shared/constants/upstreamHeaders.ts`
+7. **Encrypt credentials at rest** — AES-256-GCM via `src/lib/db/encryption.ts`
+8. **Public upstream OAuth identifiers via `resolvePublicCred()`** — never embed `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` literals in source. See [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Error responses through `buildErrorBody()` / `sanitizeErrorMessage()`** — never put raw `err.stack` / `err.message` in HTTP / SSE / executor / MCP response bodies. See [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **`exec()` / `spawn()` runtime values via the `env` option** — never string-interpolate external paths or untrusted values into shell-passed scripts. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Prefer secure-by-default libraries** — see [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Reach for them before rolling your own.
 
-## Tedarik Zinciri Tarayıcı Bulguları (Socket.dev / Snyk / Benzeri)
+## Supply-chain scanner findings (Socket.dev / Snyk / similar)
 
-Yayımlanan `omniroute` npm paketi, Next.js `output: "standalone"` derlemesini paketler; bu da belgelenmiş ayrıcalıklı özellikler (MITM, Zed içe aktarma, Cloud Sync, gömülü servis süpervizörü) dahil her rota işleyicisinin `.next/server/*.js` küçültülmüş yığınlarında yer alması anlamına gelir. Sezgisel tedarik zinciri tarayıcıları bu yığınları sıklıkla kötü amaçlı yazılım imzalarıyla eşleştirebilir.
+The published `omniroute` npm artifact bundles the Next.js `output: "standalone"`
+build, which means every route handler — including documented privileged
+features (MITM, Zed import, Cloud Sync, embedded service supervisor) — ends
+up in `.next/server/*.js` minified chunks. Heuristic supply-chain scanners
+frequently pattern-match those chunks against malware signatures.
 
-Her bulgu kategorisi için proje yöneticisi onay beyanı tutulmaktadır:
+The scanner configuration we use lives at [`socket.yml`](socket.yml) in the
+repo root (Socket.dev GitHub App format v2 — see
+<https://docs.socket.dev/docs/socket-yml>). It explicitly excludes
+non-shipped directories (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, etc.) so the scanner only reports on code paths that
+actually reach published users — the scan itself is driven by the Socket
+GitHub App reading that file, not by a workflow in this repository.
+
+For each finding category we maintain a per-finding maintainer attestation:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  bulgu başına harita: kaynak dosya ↔ işaretlenen yığın ↔ davranış ↔ v3.8.6'da uygulanan hafifletme.
-- İşaretlenen her fonksiyondaki kaynak içi `SECURITY-AUDITOR-NOTE:` blokları aynı belgeye işaret eder.
+  per-finding map: source file ↔ flagged chunk ↔ behaviour ↔ mitigation
+  applied in v3.8.6.
+- In-source `SECURITY-AUDITOR-NOTE:` blocks at each flagged function point
+  back to the same document.
 
-Geliştirme hattında uyarıları esnetemeyen kullanıcılar için: `OMNIROUTE_BUILD_PROFILE=minimal npm run build` ile derleme yapın. Bu, dört hassas modülü çalışma zamanında HTTP 503 `feature-disabled` döndüren taslaklarla değiştirir; böylece ayrıcalıklı kod yolları pakette fiziksel olarak bulunmaz. Yayımlama tarifi için bkz. [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+For users whose pipeline cannot relax the alert: build with
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. That replaces the four
+sensitive modules with stubs that return HTTP 503 `feature-disabled` at
+runtime, so the privileged code paths are physically absent from the bundle.
+See [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+for the publishing recipe.
 
-## Referanslar
+## References
 
-- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — yetkilendirme hattı
-- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — güvenlik önlemleri çerçevesi
-- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — denetim günlüğü ve saklama
-- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — genel yukarı akış kimlik bilgileri için **zorunlu** model
-- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — hata yanıtları için **zorunlu** model
-- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — tedarik zinciri tarayıcı bulguları için onay beyanı
-- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — devre kesici + soğuma süresi + model kilitleme
-- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS parmak izi (yasal/etik bildirim)
-- [`CLAUDE.md`](CLAUDE.md) — yapay zeka ajanları için katı kurallar
-- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — derlenmiş varsayılan olarak güvenli kütüphaneler
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — authorization pipeline
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — guardrails framework
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — audit log and retention
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **mandatory** pattern for public upstream credentials
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **mandatory** pattern for error responses
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — maintainer attestation for supply-chain scanner findings
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (legal/ethical notice)
+- [`CLAUDE.md`](CLAUDE.md) — hard rules for AI agents
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — curated secure-by-default libraries

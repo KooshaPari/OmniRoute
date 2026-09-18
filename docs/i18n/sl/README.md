@@ -89,7 +89,7 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![Licenca: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Prenosi Docker](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Prenosi Electron](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+![Prenosi Tauri 2](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=desktop%20downloads&logo=desktop&color=47848F)
 
 <table>
   <tr>
@@ -734,7 +734,7 @@ da bi se skrivnosti zapisale v zgodovino lupine. → [Integracije CLI](docs/guid
   <tr><th align="left">Platforma</th><th align="left">Namestitev</th><th align="left">Prednosti</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (globalno)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">En ukaz, kateri koli operacijski sistem</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Več arhitektur: <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Namizje (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Izvorno okno + sistemski pladenj — <b>Windows / macOS / Linux</b></td></tr>
+  <tr><td align="left" nowrap>🖥️ <b>Namizje (Tauri 2)</b></td><td align="left" nowrap><code>cargo tauri build</code></td><td align="left">Izvorno okno + sistemski pladenj — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>izvorni <code>arm64</code></td><td align="left">Raspberry Pi, strežniki ARM, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Deluje <b>v vašem telefonu</b>, 24 ur na dan, brez korenskega dostopa</td></tr>
   <tr><td align="left" nowrap>📲 <b>PWA</b></td><td align="left" nowrap>"Dodaj na začetni zaslon"</td><td align="left">Celozaslonsko delovanje, brez povezave, namestitev iz brskalnika</td></tr>
@@ -743,7 +743,7 @@ da bi se skrivnosti zapisale v zgodovino lupine. → [Integracije CLI](docs/guid
   <tr><td align="left" nowrap>🛠️ <b>Iz izvorne kode</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Prilagajajte ga in prispevajte</td></tr>
 </table>
 
-<sub>📖 [Vodnik za Docker](docs/guides/DOCKER_GUIDE.md) · [Namizna različica](electron/README.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Vodnik za Docker](docs/guides/DOCKER_GUIDE.md) · [Namizna različica](docs/guides/DESKTOP_GUIDE.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1229,7 +1229,7 @@ Kanonične metrike na dan 2026-08-24: **1.029 edinstvenih videoposnetkov** · **
   <tr><td nowrap><b>Odpornost</b></td><td>Odklopnik, eksponentno podaljševanje čakanja, preprečevanje navalnega učinka, samodejno samozdravljenje kombinacij</td></tr>
   <tr><td nowrap><b>Beleženje</b></td><td>pino — strukturirani dnevniki JSON s kontekstom zahteve</td></tr>
   <tr><td nowrap><b>Preizkušanje</b></td><td>Izvajalnik preizkusov Node.js + Vitest — <b>39.000+ statičnih deklaracij preizkusov</b> v 5.100+ spremljanih preizkusnih datotekah (enotski, integracijski, E2E, varnostni, ekosistemski preizkusi)</td></tr>
-  <tr><td nowrap><b>Platforme</b></td><td>Namizje (Electron) · Android (Termux) · PWA (kateri koli brskalnik)</td></tr>
+  <tr><td nowrap><b>Platforme</b></td><td>Namizje (Tauri 2) · Android (Termux) · PWA (kateri koli brskalnik)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — samodejna objava v npm in Docker Hub ob izdaji</td></tr>
   <tr><td nowrap><b>Povezave</b></td><td><a href="https://omniroute.online">Spletno mesto</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
@@ -1442,247 +1442,11 @@ Kanonične metrike na dan 2026-08-24: **1.029 edinstvenih videoposnetkov** · **
 
 ---
 
-<br/>
-
-## 💖 Sponzorji
-
 <div align="center">
 
-Iskrena hvala ljudem, ki OmniRoute financirajo iz lastnega žepa — vsak prispevek pomaga, da projekt ostaja brezplačen, neodvisen in se še naprej razvija.
+**[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
 
-<table>
-  <tr>
-    <td align="center" width="180">
-      <a href="https://github.com/drewbitt">
-        <img src="https://github.com/drewbitt.png?size=140" width="72" style="border-radius:50%" alt="Andrew"/><br/>
-        <b>Andrew</b>
-      </a><br/>
-      <sub>💛 Aktivni mesečni sponzor</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/psylligent">
-        <img src="https://github.com/psylligent.png?size=140" width="72" style="border-radius:50%" alt="Vlad I"/><br/>
-        <b>Vlad I</b>
-      </a><br/>
-      <sub>💛 Aktivni mesečni sponzor</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/pacocartones">
-        <img src="https://github.com/pacocartones.png?size=140" width="72" style="border-radius:50%" alt="Paco Cartones"/><br/>
-        <b>Paco Cartones</b>
-      </a><br/>
-      <sub>💛 Aktivni enkratni sponzor</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/igormorais123">
-        <img src="https://github.com/igormorais123.png?size=140" width="72" style="border-radius:50%" alt="Professor Igor Morais Vasconcelos"/><br/>
-        <b>Prof. Igor Morais</b>
-      </a><br/>
-      <sub>💛 Nekdanji enkratni podpornik</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/longtao77">
-        <img src="https://github.com/longtao77.png?size=140" width="72" style="border-radius:50%" alt="longtao"/><br/>
-        <b>longtao</b>
-      </a><br/>
-      <sub>💛 Nekdanji enkratni podpornik</sub>
-    </td>
-  </tr>
-</table>
-
-<sub>… in drugi, ki želijo ostati zasebni 💛</sub>
-
-<sub>Javni sponzorji na GitHub Sponsors so bili znova preverjeni 2026-08-24. GitHubovo stanje <code>activeOnly</code> določa zgornje oznake aktivnosti; javno razkritim nekdanjim enkratnim podpornikom se še vedno zahvaljujemo, zasebni sponzorji pa ostajajo anonimni.</sub>
-
-<b><a href="https://github.com/sponsors/diegosouzapw">💖 Postanite sponzor →</a></b> — vsak dolar pomaga, da OmniRoute ostaja brezplačen in neodvisen.
+<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
-
-<br/>
-
-<div align="center">
-
-## 👥 Več kot 600 prispevalcev
-
-</div>
-
-[![Prispevalci](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=639&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
-
-<sub>Pregledano 2026-08-24 na zamrznjeni osnovi <code>ac02c5b42f</code> in znova preverjeno na trenutnem vrhu <code>dafb4ae808</code> veje <code>release/v3.8.50</code>: <b>639 normaliziranih človeških identitet Git</b> — 407 jih je navedenih kot avtorjev commitov (vključno z vzdrževalcem), 232 pa samo v izrecnih priklopnikih <code>Co-authored-by</code>. Popis normalizira uporabniška imena GitHub noreply, izključuje 26 identitet botov/agentov/storitev/oznak mest in običajnih e-poštnih naslovov ne združuje zgolj zato, ker se njihova prikazna imena ujemajo.</sub>
-
-### Kako prispevati
-
-1. Razvejite repozitorij
-2. Ustvarite vejo iz vrha **aktivne** veje `release/vX.Y.Z` (ne iz `main`) — glejte [Model vej in izdaj](docs/ops/BRANCHING_MODEL.md)
-3. Ustvarite svojo funkcijsko vejo (`git checkout -b feat/amazing-feature`)
-4. Potrdite svoje spremembe (`git commit -m 'feat: add amazing feature'`)
-5. Potisnite spremembe v vejo (`git push origin feat/amazing-feature`)
-6. Odprite zahtevo Pull Request z nastavitvijo **base = ta veja `release/vX.Y.Z`**
-
-Za podrobne smernice glejte [CONTRIBUTING.md](CONTRIBUTING.md).
-
-### Izdaja nove različice
-
-```bash
-# Ustvarite izdajo — npm publish se izvede samodejno
-VERSION=x.y.z
-gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes
-```
-
-<br/>
-
-<div align="center">
-
-## 📊 Zvezdice
-
-<a href="https://www.star-history.com/?repos=diegosouzapw%2FOmniRoute&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&theme=dark&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
-   <img alt="Graf zgodovine zvezdic" src="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
- </picture>
-</a>
-
-<br/>
-
-<div align="center">
-
-## 🌍 StarMapper
-
-<a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
-    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
-  </picture>
-</a>
-</div>
-
-<br/>
-
-<div align="center">
-
-## 🙏 Zahvale
-
-</div>
-
-OmniRoute stoji na ramenih velikanov. Začel se je kot razcep projekta **[9router](https://github.com/decolua/9router)** in TypeScriptova predelava projekta **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)**, napisanega v jeziku Go — od tam naprej pa je vsak spodaj navedeni podsistem navdihnil odprtokodni projekt, ki je to storil že prej. Vsak od njih je oblikoval konkreten del sistema OmniRoute. To je naša zahvala vsem. 🙏
-
-> ⭐ število zvezdic je bilo preverjeno prek GitHubovega vmesnika REST API 24. avgusta 2026 — podarite tem projektom zvezdico. Števila so natančen posnetek na navedeni datum in se bodo seveda spreminjala.
-
-### 🧬 Izvor in prehod
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kako je navdihnil OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/decolua/9router">9router</a></b></td><td align="center">26,161</td><td>Izvirni projekt, na katerem temelji ta razcep — tukaj razširjen z večmodalnimi API-ji in popolnoma na novo napisan v jeziku TypeScript.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/router-for-me/CLIProxyAPI">CLIProxyAPI</a></b></td><td align="center">48,497</td><td>Implementacija v jeziku Go, ki je navdihnila to predelavo v jezikih JavaScript / TypeScript.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/BerriAI/litellm">LiteLLM</a></b></td><td align="center">57,100</td><td>Prehod za umetno inteligenco, katerega javni nabor podatkov o cenah napaja našo sinhronizacijo spremljanja stroškov, njegov model normalizacije ponudnikov pa je vplival na naše usmerjanje.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/miuuyy/codex-chatgpt-web">codex-chatgpt-web</a></b></td><td align="center">1,410</td><td>Izvorna koda pod licenco MIT, prilagojena v vključeni most ChatGPT Web → Codex Responses, vključno s prilagojevalniki sej brskalnika, okvirjanja odgovorov, porabe in spletnega iskanja.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Alishahryar1/free-claude-code">free-claude-code</a></b></td><td align="center">48,112</td><td>Vzorci, preneseni v obnovitev toka, vzdevke brez razmišljanja, nadomestno spletno iskanje, omejitve drsečega okna, redigiranje dnevnikov in utrjene zagonske poteke.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/standardagents/composer-api">composer-api</a></b></td><td align="center">322</td><td>Vzorci izbire orodja, omejitev izhoda in potrditve orodja iz sistema Cursor Composer, prilagojeni izvornemu izvajalniku Cursor.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ndycode/codex-multi-auth">codex-multi-auth</a></b></td><td align="center">457</td><td>Vzorci sveže prijave in izmenjevanja žetonov za osveževanje, preneseni v ponovno overjanje Codex OAuth.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ex-machina-co/opencode-anthropic-auth">opencode-anthropic-auth</a></b></td><td align="center">510</td><td>Privzete nastavitve preoblikovanja, združljive s Claude Code, in vedenje glav za obračunavanje, posplošeni v konfiguracijsko voden most sistema OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/520mmxx/grok2api-merged">grok2api-merged</a></b></td><td align="center">2</td><td>Njegove preslikave modelov Grok, generator Statsig z lažnim TypeError, privzete nastavitve zahtev in naprav ter obdelovalnik odgovorov NDJSON so bili vsebinsko prilagojeni izvajalniku Grok Web sistema OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/TQZHR/grok2api">TQZHR/grok2api</a></b></td><td align="center">705</td><td>Glavni posredni vir kode za grok2api-merged; njegove implementacije modelov, glav, koristnih vsebin, sistema Statsig in obdelovalnikov so ohranjene v izvorni liniji Grok Web.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/chenyme/grok2api">chenyme/grok2api</a></b></td><td align="center">7,520</td><td>Temeljni vir pod licenco MIT za koristne vsebine Grok in privzete nastavitve naprav, generator Statsig ter obdelovalnik <code>result.response</code>, prenesen prek projektov TQZHR in grok2api-merged.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/miuzhaii/grok2api-pro">grok2api-pro</a></b></td><td align="center">27</td><td>Posredni vir, ki ga grok2api-merged navaja za svojo plast skupine posredniških strežnikov; OmniRoute ohranja navedbo tega izvora, vendar ne trdi, da je v svoj omejeni izvajalnik Grok Web prenesel skupino posredniških strežnikov.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/CNFlyCat/GrokProxy">GrokProxy</a></b></td><td align="center">50</td><td>Njegov posredniški strežnik Grok z overjanjem prek piškotkov in vzorec pretočnega prenosa <code>result.response.token</code> sta vplivala na transport Grok Web sistema OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lianying1716/GrokBridge">GrokBridge</a></b></td><td align="center">5</td><td>Izvirna implementacija Grok Web se je zgledovala po njegovi zasnovi nadrejene povezave HTTP/brskalnik; njena neposredna pot HTTP izhaja iz projekta GrokProxy, zato ne trdimo, da gre za neodvisen prenos kode.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/imjustprism/grok-web-api">grok-web-api</a></b></td><td align="center">14</td><td>Njegove sheme Rust <code>ChatOptions</code> in ovojnic odgovorov so vplivale na tipe zahtev Grok in pretočnih odgovorov v jeziku TypeScript sistema OmniRoute.</td></tr>
-</table>
-
-### 🗜️ Stiskanje konteksta in žetonov — pogoni
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kako je navdihnil OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/JuliusBrussee/caveman">Caveman</a></b></td><td align="center">100,538</td><td>Viralni projekt »zakaj uporabljati veliko žetonov, ko malo žetonov zadostuje« — njegova filozofija jamskega govora poganja naš standardni način stiskanja in več kot 30 pravil za odstranjevanje mašil ter zgoščevanje.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/rtk-ai/rtk">RTK – Rust Token Killer</a></b></td><td align="center">77,185</td><td>Visokozmogljivo stiskanje izhoda ukazov — navdihnilo je naš pogon RTK, DSL za filtriranje JSON, obnovitev neobdelanega izhoda in zloženi cevovod RTK → Caveman.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/headroomlabs-ai/headroom">headroom</a></b></td><td align="center">67,310</td><td>Povratno stiskanje konteksta (SmartCrusher) — navdihnilo je naš pogon <code>headroom</code> in vzorec označevalnika za pridobivanje <code>ccr</code>.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/microsoft/LLMLingua">LLMLingua</a></b></td><td align="center">6,598</td><td>Raziskave stiskanja pozivov (LLMLingua / LLMLingua-2) — navdihnile so naš asinhroni pogon <code>llmlingua</code>, varen za kodo in odporen proti napakam.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/atjsh/llmlingua-2-js">llmlingua-2-js</a></b></td><td align="center">31</td><td>Predelava JS/ONNX (MobileBERT / XLM-RoBERTa), uporabljena kot zaledje v delovni niti za naš pogon LLMLingua.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/leninejunior/troglodita">Troglodita</a></b></td><td align="center">40</td><td>Stiskanje žetonov za pt-BR — poganja naš jezikovni paket pt-BR: zmanjševanje pleonazmov in odstranjevanje mašil, prilagojeno brazilsko-portugalski slovnici.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/DietrichGebert/ponytail">ponytail</a></b></td><td align="center">108,957</td><td>Viralna veščina »lenega višjega razvijalca«, ki programira po načelu YAGNI — navdihnila je naš izhodni slog <b>less-code</b>: usmerjanje k najmanjši delujoči spremembi, ki zmanjša količino _ustvarjene_ kode (ustreznik jedrnati prozi projekta Caveman na izhodni osi).</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ayghri/i-have-adhd">i-have-adhd</a></b></td><td align="center">23,526</td><td>Njegov akcijsko usmerjen in osebam z ADHD prijazen slog odgovorov je bil prilagojen v jedrnati izhodni slog sistema OmniRoute v petih jezikih.</td></tr>
-</table>
-
-### 🧩 Kompaktni formati, raziskave žetonov in orodja, ki upoštevajo kodo
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kako je navdihnil OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/toon-format/toon">TOON</a></b></td><td align="center">25,233</td><td>Objektni zapis, usmerjen v žetone — njegov stolpčni model z glavo in vrsticami je oblikoval našo stopnjo tabelarnega zgoščevanja.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/blackwell-systems/gcf">GCF – Graph Compact Format</a></b></td><td align="center">41</td><td>Njegova kompaktna oblika grafov in zasnova splošnega profila sta vplivali na tabelarno zgoščevanje sistema OmniRoute in obliko kodeka Headroom.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/blackwell-systems/gcf-typescript">gcf-typescript</a></b></td><td align="center">4</td><td>Implementacija MIT za TypeScript, neposredno vključena in razširjena kot kodek splošnega profila Headroom.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ooples/token-optimizer-mcp">token-optimizer-mcp</a></b></td><td align="center">494</td><td>Predpomnilnik Brotli/SQLite in delta konteksta za posamezno sejo — navdihnila sta naš pogon <code>session-dedup</code>.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Mibayy/token-savior">token-savior</a></b></td><td align="center">1,122</td><td>Zgoščevanje izhoda Bash in profili MCP — navdihnili so našo načelnost pri prekinitvi stiskanja in zmanjševanje manifestov orodij MCP.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ppgranger/token-saver">token-saver</a></b></td><td align="center">138</td><td>Stiskanje izhoda glede na vsebino in vrsto datoteke z opustitvijo ob napaki — potrdilo je naše razvrščanje po vrstah in preskok ob premajhnem prihranku.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/alexgreensh/token-optimizer">token-optimizer</a></b></td><td align="center">1,951</td><td>»Poiščite žetone duhove« — njegov vzorec odlaganja in obnovljivega ročaja je vplival na naš pristop k odlaganju CCR.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Shweta-Mishra-ai/tokenmizer">TokenMizer</a></b></td><td align="center">28</td><td>Načrt grafa sej in odstranjevanja podvojenih vrstic med izmenjavami, ki je vplival na našo zasnovo session-dedup.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/jessefreitas/OmniCompress">OmniCompress</a></b></td><td align="center">3</td><td>Stolpčni JSON v jeziku Rust, pridobivanje z naslavljanjem po vsebini in odstranjevanje podvojitev med sporočili — potrdili so zasnovo naših pogonov <code>headroom</code>/<code>ccr</code>/<code>session-dedup</code> ter predpomnilniško stabilno invarianto »stisnjena oblika je neodvisna od položaja«.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/atlassian-labs/mcp-compressor">mcp-compressor</a></b></td><td align="center">113</td><td>Stiskanje shem in opisov orodij MCP — vplivalo je na zmanjšanje kardinalnosti manifestov orodij MCP.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/pdavis68/RepoMapper">RepoMapper</a></b></td><td align="center">197</td><td>Razvrščanje zemljevidov repozitorijev v slogu Aider — vplivalo je na naše raziskovanje zemljevidov repozitorijev in razvrščanja pridobivanja.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/mrsimpson/quiet-shell-mcp">quiet-shell-mcp</a></b></td><td align="center">4</td><td>Deklarativno zmanjševanje lupinskega izhoda prek MCP — potrdilo je naše deklarativno zgoščevanje izhoda Bash.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/dsherret/ts-morph">ts-morph</a></b></td><td align="center">6,162</td><td>Zbirka orodij TypeScript Compiler API — navdihnila je naše odstranjevanje komentarjev z razčlenjevalnikom, ki ohranja nize, predloge in literale regularnih izrazov.</td></tr>
-</table>
-
-### 🧠 Pomnilnik in RAG
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kako je navdihnil OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/mem0ai/mem0">Mem0</a></b></td><td align="center">63,902</td><td>Univerzalna pomnilniška plast — njen model posredniškega strežnika kot meje za pisanje/branje je oblikoval našo pomnilniško arhitekturo.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/letta-ai/letta">Letta (MemGPT)</a></b></td><td align="center">24,382</td><td>Agenti s stanjem in večnivojskim pomnilnikom — navdihnili so naš večnivojski model nadzora in obnovitve konteksta (CCR).</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/onestardao/WFGY">WFGY</a></b></td><td align="center">1,781</td><td>Taksonomija ProblemMap s 16 ponavljajočimi se načini odpovedi RAG/LLM — skupni besednjak v našem vodniku za odpravljanje težav.</td></tr>
-</table>
-
-### 🛰️ Pregledovanje prometa, MITM in transparentni posredniški strežnik
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kako je navdihnil OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/chouzz/llm-interceptor">llm-interceptor</a></b></td><td align="center">66</td><td>Prestrezanje/analiza prometa med pomočnikom za programiranje ↔ LLM z metodo MITM je vplivala na zgodnje zahteve za Traffic Inspector. Štiri predhodno izpeljane module — združevanje SSE, normalizacijo pogovorov, prikrivanje skrivnosti in čiščenje glav — so nadomestile neodvisne implementacije iz čiste sobe, ki temeljijo na javnih standardih protokolov. Površini za neposredno posredovanje gostitelju (<code>passthrough.ts</code> in <code>_internal/bypass.cjs</code>) ostajata interni implementaciji sistema OmniRoute, razvrščeni neodvisno; v okviru te zamenjave nista bili napisani na novo.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/InterceptSuite/ProxyBridge">ProxyBridge</a></b></td><td align="center">5,995</td><td>Transparentno usmerjanje prek posredniškega strežnika za posamezen proces — navdihnilo je naše varno zaustavljanje MITM ob sesutju, časovne omejitve nedejavnosti vtičnic, pripisovanje procesov prek <code>/proc</code> in zajemanje TPROXY.</td></tr>
-</table>
-
-### 📚 Podatki o modelih, opazljivost in uporabniški vmesnik
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kako je navdihnil OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/anomalyco/models.dev">models.dev</a></b></td><td align="center">6,555</td><td>Odprta podatkovna zbirka specifikacij, cen in zmogljivosti modelov umetne inteligence — izvorno sinhronizirana v naš katalog modelov.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/xyflow/xyflow">React Flow / xyflow</a></b></td><td align="center">38,108</td><td>Knjižnica grafov na podlagi vozlišč, ki poganja naša sprotna okolja Compression Studio in Combo/Routing Studio.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/langchain-ai/langgraph">LangGraph</a></b></td><td align="center">40,314</td><td>Prikaz grafa delovnega toka v živo v okolju LangGraph Studio je navdihnil sprotni kaskadni pogled v naših okoljih Studio.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/langfuse/langfuse">Langfuse</a></b></td><td align="center">33,592</td><td>Njegov model opazljivosti sled → razpon → ustvarjanje je oblikoval slapovni prikaz v našem okolju Compression Studio.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/kiali/kiali">Kiali</a></b></td><td align="center">3,631</td><td>Opazljivost storitvene mreže Istio — navdihnila je naše značke odklopnikov in vizualizacije povezav z napakami v okolju Routing/Combo Studio.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lobehub/lobe-icons">lobe-icons</a></b></td><td align="center">2,428</td><td>Logotipi blagovnih znamk AI/LLM, ki prikazujejo ikone ponudnikov na naši nadzorni plošči.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lipis/flag-icons">flag-icons</a></b></td><td align="center">12,354</td><td>Zagotavlja zastave SVG pod licenco MIT, ki jih uporablja izbirnik jezika v datoteki README.</td></tr>
-</table>
-
-### 🛡️ Varnost
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kako je navdihnil OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/tldrsec/awesome-secure-defaults">awesome-secure-defaults</a></b></td><td align="center">721</td><td>Kuriran seznam knjižnic, ki so privzeto varne in usmerjajo naše varnostne odločitve (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink).</td></tr>
-</table>
-
-### 🧭 Dopolnilna orodja
-
-<table>
-  <tr><th align="left">Projekt</th><th align="center">⭐</th><th align="left">Kako je navdihnil OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/BlockRunAI/ClawRouter">ClawRouter</a></b></td><td align="center">6,564</td><td>Navdihnil je odstranjevanje podvojenih zahtev, zasilni brezplačni nadomestni način, priključljive strategije Auto-Combo in večjezično razvrščanje namenov.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lbjlaq/Antigravity-Manager">Antigravity-Manager</a></b></td><td align="center">30,652</td><td>Njegovo preslikavanje modelov glede na račun, preverjanje poti do izvedljivih datotek in vedenje oznak paketov so vplivali na izvajalno okolje Antigravity sistema OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/jlcodes99/vscode-antigravity-cockpit">vscode-antigravity-cockpit</a></b></td><td align="center">4,817</td><td>Njegova kompaktna oblika odštevanja do ponastavitve kvote je navdihnila ustrezni prikaz omejitev ponudnika v sistemu OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/iOfficeAI/AionUi">AionUi</a></b></td><td align="center">32,230</td><td>Njegove integracije ACP so navdihnile samodejno zaznavanje nameščenih agentov CLI v sistemu OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/steipete/CodexBar">CodexBar</a></b></td><td align="center">20,507</td><td>Prepoznal je mesto kvote Grok Build; OmniRoute je nato neodvisno preveril in popravil dejansko obliko prenosa po povezavi.</td></tr>
-</table>
-
-## 📄 Licenca
-
-Licenca MIT – za podrobnosti glejte [LICENSE](LICENSE).
-
----
-
-<div align="center">
-
-**[⬆ Nazaj na vrh](#-omniroute)** · Ustvarjeno z ❤️ za odprtokodno skupnost umetne inteligence.
-
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · Licenca MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
-
-</div>
-<!-- Razprave GitHub so omogočene za vprašanja in odgovore skupnosti -->
+<!-- GitHub Discussions enabled for community Q&A -->

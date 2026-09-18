@@ -147,30 +147,13 @@ PII_REDACTION_ENABLED=true
 
 ---
 
-## 必需的环境变量
+## Docker Security
 
-所有密钥必须在启动服务器前设置。若密钥缺失或强度不足，服务器将**立即终止**。
-
-```bash
-# REQUIRED — server will not start without these:
-JWT_SECRET=$(openssl rand -base64 48)     # min 32 chars
-API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
-
-# RECOMMENDED — enables encryption at rest:
-STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
-
-服务器会主动拒绝已知的弱值，如 `changeme`、`secret` 或 `password`。
-
----
-
-## Docker 安全
-
-- 生产环境使用非 root 用户
-- 将密钥挂载为只读卷
-- 严禁将 `.env` 文件复制到 Docker 镜像中
-- 使用 `.dockerignore` 排除敏感文件
-- 在 HTTPS 反向代理后设置 `AUTH_COOKIE_SECURE=true`
+- Use non-root user in production
+- Mount secrets as read-only volumes
+- Never copy `.env` files into Docker images
+- Use `.dockerignore` to exclude sensitive files
+- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
 
 ```bash
 docker run -d \
@@ -187,56 +170,71 @@ docker run -d \
 
 ---
 
-## 依赖管理
+## Dependencies
 
-- 定期运行 `npm audit`（`npm run audit:deps` 覆盖主项目 + Electron）
-- 保持依赖项更新
-- 项目使用 `husky` + `lint-staged` 进行预提交检查（lint-staged + check-docs-sync + check:any-budget:t11）
-- CI 管线每次推送时运行 ESLint 安全规则（`no-eval`、`no-implied-eval`、`no-new-func` = error）
-- 服务商常量在模块加载时通过 Zod 校验（`src/shared/validation/schemas.ts`）
-- 使用安全默认的库：`dompurify` / `isomorphic-dompurify`（XSS 防护）、`jose`（JWT）、`better-sqlite3`（参数化查询，无 SQL 注入风险）、`bcryptjs`（密码哈希）
+- Run `npm audit` regularly (`npm run audit:deps` audits the root package)
+- Keep dependencies updated
+- The project uses `husky` + `lint-staged` for pre-commit checks (lint-staged + check-docs-sync + check:any-budget:t11)
+- CI pipeline runs ESLint security rules on every push (`no-eval`, `no-implied-eval`, `no-new-func` = error)
+- Provider constants validated at module load via Zod (`src/shared/validation/schemas.ts`)
+- Secure-by-default libraries used: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (no SQLi risk via parameterized queries), `bcryptjs` (password hashing)
 
-## 硬安全规则
+## Hard Security Rules
 
-以下规则由工具链和代码审查人强制执行：
+These rules are enforced by tooling and reviewers:
 
-1. **严禁提交密钥** — `.env` 已被 gitignore；`.env.example` 为模板（仅注释，无字面值 — 参见下方 PUBLIC_CREDS.md）
-2. **严禁使用 `eval()`、`new Function()` 或隐式 eval** — ESLint 强制执行
-3. **未经运维人员明确批准，严禁绕过 Husky hooks**（`--no-verify`、`--no-gpg-sign`）
-4. **严禁在路由中编写原始 SQL** — 始终通过 `src/lib/db/` 操作（参数化查询）
-5. **始终使用 Zod 校验输入** — `src/shared/validation/schemas.ts`
-6. **始终清理上游请求头** — 黑名单位于 `src/shared/constants/upstreamHeaders.ts`
-7. **静态加密凭证** — 通过 `src/lib/db/encryption.ts` 使用 AES-256-GCM
-8. **通过 `resolvePublicCred()` 处理公开上游 OAuth 标识** — 严禁在源码中硬编码 `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` 字面值。参见 [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)。
-9. **错误响应通过 `buildErrorBody()` / `sanitizeErrorMessage()` 处理** — 严禁在 HTTP / SSE / executor / MCP 响应体中暴露原始的 `err.stack` / `err.message`。参见 [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)。
-10. **`exec()` / `spawn()` 的运行时值通过 `env` 选项传递** — 严禁将外部路径或不可信值通过字符串插值传入 Shell 脚本。参考：`src/mitm/cert/install.ts::updateNssDatabases`。
-11. **优先使用安全默认的库** — 参见 [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)（Helmet.js、DOMPurify、ssrf-req-filter、safe-regex、Google Tink）。在自行实现之前先查找这些现有方案。
+1. **Never commit secrets** — `.env` is gitignored; `.env.example` is the template (no literals, comments only — see PUBLIC_CREDS.md below)
+2. **Never use `eval()`, `new Function()`, or implied eval** — ESLint enforces
+3. **Never bypass Husky hooks** (`--no-verify`, `--no-gpg-sign`) without explicit operator approval
+4. **Never write raw SQL in routes** — always go through `src/lib/db/` (parameterized)
+5. **Always validate inputs with Zod** — `src/shared/validation/schemas.ts`
+6. **Always sanitize upstream headers** — denylist in `src/shared/constants/upstreamHeaders.ts`
+7. **Encrypt credentials at rest** — AES-256-GCM via `src/lib/db/encryption.ts`
+8. **Public upstream OAuth identifiers via `resolvePublicCred()`** — never embed `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` literals in source. See [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Error responses through `buildErrorBody()` / `sanitizeErrorMessage()`** — never put raw `err.stack` / `err.message` in HTTP / SSE / executor / MCP response bodies. See [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **`exec()` / `spawn()` runtime values via the `env` option** — never string-interpolate external paths or untrusted values into shell-passed scripts. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Prefer secure-by-default libraries** — see [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Reach for them before rolling your own.
 
-## 供应链扫描器检测项（Socket.dev / Snyk / 类似工具）
+## Supply-chain scanner findings (Socket.dev / Snyk / similar)
 
-已发布的 `omniroute` npm 制品包含 Next.js `output: "standalone"` 构建输出，这意味着所有路由处理器 — 包括已记录的特权功能（MITM、Zed 导入、Cloud Sync、嵌入式服务监管）— 都会出现在 `.next/server/*.js` 压缩块中。启发式供应链扫描器经常将这些压缩块的模式匹配为恶意软件签名。
+The published `omniroute` npm artifact bundles the Next.js `output: "standalone"`
+build, which means every route handler — including documented privileged
+features (MITM, Zed import, Cloud Sync, embedded service supervisor) — ends
+up in `.next/server/*.js` minified chunks. Heuristic supply-chain scanners
+frequently pattern-match those chunks against malware signatures.
 
-对于每个检测类别，我们维护了一份逐项的维护者声明：
+The scanner configuration we use lives at [`socket.yml`](socket.yml) in the
+repo root (Socket.dev GitHub App format v2 — see
+<https://docs.socket.dev/docs/socket-yml>). It explicitly excludes
+non-shipped directories (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, etc.) so the scanner only reports on code paths that
+actually reach published users — the scan itself is driven by the Socket
+GitHub App reading that file, not by a workflow in this repository.
+
+For each finding category we maintain a per-finding maintainer attestation:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  逐项映射表：源文件 ↔ 被标记的代码块 ↔ 行为 ↔ v3.8.6 中已应用的缓解措施。
-- 在源码中被标记的函数处，均包含 `SECURITY-AUDITOR-NOTE:` 注释块，指向同一文档。
+  per-finding map: source file ↔ flagged chunk ↔ behaviour ↔ mitigation
+  applied in v3.8.6.
+- In-source `SECURITY-AUDITOR-NOTE:` blocks at each flagged function point
+  back to the same document.
 
-对于无法放宽警报的管线，可使用以下方式构建：
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`。此方式将四个
-敏感模块替换为桩代码，运行时返回 HTTP 503 `feature-disabled`，
-从而使特权代码路径从构建产物中物理消失。
-参见 [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) 了解发布方法。
+For users whose pipeline cannot relax the alert: build with
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. That replaces the four
+sensitive modules with stubs that return HTTP 503 `feature-disabled` at
+runtime, so the privileged code paths are physically absent from the bundle.
+See [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+for the publishing recipe.
 
-## 参考资料
+## References
 
-- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — 授权管线
-- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — 安全护栏框架
-- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — 审计日志与保留策略
-- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — 公开上游凭证的**强制**使用模式
-- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — 错误响应的**强制**处理模式
-- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — 供应链扫描器检测的维护者声明
-- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — 熔断器 + 冷却 + 锁定
-- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS 指纹伪装（法律/道德声明）
-- [`CLAUDE.md`](CLAUDE.md) — AI 智能体的硬规则
-- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — 精选的安全默认库
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — authorization pipeline
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — guardrails framework
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — audit log and retention
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **mandatory** pattern for public upstream credentials
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **mandatory** pattern for error responses
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — maintainer attestation for supply-chain scanner findings
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (legal/ethical notice)
+- [`CLAUDE.md`](CLAUDE.md) — hard rules for AI agents
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — curated secure-by-default libraries

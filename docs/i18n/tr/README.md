@@ -83,7 +83,7 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+![Desktop Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=desktop%20downloads&logo=desktop&color=47848F)
 
 <table>
   <tr>
@@ -712,7 +712,7 @@ kabuk geçmişinizin dışında tutar. → [CLI Entegrasyonları](docs/guides/CL
   <tr><th align="left">Platform</th><th align="left">Kurulum</th><th align="left">Öne Çıkanlar</th></tr>
   <tr><td align="left" nowrap>📦 <b>npm (global)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Tek komut, tüm işletim sistemleri</td></tr>
   <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Çoklu mimari <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Masaüstü (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Yerel pencere + sistem tepsisi — <b>Windows / macOS / Linux</b></td></tr>
+  <tr><td align="left" nowrap>🖥️ <b>Masaüstü (Tauri 2)</b></td><td align="left" nowrap><code>cargo tauri build</code></td><td align="left">Yerel pencere + sistem tepsisi — <b>Windows / macOS / Linux</b></td></tr>
   <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>yerel <code>arm64</code></td><td align="left">Raspberry Pi, ARM sunucuları, Apple Silicon</td></tr>
   <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left"><b>Telefonunuzda</b> çalışır, 7/24, root gerekmez</td></tr>
   <tr><td align="left" nowrap>📲 <b>PWA</b></td><td align="left" nowrap>"Ana Ekrana Ekle"</td><td align="left">Tam ekran, çevrimdışı, tarayıcıdan yüklenebilir</td></tr>
@@ -721,7 +721,7 @@ kabuk geçmişinizin dışında tutar. → [CLI Entegrasyonları](docs/guides/CL
   <tr><td align="left" nowrap>🛠️ <b>Kaynak koddan</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Geliştirin, katkıda bulunun</td></tr>
 </table>
 
-<sub>📖 [Docker Kılavuzu](docs/guides/DOCKER_GUIDE.md) · [Masaüstü](electron/README.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Docker Kılavuzu](docs/guides/DOCKER_GUIDE.md) · [Masaüstü](docs/guides/DESKTOP_GUIDE.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -1195,7 +1195,7 @@ Doğrulama metrikleri: 1002 takip edilen video · 7.069.190 bilinen görüntüle
   <tr><td nowrap><b>Dayanıklılık</b></td><td>Devre kesici, üstel geri çekilme, sürü önleme (anti-thundering-herd), auto-combo kendi kendini iyileştirme</td></tr>
   <tr><td nowrap><b>Günlük Kaydı (Logging)</b></td><td>pino — istek bağlamına sahip yapılandırılmış JSON günlükleri</td></tr>
   <tr><td nowrap><b>Test</b></td><td>Node.js test runner + Vitest — 3.300'den fazla dosyada <b>25.000+ test senaryosu</b> (birim, entegrasyon, E2E, güvenlik, ekosistem)</td></tr>
-  <tr><td nowrap><b>Platformlar</b></td><td>Masaüstü (Electron) · Android (Termux) · PWA (tüm tarayıcılar)</td></tr>
+  <tr><td nowrap><b>Platformlar</b></td><td>Masaüstü (Tauri 2) · Android (Termux) · PWA (tüm tarayıcılar)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — sürümde otomatik npm yayını + Docker Hub</td></tr>
   <tr><td nowrap><b>Bağlantılar</b></td><td><a href="https://omniroute.online">Web Sitesi</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
@@ -1351,7 +1351,7 @@ Doğrulama metrikleri: 1002 takip edilen video · 7.069.190 bilinen görüntüle
         <b>kfiramar</b>
       </a><br/>
       <sub>🏅 38 commit • +1.7K satır</sub><br/>
-      <sub>Codex websocket + doğrudan geçiş, yetkilendirme/karşılama,<br/>Electron güçlendirme, DB migrasyonları</sub>
+      <sub>Codex websocket + doğrudan geçiş, yetkilendirme/karşılama,<br/>Tauri 2 güçlendirme, DB migrasyonları</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/benzntech">
@@ -1359,7 +1359,7 @@ Doğrulama metrikleri: 1002 takip edilen video · 7.069.190 bilinen görüntüle
         <b>Benson K B</b>
       </a><br/>
       <sub>🏅 28 commit • +9.2K satır</sub><br/>
-      <sub>Electron masaüstü uygulaması, otomatik güncelleyici,<br/>sürüm derleme iş akışları, platformlar arası CI</sub>
+      <sub>Tauri 2 masaüstü uygulaması, otomatik güncelleyici,<br/>sürüm derleme iş akışları, platformlar arası CI</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/herjarsa">
@@ -1570,9 +1570,9 @@ MIT Lisansı - ayrıntılar için [LICENSE](LICENSE) dosyasına bakın.
 
 <div align="center">
 
-**[⬆ Başa dön](#-omniroute--ücretsiz-ai-ağ-geçidi)** · Açık kaynaklı yapay zeka topluluğu için ❤️ ile geliştirildi.
+**[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
 
-<sub>OmniRoute v3.8.49 · Node ≥22.22.2 · MIT Lisansı · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->

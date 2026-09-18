@@ -77,46 +77,7 @@ URL default:
 
 ---
 
-## Alur Kerja Git
-
-> ⚠️ **JANGAN PERNAH melakukan commit langsung ke `main`.** Selalu gunakan cabang fitur.
-
-```bash
-git checkout -b feat/your-feature-name
-# ... make changes ...
-git commit -m "feat: describe your change"
-git push -u origin feat/your-feature-name
-# Open a Pull Request on GitHub
-```
-
-### Penamaan Cabang
-
-| Awalan      | Tujuan                   |
-| ----------- | ------------------------ |
-| `feat/`     | Fitur baru               |
-| `fix/`      | Perbaikan bug            |
-| `refactor/` | Restrukturisasi kode     |
-| `docs/`     | Perubahan dokumentasi    |
-| `test/`     | Penambahan/perbaikan tes |
-| `chore/`    | Perkakas, CI, dependensi |
-
-### Pesan Commit
-
-Ikuti [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update SECURITY.md with PII protection
-test: add observability unit tests
-refactor(db): consolidate rate limit tables
-```
-
-Cakupan: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
-
----
-
-## Menjalankan Tes
+## Running Tests
 
 ```bash
 # All tests (unit + vitest + ecosystem + e2e)
@@ -124,6 +85,13 @@ npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
 node --import tsx/esm --test tests/unit/your-file.test.ts
+
+# Only the unit tests impacted by your change (same TIA selector as the CI gate, #8084)
+npm run test:scoped            # changes in the last commit (or the working tree)
+npm run test:scoped:staged     # staged changes only — pairs well with a pre-commit run
+npm run test:scoped:full       # rebuild the import-graph map first (after adding/moving files)
+# Exit 1 + "run the full suite" means a hub file (tsconfig, package.json, …) or an
+# unmapped source changed — the selector fails safe, it never silently skips.
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
@@ -137,175 +105,239 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (60% min statements/lines/functions/branches)
+# Coverage gate: 60% statements/lines/functions/branches
 npm run test:coverage
 npm run coverage:report
 
 # Lint + format check
 npm run lint
 npm run check
+
+# Gated real-upstream combo smoke (requires VPS access + real provider credits)
+# Hits REAL providers — costs a little. NEVER runs in CI. Skips cleanly without the gate.
+# Needs: ssh root@192.168.0.15 access (sources a read-only DB snapshot from the VPS).
+RUN_COMBO_LIVE=1 npm run test:combo:live
+
+# Phase-3 VPS live smoke — plain Node ESM scripts, hit the live .15 server directly.
+# Requires: ssh root@192.168.0.15 access (combos created/torn down via SSH sqlite).
+# Hits REAL providers (small cost). Creates/deletes only __live_test__* combos. NEVER runs in CI.
+# REQUIRE_API_KEY=false on .15 so no API key needed, but honors COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY if set.
+npm run test:combo:live:vps              # 7 HTTP scenarios (priority/round-robin/weighted/cost/fusion/auto + health)
+npm run test:combo:live:vps:failover     # adds a real cross-provider failover scenario (8 total)
 ```
 
-Catatan cakupan:
+Coverage notes:
 
-- `npm run test:coverage` mengukur cakupan kode sumber untuk rangkaian tes unit utama, mengecualikan `tests/**`, dan menyertakan `open-sse/**`
-- Pull request harus menjaga batas cakupan keseluruhan di **60% atau lebih tinggi** untuk pernyataan, baris, fungsi, dan cabang
-- Jika sebuah PR mengubah kode produksi di `src/`, `open-sse/`, `electron/`, atau `bin/`, PR tersebut harus menambahkan atau memperbarui tes otomatis dalam PR yang sama
-- `npm run coverage:report` mencetak laporan terperinci per file dari hasil cakupan terbaru
-- `npm run test:coverage:legacy` mempertahankan metrik lama untuk perbandingan historis
-- Lihat `docs/ops/COVERAGE_PLAN.md` untuk peta jalan peningkatan cakupan bertahap
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the coverage gate at **60%+** statements/lines/functions/branches
+- If a PR changes production code in `src/`, `open-sse/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-### Persyaratan Pull Request
+### Pull Request Requirements
 
-Sebelum membuka atau menggabungkan sebuah PR:
+Before opening a PR, use the
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) to run the focused loop for
+what you changed. The full unit suite (4 CI shards), Vitest, the **60%+** coverage gate, and
+the production build are CI's responsibility — running them locally adds no signal the PR
+checks will not already give you, and on smaller machines it can saturate the host (#8084):
 
-- Jalankan `npm run test:unit`
-- Jalankan `npm run test:coverage`
-- Pastikan batas cakupan tetap di **60%+** untuk semua metrik
-- Sertakan file tes yang diubah atau ditambahkan dalam deskripsi PR ketika kode produksi berubah
-- Periksa hasil SonarQube pada PR ketika rahasia proyek dikonfigurasi di CI
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-Status tes saat ini: **122 file tes unit** yang mencakup:
+Current test status: **122 unit test files** covering:
 
-- Penerjemah penyedia dan konversi format
-- Pembatasan laju, pemutus sirkuit, dan ketahanan
-- Cache semantik, idempoten, pelacakan progres
-- Operasi database dan skema (110 modul tingkat atas, 130 migrasi)
-- Alur OAuth dan autentikasi
-- Validasi endpoint API (Zod v4)
-- Alat server MCP dan penegakan cakupan
-- Sistem Memory dan Skills
-
----
-
-## Gaya Kode
-
-- **ESLint** — Jalankan `npm run lint` sebelum melakukan commit
-- **Prettier** — Diformat otomatis melalui `lint-staged` saat commit (2 spasi, titik koma, tanda kutip ganda, lebar 100 karakter, koma trailing es5)
-- **TypeScript** — Semua kode `src/` menggunakan `.ts`/`.tsx`; `open-sse/` menggunakan `.ts`/`.js`; dokumentasi dengan TSDoc (`@param`, `@returns`, `@throws`)
-- **Tanpa `eval()`** — ESLint menerapkan `no-eval`, `no-implied-eval`, `no-new-func`
-- **Validasi Zod** — Gunakan skema Zod v4 untuk semua validasi input API
-- **Penamaan**: File = camelCase/kebab-case, komponen = PascalCase, konstanta = UPPER_SNAKE
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
 
 ---
 
-## Struktur Proyek
+## Code Style
+
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+### Error handling / empty catch blocks
+
+Never leave a `catch` unexplained. Classify it into one of two buckets (operationalizes
+the hard rule "never silently swallow errors in SSE streams"):
+
+- **Intentional (our own best-effort cleanup/telemetry)** — a failure here is expected and
+  harmless; add a one-line rationale comment, no logging (logging on every request is the
+  noise this convention avoids).
+
+  ```ts
+  } catch {} // closing an already-closed controller after client disconnect is expected
+  ```
+
+- **Should log (external/caller-supplied code, or the swallow changes control flow)** — keep
+  the catch (never let it break the stream) but emit a contextual `console.debug`/`warn` so the
+  failure is discoverable.
+
+  ```ts
+  } catch (e) {
+    console.debug("[STREAM] onFailure callback error:", e);
+  }
+  ```
+
+See `open-sse/utils/stream.ts` and `open-sse/utils/streamHandler.ts` for applied examples.
+
+---
+
+## Project Structure
 
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Halaman dashboard (23 bagian)
-│   ├── api/                # Rute API (51 direktori)
-│   └── login/              # Halaman autentikasi (.tsx)
-├── domain/                 # Mesin kebijakan (policyEngine, comboResolver, costRules, dll.)
-├── lib/                    # Logika bisnis inti (.ts)
-│   ├── a2a/                # Server protokol Agent-to-Agent v0.3
-│   ├── acp/                # Registri Agent Communication Protocol
-│   ├── compliance/         # Mesin kebijakan kepatuhan
-│   ├── db/                 # Lapisan database SQLite (110 modul tingkat atas + 130 migrasi)
-│   ├── memory/             # Memori percakapan persisten
-│   ├── oauth/              # Penyedia, layanan, dan utilitas OAuth
-│   ├── skills/             # Kerangka skill yang dapat diperluas
-│   ├── usage/              # Pelacakan penggunaan dan kalkulasi biaya
-│   └── localDb.ts          # Lapisan re-ekspor saja — jangan pernah tambahkan logika di sini
-├── middleware/              # Middleware permintaan (promptInjectionGuard)
-├── mitm/                   # Proxy MITM (sertifikat, DNS, perutean target)
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # Komponen React (.tsx)
-│   ├── constants/          # Definisi penyedia (329), cakupan MCP, 19 strategi perutean
-│   ├── utils/              # Pemutus sirkuit, sanitizer, pembantu autentikasi
-│   └── validation/         # Skema Zod v4
-└── sse/                    # Pipeline proxy SSE
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 19 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # Workspace @omniroute/open-sse
-├── executors/              # 89 modul implementasi executor
-├── handlers/               # 11 penangan permintaan (chat, responses, embeddings, images, dll.)
-├── mcp-server/             # Server MCP (107 alat, 3 transport, 32 cakupan)
-├── services/               # 178 layanan tingkat atas (combo, autoCombo, rateLimitManager, dll.)
-├── translator/             # Penerjemah format (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Transformer Responses API
-└── utils/                  # 22 modul utilitas (stream, TLS, proxy, logging)
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 89 executor implementation modules
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Aplikasi desktop Electron (lintas platform)
+apps/desktop/               # Tauri 2 desktop app (cross-platform)
 
 tests/
-├── unit/                   # Runner tes Node.js (122 file tes)
-├── integration/            # Tes integrasi
-├── e2e/                    # Tes Playwright
-├── security/               # Tes keamanan
-├── translator/             # Tes khusus penerjemah
-└── load/                   # Tes beban
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
-docs/                       # Dokumentasi
-├── ARCHITECTURE.md         # Arsitektur sistem
-├── API_REFERENCE.md        # Semua endpoint
-├── USER_GUIDE.md           # Pengaturan penyedia, integrasi CLI
-├── TROUBLESHOOTING.md      # Masalah umum
-├── MCP-SERVER.md           # Server MCP (107 alat)
-├── A2A-SERVER.md           # Protokol agen A2A
-├── AUTO-COMBO.md           # Mesin auto-combo
-├── CLI-TOOLS.md            # Integrasi alat CLI
-├── COVERAGE_PLAN.md        # Rencana peningkatan cakupan tes
-├── openapi.yaml            # Spesifikasi OpenAPI
-└── adr/                    # Catatan Keputusan Arsitektur
+docs/
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
+├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
 ---
 
-## Menambahkan Penyedia Baru
+## Adding a New Provider
 
-### Langkah 1: Daftarkan Konstanta Penyedia
+### Step 1: Register Provider Constants
 
-Tambahkan ke `src/shared/constants/providers.ts` — divalidasi dengan Zod saat modul dimuat.
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-### Langkah 2: Tambahkan Eksekutor (jika diperlukan logika kustom)
+### Step 2: Add Executor (if custom logic needed)
 
-Buat eksekutor di `open-sse/executors/your-provider.ts` dengan memperluas eksekutor dasar.
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-### Langkah 3: Tambahkan Penerjemah (jika format bukan OpenAI)
+### Step 3: Add Translator (if non-OpenAI format)
 
-Buat penerjemah permintaan/respons di `open-sse/translator/`.
+Create request/response translators in `open-sse/translator/`.
 
-### Langkah 4: Tambahkan Konfigurasi OAuth (jika berbasis OAuth)
+### Step 4: Add OAuth Config (if OAuth-based)
 
-Tambahkan kredensial OAuth di `src/lib/oauth/constants/oauth.ts` dan layanan di `src/lib/oauth/services/`.
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
 
-### Langkah 5: Daftarkan Model
+If the upstream provider distributes a public OAuth client_id/secret or Firebase Web API key inside its public CLI / browser bundle, **do not** embed it as a string literal. Use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts` and add a masked byte entry to `EMBEDDED_DEFAULTS`. The full mandatory workflow is documented in [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
 
-Tambahkan definisi model di `open-sse/config/providerRegistry.ts`.
+Inside handlers/executors, error messages reaching the client must go through `buildErrorBody()` / `sanitizeErrorMessage()` from `open-sse/utils/error.ts` — never put raw `err.stack` or `err.message` in a Response body. See [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
 
-### Langkah 6: Tambahkan Tes
+### Step 5: Register Models
 
-Tulis tes unit di `tests/unit/` yang mencakup minimal:
+Add model definitions in `open-sse/config/providerRegistry.ts`.
 
-- Pendaftaran penyedia
-- Terjemahan permintaan/respons
-- Penanganan kesalahan
+### Step 6: Add Tests
 
----
+Write unit tests in `tests/unit/` covering at minimum:
 
-## Daftar Periksa Pull Request
-
-- [ ] Tes lulus (`npm test`)
-- [ ] Linting lulus (`npm run lint`)
-- [ ] Build berhasil (`npm run build`)
-- [ ] Tipe TypeScript ditambahkan untuk fungsi dan antarmuka publik baru
-- [ ] Tidak ada rahasia atau nilai fallback yang dikodekan secara keras
-- [ ] Semua input divalidasi dengan skema Zod
-- [ ] CHANGELOG diperbarui (jika ada perubahan yang terlihat pengguna)
-- [ ] Dokumentasi diperbarui (jika berlaku)
+- Provider registration
+- Request/response translation
+- Error handling
 
 ---
 
-## Rilis
+## Pull Request Checklist
 
-Rilis dikelola melalui alur kerja `/generate-release`. Ketika GitHub Release baru dibuat, paket secara **otomatis diterbitkan ke npm** melalui GitHub Actions.
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] Public upstream credentials embedded via `resolvePublicCred()` (see [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), never as literals
+- [ ] Error responses route through `buildErrorBody()` / `sanitizeErrorMessage()` — no raw stack traces in response bodies (see [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) pass runtime values via `env`, not via string interpolation
+- [ ] All inputs validated with Zod schemas
+- [ ] Changelog **fragment** added under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for user-facing changes (see [`changelog.d/README.md`](./changelog.d/README.md)) — do **not** edit `CHANGELOG.md` directly; fragments are aggregated at release time and never conflict between PRs
+- [ ] Documentation updated (if applicable)
+- [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
+- [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
 
 ---
 
-## Mendapatkan Bantuan
+## Releasing
 
-- **Arsitektur**: Lihat [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **Referensi API**: Lihat [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Masalah**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: Lihat `docs/adr/` untuk catatan keputusan arsitektur
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+For VPS deploys, use `npm run build:release` (not `npm run build`) — it performs a clean
+rebuild, assembles the bundle into `dist/`, and writes the `dist/BUILD_SHA` sentinel.
+Then use the `/deploy-vps-*-cc` skills which rsync `dist/` to the remote `app/` directory.
+
+---
+
+## Getting Help
+
+- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Security docs**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Ops docs**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

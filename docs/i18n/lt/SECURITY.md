@@ -155,30 +155,13 @@ PII_RESPONSE_SANITIZATION=true  # pasirinktinai: redaguoti PII klientams grąži
 
 ---
 
-## Privalomieji aplinkos kintamieji
+## Docker Security
 
-Visos paslaptys turi būti nustatytos prieš paleidžiant serverį. Jei jų nėra arba jos silpnos, serverio paleidimas bus **nedelsiant nutrauktas**.
-
-```bash
-# PRIVALOMA — be šių kintamųjų serveris nepasileis:
-JWT_SECRET=$(openssl rand -base64 48)     # bent 32 simboliai
-API_KEY_SECRET=$(openssl rand -hex 32)    # bent 16 simbolių
-
-# REKOMENDUOJAMA — įjungia saugomų duomenų šifravimą:
-STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
-
-Serveris aktyviai atmeta žinomas silpnas reikšmes, pvz., `changeme`, `secret` arba `password`.
-
----
-
-## Docker saugumas
-
-- Produkcinėje aplinkoje naudokite ne `root` naudotoją
-- Paslaptis prijunkite kaip tik skaitomus tomus
-- Niekada nekopijuokite `.env` failų į Docker atvaizdus
-- Naudokite `.dockerignore`, kad neįtrauktumėte neskelbtinų failų
-- Kai naudojamas HTTPS, nustatykite `AUTH_COOKIE_SECURE=true`
+- Use non-root user in production
+- Mount secrets as read-only volumes
+- Never copy `.env` files into Docker images
+- Use `.dockerignore` to exclude sensitive files
+- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
 
 ```bash
 docker run -d \
@@ -195,62 +178,71 @@ docker run -d \
 
 ---
 
-## Priklausomybės
+## Dependencies
 
-- Reguliariai paleiskite `npm audit` (`npm run audit:deps` apima pagrindinę dalį ir electron)
-- Nuolat atnaujinkite priklausomybes
-- Projekte patikroms prieš įrašant pakeitimus naudojami `husky` ir `lint-staged` (lint-staged + check-docs-sync + check:any-budget:t11)
-- CI konvejeris kiekvieno pakeitimų išsiuntimo metu paleidžia ESLint saugumo taisykles (`no-eval`, `no-implied-eval`, `no-new-func` = klaida)
-- Teikėjų konstantos modulio įkėlimo metu tikrinamos naudojant Zod (`src/shared/validation/schemas.ts`)
-- Naudojamos pagal numatytuosius nustatymus saugios bibliotekos: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (dėl parametrizuotų užklausų nėra SQLi rizikos), `bcryptjs` (slaptažodžių maiša)
+- Run `npm audit` regularly (`npm run audit:deps` audits the root package)
+- Keep dependencies updated
+- The project uses `husky` + `lint-staged` for pre-commit checks (lint-staged + check-docs-sync + check:any-budget:t11)
+- CI pipeline runs ESLint security rules on every push (`no-eval`, `no-implied-eval`, `no-new-func` = error)
+- Provider constants validated at module load via Zod (`src/shared/validation/schemas.ts`)
+- Secure-by-default libraries used: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (no SQLi risk via parameterized queries), `bcryptjs` (password hashing)
 
-## Griežtos saugumo taisyklės
+## Hard Security Rules
 
-Šių taisyklių laikymąsi užtikrina įrankiai ir peržiūrėtojai:
+These rules are enforced by tooling and reviewers:
 
-1. **Niekada neįrašykite paslapčių į saugyklą** — `.env` ignoruojamas Git; `.env.example` yra šablonas (be pažodinių reikšmių, tik komentarai — žr. toliau nurodytą PUBLIC_CREDS.md)
-2. **Niekada nenaudokite `eval()`, `new Function()` ar numanomo eval** — tai užtikrina ESLint
-3. **Niekada neapeikite Husky kablių** (`--no-verify`, `--no-gpg-sign`) be aiškaus operatoriaus patvirtinimo
-4. **Niekada nerašykite neapdorotų SQL užklausų maršrutuose** — visada naudokite `src/lib/db/` (parametrizuota)
-5. **Visada tikrinkite įvestis naudodami Zod** — `src/shared/validation/schemas.ts`
-6. **Visada išvalykite išorinio serverio antraštes** — draudžiamų elementų sąrašas pateiktas `src/shared/constants/upstreamHeaders.ts`
-7. **Šifruokite saugomus prisijungimo duomenis** — AES-256-GCM per `src/lib/db/encryption.ts`
-8. **Viešiems išorinių paslaugų OAuth identifikatoriams naudokite `resolvePublicCred()`** — niekada neįterpkite pažodinių `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` reikšmių į šaltinio kodą. Žr. [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
-9. **Klaidų atsakymus kurkite naudodami `buildErrorBody()` / `sanitizeErrorMessage()`** — niekada nedėkite neapdorotų `err.stack` / `err.message` reikšmių į HTTP / SSE / vykdytojo / MCP atsakymų turinį. Žr. [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
-10. **`exec()` / `spawn()` vykdymo metu naudojamas reikšmes perduokite per `env` parinktį** — niekada neįterpkite išorinių kelių ar nepatikimų reikšmių kaip eilučių į scenarijus, perduodamus apvalkalui. Pavyzdys: `src/mitm/cert/install.ts::updateNssDatabases`.
-11. **Pirmenybę teikite pagal numatytuosius nustatymus saugioms bibliotekoms** — žr. [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Prieš kurdami savo sprendimą, pirmiausia rinkitės jas.
+1. **Never commit secrets** — `.env` is gitignored; `.env.example` is the template (no literals, comments only — see PUBLIC_CREDS.md below)
+2. **Never use `eval()`, `new Function()`, or implied eval** — ESLint enforces
+3. **Never bypass Husky hooks** (`--no-verify`, `--no-gpg-sign`) without explicit operator approval
+4. **Never write raw SQL in routes** — always go through `src/lib/db/` (parameterized)
+5. **Always validate inputs with Zod** — `src/shared/validation/schemas.ts`
+6. **Always sanitize upstream headers** — denylist in `src/shared/constants/upstreamHeaders.ts`
+7. **Encrypt credentials at rest** — AES-256-GCM via `src/lib/db/encryption.ts`
+8. **Public upstream OAuth identifiers via `resolvePublicCred()`** — never embed `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` literals in source. See [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Error responses through `buildErrorBody()` / `sanitizeErrorMessage()`** — never put raw `err.stack` / `err.message` in HTTP / SSE / executor / MCP response bodies. See [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **`exec()` / `spawn()` runtime values via the `env` option** — never string-interpolate external paths or untrusted values into shell-passed scripts. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Prefer secure-by-default libraries** — see [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Reach for them before rolling your own.
 
-## Tiekimo grandinės skaitytuvo aptiktos problemos (Socket.dev / Snyk / panašūs įrankiai)
+## Supply-chain scanner findings (Socket.dev / Snyk / similar)
 
-Paskelbtame `omniroute` npm artefakte yra Next.js `output: "standalone"`
-kompiliacijos rezultatas, todėl kiekvienas maršruto apdorojimo modulis, įskaitant dokumentuotas privilegijuotąsias
-funkcijas (MITM, „Zed“ importavimą, „Cloud Sync“, integruotą paslaugų prižiūrėtoją), patenka
-į `.next/server/*.js` minifikuotus fragmentus. Euristiniai tiekimo grandinės skaitytuvai
-dažnai šiuose fragmentuose ieško atitikmenų kenkėjiškos programinės įrangos signatūroms.
+The published `omniroute` npm artifact bundles the Next.js `output: "standalone"`
+build, which means every route handler — including documented privileged
+features (MITM, Zed import, Cloud Sync, embedded service supervisor) — ends
+up in `.next/server/*.js` minified chunks. Heuristic supply-chain scanners
+frequently pattern-match those chunks against malware signatures.
 
-Kiekvienai aptiktų problemų kategorijai pateikiame atskirą prižiūrėtojų patvirtinimą:
+The scanner configuration we use lives at [`socket.yml`](socket.yml) in the
+repo root (Socket.dev GitHub App format v2 — see
+<https://docs.socket.dev/docs/socket-yml>). It explicitly excludes
+non-shipped directories (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, etc.) so the scanner only reports on code paths that
+actually reach published users — the scan itself is driven by the Socket
+GitHub App reading that file, not by a workflow in this repository.
+
+For each finding category we maintain a per-finding maintainer attestation:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  kiekvienos aptiktos problemos schema: šaltinio failas ↔ pažymėtas fragmentas ↔ elgsena ↔ v3.8.6 versijoje
-  pritaikyta rizikos mažinimo priemonė.
-- Šaltinio kode esantys `SECURITY-AUDITOR-NOTE:` blokai prie kiekvienos pažymėtos funkcijos nurodo
-  tą patį dokumentą.
+  per-finding map: source file ↔ flagged chunk ↔ behaviour ↔ mitigation
+  applied in v3.8.6.
+- In-source `SECURITY-AUDITOR-NOTE:` blocks at each flagged function point
+  back to the same document.
 
-Naudotojai, kurių konvejeris neleidžia sušvelninti įspėjimo, turėtų kompiliuoti naudodami
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Taip keturi jautrūs moduliai pakeičiami
-ruošiniais, kurie vykdymo metu grąžina HTTP 503 `feature-disabled`, todėl privilegijuotieji
-kodo vykdymo keliai fiziškai nepatenka į paketą.
-Publikavimo instrukcijas rasite [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+For users whose pipeline cannot relax the alert: build with
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. That replaces the four
+sensitive modules with stubs that return HTTP 503 `feature-disabled` at
+runtime, so the privileged code paths are physically absent from the bundle.
+See [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+for the publishing recipe.
 
-## Nuorodos
+## References
 
-- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — autorizavimo konvejeris
-- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — apsaugos priemonių sistema
-- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — audito žurnalas ir saugojimas
-- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **privalomas** viešųjų išorinių paslaugų prisijungimo duomenų šablonas
-- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **privalomas** klaidų atsakymų šablonas
-- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — prižiūrėtojų patvirtinimas dėl tiekimo grandinės skaitytuvo aptiktų problemų
-- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — grandinės pertraukiklis + atvėsimo laikotarpis + blokavimas
-- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS kontrolinių atspaudų nustatymas (teisinis / etinis pranešimas)
-- [`CLAUDE.md`](CLAUDE.md) — griežtos taisyklės DI agentams
-- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — atrinktos bibliotekos su saugiais numatytaisiais nustatymais
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — authorization pipeline
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — guardrails framework
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — audit log and retention
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **mandatory** pattern for public upstream credentials
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **mandatory** pattern for error responses
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — maintainer attestation for supply-chain scanner findings
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (legal/ethical notice)
+- [`CLAUDE.md`](CLAUDE.md) — hard rules for AI agents
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — curated secure-by-default libraries

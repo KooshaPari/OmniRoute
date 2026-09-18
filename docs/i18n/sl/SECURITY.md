@@ -155,30 +155,13 @@ PII_RESPONSE_SANITIZATION=true  # izbirno: prikrij PII v odgovorih ponudnika, vr
 
 ---
 
-## Zahtevane okoljske spremenljivke
+## Docker Security
 
-Vse skrivnosti morajo biti nastavljene pred zagonom strežnika. Če manjkajo ali so šibke, se strežnik **takoj zaustavi**.
-
-```bash
-# ZAHTEVANO — strežnik se brez teh vrednosti ne bo zagnal:
-JWT_SECRET=$(openssl rand -base64 48)     # najmanj 32 znakov
-API_KEY_SECRET=$(openssl rand -hex 32)    # najmanj 16 znakov
-
-# PRIPOROČENO — omogoča šifriranje shranjenih podatkov:
-STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
-
-Strežnik dejavno zavrača znane šibke vrednosti, kot so `changeme`, `secret` ali `password`.
-
----
-
-## Varnost Dockerja
-
-- V produkcijskem okolju uporabljajte uporabnika brez korenskih pravic
-- Skrivnosti priklopite kot nosilce samo za branje
-- Datotek `.env` nikoli ne kopirajte v slike Docker
-- Za izključitev občutljivih datotek uporabite `.dockerignore`
-- Ko uporabljate HTTPS, nastavite `AUTH_COOKIE_SECURE=true`
+- Use non-root user in production
+- Mount secrets as read-only volumes
+- Never copy `.env` files into Docker images
+- Use `.dockerignore` to exclude sensitive files
+- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
 
 ```bash
 docker run -d \
@@ -195,62 +178,71 @@ docker run -d \
 
 ---
 
-## Odvisnosti
+## Dependencies
 
-- Redno izvajajte `npm audit` (`npm run audit:deps` zajema glavni del + electron)
-- Odvisnosti redno posodabljajte
-- Projekt uporablja `husky` + `lint-staged` za preverjanja pred potrditvijo sprememb (lint-staged + check-docs-sync + check:any-budget:t11)
-- Cevovod CI ob vsaki potisnitvi izvede varnostna pravila ESLint (`no-eval`, `no-implied-eval`, `no-new-func` = napaka)
-- Konstante ponudnikov so ob nalaganju modula preverjene z Zod (`src/shared/validation/schemas.ts`)
-- Uporabljene so knjižnice z varnimi privzetimi nastavitvami: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (brez tveganja SQLi zaradi parametriziranih poizvedb), `bcryptjs` (zgoščevanje gesel)
+- Run `npm audit` regularly (`npm run audit:deps` audits the root package)
+- Keep dependencies updated
+- The project uses `husky` + `lint-staged` for pre-commit checks (lint-staged + check-docs-sync + check:any-budget:t11)
+- CI pipeline runs ESLint security rules on every push (`no-eval`, `no-implied-eval`, `no-new-func` = error)
+- Provider constants validated at module load via Zod (`src/shared/validation/schemas.ts`)
+- Secure-by-default libraries used: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (no SQLi risk via parameterized queries), `bcryptjs` (password hashing)
 
-## Stroga varnostna pravila
+## Hard Security Rules
 
-Ta pravila uveljavljajo orodja in pregledovalci:
+These rules are enforced by tooling and reviewers:
 
-1. **Nikoli ne potrjujte skrivnosti v repozitorij** — `.env` je izključen z gitignore; `.env.example` je predloga (brez literalnih vrednosti, samo komentarji — glejte PUBLIC_CREDS.md spodaj)
-2. **Nikoli ne uporabljajte `eval()`, `new Function()` ali implicitnega eval** — to uveljavlja ESLint
-3. **Nikoli ne zaobidite kavljev Husky** (`--no-verify`, `--no-gpg-sign`) brez izrecne odobritve upravljavca
-4. **V poteh nikoli ne pišite surovega SQL-a** — vedno uporabite `src/lib/db/` (parametrizirano)
-5. **Vhode vedno preverite z Zod** — `src/shared/validation/schemas.ts`
-6. **Vedno prečistite glave nadrejenih strežnikov** — seznam prepovedanih vrednosti je v `src/shared/constants/upstreamHeaders.ts`
-7. **Poverilnice šifrirajte pri shranjevanju** — AES-256-GCM prek `src/lib/db/encryption.ts`
-8. **Javne identifikatorje OAuth nadrejenih storitev obravnavajte prek `resolvePublicCred()`** — v izvorno kodo nikoli ne vdelujte literalnih vrednosti `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com`. Glejte [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
-9. **Odzive z napakami ustvarjajte prek `buildErrorBody()` / `sanitizeErrorMessage()`** — surovih vrednosti `err.stack` / `err.message` nikoli ne vključujte v telesa odzivov HTTP / SSE / izvajalnika / MCP. Glejte [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
-10. **Izvajalne vrednosti za `exec()` / `spawn()` posredujte prek možnosti `env`** — zunanjih poti ali nezaupanja vrednih vrednosti nikoli ne vstavljajte z interpolacijo nizov v skripte, posredovane lupini. Referenca: `src/mitm/cert/install.ts::updateNssDatabases`.
-11. **Dajte prednost knjižnicam z varnimi privzetimi nastavitvami** — glejte [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Uporabite jih, preden razvijete lastno rešitev.
+1. **Never commit secrets** — `.env` is gitignored; `.env.example` is the template (no literals, comments only — see PUBLIC_CREDS.md below)
+2. **Never use `eval()`, `new Function()`, or implied eval** — ESLint enforces
+3. **Never bypass Husky hooks** (`--no-verify`, `--no-gpg-sign`) without explicit operator approval
+4. **Never write raw SQL in routes** — always go through `src/lib/db/` (parameterized)
+5. **Always validate inputs with Zod** — `src/shared/validation/schemas.ts`
+6. **Always sanitize upstream headers** — denylist in `src/shared/constants/upstreamHeaders.ts`
+7. **Encrypt credentials at rest** — AES-256-GCM via `src/lib/db/encryption.ts`
+8. **Public upstream OAuth identifiers via `resolvePublicCred()`** — never embed `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` literals in source. See [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Error responses through `buildErrorBody()` / `sanitizeErrorMessage()`** — never put raw `err.stack` / `err.message` in HTTP / SSE / executor / MCP response bodies. See [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **`exec()` / `spawn()` runtime values via the `env` option** — never string-interpolate external paths or untrusted values into shell-passed scripts. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Prefer secure-by-default libraries** — see [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Reach for them before rolling your own.
 
-## Ugotovitve pregledovalnikov dobavne verige (Socket.dev / Snyk / podobni)
+## Supply-chain scanner findings (Socket.dev / Snyk / similar)
 
-Objavljeni artefakt npm `omniroute` vključuje gradnjo Next.js `output: "standalone"`,
-kar pomeni, da se vsak obravnavalnik poti — vključno z dokumentiranimi privilegiranimi
-funkcijami (MITM, uvoz Zed, Cloud Sync, vgrajeni nadzornik storitev) — znajde
-v pomanjšanih delih `.next/server/*.js`. Hevristični pregledovalniki dobavne verige
-te dele pogosto primerjajo z vzorci podpisov zlonamerne programske opreme.
+The published `omniroute` npm artifact bundles the Next.js `output: "standalone"`
+build, which means every route handler — including documented privileged
+features (MITM, Zed import, Cloud Sync, embedded service supervisor) — ends
+up in `.next/server/*.js` minified chunks. Heuristic supply-chain scanners
+frequently pattern-match those chunks against malware signatures.
 
-Za vsako kategorijo ugotovitev vzdržujemo potrdilo vzdrževalca za posamezno ugotovitev:
+The scanner configuration we use lives at [`socket.yml`](socket.yml) in the
+repo root (Socket.dev GitHub App format v2 — see
+<https://docs.socket.dev/docs/socket-yml>). It explicitly excludes
+non-shipped directories (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, etc.) so the scanner only reports on code paths that
+actually reach published users — the scan itself is driven by the Socket
+GitHub App reading that file, not by a workflow in this repository.
+
+For each finding category we maintain a per-finding maintainer attestation:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  zemljevid posameznih ugotovitev: izvorna datoteka ↔ označeni del ↔ vedenje ↔ omilitveni ukrep,
-  uporabljen v v3.8.6.
-- Bloki `SECURITY-AUDITOR-NOTE:` v izvorni kodi pri vsaki označeni funkciji
-  kažejo nazaj na isti dokument.
+  per-finding map: source file ↔ flagged chunk ↔ behaviour ↔ mitigation
+  applied in v3.8.6.
+- In-source `SECURITY-AUDITOR-NOTE:` blocks at each flagged function point
+  back to the same document.
 
-Uporabniki, katerih cevovod ne more omiliti opozorila, naj gradijo z
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. To štiri občutljive module
-nadomesti z nadomestki, ki med izvajanjem vrnejo HTTP 503 `feature-disabled`,
-zato privilegirane kodne poti fizično niso prisotne v paketu.
-Postopek objave je opisan v dokumentu [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md).
+For users whose pipeline cannot relax the alert: build with
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. That replaces the four
+sensitive modules with stubs that return HTTP 503 `feature-disabled` at
+runtime, so the privileged code paths are physically absent from the bundle.
+See [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+for the publishing recipe.
 
-## Viri
+## References
 
-- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — cevovod avtorizacije
-- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — ogrodje varoval
-- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — revizijski dnevnik in hramba
-- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **obvezen** vzorec za javne poverilnice nadrejenih storitev
-- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **obvezen** vzorec za odzive z napakami
-- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — potrdilo vzdrževalca za ugotovitve pregledovalnikov dobavne verige
-- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — odklopnik + obdobje ohlajanja + zaklep
-- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — prepoznavanje prstnih odtisov TLS (pravno/etično obvestilo)
-- [`CLAUDE.md`](CLAUDE.md) — stroga pravila za agente umetne inteligence
-- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — kuriran nabor privzeto varnih knjižnic
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — authorization pipeline
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — guardrails framework
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — audit log and retention
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **mandatory** pattern for public upstream credentials
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **mandatory** pattern for error responses
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — maintainer attestation for supply-chain scanner findings
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (legal/ethical notice)
+- [`CLAUDE.md`](CLAUDE.md) — hard rules for AI agents
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — curated secure-by-default libraries

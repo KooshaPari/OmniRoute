@@ -11,54 +11,46 @@ version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# OmniRoute — Ġallerija tal-Karatteristiċi tal-Board tal-Ittri
+## ✨ v3.8.0 Highlights
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth flows, deeper resilience, and a much richer CLI experience. Headline features below — full details further in the document and in linked specs.
 
-Gwida viżwali għal kull sezzjoni tal-portal OmniRoute.
+- 🤖 **Auto Combo / Zero-config auto-routing** — use prefixes `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Backed by a 16-factor scoring engine and 6 curated **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
+- 🆕 **Command Code provider** (#2199) — first-class registration with model catalog and quota tracking
+- 🆕 **Z.AI provider** — new free-tier provider with quota labels
+- 🎬 **KIE media expansion** — extended catalog including video generation models
+- 🔐 **Devin authentication** — Desktop imports an existing Devin API key; the CLI uses local `devin auth login` credentials
+- 🆓 **8 new free providers** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🎯 **Manifest-aware tier routing W1–W4** — provider manifests drive weighted tier selection
+- 🎨 **Cursor full OpenAI parity** — tool calls, streaming, session management end-to-end
+- 📊 **Cursor Pro plan usage** — quota & cycle data surfaced in the provider-limits dashboard
+- ⚡ **Service tier breakdown / Codex fast tier analytics** — per-tier consumption visibility
+- 📌 **Per-session sticky routing** — Codex sessions pin to the same account between turns
+- 🔊 **Inworld TTS enhancements** — voice catalogs, streaming, and latency improvements
+- 🔑 **Kiro headless auth** — login via local `kiro-cli` SQLite store, no browser required
+- 📉 **DeepSeek quota and limit monitoring** — daily/monthly usage exposed via dashboard
+- 🔄 **Reset-aware routing strategy** — combos now prefer accounts whose quota window resets soonest
+- ⏱️ **`fallbackDelayMs`** and **dynamic tool limit detection** — finer fallback timing + per-provider tool-count limits
+- 🔧 **Background mode degradation (Responses API)** — falls back to synchronous mode with a structured warning when an upstream lacks background polling
+- 🚦 **Per-provider 429 classification** + `useUpstream429BreakerHints` toggle — finer breaker behavior using upstream rate-limit hints
+- 🩺 **Model cooldowns dashboard** — observe per-model lockouts and manually re-enable from the UI
+- 🔒 **MITM dynamic Linux cert detection** — works across Debian/Ubuntu, Fedora/RHEL, Arch, and other distros
+- 💻 **CLI enhancement suite** — 20+ commands including `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- 🔍 **Qdrant embedding model discovery** — automatic vector-store model probe
+- 🔑 **API Keys / Bearer keys with `manage` scope** — perform admin operations programmatically via API
+- 🏥 **Combo target health analytics** + **structured combo builder** — per-target health & UI builder for assembling `(provider, model, connection)` steps
+- 🤝 **GitLab Duo OAuth provider** — login with GitLab credentials
+- 🧠 **Reasoning Replay Cache** — hybrid in-memory + SQLite persistence of reasoning traces
 
-> 📅 **Aħħar aġġornament:** 2026-06-28 — **v3.8.40**
+📚 **Related docs:** [Skills Framework](../frameworks/SKILLS.md) · [Memory System](../frameworks/MEMORY.md) · [Cloud Agents](../frameworks/CLOUD_AGENT.md) · [Webhooks](../frameworks/WEBHOOKS.md) · [Reasoning Replay Cache](../routing/REASONING_REPLAY.md)
 
 ---
 
-## ✨ v3.8.0 Highlights
-
-Iċ-ċiklu v3.7.x → v3.8 żied routing awtomatiku mingħajr konfigurazzjoni, provdidituri ġodda, flussi OAuth, reżiljenza aktar profonda, u esperjenza CLI ħafna aktar rikka. Karatteristiċi ewlenin taħt — dettalji sħaħ aktar 'l isfel fid-dokument u fl-ispeċifkazzjonijiet marbuta.
-
-- 🤖 **Auto Combo / Zero-config auto-routing** — juża prefissi `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Appoġġjat minn magni ta’ skorjar b’16 fattur u 6 **pakketti ta’ mod** kkontrollati (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
-- 🆕 **Command Code provider** (#2199) — reġistrazzjoni ta’ l-ewwel kategorija b’katalgu tal-mudelli u traċċar tal-kwota
-- 🆕 **Z.AI provider** — provdiditur b’tier b’xejn ġdid b’tikketta tal-kwota
-- 🎬 **Espansjoni tal-midja KIE** — katalgu estiż li jinkludi mudelli għat-tħaddim tal-vidjo
-- 🔐 **Autentikazzjoni Devin** — Desktop jimporta chiarba API Devin eżistenti; il-CLI juża ċ-ċredenzjali lokali `devin auth login`
-- 🆓 **8 provdidituri b'xejn ġodda** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
-- 🎯 **Manifest-aware tier routing W1–W4** — manifests tal-provdiditur jidderieġu għażla tal-tier b’piż
-- 🎜 **Cursor full OpenAI parity** — għodda ta’ sejħiet, streaming, ġestjoni tas-sessjoni mill-bidu sal-aħħar
-- 📊 **Użu tal-pjan Cursor Pro** — data tal-kwota u ċiklu mhux fil-wiċċ fid-dashboard tal-limiti tal-provdiditur
-- ⚡ **Taqsimiet tat-tier tas-servizz / Analitiċi tat-tier malajr Codex** — viżibbiltà tal-konsum per-tier
-- 📌 **Routing stabbli per-sessjoni** — sessjonijiet Codex jidħlu fl-istess kont bejn id-dawriet
-- 🔊 **Tisħiħ tal-TTS Inworld** — katalgu tal-vuċijiet, streaming, u tħaffif tal-latent
-- 🔑 **Autentikazzjoni bla ras Kiro** —登录 permezz tal-ħażna lokali `kiro-cli` SQLite, bla bżonn tal-browser
-- 📊 **Monitoraġġ tal-kwota u tal-limiti DeepSeek** — użu ta’ kuljum/xahre żvelat permezz tal-dashboard
-- 🔄 **Strateġija ta’ routing tgħaraf il-ħlas mill-ġdid** — combos issa jippreferixxu kontijiet li l-finestra tal-kwota tagħhom terġa’ tibda l-aktar kmieni
-- ⏱️ **`fallbackDelayMs`** u **spezzjoni dinamika tal-limitu tal-għodda** — żmien fallback aktar fin + limitu tal-għodda per-provdiditur
-- 🔧 **Degradazzjoni tal-modalità wara l-linja (Responses API)** — jirritorna lejn is-sinkronu b’taħrik strutturat meta l-upstream ma jkollux polling wara l-linja
-- 🚦 **Klassifikazzjoni per-provdiditur 429** + naħla `useUpstream429BreakerHints` — interrazzjon tal-biċċiera aktar fin li juża ħjiel tal-limiti tar-rata tal-upstream
-- 🩺 **Dashboard tal-mudelli fil-periklu** — osserva blokki per-mudell u erġa’ attiva manwalment mill-interfaċċ
-- 🔒 **Spezzjoni dinamika tal-cert MITM Linux** — taħdem fuq Debian/Ubuntu, Fedora/RHEL, Arch, u distro oħrajn
-- 💻 **Għodod tal-CLI** — aktar minn 20 kmand inklużi `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
-- 🔵 **Skoperta tal-mudell embedded Qdrant** — sonda awtomatika tal-mudell tal-ħażna vettorjali
-- 🔑 **API Keys / Bearer keys b’maġisteru `manage`** — timplimenta operazzjonijiet tal-amministrazzjoni programmatikament permezz tal-API
-- 🏥 **Analitiċi tas-saħħa tal-mira Combo** + **ħolqien strutturat ta’ Combo** — saħħa per-mira u għodda tal-UI għat-tħaffif ta’ passi `(fornitur, mudell, konnessjoni)`
-- 🤝 **GitLab Duo OAuth provider** —登录 b’kredenzjali GitLab
-- 🧦 **Cache tar-rikonoxximent tar-Replay** — persistenza ħibrida f’memorja + SQLite ta’ traċċi tar-rikonoxximent
-
-📚 **Dokumenti relatati:** [Framework tal-Ħiliet](../frameworks/SKILLS.md) · [Sistema tal-Memorja](../frameworks/MEMORY.md) · [Aġenti tal-Cloud](../frameworks/CLOUD_AGENT.md) · [Webhooks](../frameworks/WEBHOOKS.md) · [Cache tar-rikonoxximent tar-Replay](../routing/REASONING_REPLAY.md)
-
 ## 🔌 Providers
 
-Immaniġġja l-konnessjonijiet tal-fornituri tal-AI: fornituri OAuth (Claude Code, Codex), fornituri ta' API keys (Groq, DeepSeek, OpenRouter), u fornituri b'xejn (Qoder, Kiro). L-kontijiet tal-Kiro jinkludu t-traċċar tal-bilanċ tal-kreditu — krediti ġejjin, allowances kollha, u data ta' rinnovazzjoni jidhru fil-Pjanċtal → Użu.
+Manage AI provider connections: OAuth providers (Claude Code, Codex), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
 
-Il-konnessjonijiet tal-OpenRouter jistgħu jistivixxu `preset` ta' konnessjoni waħda fl-issettjar Avvanzati. Meta stabbilit, l-OmnirRoute jibgħatha bħala l-qasam tal-quċċata tal-istaqsi tal-OpenRouter, pereżempju `"preset": "email-copywriter"`, sakemm l-istaqsi tal-klijent diġà pprovdilhom `preset` tagħhom.
+OpenRouter connections can store a per-connection `preset` in Advanced Settings. When set, OmniRoute sends it as the OpenRouter top-level request field, for example `"preset": "email-copywriter"`, unless the client request already supplied its own `preset`.
 
 ![Providers Dashboard](../screenshots/01-providers.png)
 
@@ -66,15 +58,25 @@ Il-konnessjonijiet tal-OpenRouter jistgħu jistivixxu `preset` ta' konnessjoni w
 
 ## 🎨 Combos
 
-Oħloq kombinazzjonijiet ta' rotta tal-mudell b'19 strateġiji pubbliċi: priorità, ponderat, round-robin, context-relay, fill-first, p2c (power-of-two choices), casual, l-iktar użat, ottimizzat għal-ispejjeż, konxju tat-twaqqif, tieqa tat-twaqqif, headroom, random stret, awtomatiku, lkgp (last-known-good-provider), ottimizzat għal-kontest, ottimizzat għal-cache, **fusion** (faxx griż lejn pannell ta' mudelli b'mod parallelu, imbagħad sinteżi risposta waħda permezz ta' ġudikant), u **pipeline**. Kull kombo jgħaqqad diversi mudelli b'fallback awtomatiku u jinkludi mudelli rapidi u verifiki ta' lestija.
+Create model routing combos with 19 public strategies: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (fan out to a panel of models in parallel, then synthesize one answer via a judge), and **pipeline**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
 
-Titjib reċenti tal-kombos:
+Recent combo improvements:
 
-- **Bini strutturat tal-kombo** — kull pass jiġi maħluq billi jgħażel il-fornitur, il-mudell, u l-kont/konnessjoni eżatt
-- **Appoġġ għal fornituri ripetuti** — l-istess fornitur jintuża ħafna drabi f'kombo waħda kemm il-vettura `(provider, model, connection)` hija unika
-- **Saħħa tal-miri tal-kombo** — l-analiżi u l-wiċċ tas-saħħa issa jiddistingwixxu miri/passi individwali tal-kombo minflok jiġbru kollox f'sekwenzi tal-mudell
-- **Taqsim tal-livelli komposti** — `defaultTier -> fallbackTier` issa jinfluwenza l-ordni ta' esekuzzjoni/fallback tal-passi tal-kombo tal-quċċata
-- **Mudelli tal-messaġġ tas-sistema** — il-kombo `system_message` jappoġġa placeholders server-side bħal `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}`, u `{{FINGERPRINT}}`, imwessqa mill-mira fil-veloċità fil-veloċità qabel l-għoti. Permess u mhux rikorsiv; placeholders magħrufa jitbiegħed bħala leterali; valuri vojta jitwessqu għal vojt; prompts tal-klijent m'għandhomx jiġu miktuba mill-ġdid. `{{FINGERPRINT}}` jiġri biss għal fornitur b'xejn bbażat fuq fingerprint b'fingerprint imwaħhal jew awtomatikament imdawwar — jitwessqu għal vojt fil-postijiet l-oħra (pereżempju, konnessjonijiet b'fingerprint wieħed, fornituri mhux b'fp). L-estensjoni tkopri l-loop standard tal-għoti, round-robin, u sessjonijiet ta' kontest-cache imwaħla; strateġiji ta' fusion, ħaġa, pipeline, u nested-execute għad mhomx jespandu placeholders.
+- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
+- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
+- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
+- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+- **System prompt templates** — combo `system_message` supports server-side
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` and `{{FINGERPRINT}}`
+  placeholders, expanded from the actually-routed target right before dispatch.
+  Allowlisted and non-recursive; unknown placeholders stay literal; empty values
+  expand to empty; client system prompts are never rewritten. `{{FINGERPRINT}}`
+  resolves only for fingerprint-based free providers with a pinned or
+  auto-rotated fingerprint — it expands to empty elsewhere (e.g.
+  single-fingerprint connections, non-fp providers). Expansion covers the
+  standard dispatch loop, round-robin, and pinned context-cache sessions;
+  fusion, chaos, pipeline and nested-execute strategies do not expand
+  placeholders yet.
 
 ![Combos Dashboard](../screenshots/02-combos.png)
 
@@ -82,7 +84,7 @@ Titjib reċenti tal-kombos:
 
 ## 📊 Analytics
 
-Analitiċi komprensivi ta' l-użu b'konsum ta' tokens, stimi tal-ispejjeż, heatmaps ta' attivitajiet, grafiki tal-qsim ġimgħali, u t-taqsima għal kull fornitur.
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
 
 ![Analytics Dashboard](../screenshots/03-analytics.png)
 
@@ -90,244 +92,246 @@ Analitiċi komprensivi ta' l-użu b'konsum ta' tokens, stimi tal-ispejjeż, heat
 
 ## 🏥 System Health
 
-Monitoraġġ real-time: uptime, memorja, versioni, percentili tal-latency (p50/p95/p99), statistika tal-cache, stati tal-circuit breaker tal-fornituri, sessjonijiet attivi ta' monitoraġġ tal-quota, u saħħa tal-miri tal-kombo.
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
 
 ![Health Dashboard](../screenshots/04-health.png)
 
-## 🔧 Terren tal-Playground tal-Traduttur
+---
 
-Erbgħa ta' modi għad-dijanjostika tat-traduzzjonijiet tal-API: **Playground** (konvertitur tal-format), **Chat Tester** (talbiet ħajjin), **Test Bench** (testijiet baġitari), u **Live Monitor** (stream real-time).
+## 🔧 Translator Playground
 
-![Terren tal-Playground tal-Traduttur](../screenshots/05-translator.png)
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
+
+![Translator Playground](../screenshots/05-translator.png)
 
 ---
 
-## 🎮 Terren tal-Mudell _(v2.0.9+)_
+## 🎮 Model Playground _(v2.0.9+)_
 
-Ittestja kwalunkwe mudell direttament mill-dashboard. Agħżel il-fornitur, il-mudell, u t-tmiem, uħtu prompts bl-Editor Monaco,流 stream ir-risponsi f'ħin reali, irrevoka nofs is-stream, u ħares lejn il-miżuri tal-ħin.
-
----
-
-## 🎨 Temi _(v2.0.5+)_
-
-Temi tal-lewn personalizzabbli għad-dashboard kollha. Agħżel minn 7 lewnijiet presets (Coral, Blu, Aħmar, Ħdar, Violetta, Oranġo, Ċjan) jew oħloq tema personalizzata billi tagħżel kwalunkwe lewn hex. Jappoġġa dawl, skur, u modalità tal-sistema.
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
 
 ---
 
-## ⚙️ Settijiet
+## 🎨 Themes _(v2.0.5+)_
 
-Panal settijiet komprensiv b'**7 tabbar**:
-
-- **Ġenerali** — Ġestjoni tal-ħażna tal-sistema, ġestjoni tal-backup (esportazzjoni/importazzjoni tal-bażi tad-dejta)
-- **Dehra** — Għażla tal-tema (skur/dawl/sistema), presets tal-lewn u kuluri personalizzati, viżibilità tal-ġurnal tas-saħħa, kontrolli tal-viżibilità tal-items u tal-gruppi fis-sidebar, kontrolli tal-viżibilità tal-Endpoint tunnel
-- **AI** — Karatteristiċi tal-għajnuna AI, presets tar-rotta predefinita (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), cache tar-ripetizzjoni tar-raġunament, u tadfiq tas-sengħa/memorja
-- **Sigurtà** — Protezzjoni tal-endpoint tal-API, blokkar personalizzat tal-fornitur, filtrar tal-IP, informazzjoni tas-sessjoni
-- **Rotot** — Psewdonimi tal-mudell, degradazzjoni tal-impjiegi ta' wara l-kwadri, rotot gradjati b'għarfien tal-manifest (W1–W4), `fallbackDelayMs`, rotot fixi per-sessjoni
-- **Reżiljenza** — Perżistenza tal-limitu tal-veloċità, aġġustament tal-circuit breaker, diżattivazzjoni awtomatika tal-kontijiet projbita, monitoraġħar tal-iskadenza tal-fornitur, sogta tal-pass塔għoda tal-**Context Relay** u configurazzjoni tal-mudell tal-summari, klassifikazzjoni 429 per-fornitur u tadfip `useUpstream429BreakerHints`, kiriżi tal-mudelli
-- **Avvanzat** — Overrides tal-konfigurazzjoni, traċċar tal-awdit tal-konfigurazzjoni, modalità ta' degradazzjoni fallback, modalità ta' degradazzjoni għat-tħaddim ta' wara l-kwadri għar-Risponsi API
-
-![Panal tal-Settings](../screenshots/06-settings.png)
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
 
 ---
 
-## 🔧 Għodod tal-CLI
+## ⚙️ Settings
 
-Konfigurazzjoni b'btnuna waħda għall-għodod tal-kodifikazzjoni AI: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, u Factory Droid. Karatteristiċi jinkludu applikazzjoni/rimi awtomatika tal-konfigurazzjoni, profili tal-konnessjoni, u mappar tal-mudelli.
+Comprehensive settings panel with **7 tabs**:
 
-![Dashboard tal-Għodod CLI](../screenshots/07-cli-tools.png)
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item and group separator visibility controls, Endpoint tunnel visibility controls
+- **AI** — AI assistant features, default routing presets (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), reasoning replay cache, and skill/memory toggles
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation, manifest-aware tier routing (W1–W4), `fallbackDelayMs`, per-session sticky routing
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration, per-provider 429 classification & `useUpstream429BreakerHints` toggle, model cooldowns
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode, background mode degradation for Responses API
 
----
-
-## 🤖 Aġenti CLI _(v2.0.11+)_
-
-Dashboard għall-iskoperta u l-ġestjoni tal-aġenti CLI. Turi grilja ta' 16 aġenti interni (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) b':
-
-- **Status tal-installazzjoni** — Installat / Ma nsibx b'detekzjoni tal-verżjoni
-- **Badge tal-Protokoll** — stdio, HTTP, eċċ.
-- **Aġenti personalizzati** — Irreġistra kwalunkwe għodda CLI permezz ta' formola (isem, binarju, kmand tal-verżjoni, args tal-spawn)
-- **Tqabbil tal-Fingerprints CLI** — Tadfiq per-fornitur biex ittellaq it-tfirmi tar-rikjesti nattivi tal-CLI, inaqqas ir-riskju tal-ban filwaqt li jippreserva l-IP prokxi
-- **Autentikazzjoni ta' Devin lokali** — Devin CLI juża `devin auth login`; mhux meħtieġa l-fluss tal-OAuth tal-browser
+![Settings Dashboard](../screenshots/06-settings.png)
 
 ---
 
-## 🔗 Transmissjoni tal-Kuntest _(v3.5.5+)_
+## 🔧 CLI Tools
 
-Strateġija tal-kombinazzjoni li tiżżomm il-kontinuità tas-sessjoni meta ssir rotazzjoni tal-kont matul il-konversazzjoni. Qabel ma l-kont attiv jiġi eżawrit, OmniRoute jiġġenera sommarju ta' handoff strukturat fil-fond. Wara li l-istenniela li jmiss tirrispondi għal kont differenti, is-sommarju jiġi injettat bħala messaġġ tas-sistema biex il-kont ġdid ikompli bil-kuntest kollu.
+One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
 
-Configurabbli permezz ta' settings tal-kombinazzjoni jew globali:
-
-- **Threshold tal-Handoff** — Perċentwali tal-użu tal-kwota li tattiva ġenerazzjoni tal-ħarsa (default 85%)
-- **Messages Massimi għas-Sommarju** — Kemm jista' jiġi kundensat mill-istorja reċenti
-- **Mudell għas-Sommarju** — Override optionali tal-mudell biex jiġi ġenerat is-sommarju tal-handoff
-
-Aktar kmieni jappoġġja rotazzjoni tal-kont Codex. Ara [dokumentazzjoni tal-Transmissjoni tal-Kuntest](../architecture/ARCHITECTURE.md).
+![CLI Tools Dashboard](../screenshots/07-cli-tools.png)
 
 ---
 
-## 🗜️ Kompresjoni tal-Prompt _(v3.7.9+)_
+## 🤖 CLI Agents _(v2.0.11+)_
 
-Kuntest & Cache issa jippreżenta paġni ddedikati għall-Kombinazzjonijiet ta' Caveman, RTK, u Kompresjoni:
+Dashboard for discovering and managing CLI agents. Shows a grid of 16 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
-- **Caveman** — Pakketti ta' regoli b'lingwaċi,.preview, kontrolli tal-moda tal-output, u analitika
-- **RTK** — Kompresjoni b'lingwaġġ tal-kmand għal shell, git, test, build, package, Docker, infrastruttura, JSON, u output ta' stack-trace
-- **Kombinazzjonijiet ta' Kompresjoni** — Pipelines imsejħa bħal `rtk -> caveman` assenjati għal kombinazzjonijiet tat-trotar; il-mate matematika default jilħaq medja ta' `~89%` u tnaqqis ta' `78-95%` għal kuntest eliġibbli meta jkunu applikati t-tursijiet.
-- **Rikuperar ta' Output Renderer** — Pointers optionali RTK tal-raw-output għal debug ta' fallimenti kompressi
-
-Ara [Gwida tal-Kompresjoni](../compression/COMPRESSION_GUIDE.md), [Kompresjoni RTK](../compression/RTK_COMPRESSION.md), u
-[Magni tal-Kompresjoni](../compression/COMPRESSION_ENGINES.md).
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+- **Local Devin authentication** — Devin CLI uses `devin auth login`; no browser OAuth flow is required
 
 ---
 
-## 🛡️ Tħħir tal-Proxy _(v3.5.5+)_
+## 🔗 Context Relay _(v3.5.5+)_
 
-Infurzar komprensiv tal-konfigurazzjoni tal-prokse permezz tal-pipeline tal-istenniela kollha:
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
 
-- **Verifika tas-Saħħa tal-Token** — OAuth ġdid fil-fond issa jirrisolvil-konfigurazzjoni tal-proxy skont il-konnessjoni, jipprevjeni fallimenti f'ambjenti fejn huwa meħtieġ il-proxy
-- **Validazzjoni tal-API Key** — Validazzjoni tal-key tal-fornitur (`POST /api/providers/validate`) timxi permezz ta' `runWithProxyContext`, tiggrava settings tal-fornitur u settings globali tal-proxy
-- **Tissorran tal-undici Dispatcher** — Dispatchers tal-proxy jużaw l-implimentazzjoni tal-fetch propja tal-undici minflok il-fetch inbuilt ta' Node, jirrisolvu errori `invalid onRequestStart method` fuq Node.js 22
-- **Identifikazzjoni tal-Versjoni tal-Node.js** — Il-paġna tal-login tidentifika b'mod proattiv il-verżjonijiet inkompatibbli tal-Node.js (24+) u turi banner ta' twissija bi struzzjonijiet biex jintuża l-Node 22 LTS
+Configurable via combo-level or global settings:
 
----
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
 
-## 📧 Maskar tal-Privatezza tal-Email _(v3.5.6+)_
-
-L-emails tal-kont OAuth huma maskrati b'mod default (eż. `di*****@g****.com`) biex jipprevjeni esposizzjoni aċċidentali meta jiġu condiviżi screenshots jew irrekordjati demos. Uża Settings → Apparenza → Visibbiltà tal-email tal-kont biex tirrivelja jew timmaskar l-emails sħaħ tal-kont globalment fost il-fornituri, il-kombinazzjonijiet, il-logs, il-kwota, u l-iskrins tal-playground.
+Currently supports Codex account rotation. See [Context Relay documentation](../architecture/ARCHITECTURE.md).
 
 ---
 
-## 👁️ Togħla ta' Mudell għal Visibbiltà _(v3.5.6+)_
+## 🗜️ Prompt Compression _(v3.7.9+)_
 
-Il-lista tal-mudelli fil-paġna tal-fornitur issa tinkludi:
+Context & Cache now exposes dedicated pages for Caveman, RTK, and Compression Combos:
 
-- **Bar ta' Rriċerka/Filtra fil-Ħin Reali** — Sib malajr mudelli speċifiċi
-- **Togħla ta' Visibbiltà għal kull mudell** (👁 icon) — Mudelli moħbija huma ħomor u esklużi mill-katalgu `/v1/models`
-- **Badge tal-Għadd Attiv** (`N/M attiv`) — Uri f'arja kemm huma attivati l-mudelli meta mqabbla mal-total
+- **Caveman** — language-aware rule packs, preview, output-mode controls, and analytics
+- **RTK** — command-aware compression for shell, git, test, build, package, Docker, infra, JSON, and stack-trace output
+- **Compression Combos** — named pipelines such as `rtk -> caveman` assigned to routing combos; the default stacked math reaches `~89%` average and `78-95%` eligible-context savings when both engines apply
+- **Raw-output recovery** — optional redacted RTK raw-output pointers for debugging compressed failures
 
----
-
-## 🔧 Tiswija tal-Ambjent OAuth _(v3.6.1+)_
-
-Azzjoni ta' "Tiswija tal-ambjent" b'klikk waħda għal fornituri OAuth li tirrestawra varjabbli tal-ambjent neqsin u ssewwi stat ta' awtentikazzjoni miksur. Aċċessibbli minn `Dashboard → Providers → [OAuth Provider] → Repair env`. Jiskopri u jsewwi awtomatikament:
-
-- Kredenzjali tal-klijent OAuth neqsin
-- Entrati ta' fajl tal-ambjent korrotti
-- Sanitizzazzjoni tal-passaġġ ta' backup
+See [Compression Guide](../compression/COMPRESSION_GUIDE.md), [RTK Compression](../compression/RTK_COMPRESSION.md), and
+[Compression Engines](../compression/COMPRESSION_ENGINES.md).
 
 ---
 
-## 🗑️ Uninstall / Uninstall Sħiħ _(v3.6.2+)_
+## 🛡️ Proxy Hardening _(v3.5.5+)_
 
-Skripts ta' tneħħija nodfa għall-metodi kollha ta' installazzjoni:
+Comprehensive proxy configuration enforcement across the entire request pipeline:
 
-| Kmand                    | Azzjoni                                                                                              |
-| ------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Ineħħi l-app tas-sistema iżda **iżomm id-DB u l-konfigurazzjonijiet tiegħek** f'`~/.omniroute`.      |
-| `npm run uninstall:full` | Ineħħi l-app U **iħassar b'mod permanenti l-konfigurazzjonijiet, iċ-ċwievet, u d-databases kollha**. |
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+
+---
+
+## 📧 Email Privacy Masking _(v3.5.6+)_
+
+OAuth account emails are masked by default (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. Use Settings → Appearance → Account email visibility to reveal or mask full account emails globally across providers, combos, logs, quota, and playground screens.
+
+---
+
+## 👁️ Model Visibility Toggle _(v3.5.6+)_
+
+The provider page model list now includes:
+
+- **Real-time search/filter bar** — Quickly find specific models
+- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
+- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
+
+---
+
+## 🔧 OAuth Env Repair _(v3.6.1+)_
+
+One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
+
+- Missing OAuth client credentials
+- Corrupted env file entries
+- Backup path sanitization
+
+---
+
+## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
+
+Clean removal scripts for all installation methods:
+
+| Command                  | Action                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
 
 ---
 
 ## 🖼️ Media _(v2.0.3+)_
 
-Iġġenera stampi, vidjows, u mużika mid-dashboard. Jappoġġja OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, u MusicGen.
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
 
 ---
 
-## 📝 Reġistri tat-Talbiet
+## 📝 Request Logs
 
-Reġistrazzjoni ta' talbiet f'ħin reali b'filtrazzjoni skont il-fornitur, il-mudell, il-kont, u ċ-ċavetta tal-API. Turi kodiċijiet ta' status, użu ta' tokens, latenza, u dettalji tar-rispons.
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
 
-![Reġistri tal-Użu](../screenshots/08-usage.png)
-
----
-
-## 🌐 Endpoint tal-API
-
-L-endpoint unifikat tal-API tiegħek b'tqassim tal-kapaċitajiet: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, u ċwievet tal-API reġistrati. Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel, u appoġġ għal proxy cloud huma disponibbli għal aċċess mill-bogħod.
-
-![Dashboard tal-Endpoint](../screenshots/09-endpoint.png)
+![Usage Logs](../screenshots/08-usage.png)
 
 ---
 
-## 🔑 Ġestjoni taċ-Ċwievet tal-API
+## 🌐 API Endpoint
 
-Oħloq, illimita, u irrevoka ċwievet tal-API. Kull ċavetta tista' tiġi ristretta għal mudelli/fornituri speċifiċi b'aċċess sħiħ jew permessi ta' qari biss. Ġestjoni viżwali taċ-ċwievet b'traċċar tal-użu.
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel, and cloud proxy support are available for remote access.
 
----
-
-## 📋 Reġistru tal-Awditjar
-
-Traċċar ta' azzjonijiet amministrattivi b'filtrazzjoni skont it-tip ta' azzjoni, l-attur, il-mira, l-indirizz IP, u t-timestamp. Storja sħiħa ta' avvenimenti ta' sigurtà.
+![Endpoint Dashboard](../screenshots/09-endpoint.png)
 
 ---
 
-## 🖥️ Applikazzjoni Desktop
+## 🔑 API Key Management
 
-App desktop nattiva Electron għal Windows, macOS, u Linux. Mexxi OmniRoute bħala applikazzjoni waħedha b'integrazzjoni mat-trej tas-sistema, appoġġ offline, aġġornament awtomatiku, u installazzjoni b'klikk waħda.
-
-Karatteristiċi ewlenin:
-
-- Polling tal-prontezza tas-server (l-ebda skrin vojt fuq bidu kiesaħ)
-- Trej tas-sistema b'ġestjoni tal-port
-- Politika tas-Sigurtà tal-Kontenut
-- Lock ta' istanza waħda
-- Aġġornament awtomatiku mal-bidu mill-ġdid
-- UI kondizzjonali għall-pjattaforma (traffic lights macOS, titlebar default Windows/Linux)
-- Ippakkjar imsaħħaħ tal-bini Electron — `node_modules` b'links simboliċi fil-bundle standalone jinstab u jiġi rrifjutat qabel l-ippakkjar, jipprevjeni dipendenza fuq il-magna tal-bini fil-ħin tal-eżekuzzjoni (v2.5.5+)
-- **Għeluq grazzjuż** — Electron `before-quit` jagħlaq Next.js b'mod nadif, jipprevjeni lockijiet tad-database SQLite WAL (v3.6.2+)
-
-📖 Ara [`electron/README.md`](../../electron/README.md) għad-dokumentazzjoni sħiħa.
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
 
 ---
 
-## 🌐 Pont WebSocket V1 _(v3.6.6+)_
+## 📋 Audit Log
 
-OmniRoute issa jappoġġja **klijenti WebSocket kompatibbli mal-OpenAI** permezz tal-endpoint ta' aġġornament `/v1/ws`. Is-server personalizzat `scripts/dev/v1-ws-bridge.mjs` jgeżwer Next.js u jaġġorna konnessjonijiet WS għal sessjonijiet ta' streaming bidirezzjonali sħaħ. L-awtentikazzjoni tuża l-istess ċavetta tal-API jew cookie tas-sessjoni bħat-talbiet HTTP.
-
-Imġiba ewlenija:
-
-- L-aġġornament WS jiġi vvalidat minn `src/lib/ws/handshake.ts` qabel ma tiġi stabbilita l-konnessjoni
-- L-istreams jintemmu b'mod nadif mal-għeluq tas-sessjoni jew b'żball upstream
-- Jaħdem flimkien mal-passaġġ eżistenti ta' streaming HTTP+SSE simultanjament
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
 
 ---
 
-## 🔑 Sincronizzazzjoni Tokken u Pakkett tal-Konfigurazzjoni _(v3.6.6+)_
+## 🖥️ Desktop Application
 
-L-aċċess għal diversi tagħmir u operaturi estern huwa issa possibbli permezz ta' **tokken ta' sincronizzazzjoni skopjati**:
+Native Tauri 2 desktop app (Rust shell + system webview, `apps/desktop/`) for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
-- **`POST /api/sync/tokens`** — Ħarreġ tokken ta' sincronizzazzjoni ġdid (skopjat, b'iskadenza fakultattiva)
-- **`DELETE /api/sync/tokens/:id`** — Revoka tokken
-- **`GET /api/sync/bundle``** — niżżel snapshot JSON b'verżjoni, iċċavjat b'ETag, tal-konfigurazzjoni kollha mhux sensittiva (kliem infurżati msir redacted)
+Key features:
 
-Il-pakkett tal-konfigurazzjoni huwa mibni minn `src/lib/sync/bundle.ts`. Il-konsumaturi jikkomparaw l-intestatura ta' rispons `ETag` biex jiskopru t-tibdil mingħajr ma jniżżlu mill-ġdid il-pakkett kollu.
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Tauri 2 build packaging — hardened standalone bundle validation detects symlinked `node_modules` and rejects it before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+- **Graceful shutdown** — Tauri lifecycle hooks shut down the API server cleanly, preventing SQLite WAL database locks (v3.6.2+)
 
----
-
-## 🧠 Presett tal-Ħsieb GLM _(v3.6.6+)_
-
-**GLM Thinking (`glmt`)** huwa issa pprovdit rreġistrat tal-ewwel livell: 65 536 token massimu tal-output, 24 576 baġit ta' ħsieb, 900 s timeout default, format ta' API kompatibbli ma' Claude, u t-taqsim-użu mal-familja GLM.
-
-**Tnaqqis tal-token ibridu** wasal ukoll fil-v3.6.6: meta pprovdit kompatibbli ma' Claude jirrevela `/messages/count_tokens`, OmniRoute sejjaħlu qabel talbiet kbar b'stima ta' riserva grazjuża.
-
----
-
-## 🛡️ Ħarsi mill-Ħsadatt往外 & Gwardja SSRF _(v3.6.6+)_
-
-Il-validazzjoni tal-provdit u l-iskoperta tal-mudell kollha issa jiġu proċessati permezz ta' gwardja ta' barra b'żewġ saffi:
-
-1. **Gwardja URL** (`src/shared/network/outboundUrlGuard.ts`) — Tinkladi firxiet tal-IP privati/loopback/link-local qabel ma jinfetaħ is-socket.
-2. **Wrapper sigur tal-ħsadatt往外** (`src/shared/network/safeOutboundFetch.ts`) — Japplika l-gwardja URL, jinormalizza t-tiżijiet, u jagħmel tentattivi mill-ġdid għal żbalji transitorji b'retroċessjonament esponenzjali.
-
-Viżolazzjonijiet tal-gwardja jidhru bħala HTTP 422 (`URL_GUARD_BLOCKED`) u jinkitbu fil-log tal-konformità permezz ta' `providerAudit.ts`.
+📖 See [`apps/desktop/README.md`](../../apps/desktop/README.md) for full documentation.
 
 ---
 
-## 🛡️ Tiżijiet tal-Konsistenza tal-Ħin tal-Kuxxin _(v3.6.6+)_
+## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
 
-Talbiet għat-Chat issa **jagħmlu tiżijiet awtomatiċi** meta pprovdit ta' barra jirritorna b'ħin tal-kuxxin skont il-mudell. Jinġibu permezz ta' `REQUEST_RETRY` (default: 2) u `MAX_RETRY_INTERVAL_SEC` (default: 30 s). It-titjib fit-tagħlim tal-intestaturi tal-limitu tal-pass jiġi mtejjeb fost `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, u `Retry-After` — l-istat tal-kuxxin skont il-mudell huwa viżibbli fil-dashboard tar-Resiljenza.
+OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/dev/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+
+Key behaviours:
+
+- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
+- Streams terminated cleanly on session close or upstream error
+- Works alongside the existing HTTP+SSE streaming path simultaneously
 
 ---
 
-## 📋 Log tal-Konformità v2 _(v3.6.6+)_
+## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
 
-Il-log tal-konformità ġie estiż bil-paġinazzjoni ibbażata fuq il-korsur, il-ġlieda tal-kuntest tal-talb (ID tat-talb, utent aġent, IP), avvenimenti tal-awtentiċità strutturati, avvenimenti CRUD tal-provdit b'kuntest diff, u log tal-validazzjoni tal-blokk SSRF. Ġejjin ġdid huma mibgħuta minn `src/lib/compliance/providerAudit.ts`.
+Multi-device and external operator access is now possible via **scoped sync tokens**:
+
+- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
+- **`DELETE /api/sync/tokens/:id`** — Revoke a token
+- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
+
+The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+
+---
+
+## 🧠 GLM Thinking Preset _(v3.6.6+)_
+
+**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+
+**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+
+---
+
+## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
+
+All provider validation and model discovery calls now go through a two-layer outbound guard:
+
+1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
+2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
+
+Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+
+---
+
+## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+
+Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+
+---
+
+## 📋 Compliance Audit v2 _(v3.6.6+)_
+
+The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.

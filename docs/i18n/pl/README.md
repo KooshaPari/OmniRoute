@@ -57,7 +57,7 @@
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](../../../LICENSE)
 ![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+![Desktop Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=desktop%20downloads&logo=desktop&color=47848F)
 
 [**🚀 Szybki start**](#-szybki-start) • [**🎯 Komba**](#-komba-combos--flagowa-funkcja) • [**🌐 Dostawcy**](#-329-wpisów-katalogu-ai--155-free-no-auth) • [**🔌 CLI & MCP**](#-pe%C5%82ne-cli--a2a-i-mcp) • [**🗜️ Kompresja**](#%EF%B8%8F-oszcz%C4%99dzaj-1595-token%C3%B3w--automatycznie) • [**🌍 Strona WWW**](https://omniroute.online)
 
@@ -392,18 +392,18 @@ Wszystkie **19** strategii — łącz i dopasowuj na każdym kroku komba:
 
 > Ta sama aplikacja, Twoja maszyna, Twoje zasady. Od globalnej instalacji przez npm po Twój telefon za pomocą Termux.
 
-| Platforma                 | Instalacja                               | Najważniejsze cechy                                                           |
-| ------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------- |
-| 📦 **npm (globalnie)**    | `npm install -g omniroute`               | Jedno polecenie, dowolny system operacyjny                                    |
-| 🐳 **Docker**             | `docker run … diegosouzapw/omniroute`    | Wielonatywność architektur **AMD64 + ARM64**                                  |
-| 🖥️ **Desktop (Electron)** | `npm run electron:build`                 | Natywne okno + zasobnik systemowy (system tray) — **Windows / macOS / Linux** |
-| 💪 **ARM**                | natywnie `arm64`                         | Raspberry Pi, serwery ARM, Apple Silicon                                      |
-| 📱 **Android (Termux)**   | `pkg install nodejs && npx -y omniroute` | Działa **na Twoim telefonie**, 24/7, bez roota                                |
-| 📲 **PWA**                | "Dodaj do ekranu głównego"               | Pełny ekran, offline, instalacja z poziomu przeglądarki                       |
-| 🧩 **Wtyczka OpenCode**   | `@omniroute/opencode-provider`           | Natywna integracja z OpenCode                                                 |
-| 🛠️ **Ze źródeł**          | `npm install && npm run dev`             | Modyfikuj kod, współtwórz projekt                                             |
+| Platforma                | Instalacja                               | Najważniejsze cechy                                                           |
+| ------------------------ | ---------------------------------------- | ----------------------------------------------------------------------------- |
+| 📦 **npm (globalnie)**   | `npm install -g omniroute`               | Jedno polecenie, dowolny system operacyjny                                    |
+| 🐳 **Docker**            | `docker run … diegosouzapw/omniroute`    | Wielonatywność architektur **AMD64 + ARM64**                                  |
+| 🖥️ **Desktop (Tauri 2)** | `cargo tauri build`                      | Natywne okno + zasobnik systemowy (system tray) — **Windows / macOS / Linux** |
+| 💪 **ARM**               | natywnie `arm64`                         | Raspberry Pi, serwery ARM, Apple Silicon                                      |
+| 📱 **Android (Termux)**  | `pkg install nodejs && npx -y omniroute` | Działa **na Twoim telefonie**, 24/7, bez roota                                |
+| 📲 **PWA**               | "Dodaj do ekranu głównego"               | Pełny ekran, offline, instalacja z poziomu przeglądarki                       |
+| 🧩 **Wtyczka OpenCode**  | `@omniroute/opencode-provider`           | Natywna integracja z OpenCode                                                 |
+| 🛠️ **Ze źródeł**         | `npm install && npm run dev`             | Modyfikuj kod, współtwórz projekt                                             |
 
-<sub>📖 [Podręcznik Docker](../../../docs/guides/DOCKER_GUIDE.md) · [Desktop](../../../electron/README.md) · [Termux](../../../docs/guides/TERMUX_GUIDE.md) · [PWA](../../../docs/guides/PWA_GUIDE.md) · [OpenCode](../../../docs/frameworks/OPENCODE.md)</sub>
+<sub>📖 [Podręcznik Docker](../../../docs/guides/DOCKER_GUIDE.md) · [Desktop](../../../docs/guides/DESKTOP_GUIDE.md) · [Termux](../../../docs/guides/TERMUX_GUIDE.md) · [PWA](../../../docs/guides/PWA_GUIDE.md) · [OpenCode](../../../docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
@@ -769,7 +769,7 @@ W celu uzyskania najszybszej instalacji preferuj **pnpm** (magazyn adresowany tr
 - **Strumieniowanie**: Server-Sent Events (SSE) + most WebSocket (`/v1/ws`)
 - **Uwierzytelnianie**: OAuth 2.0 (PKCE) + JWT + Klucze API + Autoryzacja zakresów MCP
 - **Testowanie**: Node.js test runner + Vitest (**ponad 25 000 przypadków testowych** w ponad 3300 plikach — jednostkowe, integracyjne, E2E, bezpieczeństwo, ekosystem)
-- **Platformy**: Desktop (Electron), Android (Termux), PWA (dowolna przeglądarka)
+- **Platformy**: Desktop (Tauri 2), Android (Termux), PWA (dowolna przeglądarka)
 - **CI/CD**: GitHub Actions (automatyczna publikacja w npm + Docker Hub przy wydaniu wersji)
 - **Strona WWW**: [omniroute.online](https://omniroute.online)
 - **Pakiet**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
@@ -921,7 +921,7 @@ W celu uzyskania najszybszej instalacji preferuj **pnpm** (magazyn adresowany tr
         <b>kfiramar</b>
       </a><br/>
       <sub>🏅 38 commits • +1.7K lines</sub><br/>
-      <sub>Obsługa websocket i passthrough dla Codex, autoryzacja/onboarding,<br/>wzmocnienie Electron, migracje baz danych</sub>
+      <sub>Obsługa websocket i passthrough dla Codex, autoryzacja/onboarding,<br/>wzmocnienie Tauri 2, migracje baz danych</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/benzntech">
@@ -929,7 +929,7 @@ W celu uzyskania najszybszej instalacji preferuj **pnpm** (magazyn adresowany tr
         <b>Benson K B</b>
       </a><br/>
       <sub>🏅 28 commits • +9.2K lines</sub><br/>
-      <sub>Aplikacja desktopowa Electron, automatyczny instalator aktualizacji,<br/>przepływy budowania wydań, wieloplatformowe CI</sub>
+      <sub>Aplikacja desktopowa Tauri 2, automatyczny instalator aktualizacji,<br/>przepływy budowania wydań, wieloplatformowe CI</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/herjarsa">
@@ -1124,11 +1124,11 @@ Licencja MIT — szczegóły znajdziesz w pliku [LICENSE](../../../LICENSE).
 
 ---
 
-<br/>
 <div align="center">
 
-**[⬆ Powrót do góry](#-omniroute--darmowa-bramka-ai)** · Stworzono z ❤️ dla społeczności AI open-source.
+**[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
 
-<sub>OmniRoute v3.8.49 · Node ≥22.22.2 · Licencja MIT · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
+<!-- GitHub Discussions enabled for community Q&A -->

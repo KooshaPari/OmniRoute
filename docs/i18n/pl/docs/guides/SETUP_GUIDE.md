@@ -20,16 +20,16 @@ lastUpdated: 2026-06-28
 
 ---
 
-## Metody instalacji
+## Install Methods
 
-### npm (zalecane)
+### npm (recommended)
 
 ```bash
 npm install -g omniroute
 omniroute
 ```
 
-Dashboard otwiera się pod adresem `http://localhost:20128`, a bazowy URL API to `http://localhost:20128/v1`.
+Dashboard opens at `http://localhost:20128` and API base URL is `http://localhost:20128/v1`.
 
 ### pnpm
 
@@ -38,7 +38,7 @@ pnpm add -g omniroute@latest --allow-build=better-sqlite3 --allow-build=@swc/cor
 omniroute
 ```
 
-> **Użytkownicy pnpm:** flaga `--allow-build` jest wymagana, aby włączyć natywne skrypty budowania dla `better-sqlite3` i `@swc/core`. Polecenie `pnpm approve-builds -g` nie jest obsługiwane przy globalnych instalacjach w pnpm v11.
+> **pnpm users:** the `--allow-build` flag is required to enable native build scripts for `better-sqlite3` and `@swc/core`. The `pnpm approve-builds -g` command is not supported for global installs on pnpm v11.
 
 ### Arch Linux (AUR)
 
@@ -47,66 +47,68 @@ yay -S omniroute-bin
 systemctl --user enable --now omniroute.service
 ```
 
-[Pakiet AUR](https://aur.archlinux.org/packages/omniroute-bin) instaluje OmniRoute i udostępnia usługę użytkownika systemd.
+The [AUR package](https://aur.archlinux.org/packages/omniroute-bin) installs OmniRoute and provides a systemd user service.
 
-### Ze źródeł
+### From Source
 
 ```bash
 npm install
 PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev
 ```
 
-> **Uwaga:** `npm install` przy pierwszym uruchomieniu automatycznie generuje `.env` z `.env.example`. Kolejne instalacje nie nadpisują istniejącego `.env`, więc Twoje zmiany są zachowane. Aby ponownie zainicjować, usuń `.env` przed ponownym uruchomieniem.
+> **Windows note:** By default, OmniRoute uses `%APPDATA%\omniroute` when the legacy `%USERPROFILE%\.omniroute` directory is not present. Set `DATA_DIR` to choose a different data-directory location.
+
+> **Note:** `npm install` auto-generates `.env` from `.env.example` on first run. Subsequent installs will not overwrite an existing `.env`, so customizations are preserved. To re-seed, delete `.env` before re-running.
 
 ### Docker
 
-Zobacz [Przewodnik Docker](./DOCKER_GUIDE.md) — pełna konfiguracja Docker, profile Compose i HTTPS z Caddy.
+See the [Docker Guide](./DOCKER_GUIDE.md) for complete Docker setup including Compose profiles and Caddy HTTPS.
 
-### Aplikacja desktopowa (Electron)
+### Desktop App (Tauri)
 
-OmniRoute dostarcza opakowanie desktopowe oparte na Electron 41 + electron-builder 26.10. Dostępne skrypty (katalog główny workspace):
+OmniRoute ships a native desktop wrapper built on Tauri 2 (Rust + WKWebView on macOS, WebView2 on Windows, WebKitGTK on Linux). Source lives in `apps/desktop/src-tauri/`; the UI is the SvelteKit app in `apps/web`.
 
 ```bash
-npm run electron:dev          # Run desktop with hot-reload
-npm run electron:build        # Build for current OS (auto-detected)
-npm run electron:build:win    # Windows installer (NSIS + portable)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Smoke-test packaged build
+# Build the web bundle (static adapter) then the desktop app
+npm run build --workspace apps/web
+cargo tauri build                          # or: npm run tauri build
+
+# Development with hot-reload
+cargo tauri dev
 ```
 
-Instalatory desktopowe są dołączane do GitHub Releases. Pełny opis Electron (podpisywanie, mostek IPC, dystrybucje): [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(criado em fase posterior)_.
+Build artifacts land in `apps/desktop/src-tauri/target/release/bundle/` (`.app` and `.dmg` on macOS). The Tauri app launches the Dashboard route; live stats populate once the BFF is reachable.
 
-### Serwer headless (CI/automatyzacja)
+### Headless server (CI/automation)
 
-Do nienadzorowanych instalacji (Docker, Kubernetes, CI) użyj:
+For unattended setups (Docker, Kubernetes, CI), use:
 
 ```bash
 omniroute setup --non-interactive
 omniroute providers test-batch
 ```
 
-W połączeniu ze zmiennymi środowiskowymi (`INITIAL_PASSWORD`, `OMNIROUTE_WS_BRIDGE_SECRET` itd.) pozwala to w pełni skryptowalnie uruchomić instancję OmniRoute.
+Combined with env vars (`INITIAL_PASSWORD`, `OMNIROUTE_WS_BRIDGE_SECRET`, etc.), this lets you spin up an OmniRoute instance fully scriptable.
 
-### Opcje CLI
+### CLI Options
 
-| Polecenie               | Opis                                                                 |
-| ----------------------- | -------------------------------------------------------------------- |
-| `omniroute`             | Uruchom serwer (`PORT=20128`, API i dashboard na tym samym porcie)   |
-| `omniroute setup`       | Prowadzony onboarding CLI: hasło i pierwszy provider                 |
-| `omniroute doctor`      | Lokalne testy zdrowia bez uruchamiania serwera                       |
-| `omniroute providers`   | Odkrywaj, listuj, waliduj i testuj providerów z CLI                  |
-| `omniroute config`      | Konfiguracja narzędzi CLI — list, get, set, validate                 |
-| `omniroute status`      | Offline status dashboard — wersja, DB, narzędzia, config             |
-| `omniroute logs`        | Strumień logów użycia z API (obsługuje `--follow`)                   |
-| `omniroute update`      | Sprawdź lub zastosuj aktualizacje OmniRoute                          |
-| `omniroute provider`    | Zarządzaj połączeniami providerów — add, list, remove, test, default |
-| `omniroute --port 3000` | Ustaw kanoniczny/API port na 3000                                    |
-| `omniroute --mcp`       | Uruchom serwer MCP (transport stdio)                                 |
-| `omniroute --no-open`   | Nie otwieraj przeglądarki automatycznie                              |
-| `omniroute --help`      | Pokaż pomoc                                                          |
+| Command                 | Description                                                    |
+| ----------------------- | -------------------------------------------------------------- |
+| `omniroute`             | Start server (`PORT=20128`, API and dashboard on same port)    |
+| `omniroute setup`       | Guided CLI onboarding for password and first provider          |
+| `omniroute doctor`      | Run local health checks without starting the server            |
+| `omniroute providers`   | Discover, list, validate, and test providers from CLI          |
+| `omniroute config`      | CLI tool configuration — list, get, set, validate configs      |
+| `omniroute status`      | Offline status dashboard — version, DB, tools, config          |
+| `omniroute logs`        | Stream usage logs from the API (supports `--follow`)           |
+| `omniroute update`      | Check for or apply OmniRoute updates                           |
+| `omniroute provider`    | Manage provider connections — add, list, remove, test, default |
+| `omniroute --port 3000` | Set canonical/API port to 3000                                 |
+| `omniroute --mcp`       | Start MCP server (stdio transport)                             |
+| `omniroute --no-open`   | Don't auto-open browser                                        |
+| `omniroute --help`      | Show help                                                      |
 
-Konfigurację headless można zautomatyzować flagami lub zmiennymi środowiskowymi:
+Headless setup can be scripted with flags or environment variables:
 
 ```bash
 omniroute setup --non-interactive --password "$OMNIROUTE_PASSWORD"
@@ -114,7 +116,7 @@ omniroute setup --non-interactive --add-provider --provider openai --api-key "$O
 omniroute setup --non-interactive --add-provider --provider openai --api-key "$OPENAI_API_KEY" --test-provider
 ```
 
-Uruchom lokalną diagnostykę bez otwierania dashboardu:
+Run local diagnostics without opening the dashboard:
 
 ```bash
 omniroute doctor
@@ -122,7 +124,7 @@ omniroute doctor --json
 omniroute doctor --no-liveness
 ```
 
-Zarządzaj providerami z SSH lub skryptów bez otwierania dashboardu:
+Manage providers from SSH or scripts without opening the dashboard:
 
 ```bash
 omniroute providers available
@@ -136,15 +138,15 @@ omniroute providers validate
 
 ---
 
-## Konfiguracja narzędzi CLI
+## CLI Tool Configuration
 
-### 1) Podłącz providerów i utwórz klucz API
+### 1) Connect Providers and Create API Key
 
-1. Otwórz Dashboard → `Providers` i podłącz co najmniej jednego providera (OAuth lub klucz API).
-2. Otwórz Dashboard → `Endpoints` i utwórz klucz API.
-3. (Opcjonalnie) Otwórz Dashboard → `Combos` i ustaw łańcuch fallback.
+1. Open Dashboard → `Providers` and connect at least one provider (OAuth or API key).
+2. Open Dashboard → `Endpoints` and create an API key.
+3. (Optional) Open Dashboard → `Combos` and set your fallback chain.
 
-### 2) Wskaż narzędzie do kodowania
+### 2) Point Your Coding Tool
 
 ```txt
 Base URL: http://localhost:20128/v1
@@ -152,7 +154,7 @@ API Key:  [copy from Endpoint page]
 Model:    if/qwen3.8-max-preview (or any provider/model prefix)
 ```
 
-Jeśli edytor nie może wysłać `Authorization: Bearer ...`, użyj zamiast tego stokenizowanej bazy zgodności:
+If your editor cannot send `Authorization: Bearer ...`, use the tokenized compatibility base instead:
 
 ```txt
 Base URL: http://localhost:20128/api/v1/vscode/YOUR_KEY/
@@ -161,12 +163,12 @@ Chat URL: http://localhost:20128/api/v1/vscode/YOUR_KEY/chat/completions
 Ollama Tags URL: http://localhost:20128/api/v1/vscode/YOUR_KEY/api/tags
 ```
 
-Działa z Claude Code, Codex CLI, Cursor, Cline, OpenClaw, OpenCode oraz SDK zgodnymi z OpenAI.
+Works with Claude Code, Codex CLI, Cursor, Cline, OpenClaw, OpenCode, and OpenAI-compatible SDKs.
 
-#### Autokonfiguracja przez `setup-*`
+#### Auto-configure with `setup-*`
 
-Zamiast ręcznie wklejać base URL i klucz, pozwól OmniRoute zapisać konfigurację
-każdego narzędzia na podstawie żywego katalogu modeli. Jedno polecenie na narzędzie:
+Instead of pasting the base URL and key by hand, let OmniRoute write each tool's
+own config from the live model catalog. One command per tool:
 
 ```bash
 omniroute setup-codex        # ~/.codex/<name>.config.toml profiles
@@ -183,29 +185,31 @@ omniroute setup-aider        # ~/.aider.conf.yml
 omniroute setup-qwen         # ~/.qwen/settings.json + ~/.qwen/.env
 ```
 
-Każde przyjmuje `--remote <url> --api-key <key>`, aby skonfigurować lokalne narzędzie względem
-**zdalnego** OmniRoute, oraz `--dry-run` do podglądu. Launchery
-`omniroute launch` (Claude Code) i `omniroute launch-codex` (Codex) uruchamiają CLI
-z wstrzykniętym właściwym env, bez zapisu jakiejkolwiek konfiguracji.
+Each accepts `--remote <url> --api-key <key>` to configure a local tool against a
+**remote** OmniRoute, plus `--dry-run` to preview. To launch a CLI with the right
+env injected and no config written at all, use the generic launcher
+`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini);
+the legacy per-tool launchers `omniroute launch` (Claude Code) and
+`omniroute launch-codex` (Codex) remain available.
 
-Pełna tabela (co każde polecenie zapisuje, wszystkie flagi, local vs remote, konwencje
-base-URL `/v1`): **[Integracje CLI](./CLI-INTEGRATIONS.md)**.
+For the full table (what each command writes, every flag, local vs remote, base-URL
+`/v1` conventions), see **[CLI Integrations](./CLI-INTEGRATIONS.md)**.
 
-Szczegółowa konfiguracja per narzędzie (Claude Code, Codex CLI, Cursor, Cline, OpenClaw, Kilo Code, Copilot i inne): dedykowany **[Przewodnik narzędzi CLI](../reference/CLI-TOOLS.md)**.
+For detailed per-tool configuration (Claude Code, Codex CLI, Cursor, Cline, OpenClaw, Kilo Code, Copilot, and more), see the dedicated **[CLI Tools Guide](../reference/CLI-TOOLS.md)**.
 
 ---
 
-## Konfiguracja protokołów (MCP + A2A)
+## Protocol Setup (MCP + A2A)
 
-### Konfiguracja MCP (Model Context Protocol)
+### MCP Setup (Model Context Protocol)
 
-Uruchom transport MCP w trybie stdio:
+Start MCP transport in stdio mode:
 
 ```bash
 omniroute --mcp
 ```
 
-Zalecany przebieg walidacji:
+Recommended validation flow:
 
 ```bash
 # 1. Start MCP server
@@ -219,7 +223,7 @@ omniroute_list_combos       # Should return active combos
 npm run test:protocols:e2e
 ```
 
-#### Konfiguracja klienta MCP
+#### MCP Client Configuration
 
 **Claude Code:**
 
@@ -229,7 +233,7 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 **Cursor / Cline:**
 
-Dodaj do ustawień MCP:
+Add to your MCP settings:
 
 ```json
 {
@@ -243,17 +247,17 @@ Dodaj do ustawień MCP:
 }
 ```
 
-**Pełna dokumentacja MCP:** [MCP Server README](../../open-sse/mcp-server/README.md) — 107 narzędzi, 32 scope'y, konfiguracje IDE, klienci Python/TS/Go.
+**Full MCP documentation:** [MCP Server README](../../open-sse/mcp-server/README.md) — 110 tools, IDE configs, Python/TS/Go clients.
 
-### Konfiguracja A2A (Agent-to-Agent Protocol)
+### A2A Setup (Agent-to-Agent Protocol)
 
-Zweryfikuj Agent Card:
+Verify the Agent Card:
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Wyślij zadanie:
+Send a task:
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -261,56 +265,56 @@ curl -X POST http://localhost:20128/a2a \
   -d '{"jsonrpc":"2.0","id":"quickstart","method":"message/send","params":{"skill":"quota-management","messages":[{"role":"user","content":"Give me a short quota summary."}]}}'
 ```
 
-**Pełna dokumentacja A2A:** [A2A Server README](../../src/lib/a2a/README.md) — JSON-RPC 2.0, skills, streaming, cykl życia zadań.
+**Full A2A documentation:** [A2A Server README](../../src/lib/a2a/README.md) — JSON-RPC 2.0, skills, streaming, task lifecycle.
 
 ---
 
-## Konfiguracja timeoutów
+## Timeout Configuration
 
-### Podstawowe timeouty
+### Basic Timeouts
 
-W większości wdrożeń wystarczą te dwie zmienne:
+For most deployments, you only need these two variables:
 
-| Zmienna                  | Domyślnie                       | Cel                                                                                                                                            |
-| ------------------------ | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `REQUEST_TIMEOUT_MS`     | `600000`                        | Wspólna baza dla timeoutu startu odpowiedzi upstream, ukrytych timeoutów Undici, żądań TLS fingerprint oraz timeoutów request/proxy mostka API |
-| `STREAM_IDLE_TIMEOUT_MS` | dziedziczy `REQUEST_TIMEOUT_MS` | Maksymalna przerwa między chunkami streamu, po której OmniRoute przerywa strumień SSE                                                          |
+| Variable                 | Default                       | Purpose                                                                                                                                      |
+| ------------------------ | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REQUEST_TIMEOUT_MS`     | `600000`                      | Shared baseline for upstream response-start timeout, hidden Undici timeouts, TLS fingerprint requests, and API bridge request/proxy timeouts |
+| `STREAM_IDLE_TIMEOUT_MS` | inherits `REQUEST_TIMEOUT_MS` | Maximum gap between streaming chunks before OmniRoute aborts the SSE stream                                                                  |
 
-Zachowana jest kompatybilność wsteczna: istniejące `FETCH_TIMEOUT_MS`, `API_BRIDGE_PROXY_TIMEOUT_MS` i inne zmienne timeoutów per warstwa nadal działają i nadpisują wspólną bazę.
+Backward compatibility is preserved: existing `FETCH_TIMEOUT_MS`, `API_BRIDGE_PROXY_TIMEOUT_MS`, and other per-layer timeout vars still work and override the shared baseline.
 
-### Uwagi specyficzne dla providerów
+### Provider-Specific Notes
 
-Dla upstreamów zgodnych z Claude Code (`anthropic-compatible-cc-*`) OmniRoute wyprowadza nagłówek wychodzący `X-Stainless-Timeout` z rozstrzygniętego timeoutu fetch, aby timeouty odczytu po stronie providera pozostały zsynchronizowane z konfiguracją env.
+For Claude Code-compatible upstreams (`anthropic-compatible-cc-*`), OmniRoute derives the outbound `X-Stainless-Timeout` header from the resolved fetch timeout so provider-side read timeouts stay aligned with your env configuration.
 
-Dla zewnętrznych reverse proxy zgodnych z Claude Code OmniRoute utrzymuje domyślny zestaw `anthropic-beta` konserwatywny i, gdy `Client Cache Control` jest na `Auto`, przekazuje tylko markery `cache_control` dostarczone przez klienta. Włącz przełącznik per połączenie „Enable redact-thinking beta” tylko wtedy, gdy upstream wymaga zredagowanych strumieni myślenia Claude.
+For third-party Claude Code-compatible reverse proxies, OmniRoute keeps the default `anthropic-beta` set conservative and, when `Client Cache Control` is left on `Auto`, only forwards client-provided `cache_control` markers. Enable the per-connection "Enable redact-thinking beta" toggle only when the upstream specifically requires redacted Claude thinking streams.
 
-### Zaawansowane nadpisania timeoutów
+### Advanced Timeout Overrides
 
-| Zmienna                                  | Domyślnie                                    | Cel                                                               |
-| ---------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------- |
-| `FETCH_TIMEOUT_MS`                       | dziedziczy `REQUEST_TIMEOUT_MS`              | Timeout startu odpowiedzi upstream do momentu nadejścia nagłówków |
-| `FETCH_HEADERS_TIMEOUT_MS`               | dziedziczy `FETCH_TIMEOUT_MS`                | Limit czasu Undici na odebranie nagłówków odpowiedzi upstream     |
-| `FETCH_BODY_TIMEOUT_MS`                  | dziedziczy `FETCH_TIMEOUT_MS`                | Limit czasu Undici między chunkami body upstream (`0` wyłącza)    |
-| `FETCH_CONNECT_TIMEOUT_MS`               | `30000`                                      | Timeout połączenia TCP Undici                                     |
-| `FETCH_KEEPALIVE_TIMEOUT_MS`             | `4000`                                       | Timeout bezczynnego gniazda keep-alive Undici                     |
-| `TLS_CLIENT_TIMEOUT_MS`                  | dziedziczy `FETCH_TIMEOUT_MS`                | Timeout żądań TLS fingerprint przez `wreq-js`                     |
-| `API_BRIDGE_PROXY_TIMEOUT_MS`            | dziedziczy `REQUEST_TIMEOUT_MS` lub `600000` | Timeout przekierowania proxy `/v1` z portu API na port dashboardu |
-| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `max(API_BRIDGE_PROXY_TIMEOUT_MS, 300000)`   | Timeout przychodzącego żądania na serwerze mostka API             |
-| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`                                      | Timeout przychodzących nagłówków na serwerze mostka API           |
-| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`                                       | Timeout keep-alive na serwerze mostka API                         |
-| `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                                          | Timeout bezczynności gniazda na serwerze mostka API (`0` wyłącza) |
+| Variable                                 | Default                                    | Purpose                                                              |
+| ---------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
+| `FETCH_TIMEOUT_MS`                       | inherits `REQUEST_TIMEOUT_MS`              | Upstream response-start timeout used until response headers arrive   |
+| `FETCH_HEADERS_TIMEOUT_MS`               | inherits `FETCH_TIMEOUT_MS`                | Undici time limit for receiving upstream response headers            |
+| `FETCH_BODY_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Undici time limit between upstream body chunks (`0` disables it)     |
+| `FETCH_CONNECT_TIMEOUT_MS`               | `30000`                                    | Undici TCP connect timeout                                           |
+| `FETCH_KEEPALIVE_TIMEOUT_MS`             | `4000`                                     | Undici idle keep-alive socket timeout                                |
+| `TLS_CLIENT_TIMEOUT_MS`                  | inherits `FETCH_TIMEOUT_MS`                | Timeout for TLS fingerprint requests made through `wreq-js`          |
+| `API_BRIDGE_PROXY_TIMEOUT_MS`            | inherits `REQUEST_TIMEOUT_MS` or `600000`  | Timeout for `/v1` proxy forwarding from API port to dashboard port   |
+| `API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS`   | `max(API_BRIDGE_PROXY_TIMEOUT_MS, 300000)` | Incoming request timeout on the API bridge server                    |
+| `API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS`   | `60000`                                    | Incoming header timeout on the API bridge server                     |
+| `API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS` | `5000`                                     | Keep-alive timeout on the API bridge server                          |
+| `API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS`    | `0`                                        | Socket inactivity timeout on the API bridge server (`0` disables it) |
 
-> **Uwaga:** Przy żądaniach streamingowych `FETCH_TIMEOUT_MS` obejmuje tylko nawiązanie połączenia / oczekiwanie na pierwszą odpowiedź upstream. Gdy stream jest aktywny, OmniRoute przerywa tylko przy rzeczywistym zastoju (`STREAM_IDLE_TIMEOUT_MS`) lub bezczynności body Undici (`FETCH_BODY_TIMEOUT_MS`).
+> **Note:** For streaming requests, `FETCH_TIMEOUT_MS` only covers connection setup / waiting for the first upstream response. Once the stream is active, OmniRoute will only abort on an actual stall (`STREAM_IDLE_TIMEOUT_MS`) or Undici body inactivity (`FETCH_BODY_TIMEOUT_MS`).
 
-### Zgodność z reverse proxy
+### Reverse Proxy Compatibility
 
-Jeśli uruchamiasz OmniRoute za Nginx, Caddy, Cloudflare lub innym reverse proxy, upewnij się, że timeouty proxy są też wyższe niż timeouty stream/fetch OmniRoute.
+If you run OmniRoute behind Nginx, Caddy, Cloudflare, or another reverse proxy, make sure the proxy timeouts are also higher than your OmniRoute stream/fetch timeouts.
 
 ---
 
-## Tryb osobnych portów
+## Split-Port Mode
 
-Uruchom API i Dashboard na osobnych portach w zaawansowanych scenariuszach (reverse proxy, sieć kontenerów):
+Run API and Dashboard on separate ports for advanced scenarios (reverse proxy, container networking):
 
 ```bash
 PORT=20128 DASHBOARD_PORT=20129 omniroute
@@ -322,7 +326,7 @@ PORT=20128 DASHBOARD_PORT=20129 omniroute
 
 ## Void Linux (xbps-src) Template
 
-Dla użytkowników Void Linux możesz zbudować natywny pakiet przez `xbps-src`. Zapisz ten blok jako `srcpkgs/omniroute/template`:
+For Void Linux users, you can build a native package using `xbps-src`. Save this block as `srcpkgs/omniroute/template`:
 
 ```bash
 # Template file for 'omniroute'
@@ -408,11 +412,11 @@ post_install() {
 
 ---
 
-## Deinstalacja
+## Uninstalling
 
-| Polecenie                | Działanie                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------------ |
-| `npm run uninstall`      | Usuwa aplikację systemową, ale **zachowuje DB i konfiguracje** w `~/.omniroute`.     |
-| `npm run uninstall:full` | Usuwa aplikację ORAZ trwale **kasuje wszystkie konfiguracje, klucze i bazy danych**. |
+| Command                  | Action                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
 
-> Szczegółowe instrukcje deinstalacji dla wszystkich metod: [UNINSTALL.md](./UNINSTALL.md).
+> For detailed uninstall instructions across all methods, see [UNINSTALL.md](./UNINSTALL.md).
