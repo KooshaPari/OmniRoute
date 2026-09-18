@@ -6,8 +6,8 @@
  *   2. Detect successful login (URL change + token presence)
  *   3. Extract session cookies / tokens from the browser context
  *
- * Used by InAppLoginService (Electron BrowserWindow path) and
- * the Playwright-based login flow (dashboard API).
+ * Used by InAppLoginService and the Playwright-based login flow
+ * (dashboard API).
  */
 
 // ─── Types ──────────────────────────────────────────────────────────────────

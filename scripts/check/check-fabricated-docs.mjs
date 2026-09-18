@@ -107,7 +107,7 @@ const ENV_VAR_ALLOWLIST = new Set([
   "OPENCODE_API_KEY", // ditto
   // ── External-tool / spawn-injected / ops env vars ────────────────────────
   // Real environment variables, but they belong to an UPSTREAM CLI/tool, a
-  // docker-compose/electron-build pipeline, or are injected into a spawned
+  // docker-compose/desktop-build pipeline, or are injected into a spawned
   // subprocess — never read via `process.env.X` in OmniRoute's own source, so the
   // code-read index can't see them. Documented (correctly) in the relevant guides.
   "COPILOT_PROVIDER_BASE_URL", // GitHub Copilot CLI ≥v1.0.19's own env var (AGENTBRIDGE.md)
@@ -125,7 +125,7 @@ const ENV_VAR_ALLOWLIST = new Set([
   "PROMPTFOO_PROVIDER_KEY", // promptfoo's own provider-key env var, used by the red-team suite (GUARDRAILS.md)
   "REDIS_PORT", // docker-compose host-port override (DOCKER_GUIDE.md)
   "AUTO_UPDATE_HOST_REPO_DIR", // docker-compose self-update mount (DOCKER_GUIDE.md)
-  "LINUX_GPG_KEY", // electron AppImage signing key, CI/build only (ELECTRON_GUIDE.md)
+  "LINUX_GPG_KEY", // desktop AppImage signing key, CI/build only (DESKTOP_GUIDE.md)
   "BRANCH_LOCK_TOKEN", // release branch-protection ops token (QUALITY_GATE_PLAYBOOK.md)
   "NEXT_LOCALE", // next-intl locale cookie name (I18N.md)
   // Telegram Mini App integration (proposal TELEGRAM-MINIAPP.md, not yet implemented): env vars named in the feasibility analysis but no code reads them yet.
@@ -554,7 +554,7 @@ export function buildCodebaseIndex(root = ROOT) {
 
   // Env contract maintained by the sibling gate (check-env-doc-sync.mjs): a var
   // listed in .env.example or docs/reference/ENVIRONMENT.md is, by definition, a
-  // documented OmniRoute env var (including external-CLI / docker / electron vars
+  // documented OmniRoute env var (including external-CLI / docker / desktop vars
   // that are not read via process.env in our own source).
   function readEnvContract() {
     try {
