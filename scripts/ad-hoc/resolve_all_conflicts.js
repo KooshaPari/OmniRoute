@@ -8,7 +8,6 @@ const filesToCheckoutOurs = [
   ".source/browser.ts",
   ".source/server.ts",
   "package-lock.json",
-  "electron/package-lock.json",
   "src/app/(dashboard)/dashboard/providers/[id]/page.tsx",
   "src/app/(dashboard)/dashboard/providers/components/ProviderCard.tsx",
   "src/lib/db/contextHandoffs.ts",
@@ -130,19 +129,7 @@ async function main() {
     runCmd("git add bin/cli/tray/autostart.mjs");
   }
 
-  // 10. Resolve electron/package.json
-  const electronPkg = path.join(projectRoot, "electron/package.json");
-  if (fs.existsSync(electronPkg)) {
-    let content = fs.readFileSync(electronPkg, "utf-8");
-    content = content.replace(
-      /<<<<<<< HEAD\r?\n\s+"electron": "\^42\.2\.0",\r?\n\s+"electron-builder": "\^26\.11\.0"\r?\n=======\r?\n\s+"electron": "\^41\.2\.0",\r?\n\s+"electron-builder": "\^26\.11\.1"\r?\n>>>>>>> release\/v3\.8\.4/g,
-      '    "electron": "^42.2.0",\n    "electron-builder": "^26.11.1"'
-    );
-    fs.writeFileSync(electronPkg, content);
-    runCmd("git add electron/package.json");
-  }
-
-  // 11. Resolve .github/workflows/ci.yml
+  // 10. Resolve .github/workflows/ci.yml
   const ciYaml = path.join(projectRoot, ".github/workflows/ci.yml");
   if (fs.existsSync(ciYaml)) {
     let content = fs.readFileSync(ciYaml, "utf-8");
@@ -163,7 +150,7 @@ async function main() {
     runCmd("git add .github/workflows/ci.yml");
   }
 
-  // 12. Resolve Dockerfile
+  // 11. Resolve Dockerfile
   const dockerfile = path.join(projectRoot, "Dockerfile");
   if (fs.existsSync(dockerfile)) {
     let content = fs.readFileSync(dockerfile, "utf-8");
@@ -208,7 +195,7 @@ RUN --mount=type=cache,target=/root/.npm \\
     runCmd("git add Dockerfile");
   }
 
-  // 13. Resolve open-sse/services/combo.ts
+  // 12. Resolve open-sse/services/combo.ts
   const openSseCombo = path.join(projectRoot, "open-sse/services/combo.ts");
   if (fs.existsSync(openSseCombo)) {
     let content = fs.readFileSync(openSseCombo, "utf-8");
@@ -241,7 +228,7 @@ RUN --mount=type=cache,target=/root/.npm \\
     runCmd("git add open-sse/services/combo.ts");
   }
 
-  // 14. Resolve src/app/api/copilot/chat/route.ts
+  // 13. Resolve src/app/api/copilot/chat/route.ts
   const copilotChatRoute = path.join(projectRoot, "src/app/api/copilot/chat/route.ts");
   if (fs.existsSync(copilotChatRoute)) {
     let content = fs.readFileSync(copilotChatRoute, "utf-8");
