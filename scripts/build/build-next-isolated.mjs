@@ -356,7 +356,7 @@ export async function main() {
           distDir,
           outDir: standaloneDir,
           projectRoot,
-          // Match the hardened packaging path used by Electron builds:
+          // Use the hardened packaging path:
           // Turbopack can emit hashed external-package references and
           // standalone symlinks that break after the bundle is moved/copied.
           patchTurbopackChunks: true,

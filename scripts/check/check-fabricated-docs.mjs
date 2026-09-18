@@ -62,8 +62,10 @@ const KNOWN_HOOKS = new Set([
   "onUninstall",
   // Real callbacks wired in code that docs reference (verified present in src/):
   // onChunk/onFirstChunk — streaming callbacks (playground useStreamMetrics.ts and
-  //   ChatTab.tsx); onServerStatus/onPortChanged/onUpdateStatus — Electron
-  //   IPC callbacks (src/shared/hooks/useElectron.ts, HomePageClient.tsx);
+  //   ChatTab.tsx); onServerStatus/onPortChanged/onUpdateStatus — legacy desktop
+  //   IPC callbacks. The Electron bridge that defined them (src/shared/hooks/
+  //   useElectron.ts) was removed with the Electron stack, so these entries are
+  //   retained only so historical docs do not read as fabricated;
   //   onEmpty — model-metadata registry callback (src/lib/modelMetadataRegistry.ts).
   "onChunk",
   "onFirstChunk",
@@ -326,8 +328,8 @@ const ENV_VAR_DENYLIST = new Set([
   // ── Error / Node codes documented in prose (string-literal codes, not env vars) ──
   "URL_GUARD_BLOCKED", // HTTP 422 guard-violation code (ARCHITECTURE.md)
   "AUTHZ_NOT_INITIALIZED", // AuthzAssertionError code (AUTHZ_GUIDE.md)
-  "MODULE_NOT_FOUND", // Node runtime error code watched by service supervisor (ELECTRON_GUIDE.md)
-  "ERR_DLOPEN_FAILED", // Node native-module load error code (ELECTRON_GUIDE.md)
+  "MODULE_NOT_FOUND", // Node runtime error code watched by the service supervisor
+  "ERR_DLOPEN_FAILED", // Node native-module load error code
   "SQLITE_FULL", // SQLite result code returned when the disk is full (DATABASE_GUIDE.md)
   // ── Code-symbol / naming-convention examples documented in prose ─────────────
   "UPPER_SNAKE", // the literal naming-convention token in the style guide (CODEBASE_DOCUMENTATION.md)

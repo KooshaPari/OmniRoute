@@ -823,7 +823,7 @@ export function materializeBundledSymlinks(nodeModulesDir) {
 }
 
 /**
- * Sync an Electron-ABI-rebuilt native module into any hashed/plain copies of
+ * Sync a target-ABI-rebuilt native module into any hashed/plain copies of
  * that module already materialized inside a nested node_modules dir.
  *
  * materializeBundledSymlinks() turns Turbopack hashed-module symlinks (e.g.
