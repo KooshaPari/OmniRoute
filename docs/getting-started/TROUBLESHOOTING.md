@@ -409,13 +409,12 @@ Issues specific to the v3.8.0 release and their current workarounds. If a fix la
 
 **Causes:**
 
-- `WINDSURF_FIREBASE_API_KEY` env var missing or empty
 - `WINDSURF_API_KEY` misconfigured or pointing at a stale token
 - Local firewall/proxy blocking the OAuth callback
 
 **Fix:**
 
-1. Verify both `WINDSURF_FIREBASE_API_KEY` and `WINDSURF_API_KEY` are set in `.env`
+1. Verify `WINDSURF_API_KEY` is set in `.env` and points at a fresh token
 2. Restart OmniRoute so the new env values are picked up
 3. Re-run the OAuth flow from **Dashboard → Providers → Windsurf → Reconnect**
 

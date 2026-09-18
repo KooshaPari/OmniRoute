@@ -383,6 +383,32 @@ const SKIP_DOC_FILES = new Set([
   // Forward-looking coverage plan: a `- [ ]` checklist of test targets and helper
   // components to be created. Same rationale as the design/plan docs above.
   "docs/ops/COVERAGE_PLAN.md",
+  // ── Historical snapshots (frozen; never rewritten) ────────────────────────
+  // docs/legacy is the archived OmniRoute-desktop snapshot taken 2026-07-17. It
+  // documents an earlier fork's routes (/api/kbridge, /api/apikeys, /api/chat/
+  // completions) that never existed in this repository. The files are preserved
+  // verbatim as evidence and must not be rewritten, so the whole tree is skipped
+  // (same treatment as docs/i18n). Tracked by this repo's historical-docs policy.
+  "docs/legacy",
+  "docs/research/archive/router-docs/reference/CONSOLIDATION_PLAN.md", // archived research
+  "docs/research/archive/router-docs/reference/UNIFIED_ARCHITECTURE.md", // archived research
+  "docs/research/archive/router-docs/research/GOOSE_SMART_TOOL_RESEARCH.md", // archived research
+  // ── Dated session notes (append-only work logs; assertions are historical) ──
+  "docs/sessions/20260719-cross-chat-alignment/HANDOFFS.md",
+  "docs/sessions/20260912-omniroute-fork-audit/06_CI_DRIFT_AUDIT.md",
+  "docs/sessions/20260912-omniroute-fork-audit/07_SVELTEKIT_MIGRATION_PLAN.md",
+  "docs/sessions/20260912-omniroute-fork-audit/08_BIFROST_INTEGRATION_PLAN.md",
+  "docs/sessions/20260912-omniroute-fork-audit/15_PEP_ASSESSMENT_REMEDIATION.md",
+  // ── Forward-looking plan docs (`- [ ]` acceptance checklists, "Files: … (new)") ──
+  // Same rationale as docs/ops/COVERAGE_PLAN.md above: these enumerate files to be
+  // CREATED, so a missing path is a plan item, not a fabricated claim about today.
+  "docs/omniroute-pr-body.md", // saved PR body; test path is a proposed new file
+  "docs/superpowers/plans/2026-08-26-tauri-active-desktop.md",
+  "docs/wbs/w4-performance.md",
+  "docs/wbs/w5-dx-tooling.md",
+  "docs/wbs/w6-deployment.md",
+  "docs/wbs/w7-polish.md",
+  "docs/wbs/w8-community.md",
 ]);
 
 // ── File discovery ─────────────────────────────────────────────────────────
@@ -550,6 +576,11 @@ export function buildCodebaseIndex(root = ROOT) {
   walkForEnv("open-sse");
   walkForEnv("bin");
   walkForEnv("scripts");
+  // `apps/` holds first-class in-repo workspaces (apps/bff, apps/web, apps/desktop)
+  // whose manifests/docs reference their own env vars (e.g. BFF_API_KEY is read in
+  // apps/bff/src/env.ts and middleware/auth.ts). Omitting apps/ made every such
+  // documented var look fabricated. Scan it like any other source root.
+  walkForEnv("apps");
   // Env vars that are only read by the test harness (e.g. RUN_CHAOS_INT) are still
   // real env vars and must not be flagged as fabricated.
   walkForEnv("tests");

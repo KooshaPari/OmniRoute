@@ -1672,7 +1672,11 @@
     "settingsAdvancedDescription": "Napredna pravila sadržaja, ograničenja zahtjeva i postavke proxy API-ja",
     "mitmProxyDescription": "Konfiguracija MITM proxy postavki za inspekciju prometa i otklanjanje pogrešaka",
     "oneProxyDescription": "Konfiguracija 1Proxy postavki za napredno ulančavanje proxyja",
-    "omniSkillsDescription": "Instalacija i upravljanje sandbox vještinama za automatsko izvršavanje upita i alata"
+    "omniSkillsDescription": "Instalacija i upravljanje sandbox vještinama za automatsko izvršavanje upita i alata",
+    "windowControls": "Window controls",
+    "minimizeWindow": "Minimize window",
+    "maximizeWindow": "Toggle maximize window",
+    "closeWindow": "Close window"
   },
   "cloudSyncStatus": {
     "synced": "Sinkronizirano",
@@ -1872,7 +1876,19 @@
     "readinessStep3": "Kopirajte svoju krajnju točku",
     "readinessStep4": "Pošaljite testni zahtjev",
     "readinessContinue": "Nastavi postavljanje",
-    "readinessDismiss": "Odbaci za sada"
+    "readinessDismiss": "Odbaci za sada",
+    "desktopPanelTitle": "Desktop app",
+    "desktopPanelSubtitle": "Local server controls for the desktop build.",
+    "desktopServerState": "Server status",
+    "desktopServerOrigin": "Server URL",
+    "desktopStateStopped": "Stopped",
+    "desktopStateStarting": "Starting",
+    "desktopStateRunning": "Running",
+    "desktopStartServer": "Start server",
+    "desktopStopServer": "Stop server",
+    "desktopStatusUnavailable": "Desktop bridge error: {error}",
+    "desktopOpenOrigin": "Open in browser",
+    "desktopStateDetail": "Server detail: {detail}"
   },
   "analytics": {
     "title": "Analitika",
@@ -8321,7 +8337,10 @@
     "cliproxyapiHealth": "Zdravlje",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Host",
-    "qdrantCollection": "Kolekcija"
+    "qdrantCollection": "Kolekcija",
+    "dataDirectory": "Data directory",
+    "dataDirectoryDesc": "Folder where OmniRoute stores its database, backups and logs on this machine.",
+    "dataDirectoryUnavailable": "Data directory unavailable: {error}"
   },
   "contextRtk": {
     "title": "RTK Engine",

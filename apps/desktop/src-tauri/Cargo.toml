@@ -11,6 +11,16 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 tauri = { version = "2", features = [] }
+# Rust-side only: opens http(s) URLs for `open_external`. No capability grants
+# `opener:*` to the webview, so the SPA cannot call it directly.
+tauri-plugin-opener = "2"
+
+[target.'cfg(unix)'.dependencies]
+# Process-group signalling (SIGTERM/SIGKILL) for the supervised server.
+libc = "0.2"
+
+[dev-dependencies]
+serde_json = "1"
 
 [features]
 default = ["custom-protocol"]

@@ -29,6 +29,7 @@ This playbook documents the **safe cut-over from OmniRoute's legacy TypeScript d
 **Do not run this unless B6 shadow data has been collected and the 30-day decision review (ADR-031 § Decision Review) has concluded with a "commit" verdict.**
 
 Prerequisites:
+
 - B1–B6 infrastructure landed in `main` (✅ all done per [PLAN.md § 2.5.2](../../PLAN.md))
 - At least 14 days of B6 shadow data collected (5% → 25% → 100% mirror)
 - 30-day decision review completed with "commit" verdict
@@ -55,7 +56,7 @@ Prerequisites:
 - **Tier-2 (OmniRoute)**: TypeScript engine. Adds A2A skills, MCP-router, cost analysis, policy engine, virtual-key minting, dashboard.
 - **Shadow mode**: OmniRoute sends requests to both `chatCore` (control) and Bifrost (shadow). The shadow response is logged but the control response is returned to the client.
 
-Bifrost is **not** a fork replacement for OmniRoute. It is the *router substrate*. OmniRoute *always* stays in front.
+Bifrost is **not** a fork replacement for OmniRoute. It is the _router substrate_. OmniRoute _always_ stays in front.
 
 ---
 
@@ -65,13 +66,13 @@ B6 is already deployed via [PR #89](https://github.com/KooshaPari/OmniRoute/pull
 
 ### What was done
 
-| Component | File | Purpose |
-|---|---|---|
-| Shadow service | `open-sse/services/trafficShadow.ts` | Orchestrates mirror/swap modes, percentage selection |
-| Shadow executor | `open-sse/executors/bifrostShadow.ts` | Dual-writes to Bifrost, records outcome |
-| Shadow DB | `src/lib/db/bifrostShadow.ts` | Tracks shadow decisions + outcomes |
-| Shadow migration | `src/lib/db/migrations/101_bifrost_shadow.sql` | Schema for shadow tracking |
-| SLO targets | `ops/slos.yaml` | p99 < 500ms, error rate < 0.1%, cost parity within 10% |
+| Component        | File                                           | Purpose                                                              |
+| ---------------- | ---------------------------------------------- | -------------------------------------------------------------------- |
+| Shadow service   | `open-sse/services/trafficShadow.ts`           | Orchestrates mirror/swap modes, percentage selection                 |
+| Shadow executor  | `open-sse/executors/bifrostShadow.ts`          | Dual-writes to Bifrost, records outcome                              |
+| Shadow DB        | `src/lib/db/bifrostShadow.ts`                  | Tracks shadow decisions + outcomes                                   |
+| Shadow migration | `src/lib/db/migrations/178_bifrost_shadow.sql` | Schema for shadow tracking (file header still reads "Migration 101") |
+| SLO targets      | `ops/slos.yaml`                                | p99 < 500ms, error rate < 0.1%, cost parity within 10%               |
 
 ### Shadow states (from trafficShadow.ts)
 
@@ -95,6 +96,7 @@ curl -X POST http://localhost:3000/admin/shadows/config \
 ```
 
 Once shadow is active at 100% for at least 14 days, collect:
+
 - p99 latency (Bifrost vs chatCore)
 - Error rate (4xx, 5xx, timeout)
 - Token cost
@@ -115,12 +117,14 @@ export OMNIROUTE_SHADOW_PERCENTAGE=5
 ```
 
 **Checklist before proceeding:**
+
 - [ ] Bifrost binary running (health via `/health`)
 - [ ] Shadow mode `mirror` at 100% for ≥14 days with acceptable metrics
 - [ ] Bifrost model cache populated (`bifrost_models` table non-empty)
 - [ ] Virtual-key minting configured per [[VIRTUAL-KEYS.md](../frameworks/VIRTUAL-KEYS.md)]
 
 **Monitor:**
+
 - p99 latency delta < 100ms
 - Error rate delta < 0.05%
 - Cost delta < 10%
@@ -134,6 +138,7 @@ export OMNIROUTE_SHADOW_PERCENTAGE=25
 ```
 
 **Checklist before proceeding:**
+
 - [ ] 72h of 5% swap with no regressions
 - [ ] SRE on-call briefed
 - [ ] Rollback plan verified (can instant-revert to chatCore)
@@ -147,6 +152,7 @@ export OMNIROUTE_SHADOW_PERCENTAGE=100
 ```
 
 **Checklist before proceeding:**
+
 - [ ] 120h of 25% swap with no regressions
 - [ ] Bifrost binary resource usage profiled (CPU < 1 core, memory < 500 MB)
 - [ ] Full monitoring dashboard green
@@ -161,11 +167,13 @@ After 7 days of 100% swap with stable metrics, Bifrost becomes the **default** p
 ### Step 3a — Make Bifrost the default (not swap)
 
 The executor (`open-sse/executors/bifrost.ts`) already has the dual-path architecture:
-- `BIFROST_ENABLED=true` + `BIFROST_SHADOW_MODE=off` → Bifrost is the *only* path, chatCore is not called
+
+- `BIFROST_ENABLED=true` + `BIFROST_SHADOW_MODE=off` → Bifrost is the _only_ path, chatCore is not called
 - `BIFROST_ENABLED=true` + `BIFROST_SHADOW_MODE=mirror` → dual-write (current B6 state)
 - `BIFROST_ENABLED=false` → legacy chatCore only (rollback)
 
 **To cut over:**
+
 ```bash
 export BIFROST_ENABLED=true
 export BIFROST_SHADOW_MODE=off
@@ -186,6 +194,7 @@ echo "DROP TABLE IF EXISTS bifrost_shadow_decisions, bifrost_shadow_metrics;" | 
 ### Step 3c — Remove shadow conditionals from bifrost.ts
 
 Open `open-sse/executors/bifrost.ts` and remove:
+
 - The legacy shadow-mode override conditional
 - The `shadowConfig` initialization
 - The `isShadowEnabled`, `shouldShadowRequest`, `recordShadowOutcome` calls
@@ -225,6 +234,7 @@ grep "bifrost_redirect" /var/log/omniroute/access.log
 After any rollback:
 
 1. **Collect diagnostics** before restarting Bifrost:
+
    ```bash
    bifrost-http --version --json
    curl http://localhost:8080/health
@@ -245,29 +255,29 @@ After any rollback:
 
 ### Key metrics (documented in `ops/slos.yaml`)
 
-| Metric | Target | Breach threshold |
-|---|---|---|
-| p99 latency, Bifrost path | < 500ms | > 600ms for 5 min |
-| Error rate, Bifrost path | < 0.1% | > 0.3% for 5 min |
+| Metric                    | Target                 | Breach threshold   |
+| ------------------------- | ---------------------- | ------------------ |
+| p99 latency, Bifrost path | < 500ms                | > 600ms for 5 min  |
+| Error rate, Bifrost path  | < 0.1%                 | > 0.3% for 5 min   |
 | Cost per request, Bifrost | Within 10% of chatCore | > 20% delta for 1h |
-| Model cache hit rate | > 95% | < 90% for 1h |
-| Bifrost binary uptime | > 99.9% | Downtime > 1 min |
+| Model cache hit rate      | > 95%                  | < 90% for 1h       |
+| Bifrost binary uptime     | > 99.9%                | Downtime > 1 min   |
 
 ### Decision review timeline (per ADR-031)
 
-| Checkpoint | Action |
-|---|---|
+| Checkpoint                   | Action                                                    |
+| ---------------------------- | --------------------------------------------------------- |
 | **T+14d** (post 100% mirror) | Compare aggregate metrics. If any target breached → hold. |
-| **T+30d** (post 100% mirror) | Final commit-or-revert decision. |
-| **T+90d** (post 100% swap) | Long-term SLT agreement with maximhq, or fork-and-modify. |
+| **T+30d** (post 100% mirror) | Final commit-or-revert decision.                          |
+| **T+90d** (post 100% swap)   | Long-term SLT agreement with maximhq, or fork-and-modify. |
 
 ### Dashboards
 
-| Dashboard | URL |
-|---|---|
-| OmniRoute main dashboard | `https://koosha-pari.grafana.net/d/omniroute` |
-| Bifrost shadow panel | `https://koosha-pari.grafana.net/d/bifrost-shadow` |
-| Bifrost health panel | `http://localhost:3000/admin/bifrost/health` |
+| Dashboard                | URL                                                |
+| ------------------------ | -------------------------------------------------- |
+| OmniRoute main dashboard | `https://koosha-pari.grafana.net/d/omniroute`      |
+| Bifrost shadow panel     | `https://koosha-pari.grafana.net/d/bifrost-shadow` |
+| Bifrost health panel     | `http://localhost:3000/admin/bifrost/health`       |
 
 ---
 
@@ -311,11 +321,13 @@ git push origin --delete chore/l5-110-b1-bifrost-vendor-2026-06-18
 **Symptom**: `just bifrost-build` succeeds but the binary exits immediately.
 
 **Diagnosis:**
+
 ```bash
 RUST_LOG=debug ./dist/bifrost/bifrost-http --config bifrost.yaml 2>&1 | head -50
 ```
 
 **Common causes:**
+
 - Config file not found or malformed (`bifrost.yaml` missing)
 - Port conflict (`netstat -an | grep 8080`)
 - Missing Go runtime (should not happen with static binary; verify with `file dist/bifrost/bifrost-http`)
@@ -325,6 +337,7 @@ RUST_LOG=debug ./dist/bifrost/bifrost-http --config bifrost.yaml 2>&1 | head -50
 **Symptom**: `bifrost_models` table is empty after `just bifrost-build`.
 
 **Diagnosis:**
+
 ```bash
 # Check Bifrost is running
 curl -s http://localhost:8080/health | jq
@@ -341,6 +354,7 @@ curl -X POST http://localhost:3000/admin/bifrost/cache/refresh
 **Symptom**: `BIFROST_SHADOW_MODE=mirror` is set but no shadow metrics appear.
 
 **Diagnosis:**
+
 ```bash
 # Verify env is picked up
 grep -rn "SHADOW" /proc/$(pgrep -f "node.*open-sse")/environ 2>/dev/null | tr '\0' '\n' | grep SHADOW
@@ -366,6 +380,7 @@ echo "SELECT * FROM bifrost_shadow_metrics ORDER BY ts DESC LIMIT 10;" | sqlite3
 **Symptom**: Request returns "unknown provider" from `bifrost.ts`.
 
 **Diagnosis:**
+
 ```bash
 # Check if the provider is in the map
 grep -r "my-provider" open-sse/executors/bifrostProviderMap.ts
@@ -395,12 +410,12 @@ If the provider is missing from the map but supported by Bifrost, add a row to `
 
 ### Phase 2 steps
 
-| Step | Duration | Check |
-|---|---|---|
-| 5% swap | 3 days | Metrics stable, no alerts |
-| 25% swap | 5 days | Metrics stable, no alerts |
-| 100% swap | 7 days | Metrics stable, no alerts |
-| Full cut-over | — | `BIFROST_SHADOW_MODE=off` + `BIFROST_ENABLED=true` |
+| Step          | Duration | Check                                              |
+| ------------- | -------- | -------------------------------------------------- |
+| 5% swap       | 3 days   | Metrics stable, no alerts                          |
+| 25% swap      | 5 days   | Metrics stable, no alerts                          |
+| 100% swap     | 7 days   | Metrics stable, no alerts                          |
+| Full cut-over | —        | `BIFROST_SHADOW_MODE=off` + `BIFROST_ENABLED=true` |
 
 ### Post-migration (Phase 3 cleanup)
 

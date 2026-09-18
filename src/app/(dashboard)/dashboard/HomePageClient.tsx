@@ -18,6 +18,7 @@ import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { HomeProviderTopologySection } from "./HomeProviderTopologySection";
+import HomeDesktopRuntimePanel from "./HomeDesktopRuntimePanel";
 import { shouldShowProviderTopologyOnHome } from "./homeAppearance";
 import HomeRecentRequests from "../home/HomeRecentRequests";
 
@@ -873,6 +874,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           </div>
         </div>
       )}
+
+      {/* Desktop (Tauri) runtime status + start/stop — renders nothing on the web build */}
+      <HomeDesktopRuntimePanel />
 
       {/* Quick Start (controlled by Appearance setting, default on) */}
       {showQuickStartOnHome && (

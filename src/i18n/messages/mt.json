@@ -1672,7 +1672,11 @@
     "settingsAdvancedDescription": "Regoli avvanzati tal-payload, limiti tat-talbiet u settings tal-API tal-proxy",
     "mitmProxyDescription": "Ikkonfigura s-settings tal-proxy MITM għall-ispezzjoni tat-traffiku u d-debugging",
     "oneProxyDescription": "Ikkonfigura s-settings ta' 1Proxy għal katina avvanzata ta' proxies",
-    "omniSkillsDescription": "Installa u mmaniġġja ħiliet f'ambjent iżolat għall-eżekuzzjoni awtomatizzata ta' prompts u għodod"
+    "omniSkillsDescription": "Installa u mmaniġġja ħiliet f'ambjent iżolat għall-eżekuzzjoni awtomatizzata ta' prompts u għodod",
+    "windowControls": "Window controls",
+    "minimizeWindow": "Minimize window",
+    "maximizeWindow": "Toggle maximize window",
+    "closeWindow": "Close window"
   },
   "cloudSyncStatus": {
     "synced": "Sinkronizzat",
@@ -1872,7 +1876,19 @@
     "readinessStep3": "Ikkopja l-endpoint tiegħek",
     "readinessStep4": "Ibgħat talba ta’ prova",
     "readinessContinue": "Kompli l-konfigurazzjoni",
-    "readinessDismiss": "Agħlaq għalissa"
+    "readinessDismiss": "Agħlaq għalissa",
+    "desktopPanelTitle": "Desktop app",
+    "desktopPanelSubtitle": "Local server controls for the desktop build.",
+    "desktopServerState": "Server status",
+    "desktopServerOrigin": "Server URL",
+    "desktopStateStopped": "Stopped",
+    "desktopStateStarting": "Starting",
+    "desktopStateRunning": "Running",
+    "desktopStartServer": "Start server",
+    "desktopStopServer": "Stop server",
+    "desktopStatusUnavailable": "Desktop bridge error: {error}",
+    "desktopOpenOrigin": "Open in browser",
+    "desktopStateDetail": "Server detail: {detail}"
   },
   "analytics": {
     "title": "Analitika",
@@ -8321,7 +8337,10 @@
     "cliproxyapiHealth": "Saħħa",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Ospitant",
-    "qdrantCollection": "Kollezzjoni"
+    "qdrantCollection": "Kollezzjoni",
+    "dataDirectory": "Data directory",
+    "dataDirectoryDesc": "Folder where OmniRoute stores its database, backups and logs on this machine.",
+    "dataDirectoryUnavailable": "Data directory unavailable: {error}"
   },
   "contextRtk": {
     "title": "Magna RTK",

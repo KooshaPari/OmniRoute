@@ -1672,7 +1672,11 @@
     "settingsAdvancedDescription": "Išplėstinės naudingosios apkrovos taisyklės, užklausų limitai ir tarpinio serverio API nustatymai",
     "mitmProxyDescription": "Konfigūruoti MITM tarpinio serverio nustatymus srauto tikrinimui ir derinimui",
     "oneProxyDescription": "Konfigūruoti 1Proxy nustatymus išplėstinei tarpinių serverių grandinei",
-    "omniSkillsDescription": "Įdiegti ir tvarkyti smėlio dėžės įgūdžius automatizuotam užklausų ir įrankių vykdymui"
+    "omniSkillsDescription": "Įdiegti ir tvarkyti smėlio dėžės įgūdžius automatizuotam užklausų ir įrankių vykdymui",
+    "windowControls": "Window controls",
+    "minimizeWindow": "Minimize window",
+    "maximizeWindow": "Toggle maximize window",
+    "closeWindow": "Close window"
   },
   "cloudSyncStatus": {
     "synced": "Sinchronizuota",
@@ -1872,7 +1876,19 @@
     "readinessStep3": "Nukopijuokite savo galinį tašką",
     "readinessStep4": "Išsiųskite testinę užklausą",
     "readinessContinue": "Tęsti sąranką",
-    "readinessDismiss": "Atmesti dabar"
+    "readinessDismiss": "Atmesti dabar",
+    "desktopPanelTitle": "Desktop app",
+    "desktopPanelSubtitle": "Local server controls for the desktop build.",
+    "desktopServerState": "Server status",
+    "desktopServerOrigin": "Server URL",
+    "desktopStateStopped": "Stopped",
+    "desktopStateStarting": "Starting",
+    "desktopStateRunning": "Running",
+    "desktopStartServer": "Start server",
+    "desktopStopServer": "Stop server",
+    "desktopStatusUnavailable": "Desktop bridge error: {error}",
+    "desktopOpenOrigin": "Open in browser",
+    "desktopStateDetail": "Server detail: {detail}"
   },
   "analytics": {
     "title": "Analitika",
@@ -8321,7 +8337,10 @@
     "cliproxyapiHealth": "Būsena",
     "cliproxyapiPort": "Prievadas",
     "qdrantHost": "Pagrindinis kompiuteris",
-    "qdrantCollection": "Rinkinys"
+    "qdrantCollection": "Rinkinys",
+    "dataDirectory": "Data directory",
+    "dataDirectoryDesc": "Folder where OmniRoute stores its database, backups and logs on this machine.",
+    "dataDirectoryUnavailable": "Data directory unavailable: {error}"
   },
   "contextRtk": {
     "title": "RTK variklis",

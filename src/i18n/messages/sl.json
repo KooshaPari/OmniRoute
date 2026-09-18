@@ -1672,7 +1672,11 @@
     "settingsAdvancedDescription": "Napredna pravila za koristno vsebino, omejitve zahtev in nastavitve posredniškega API-ja",
     "mitmProxyDescription": "Konfigurirajte nastavitve posredniškega strežnika MITM za pregledovanje prometa in odpravljanje napak",
     "oneProxyDescription": "Konfigurirajte nastavitve 1Proxy za napredno veriženje posredniških strežnikov",
-    "omniSkillsDescription": "Namestite in upravljajte veščine peskovnika za avtomatizirano izvajanje pozivov in orodij"
+    "omniSkillsDescription": "Namestite in upravljajte veščine peskovnika za avtomatizirano izvajanje pozivov in orodij",
+    "windowControls": "Window controls",
+    "minimizeWindow": "Minimize window",
+    "maximizeWindow": "Toggle maximize window",
+    "closeWindow": "Close window"
   },
   "cloudSyncStatus": {
     "synced": "Sinhronizirano",
@@ -1872,7 +1876,19 @@
     "readinessStep3": "Kopirajte svojo končno točko",
     "readinessStep4": "Pošljite preskusno zahtevo",
     "readinessContinue": "Nadaljujte nastavitev",
-    "readinessDismiss": "Za zdaj opustite"
+    "readinessDismiss": "Za zdaj opustite",
+    "desktopPanelTitle": "Desktop app",
+    "desktopPanelSubtitle": "Local server controls for the desktop build.",
+    "desktopServerState": "Server status",
+    "desktopServerOrigin": "Server URL",
+    "desktopStateStopped": "Stopped",
+    "desktopStateStarting": "Starting",
+    "desktopStateRunning": "Running",
+    "desktopStartServer": "Start server",
+    "desktopStopServer": "Stop server",
+    "desktopStatusUnavailable": "Desktop bridge error: {error}",
+    "desktopOpenOrigin": "Open in browser",
+    "desktopStateDetail": "Server detail: {detail}"
   },
   "analytics": {
     "title": "Analitika",
@@ -8321,7 +8337,10 @@
     "cliproxyapiHealth": "Stanje",
     "cliproxyapiPort": "Vrata",
     "qdrantHost": "Gostitelj",
-    "qdrantCollection": "Zbirka"
+    "qdrantCollection": "Zbirka",
+    "dataDirectory": "Data directory",
+    "dataDirectoryDesc": "Folder where OmniRoute stores its database, backups and logs on this machine.",
+    "dataDirectoryUnavailable": "Data directory unavailable: {error}"
   },
   "contextRtk": {
     "title": "Pogon RTK",

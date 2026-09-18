@@ -1672,7 +1672,11 @@
     "settingsAdvancedDescription": "高级负载规则、请求限制和代理 API 设置",
     "mitmProxyDescription": "配置 MITM 代理设置以进行流量检查和调试",
     "oneProxyDescription": "配置 1Proxy 设置以实现高级代理链",
-    "omniSkillsDescription": "安装和管理用于自动提示和工具执行的沙箱技能"
+    "omniSkillsDescription": "安装和管理用于自动提示和工具执行的沙箱技能",
+    "windowControls": "Window controls",
+    "minimizeWindow": "Minimize window",
+    "maximizeWindow": "Toggle maximize window",
+    "closeWindow": "Close window"
   },
   "cloudSyncStatus": {
     "synced": "已同步",
@@ -1872,7 +1876,19 @@
     "readinessStep3": "Copy your endpoint",
     "readinessStep4": "Send a test request",
     "readinessContinue": "Continue setup",
-    "readinessDismiss": "Dismiss for now"
+    "readinessDismiss": "Dismiss for now",
+    "desktopPanelTitle": "Desktop app",
+    "desktopPanelSubtitle": "Local server controls for the desktop build.",
+    "desktopServerState": "Server status",
+    "desktopServerOrigin": "Server URL",
+    "desktopStateStopped": "Stopped",
+    "desktopStateStarting": "Starting",
+    "desktopStateRunning": "Running",
+    "desktopStartServer": "Start server",
+    "desktopStopServer": "Stop server",
+    "desktopStatusUnavailable": "Desktop bridge error: {error}",
+    "desktopOpenOrigin": "Open in browser",
+    "desktopStateDetail": "Server detail: {detail}"
   },
   "analytics": {
     "title": "分析",
@@ -8346,7 +8362,10 @@
     "headroomProxySave": "__MISSING__:Save",
     "headroomProxyStart": "__MISSING__:Start",
     "headroomProxyStop": "__MISSING__:Stop",
-    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI."
+    "headroomProxyExternalHint": "__MISSING__:This URL is not loopback, so OmniRoute will not spawn the local CLI.",
+    "dataDirectory": "Data directory",
+    "dataDirectoryDesc": "Folder where OmniRoute stores its database, backups and logs on this machine.",
+    "dataDirectoryUnavailable": "Data directory unavailable: {error}"
   },
   "contextRtk": {
     "title": "命令输出过滤引擎",

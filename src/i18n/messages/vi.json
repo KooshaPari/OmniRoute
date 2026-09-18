@@ -1673,7 +1673,11 @@
     "settingsAdvancedDescription": "Các quy tắc payload nâng cao, giới hạn yêu cầu và cài đặt proxy API",
     "mitmProxyDescription": "Định cấu hình cài đặt proxy MITM để kiểm tra và gỡ lỗi lưu lượng truy cập",
     "oneProxyDescription": "Định cấu hình cài đặt 1Proxy cho chuỗi proxy nâng cao",
-    "omniSkillsDescription": "Cài đặt và quản lý các kỹ năng trong môi trường hộp cát để thực thi tự động prompt và công cụ"
+    "omniSkillsDescription": "Cài đặt và quản lý các kỹ năng trong môi trường hộp cát để thực thi tự động prompt và công cụ",
+    "windowControls": "Window controls",
+    "minimizeWindow": "Minimize window",
+    "maximizeWindow": "Toggle maximize window",
+    "closeWindow": "Close window"
   },
   "cloudSyncStatus": {
     "synced": "Đã đồng bộ",
@@ -1873,7 +1877,19 @@
     "readinessStep3": "Sao chép endpoint của bạn",
     "readinessStep4": "Gửi một yêu cầu thử nghiệm",
     "readinessContinue": "Tiếp tục thiết lập",
-    "readinessDismiss": "Bỏ qua lúc này"
+    "readinessDismiss": "Bỏ qua lúc này",
+    "desktopPanelTitle": "Desktop app",
+    "desktopPanelSubtitle": "Local server controls for the desktop build.",
+    "desktopServerState": "Server status",
+    "desktopServerOrigin": "Server URL",
+    "desktopStateStopped": "Stopped",
+    "desktopStateStarting": "Starting",
+    "desktopStateRunning": "Running",
+    "desktopStartServer": "Start server",
+    "desktopStopServer": "Stop server",
+    "desktopStatusUnavailable": "Desktop bridge error: {error}",
+    "desktopOpenOrigin": "Open in browser",
+    "desktopStateDetail": "Server detail: {detail}"
   },
   "analytics": {
     "title": "Phân tích",
@@ -8350,7 +8366,10 @@
     "headroomProxySave": "Lưu",
     "headroomProxyStart": "Bắt đầu",
     "headroomProxyStop": "Dừng",
-    "headroomProxyExternalHint": "URL này không phải loopback, nên OmniRoute sẽ không khởi chạy CLI cục bộ."
+    "headroomProxyExternalHint": "URL này không phải loopback, nên OmniRoute sẽ không khởi chạy CLI cục bộ.",
+    "dataDirectory": "Data directory",
+    "dataDirectoryDesc": "Folder where OmniRoute stores its database, backups and logs on this machine.",
+    "dataDirectoryUnavailable": "Data directory unavailable: {error}"
   },
   "contextRtk": {
     "title": "RTK Engine",

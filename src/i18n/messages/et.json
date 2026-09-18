@@ -1672,7 +1672,11 @@
     "settingsAdvancedDescription": "Täpsemad lastireeglid, päringupiirangud ja puhverserveri API sätted",
     "mitmProxyDescription": "Seadista MITM-puhverserver liikluse kontrollimiseks ja silumiseks",
     "oneProxyDescription": "Seadista 1Proxy täpsema puhverserveriahela jaoks",
-    "omniSkillsDescription": "Installi ja halda liivakastioskusi viipade ning tööriistade automaatseks käivitamiseks"
+    "omniSkillsDescription": "Installi ja halda liivakastioskusi viipade ning tööriistade automaatseks käivitamiseks",
+    "windowControls": "Window controls",
+    "minimizeWindow": "Minimize window",
+    "maximizeWindow": "Toggle maximize window",
+    "closeWindow": "Close window"
   },
   "cloudSyncStatus": {
     "synced": "Sünkroonitud",
@@ -1872,7 +1876,19 @@
     "readinessStep3": "Kopeeri oma lõpp-punkt",
     "readinessStep4": "Saada testpäring",
     "readinessContinue": "Jätka seadistamist",
-    "readinessDismiss": "Loobu praegu"
+    "readinessDismiss": "Loobu praegu",
+    "desktopPanelTitle": "Desktop app",
+    "desktopPanelSubtitle": "Local server controls for the desktop build.",
+    "desktopServerState": "Server status",
+    "desktopServerOrigin": "Server URL",
+    "desktopStateStopped": "Stopped",
+    "desktopStateStarting": "Starting",
+    "desktopStateRunning": "Running",
+    "desktopStartServer": "Start server",
+    "desktopStopServer": "Stop server",
+    "desktopStatusUnavailable": "Desktop bridge error: {error}",
+    "desktopOpenOrigin": "Open in browser",
+    "desktopStateDetail": "Server detail: {detail}"
   },
   "analytics": {
     "title": "Analüütika",
@@ -8321,7 +8337,10 @@
     "cliproxyapiHealth": "Olek",
     "cliproxyapiPort": "Port",
     "qdrantHost": "Host",
-    "qdrantCollection": "Kogumik"
+    "qdrantCollection": "Kogumik",
+    "dataDirectory": "Data directory",
+    "dataDirectoryDesc": "Folder where OmniRoute stores its database, backups and logs on this machine.",
+    "dataDirectoryUnavailable": "Data directory unavailable: {error}"
   },
   "contextRtk": {
     "title": "RTK Engine",

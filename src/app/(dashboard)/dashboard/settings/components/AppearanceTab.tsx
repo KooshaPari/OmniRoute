@@ -12,6 +12,7 @@ import {
   type ComboConfigMode,
 } from "@/shared/constants/comboConfigMode";
 import AccountEmailVisibilitySetting from "./AccountEmailVisibilitySetting";
+import DesktopDataDirSetting from "./DesktopDataDirSetting";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
@@ -715,6 +716,9 @@ export default function AppearanceTab() {
                 </div>
               )}
             </div>
+
+            {/* Desktop (Tauri) only — renders nothing on the web build */}
+            <DesktopDataDirSetting />
           </div>
         </div>
       </div>

@@ -11,6 +11,7 @@ const getPlatformIsMac = () => {
 };
 const getPlatformIsMacServer = () => false;
 import ThemeToggle from "./ThemeToggle";
+import WindowControls from "./WindowControls";
 import TokenHealthBadge from "./TokenHealthBadge";
 import DegradationBadge from "./DegradationBadge";
 import LanguageSelector from "./LanguageSelector";
@@ -269,6 +270,8 @@ export default function Header({
         >
           <span className="material-symbols-outlined">logout</span>
         </button>
+        {/* Desktop (Tauri) only — renders nothing on the web build. */}
+        <WindowControls />
       </div>
     </header>
   );
