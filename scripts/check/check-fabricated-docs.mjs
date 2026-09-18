@@ -639,7 +639,7 @@ const COARSE_PATTERNS = {
   hookName: /\b(on[A-Z][a-zA-Z]+)\b/g,
   // File references like src/lib/foo.ts, open-sse/handlers/bar.ts, bin/cli/baz.mjs
   fileRef:
-    /\b((?:src|open-sse|bin|scripts|tests|electron)\/[A-Za-z0-9_\-\/\.]+\.(?:ts|tsx|mjs|js|cjs|sh|sql))\b/g,
+    /\b((?:src|open-sse|bin|scripts|tests)\/[A-Za-z0-9_\-\/\.]+\.(?:ts|tsx|mjs|js|cjs|sh|sql))\b/g,
 };
 
 function stripCodeBlocksAndFences(text) {

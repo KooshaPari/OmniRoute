@@ -6,7 +6,7 @@
  * because Docker images were the only Turbopack consumers (webpack was the
  * production default and never aliased the manager). When v3.8.45 flipped the
  * production bundler default to Turbopack, the stub silently shipped to every
- * npm / Electron / VPS artifact — Agent Bridge start then threw
+ * npm / VPS artifact — Agent Bridge start then threw
  * "MITM manager stub reached at runtime" for all non-Docker users.
  *
  * The stub is only correct where the runtime genuinely cannot run the MITM

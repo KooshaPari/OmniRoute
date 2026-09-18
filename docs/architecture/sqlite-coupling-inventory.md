@@ -23,7 +23,7 @@ node --test scripts/check/audit-sqlite-coupling.test.mjs
 ```
 
 The script reads tracked files from Git, scans non-test source under `src/`, `open-sse/`,
-`electron/`, and `bin/`, and scans migration SQL under `src/lib/db/migrations/`. It excludes the
+and `bin/`, and scans migration SQL under `src/lib/db/migrations/`. It excludes the
 top-level test tree, co-located test directories, test/spec source files, and paths outside those
 configured source roots (including documentation and scripts).
 

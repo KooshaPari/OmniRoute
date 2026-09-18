@@ -48,8 +48,6 @@ const sonarisCognitiveConfig = [
       "**/__tests__/**",
       "**/*.d.ts",
       "node_modules/**",
-      "electron/node_modules/**",
-      "electron/dist-electron/**",
       ".next/**",
       ".build/**",
       "dist/**",

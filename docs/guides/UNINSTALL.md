@@ -85,7 +85,7 @@ docker compose down
 docker compose down -v
 ```
 
-### Electron Desktop App
+### Tauri Desktop App
 
 **Windows:**
 

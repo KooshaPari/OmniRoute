@@ -319,7 +319,6 @@ const nextConfig = {
       "**/.slim/**",
       "**/packages/**",
       "**/.tmp/**",
-      "**/electron/**",
       "**/docs/**",
     ],
   },

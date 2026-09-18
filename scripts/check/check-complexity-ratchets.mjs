@@ -31,7 +31,7 @@ import { runComplexityEslintOn } from "./complexityEslintReport.mjs";
 
 const BASE_REF = baseRefArg();
 const NEW_CODE_SCOPE = {
-  dirs: ["src", "open-sse", "electron", "bin"],
+  dirs: ["src", "open-sse", "bin"],
   exts: [".ts", ".tsx", ".js", ".mjs"],
   // Authorship ratchets must not force local rewrites of byte-faithful third-party source.
   // The release-wide full walk still measures vendor complexity against the frozen baseline.

@@ -146,7 +146,7 @@ const IGNORE_FROM_CODE = new Set([
   "HOMOLOG_EXPECT_VERSION",
   // update-notifier opt-out for the CLI binary.
   "OMNIROUTE_NO_UPDATE_NOTIFIER",
-  // Headless CLI execution flag for Electron.
+  // Headless CLI execution flag (background server daemon mode).
   "OMNIROUTE_HEADLESS",
   // Platform / OS detection vars read by CLI environment helper (bin/cli/utils/environment.mjs).
   // These are external signals set by the host OS or cloud provider — not OmniRoute config.
@@ -322,7 +322,7 @@ function scanCodeVars({ cwd } = {}) {
   const repoRoot = cwd ?? REPO_ROOT;
   const stdout = execSync(
     "grep -rhoE 'process\\.env\\.[A-Z][A-Z0-9_]+' " +
-      "src/ open-sse/ bin/ scripts/ electron/main.js electron/preload.js 2>/dev/null || true",
+      "src/ open-sse/ bin/ scripts/ 2>/dev/null || true",
     { cwd: repoRoot, encoding: "utf8", maxBuffer: 20 * 1024 * 1024 }
   );
   const vars = new Set();

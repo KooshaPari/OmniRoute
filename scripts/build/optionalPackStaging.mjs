@@ -3,7 +3,7 @@
 /**
  * OmniRoute — Stage 7 build-time optional-pack staging (issue #10321).
  *
- * Runs ONLY against the Electron staging tree (`.build/electron-standalone`),
+ * Runs ONLY against a staged standalone tree (e.g. `.build/next/standalone`),
  * after `assembleStandalone()` and the native-module steps. For each optional
  * pack in OPTIONAL_PACKS it:
  *
@@ -16,8 +16,8 @@
  *     `OMNIROUTE_OPTIONAL_PACK_TAR=0`) for the desktop release workflow to
  *     upload as versioned assets.
  *
- * The shared Next standalone bundle (Docker / non-Electron deploys) is never
- * touched — only the Electron staging copy, mirroring the Stage 5 doc pruner's
+ * Only the staging copy passed in is touched — never the canonical build
+ * output — mirroring the Stage 5 doc pruner's
  * boundary. Fail-open: members missing from staging are skipped with a warning
  * (a future bundle graph change must not break packaging), but the index only
  * records packs whose members were actually staged.
@@ -108,7 +108,7 @@ export function tarPack(packOutDir, tarballPath) {
 }
 
 /**
- * Stage all optional packs out of the Electron bundle.
+ * Stage all optional packs out of the standalone bundle.
  *
  * @param {{stagingRoot: string, packsOutDir: string, emitTarballs?: boolean, log?: (msg: string) => void}} opts
  * @returns {{index: object, packs: {name: string, removedFiles: number, removedBytes: number, tarball?: string}[]}}

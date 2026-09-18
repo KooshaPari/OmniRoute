@@ -9,10 +9,7 @@
         "src/middleware.ts",
         "src/instrumentation.ts",
         "bin/**/*.{mjs,ts}",
-        "scripts/**/*.{mjs,ts}",
-        "electron/main.js",
-        "electron/preload.js",
-        "electron/loginManager.js"
+        "scripts/**/*.{mjs,ts}"
       ],
       "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
       "ignore": [
@@ -68,7 +65,6 @@
     "dist/**",
     "coverage/**",
     "**/.next/**",
-    "electron/dist-electron/**",
     "scripts/**"
   ]
 }

@@ -37,7 +37,7 @@ This is a **2-tier** architecture (same pattern as Envoy AI Gateway's two-tier m
    │  - ACP registry + skill registry                                 │
    │  - Policy engine (12-factor Auto-Combo, 15 routing strategies)   │
    │  - Guardrails, evals, webhooks, memory, semantic-cache KEY       │
-   │  - Web dashboard, Electron desktop, i18n (42 locales)            │
+   │  - Web dashboard, Tauri desktop, i18n (42 locales)               │
    └──────────────────────────────────────────────────────────────────┘
                                        │
                             OpenAI-compat /v1/chat/completions

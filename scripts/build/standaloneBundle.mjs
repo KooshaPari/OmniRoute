@@ -7,8 +7,7 @@
  * install-machine-forked native optionals with this leg's own `npm ci` forks,
  * then asserts the bundled natives can service the leg's platform/arch).
  *
- * Rollback: set repo variable ELECTRON_SHARED_STANDALONE=disabled and the
- * workflow falls back to the legacy per-leg `npm run build` — no revert needed.
+ * Rollback: fall back to the legacy per-leg `npm run build` — no revert needed.
  */
 
 import fs from "node:fs";

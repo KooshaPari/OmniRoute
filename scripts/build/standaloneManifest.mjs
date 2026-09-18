@@ -4,7 +4,7 @@
  * Stage 8).
  *
  * The desktop pipeline used to rebuild the identical Next standalone bundle
- * four times (one per electron-release matrix leg). Stage 8 builds it once on
+ * four times (one per desktop-release matrix leg). Stage 8 builds it once on
  * an ubuntu runner and restores it on every leg; this module is the integrity
  * contract that makes a restored tree provably identical to the built one.
  *

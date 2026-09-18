@@ -9,7 +9,6 @@ review:
     - "src/**/*"
     - "tests/**/*"
     - "open-sse/**/*"
-    - "electron/**/*"
     - ".github/**/*"
   path_instructions:
     - path: "src/**/*"

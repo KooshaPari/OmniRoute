@@ -63,7 +63,7 @@ Repository map and Reference Documentation sections below.
 | Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                                                |
 | Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                                          |
 
-Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI entry point).
+Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `apps/desktop/` (Tauri 2 desktop app), `tests/`, `bin/` (CLI entry point).
 
 ---
 
@@ -466,7 +466,7 @@ For any non-trivial change, read the matching deep-dive first:
 | Coverage gate           | `npm run test:coverage` (60/60/60/60 — statements/lines/functions/branches)   |
 | Coverage report         | `npm run coverage:report`                                                     |
 
-**PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`, you must include or update tests in the same PR.
+**PR rule**: If you change production code in `src/`, `open-sse/`, or `bin/`, you must include or update tests in the same PR.
 
 **Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
 

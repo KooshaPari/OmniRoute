@@ -1,3 +1,9 @@
+---
+title: "Desktop Guide (Tauri 2)"
+version: 3.8.51
+lastUpdated: 2026-09-18
+---
+
 # Desktop Guide (Tauri 2)
 
 > **Source of truth:** `apps/desktop/` workspace

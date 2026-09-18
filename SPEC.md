@@ -124,7 +124,7 @@ operators (dashboard, webhooks, evals)."_
 **Two UX surfaces**:
 
 - **Web dashboard** (`src/app/`) — chat playground, admin, settings, monitoring.
-- **Electron desktop** (`electron/`) — packaged cross-platform (Win/macOS/Linux).
+- **Tauri 2 desktop** (`apps/desktop/`) — packaged cross-platform (Win/macOS/Linux).
 
 ---
 
@@ -176,7 +176,7 @@ OmniRoute/
 │   ├── unit/                           # node --test (default)
 │   ├── integration/                    # node --test
 │   └── e2e/                            # Playwright
-├── electron/                           # Cross-platform desktop app
+├── apps/desktop/                       # Cross-platform Tauri 2 desktop app
 ├── docs/                               # English docs (authored, NOT i18n)
 │   ├── adr/                            # 5 ADRs (test runner, coverage, …)
 │   ├── architecture/                   # REPOSITORY_MAP, ARCHITECTURE, AUTHZ, RESILIENCE
@@ -697,7 +697,6 @@ These are the items NOT in this spec yet, planned for v9 (see `PLAN.md`):
    with `@opentelemetry/api` exclusively.
 7. **Spec-driven provider onboarding** — declare provider in YAML, generate
    `BaseExecutor` + translator + Zod schema.
-8. **Mobile-native** — port Electron desktop to Tauri (smaller binary, Rust
-   core reuse).
+8. **Mobile-native** — Tauri iOS/Android apps (smaller binary, Rust core reuse).
 
 See `PLAN.md` § v9 Backlog for the full list with effort estimates.
