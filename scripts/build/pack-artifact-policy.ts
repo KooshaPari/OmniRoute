@@ -9,7 +9,6 @@
 const STAGING_FORBIDDEN_DIRECTORIES = [
   "app.__qa_backup",
   "coverage",
-  "electron",
   "logs",
   "scripts/scratch",
   "tests",

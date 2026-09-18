@@ -833,8 +833,8 @@ export function materializeBundledSymlinks(nodeModulesDir) {
  *
  * materializeBundledSymlinks() turns Turbopack hashed-module symlinks (e.g.
  * `better-sqlite3-90e2652d1716b047`) into real directory copies of the
- * Node-ABI build. A later step in prepare-electron-standalone.mjs rebuilds
- * better-sqlite3 against the Electron ABI at the bundle root — but the
+ * Node-ABI build. A later packaging step rebuilds better-sqlite3 against the
+ * target runtime ABI at the bundle root — but the
  * hashed copy under the nested node_modules still holds the stale Node-ABI
  * build, and the server's hashed `require("better-sqlite3-<hash>")` resolves
  * to it, not the rebuilt root module. Previously that hashed copy was simply
