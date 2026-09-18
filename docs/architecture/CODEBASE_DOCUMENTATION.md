@@ -847,7 +847,7 @@ See [A2A-SERVER.md § Adding a New Skill](../frameworks/A2A-SERVER.md). Skills l
 - [A2A-SERVER.md](../frameworks/A2A-SERVER.md) — A2A protocol skills and discovery.
 - [COMPRESSION_GUIDE.md](../compression/COMPRESSION_GUIDE.md) — RTK + Caveman compression.
 - [CLI-TOOLS.md](../reference/CLI-TOOLS.md) — CLI integrations.
-- [ELECTRON_GUIDE.md](../guides/ELECTRON_GUIDE.md) (if present), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — deployment targets.
+- [DESKTOP_GUIDE.md](../guides/DESKTOP_GUIDE.md), [DOCKER_GUIDE.md](../guides/DOCKER_GUIDE.md), [FLY_IO_DEPLOYMENT_GUIDE.md](../ops/FLY_IO_DEPLOYMENT_GUIDE.md), [VM_DEPLOYMENT_GUIDE.md](../ops/VM_DEPLOYMENT_GUIDE.md), [TERMUX_GUIDE.md](../guides/TERMUX_GUIDE.md), [PWA_GUIDE.md](../guides/PWA_GUIDE.md) — deployment targets.
 - [TROUBLESHOOTING.md](../guides/TROUBLESHOOTING.md) — common operational issues.
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — contributor workflow.
 - [CLAUDE.md](../../CLAUDE.md) — repo rules for Claude Code (the source of truth

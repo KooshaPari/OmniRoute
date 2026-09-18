@@ -257,7 +257,7 @@ Read the nearest `AGENTS.md` and the linked deep-dive before making a non-trivia
 | MCP and A2A                        | `open-sse/mcp-server/`, `src/lib/a2a/`                  | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md), [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)               |
 | Agent features                     | `src/lib/{acp,memory,skills,cloudAgent}/`               | [`docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md), [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md) |
 | Safety and governance              | `src/lib/{guardrails,compliance}/`, `src/server/authz/` | [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md), [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md)             |
-| Operations                         | `src/mitm/`, tunnel modules, `electron/`                | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md), [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                       |
+| Operations                         | `src/mitm/`, tunnel modules, `apps/desktop/src-tauri/`  | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md), [`docs/guides/DESKTOP_GUIDE.md`](docs/guides/DESKTOP_GUIDE.md)                         |
 
 ---
 
@@ -445,7 +445,7 @@ For any non-trivial change, read the matching deep-dive first:
 | API reference + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/openapi.yaml` |
 | Provider catalog (auto-generated)             | `docs/reference/PROVIDER_REFERENCE.md`                  |
 | Tunnels                                       | `docs/ops/TUNNELS_GUIDE.md`                             |
-| Electron desktop app                          | `docs/guides/ELECTRON_GUIDE.md`                         |
+| Desktop app (Tauri 2)                         | `docs/guides/DESKTOP_GUIDE.md`                          |
 | VS Code Copilot Chat (OmniCopilot extension)  | `docs/guides/VSCODE-COPILOT.md`                         |
 | Release flow                                  | `docs/ops/RELEASE_CHECKLIST.md`                         |
 | Embedded services                             | `docs/frameworks/EMBEDDED-SERVICES.md`                  |

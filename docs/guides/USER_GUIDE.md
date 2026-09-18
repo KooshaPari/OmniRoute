@@ -29,7 +29,7 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 - [Cloud Agents](#-cloud-agents)
 - [Programmatic Management](#-programmatic-management)
 - [Internal CLI](#-internal-cli)
-- [Desktop Application (Electron)](#-desktop-application-electron)
+- [Desktop Application (Tauri 2)](#-desktop-application-tauri-2)
 
 ---
 
@@ -1264,35 +1264,26 @@ Tip: pair `omniroute doctor --json` with your monitoring tool to alert on unheal
 
 ---
 
-## 🖥️ Desktop Application (Electron)
+## 🖥️ Desktop Application (Tauri 2)
 
-OmniRoute is available as a native desktop application for Windows, macOS, and Linux.
+OmniRoute is available as a native desktop application for Windows, macOS, and Linux, built on Tauri 2 (Rust shell + system webview).
 
-### Installation
-
-```bash
-# From the electron directory:
-cd electron
-npm install
-
-# Development mode (connect to running Next.js dev server):
-npm run dev
-
-# Production mode (uses standalone build):
-npm start
-```
-
-### Building Installers
+### Development
 
 ```bash
-cd electron
-npm run build          # Current platform
-npm run build:win      # Windows (.exe NSIS)
-npm run build:mac      # macOS (.dmg universal)
-npm run build:linux    # Linux (.AppImage)
+# Rust shell + SvelteKit dev server (hot reload):
+cd apps/desktop/src-tauri
+cargo tauri dev
 ```
 
-Output → `electron/dist-electron/`
+### Building the App
+
+```bash
+cd apps/desktop/src-tauri
+cargo tauri build          # Current platform
+```
+
+Output → `apps/desktop/src-tauri/target/release/bundle/` (`macos/OmniRoute.app`, platform bundles).
 
 ### Key Features
 
@@ -1301,9 +1292,10 @@ Output → `electron/dist-electron/`
 | **Server Readiness**        | Polls server before showing window (no blank screen) |
 | **System Tray**             | Minimize to tray, change port, quit from tray menu   |
 | **Port Management**         | Change server port from tray (auto-restarts server)  |
-| **Content Security Policy** | Restrictive CSP via session headers                  |
+| **Content Security Policy** | Restrictive CSP in `tauri.conf.json`                 |
 | **Single Instance**         | Only one app instance can run at a time              |
-| **Offline Mode**            | Bundled Next.js server works without internet        |
+| **Offline Mode**            | Embedded SvelteKit frontend works without internet   |
+| **Embedded Frontend**       | SPA bundled into the binary via `custom-protocol`    |
 
 ### Environment Variables
 
@@ -1312,4 +1304,4 @@ Output → `electron/dist-electron/`
 | `OMNIROUTE_PORT`      | `20128` | Server port                      |
 | `OMNIROUTE_MEMORY_MB` | `512`   | Node.js heap limit (64–16384 MB) |
 
-📖 Full documentation: [`electron/README.md`](../../electron/README.md)
+📖 Full documentation: [`apps/desktop/README.md`](../../apps/desktop/README.md)

@@ -279,10 +279,10 @@ Key features:
 - Single-instance lock
 - Auto-update on restart
 - Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
-- **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
+- Tauri 2 build packaging — hardened standalone bundle validation detects symlinked `node_modules` and rejects it before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+- **Graceful shutdown** — Tauri lifecycle hooks shut down the API server cleanly, preventing SQLite WAL database locks (v3.6.2+)
 
-📖 See [`electron/README.md`](../../electron/README.md) for full documentation.
+📖 See [`apps/desktop/README.md`](../../apps/desktop/README.md) for full documentation.
 
 ---
 

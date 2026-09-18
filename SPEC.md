@@ -23,9 +23,9 @@ The product surface is **a Next.js 16 application exposing HTTP, MCP, A2A,
 and ACP endpoints**, not a library. The deployment unit is a single Node.js
 process (or containerized equivalent).
 
-**Goal**: *"Drop-in replacement for the OpenAI SDK, but routes across providers
+**Goal**: _"Drop-in replacement for the OpenAI SDK, but routes across providers
 — and exposes the same surface for agents (MCP), peer agents (A2A), and human
-operators (dashboard, webhooks, evals)."*
+operators (dashboard, webhooks, evals)."_
 
 ---
 
@@ -107,19 +107,19 @@ operators (dashboard, webhooks, evals)."*
 
 **Three concentric layers:**
 
-| Layer | Tech | Path | Role |
-|---|---|---|---|
-| **Gateway** | Next.js 16 (App Router) | `src/app/api/v1/` | OpenAI-compatible HTTP surface |
-| **Engine** | TypeScript 6 (Node `>=22`) | `open-sse/` | Streaming, combo routing, executors, translator, transformer |
-| **Persistence** | better-sqlite3 (WAL) | `src/lib/db/` | 83 domain modules + 97 migrations |
+| Layer           | Tech                       | Path              | Role                                                         |
+| --------------- | -------------------------- | ----------------- | ------------------------------------------------------------ |
+| **Gateway**     | Next.js 16 (App Router)    | `src/app/api/v1/` | OpenAI-compatible HTTP surface                               |
+| **Engine**      | TypeScript 6 (Node `>=22`) | `open-sse/`       | Streaming, combo routing, executors, translator, transformer |
+| **Persistence** | better-sqlite3 (WAL)       | `src/lib/db/`     | 83 domain modules + 97 migrations                            |
 
 **Three cross-cutting surfaces** layered on the engine:
 
-| Surface | Path | Protocol | Audience |
-|---|---|---|---|
-| **MCP Server** | `open-sse/mcp-server/` | MCP (stdio/SSE/Streamable HTTP) | Tool-using agents |
-| **A2A Server** | `src/lib/a2a/` | JSON-RPC 2.0 + SSE | Peer agents |
-| **ACP Registry** | `src/lib/acp/` | Agent Communication Protocol | Agent discovery |
+| Surface          | Path                   | Protocol                        | Audience          |
+| ---------------- | ---------------------- | ------------------------------- | ----------------- |
+| **MCP Server**   | `open-sse/mcp-server/` | MCP (stdio/SSE/Streamable HTTP) | Tool-using agents |
+| **A2A Server**   | `src/lib/a2a/`         | JSON-RPC 2.0 + SSE              | Peer agents       |
+| **ACP Registry** | `src/lib/acp/`         | Agent Communication Protocol    | Agent discovery   |
 
 **Two UX surfaces**:
 
@@ -188,7 +188,7 @@ OmniRoute/
 │   ├── compression/                    # engines, RTK, language packs
 │   ├── comparison/                     # OMNIROUTE_VS_ALTERNATIVES
 │   ├── getting-started/                # QUICK-START, PROVIDERS-GUIDE, …
-│   ├── guides/                         # USER_GUIDE, ELECTRON_GUIDE, I18N, …
+│   ├── guides/                         # USER_GUIDE, DESKTOP_GUIDE, I18N, …
 │   ├── audits/                         # FLEET-AUDIT-30-PILLAR
 │   ├── bdd/                            # proxy-egress-isolation.feature (cucumber)
 │   ├── providers/                      # ZED-DOCKER
@@ -371,21 +371,22 @@ See `docs/architecture/RESILIENCE_GUIDE.md`.
 **SQLite (better-sqlite3, WAL journaling)** with `getDbInstance()` singleton
 in `core.ts`. 83 domain modules, 97 migrations, 17 base tables.
 
-| Domain | Key modules |
-|---|---|
-| Core | `core.ts`, `migrationRunner.ts`, `encryption.ts`, `stateReset.ts` |
-| Providers / catalog | `providers.ts`, `models.ts`, `providerLimits.ts`, `compressionAnalytics.ts` |
-| Routing | `combos.ts`, `modelComboMappings.ts`, `domainState.ts`, `commandCodeAuth.ts` |
-| Auth | `apiKeys.ts`, `secrets.ts`, `registeredKeys.ts`, `sessionAccountAffinity.ts` |
-| Usage / billing | `quotaSnapshots.ts`, `creditBalance.ts`, `usage*.ts`, `compressionCacheStats.ts` |
-| Storage | `backup.ts`, `cleanup.ts`, `jsonMigration.ts`, `healthCheck.ts`, `databaseSettings.ts` |
-| Extensions | `evals.ts`, `webhooks.ts`, `reasoningCache.ts`, `readCache.ts`, `tierConfig.ts`, `compressionCombos.ts`, `compressionScheduler.ts`, `batches.ts`, `files.ts`, `syncTokens.ts`, `proxies.ts`, `oneproxy.ts`, `upstreamProxy.ts`, `versionManager.ts`, `cliToolState.ts`, `prompts.ts`, `detailedLogs.ts`, `contextHandoffs.ts`, `compression.ts`, `stats.ts` |
+| Domain              | Key modules                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Core                | `core.ts`, `migrationRunner.ts`, `encryption.ts`, `stateReset.ts`                                                                                                                                                                                                                                                                                           |
+| Providers / catalog | `providers.ts`, `models.ts`, `providerLimits.ts`, `compressionAnalytics.ts`                                                                                                                                                                                                                                                                                 |
+| Routing             | `combos.ts`, `modelComboMappings.ts`, `domainState.ts`, `commandCodeAuth.ts`                                                                                                                                                                                                                                                                                |
+| Auth                | `apiKeys.ts`, `secrets.ts`, `registeredKeys.ts`, `sessionAccountAffinity.ts`                                                                                                                                                                                                                                                                                |
+| Usage / billing     | `quotaSnapshots.ts`, `creditBalance.ts`, `usage*.ts`, `compressionCacheStats.ts`                                                                                                                                                                                                                                                                            |
+| Storage             | `backup.ts`, `cleanup.ts`, `jsonMigration.ts`, `healthCheck.ts`, `databaseSettings.ts`                                                                                                                                                                                                                                                                      |
+| Extensions          | `evals.ts`, `webhooks.ts`, `reasoningCache.ts`, `readCache.ts`, `tierConfig.ts`, `compressionCombos.ts`, `compressionScheduler.ts`, `batches.ts`, `files.ts`, `syncTokens.ts`, `proxies.ts`, `oneproxy.ts`, `upstreamProxy.ts`, `versionManager.ts`, `cliToolState.ts`, `prompts.ts`, `detailedLogs.ts`, `contextHandoffs.ts`, `compression.ts`, `stats.ts` |
 
 Live counts: `ls src/lib/db/*.ts | wc -l` (modules), `ls src/lib/db/migrations/*.sql | wc -l` (migrations),
 `grep -c "CREATE TABLE" src/lib/db/core.ts` minus 1 (base tables, excluding
 `_omniroute_migrations` bookkeeping table).
 
 **Schema rules**:
+
 - `localDb.ts` is a re-export layer only — never add logic there.
 - Every migration is idempotent and runs in a transaction.
 - Encryption helpers protect sensitive fields at rest
@@ -400,19 +401,19 @@ Live counts: `ls src/lib/db/*.ts | wc -l` (modules), `ls src/lib/db/migrations/*
 **87 tools** (canonical, see `TOTAL_MCP_TOOL_COUNT` in `server.ts`) in 3
 transports: stdio, SSE (`/api/mcp/sse`), Streamable HTTP (`/api/mcp/stream`).
 
-| Group | Count | Notes |
-|---|---|---|
-| Core | 20 | get_health, list_combos, switch_combo, route_request, simulate_route, … |
-| Cache | 2 | cache_stats, cache_flush |
-| Compression | 5 | compression_status, compression_configure, set_compression_engine, … |
-| 1proxy | 3 | oneproxy_fetch, oneproxy_rotate, oneproxy_stats |
-| Memory | 3 | memory_search, memory_add, memory_clear |
-| Skill | 4 | skills_list, skills_enable, skills_execute, skills_executions |
-| Agent-skill | 3 | A2A skill discovery / invocation bridges |
-| Gamification | 8 | levels, badges, leaderboard, federation queries |
-| Plugin | 8 | marketplace listing, install/enable/disable, runtime inspection |
-| Notion | 6 | knowledge-base read/write |
-| Obsidian | 22 | vault search, note CRUD, WebDAV-backed file ops |
+| Group        | Count | Notes                                                                   |
+| ------------ | ----- | ----------------------------------------------------------------------- |
+| Core         | 20    | get_health, list_combos, switch_combo, route_request, simulate_route, … |
+| Cache        | 2     | cache_stats, cache_flush                                                |
+| Compression  | 5     | compression_status, compression_configure, set_compression_engine, …    |
+| 1proxy       | 3     | oneproxy_fetch, oneproxy_rotate, oneproxy_stats                         |
+| Memory       | 3     | memory_search, memory_add, memory_clear                                 |
+| Skill        | 4     | skills_list, skills_enable, skills_execute, skills_executions           |
+| Agent-skill  | 3     | A2A skill discovery / invocation bridges                                |
+| Gamification | 8     | levels, badges, leaderboard, federation queries                         |
+| Plugin       | 8     | marketplace listing, install/enable/disable, runtime inspection         |
+| Notion       | 6     | knowledge-base read/write                                               |
+| Obsidian     | 22    | vault search, note CRUD, WebDAV-backed file ops                         |
 
 **Scopes**: 30 (`OMNIROUTE_MCP_SCOPES`) — every tool category is scope-gated.
 **Audit**: every invocation logged to `mcp_audit` (tool, args, success/failure,
@@ -499,13 +500,13 @@ OmniRoute-embedded modules (vs federated).
 
 **232 providers** as of v3.8.24. Categories:
 
-| Category | Count | Examples |
-|---|---|---|
-| Free | 4 | Qoder AI, Qwen Code, Gemini CLI (deprecated), Kiro AI |
-| OAuth | 14 | Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline, Qwen (⚠️ free tier discontinued 2026-04-15), Kiro, Qoder, Gemini, Windsurf (v3.8), GitLab Duo (v3.8) |
-| API Key | 120+ | OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA, Nebius, SiliconFlow, Hyperbolic, HuggingFace, OpenRouter, Vertex AI, Cloudflare AI, Scaleway, AI/ML API, Pollinations, Puter, Longcat, Alibaba, Kimi, Blackbox, Synthetic, Kilo Gateway, Z.AI, GLM, Deepgram, AssemblyAI, ElevenLabs, Cartesia, PlayHT, Inworld, NanoBanana, SD WebUI, ComfyUI, Ollama Cloud, Perplexity Search, Serper, Brave, Exa, Tavily, OpenCode Zen/Go, Bailian Coding Plan, DeepInfra, Vercel AI Gateway, Lambda AI, SambaNova, nScale, OVHcloud AI, Baseten, PublicAI, Moonshot AI, Meta Llama API, v0 (Vercel), Morph, Featherless AI, FriendliAI, LlamaGate, Galadriel, Weights & Biases Inference, Volcengine, AI21 Labs, Venice.ai, Codestral, Upstage, Maritalk, Xiaomi MiMo, Inference.net, NanoGPT, Predibase, Bytez, Heroku AI, Databricks, Snowflake Cortex, GigaChat (Sber), CrofAI, AgentRouter, ChatGPT Web, Baidu Qianfan, AWS Polly, RunwayML, GitLab Duo, Amazon Q, Empower, Poe, and many more. |
-| Self-Hosted | 8+ | LM Studio, vLLM, Lemonade, Llamafile, Triton, Docker Model Runner, Xinference, Oobabooga |
-| Custom | n | OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) prefixes |
+| Category    | Count | Examples                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ----------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free        | 4     | Qoder AI, Qwen Code, Gemini CLI (deprecated), Kiro AI                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| OAuth       | 14    | Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline, Qwen (⚠️ free tier discontinued 2026-04-15), Kiro, Qoder, Gemini, Windsurf (v3.8), GitLab Duo (v3.8)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| API Key     | 120+  | OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA, Nebius, SiliconFlow, Hyperbolic, HuggingFace, OpenRouter, Vertex AI, Cloudflare AI, Scaleway, AI/ML API, Pollinations, Puter, Longcat, Alibaba, Kimi, Blackbox, Synthetic, Kilo Gateway, Z.AI, GLM, Deepgram, AssemblyAI, ElevenLabs, Cartesia, PlayHT, Inworld, NanoBanana, SD WebUI, ComfyUI, Ollama Cloud, Perplexity Search, Serper, Brave, Exa, Tavily, OpenCode Zen/Go, Bailian Coding Plan, DeepInfra, Vercel AI Gateway, Lambda AI, SambaNova, nScale, OVHcloud AI, Baseten, PublicAI, Moonshot AI, Meta Llama API, v0 (Vercel), Morph, Featherless AI, FriendliAI, LlamaGate, Galadriel, Weights & Biases Inference, Volcengine, AI21 Labs, Venice.ai, Codestral, Upstage, Maritalk, Xiaomi MiMo, Inference.net, NanoGPT, Predibase, Bytez, Heroku AI, Databricks, Snowflake Cortex, GigaChat (Sber), CrofAI, AgentRouter, ChatGPT Web, Baidu Qianfan, AWS Polly, RunwayML, GitLab Duo, Amazon Q, Empower, Poe, and many more. |
+| Self-Hosted | 8+    | LM Studio, vLLM, Lemonade, Llamafile, Triton, Docker Model Runner, Xinference, Oobabooga                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Custom      | n     | OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) prefixes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 Providers are registered in `src/shared/constants/providers.ts` with Zod
 validation at module load.
@@ -522,17 +523,17 @@ validation at module load.
 
 ## 9. Test & Coverage Governance
 
-| Layer | Tool | Runner | Path |
-|---|---|---|---|
-| Unit (most tests) | `node:test` + `tsx/esm` | `node --import tsx/esm --test` | `tests/unit/` |
-| Integration | `node:test` + `tsx/esm` | same | `tests/integration/` |
-| MCP server | Vitest | `npm run test:vitest` | MCP-specific |
-| Auto-Combo | Vitest | same | `vitest.mcp.config.ts` |
-| E2E | Playwright | `npm run test:e2e` | `tests/e2e/` |
-| Protocols E2E | Playwright | `npm run test:protocols:e2e` | MCP/A2A transports |
-| Ecosystem | Custom | `npm run test:ecosystem` | Compatibility suite |
-| Mutation | Stryker | `stryker.conf.json` | Selected packages |
-| Coverage | Vitest + c8/istanbul | `npm run test:coverage` | tarball + lcov |
+| Layer             | Tool                    | Runner                         | Path                   |
+| ----------------- | ----------------------- | ------------------------------ | ---------------------- |
+| Unit (most tests) | `node:test` + `tsx/esm` | `node --import tsx/esm --test` | `tests/unit/`          |
+| Integration       | `node:test` + `tsx/esm` | same                           | `tests/integration/`   |
+| MCP server        | Vitest                  | `npm run test:vitest`          | MCP-specific           |
+| Auto-Combo        | Vitest                  | same                           | `vitest.mcp.config.ts` |
+| E2E               | Playwright              | `npm run test:e2e`             | `tests/e2e/`           |
+| Protocols E2E     | Playwright              | `npm run test:protocols:e2e`   | MCP/A2A transports     |
+| Ecosystem         | Custom                  | `npm run test:ecosystem`       | Compatibility suite    |
+| Mutation          | Stryker                 | `stryker.conf.json`            | Selected packages      |
+| Coverage          | Vitest + c8/istanbul    | `npm run test:coverage`        | tarball + lcov         |
 
 **Coverage floor: 70%** (see `docs/adr/0003-coverage-floor-70-pct.md`).
 **No i18n tests** — i18n is auto-generated, not authored.
@@ -608,14 +609,15 @@ This is the **canonical routing project** for the Phenotype org (see
 
 **Cluster convergence plan**:
 
-| Source | Migration target | Status |
-|---|---|---|
-| `phenoAI` agent tooling | OmniRoute workspace | pending |
-| `phenoRouterMonitor` Pareto dashboard | `monitoring/` | pending |
-| `Tokn` TokenLedger | `crates/tokn` | pending (extraction in progress) |
-| `helios-router` primitives | `bifrost` crate | pending |
+| Source                                | Migration target    | Status                           |
+| ------------------------------------- | ------------------- | -------------------------------- |
+| `phenoAI` agent tooling               | OmniRoute workspace | pending                          |
+| `phenoRouterMonitor` Pareto dashboard | `monitoring/`       | pending                          |
+| `Tokn` TokenLedger                    | `crates/tokn`       | pending (extraction in progress) |
+| `helios-router` primitives            | `bifrost` crate     | pending                          |
 
 **Naming-collision hazard**: three "bifrost" referents exist:
+
 1. `KooshaPari/bifrost` repo = vendored **maximhq** Go gateway fork.
 2. ADR-001's "bifrost" = Phenotype routing substrate (in `pheno` monorepo).
 3. `crates/bifrost-routing` inside `phenoRouterMonitor` = a deprecated stub.
@@ -627,41 +629,41 @@ pareto_router/ports/adapters) per the 2026-06-03 disambiguation note.
 
 ## 14. Cross-References
 
-| File | Purpose |
-|---|---|
-| `AGENTS.md` | Agent operating instructions (canonical for human/AI contributors) |
-| `ADR.md` | Top-level ADR index (this repo's decisions) |
-| `PLAN.md` | Quarterly roadmap (Q3 2026 → Q4 2026) |
-| `STATUS.md` | Live state (post-merge snapshot) |
-| `docs/adr/` | 5 ADRs (test runner, coverage, decomposition, i18n) |
-| `docs/architecture/` | REPOSITORY_MAP, ARCHITECTURE, AUTHZ, RESILIENCE, QUALITY_GATES |
-| `docs/frameworks/` | MCP, A2A, ACP, MEMORY, SKILLS, CLOUD_AGENT, EVALS, WEBHOOKS, AGENT-SKILLS |
-| `docs/routing/` | AUTO-COMBO, REASONING_REPLAY, QUOTA_SHARE |
-| `docs/security/` | GUARDRAILS, ERROR_SANITIZATION, PUBLIC_CREDS, COMPLIANCE, SUPPLY_CHAIN, STEALTH_GUIDE |
-| `docs/ops/` | RELEASE_CHECKLIST, TUNNELS, COVERAGE_PLAN, SQLITE_RUNTIME |
-| `docs/reference/` | API_REFERENCE, PROVIDER_REFERENCE, ENVIRONMENT, CLI-TOOLS, FREE_TIERS |
-| `docs/compression/` | COMPRESSION_GUIDE, COMPRESSION_ENGINES, RTK_COMPRESSION, COMPRESSION_LANGUAGE_PACKS |
-| `docs/getting-started/` | QUICK-START, PROVIDERS-GUIDE, AUTO-COMBO-GUIDE, FREE-TIERS-GUIDE, TROUBLESHOOTING |
-| `docs/guides/` | USER_GUIDE, ELECTRON_GUIDE, I18N, PWA_GUIDE, DOCKER_GUIDE, KIRO_SETUP, TERMUX_GUIDE, CODEX-CLI-CONFIGURATION, FEATURES, SETUP_GUIDE |
-| `docs/comparison/` | OMNIROUTE_VS_ALTERNATIVES |
-| `docs/research/` | UNLIMITED_LLM_ACCESS, DISCOVERY_TOOL_DESIGN |
-| `docs/audits/` | FLEET-AUDIT-30-PILLAR, AUDIT-METHOD, SCRIPTS-NOTE |
-| `docs/bdd/` | proxy-egress-isolation.feature |
-| `docs/diagrams/` | Mermaid source |
-| `CONTRIBUTING.md` | Contribution guide |
-| `SECURITY.md` | Security policy |
-| `UPSTREAM_SYNC.md` | diegosouzapw/OmniRoute sync protocol |
-| `CHANGELOG.md` | Auto-generated changelog (cliff.toml) |
-| `README.md` | Public-facing repo README |
-| `audit_scorecard.json` | 30-pillar audit snapshot |
-| `llm.txt` | LLM-friendly repo description |
-| `docs/COST.md` | Resource efficiency (L25) |
-| `docs/OKR.md` | OKR/KPI alignment (L05) |
-| `docs/TECH_DEBT.md` | Tech debt register (L10) |
-| `docs/SSOT.md` | Single source of truth pointer |
-| `docs/traceability.md` | Cross-doc traceability |
-| `docs/index.md` | Doc index |
-| `docs/README.md` | Doc README |
+| File                    | Purpose                                                                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `AGENTS.md`             | Agent operating instructions (canonical for human/AI contributors)                                                                 |
+| `ADR.md`                | Top-level ADR index (this repo's decisions)                                                                                        |
+| `PLAN.md`               | Quarterly roadmap (Q3 2026 → Q4 2026)                                                                                              |
+| `STATUS.md`             | Live state (post-merge snapshot)                                                                                                   |
+| `docs/adr/`             | 5 ADRs (test runner, coverage, decomposition, i18n)                                                                                |
+| `docs/architecture/`    | REPOSITORY_MAP, ARCHITECTURE, AUTHZ, RESILIENCE, QUALITY_GATES                                                                     |
+| `docs/frameworks/`      | MCP, A2A, ACP, MEMORY, SKILLS, CLOUD_AGENT, EVALS, WEBHOOKS, AGENT-SKILLS                                                          |
+| `docs/routing/`         | AUTO-COMBO, REASONING_REPLAY, QUOTA_SHARE                                                                                          |
+| `docs/security/`        | GUARDRAILS, ERROR_SANITIZATION, PUBLIC_CREDS, COMPLIANCE, SUPPLY_CHAIN, STEALTH_GUIDE                                              |
+| `docs/ops/`             | RELEASE_CHECKLIST, TUNNELS, COVERAGE_PLAN, SQLITE_RUNTIME                                                                          |
+| `docs/reference/`       | API_REFERENCE, PROVIDER_REFERENCE, ENVIRONMENT, CLI-TOOLS, FREE_TIERS                                                              |
+| `docs/compression/`     | COMPRESSION_GUIDE, COMPRESSION_ENGINES, RTK_COMPRESSION, COMPRESSION_LANGUAGE_PACKS                                                |
+| `docs/getting-started/` | QUICK-START, PROVIDERS-GUIDE, AUTO-COMBO-GUIDE, FREE-TIERS-GUIDE, TROUBLESHOOTING                                                  |
+| `docs/guides/`          | USER_GUIDE, DESKTOP_GUIDE, I18N, PWA_GUIDE, DOCKER_GUIDE, KIRO_SETUP, TERMUX_GUIDE, CODEX-CLI-CONFIGURATION, FEATURES, SETUP_GUIDE |
+| `docs/comparison/`      | OMNIROUTE_VS_ALTERNATIVES                                                                                                          |
+| `docs/research/`        | UNLIMITED_LLM_ACCESS, DISCOVERY_TOOL_DESIGN                                                                                        |
+| `docs/audits/`          | FLEET-AUDIT-30-PILLAR, AUDIT-METHOD, SCRIPTS-NOTE                                                                                  |
+| `docs/bdd/`             | proxy-egress-isolation.feature                                                                                                     |
+| `docs/diagrams/`        | Mermaid source                                                                                                                     |
+| `CONTRIBUTING.md`       | Contribution guide                                                                                                                 |
+| `SECURITY.md`           | Security policy                                                                                                                    |
+| `UPSTREAM_SYNC.md`      | diegosouzapw/OmniRoute sync protocol                                                                                               |
+| `CHANGELOG.md`          | Auto-generated changelog (cliff.toml)                                                                                              |
+| `README.md`             | Public-facing repo README                                                                                                          |
+| `audit_scorecard.json`  | 30-pillar audit snapshot                                                                                                           |
+| `llm.txt`               | LLM-friendly repo description                                                                                                      |
+| `docs/COST.md`          | Resource efficiency (L25)                                                                                                          |
+| `docs/OKR.md`           | OKR/KPI alignment (L05)                                                                                                            |
+| `docs/TECH_DEBT.md`     | Tech debt register (L10)                                                                                                           |
+| `docs/SSOT.md`          | Single source of truth pointer                                                                                                     |
+| `docs/traceability.md`  | Cross-doc traceability                                                                                                             |
+| `docs/index.md`         | Doc index                                                                                                                          |
+| `docs/README.md`        | Doc README                                                                                                                         |
 
 ---
 
