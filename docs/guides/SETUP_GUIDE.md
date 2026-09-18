@@ -64,20 +64,20 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 See the [Docker Guide](./DOCKER_GUIDE.md) for complete Docker setup including Compose profiles and Caddy HTTPS.
 
-### Desktop App (Electron)
+### Desktop App (Tauri)
 
-OmniRoute ships a desktop wrapper built on Electron 41 + electron-builder 26.10. Available scripts (workspace root):
+OmniRoute ships a native desktop wrapper built on Tauri 2 (Rust + WKWebView on macOS, WebView2 on Windows, WebKitGTK on Linux). Source lives in `apps/desktop/src-tauri/`; the UI is the SvelteKit app in `apps/web`.
 
 ```bash
-npm run electron:dev          # Run desktop with hot-reload
-npm run electron:build        # Build for current OS (auto-detected)
-npm run electron:build:win    # Windows installer (NSIS + portable)
-npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
-npm run electron:build:linux  # Linux (AppImage + deb + rpm)
-npm run electron:smoke:packaged  # Smoke-test packaged build
+# Build the web bundle (static adapter) then the desktop app
+npm run build --workspace apps/web
+cargo tauri build                          # or: npm run tauri build
+
+# Development with hot-reload
+cargo tauri dev
 ```
 
-Releases of the desktop installers are attached to GitHub Releases. For the full Electron deep-dive (signing, IPC bridge, distros), see [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(criado em fase posterior)_.
+Build artifacts land in `apps/desktop/src-tauri/target/release/bundle/` (`.app` and `.dmg` on macOS). The Tauri app launches the Dashboard route; live stats populate once the BFF is reachable.
 
 ### Headless server (CI/automation)
 

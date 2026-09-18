@@ -107,8 +107,8 @@ export function buildStandaloneNodeOptions(env = process.env, omnirouteMb) {
  * the user already exported. #5238: `omniroute serve` used to UNCONDITIONALLY
  * overwrite NODE_OPTIONS with the calibrated `--max-old-space-size`, silently
  * discarding a user-set `NODE_OPTIONS=--max-old-space-size=8192` (reporter set
- * 8192 and still OOM'd at ~505MB). Mirrors the Electron (electron/main.js) and
- * standalone (scripts/dev/run-standalone.mjs) launchers:
+ * 8192 and still OOM'd at ~505MB). Mirrors the standalone
+ * (scripts/dev/run-standalone.mjs) launcher:
  *   - if NODE_OPTIONS already contains `--max-old-space-size`, keep it as-is
  *     (the user's value wins);
  *   - otherwise append the calibrated `--max-old-space-size=<memoryLimit>` to

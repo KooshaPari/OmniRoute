@@ -190,7 +190,6 @@ function listExternalFiles() {
     ".claude",
     ".github",
     "bin",
-    "electron",
     "open-sse",
     "scripts",
     "src",
