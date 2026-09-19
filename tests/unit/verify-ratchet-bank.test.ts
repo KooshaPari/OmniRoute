@@ -153,12 +153,13 @@ test("complexity: adding a rebaseline note is rejected — the bot never justifi
   assert.match(r.problems[0], /_rebaseline_new/);
 });
 
-// --- quality baseline (cognitive complexity lives nested) ---
+// --- quality baseline (cognitive complexity + codeql alerts live nested) ---
 
 const qBefore = () => ({
   metrics: {
     eslintWarnings: { value: 345 },
     cognitiveComplexity: { value: 956, _rebaseline_a: "note" },
+    codeqlAlerts: { value: 6 },
   },
 });
 
@@ -185,6 +186,49 @@ test("quality: moving a DIFFERENT metric is rejected even when cognitive went do
   const r = verifyQualityBaseline(qBefore(), after);
   assert.equal(r.problems.length, 1);
   assert.match(r.problems[0], /other than metrics\.cognitiveComplexity\.value/);
+});
+
+// codeqlAlerts joins cognitiveComplexity as a movable metric, but SHRINK-ONLY:
+// the banking lane may bank a legitimate drop (alerts fixed upstream), never an
+// unattended raise (raises are manual, justified rebaselines via _rebaseline_*).
+
+test("quality: lowering codeqlAlerts.value is banked", () => {
+  const after = qBefore();
+  after.metrics.codeqlAlerts.value = 2;
+  const r = verifyQualityBaseline(qBefore(), after);
+  assert.deepEqual(r.problems, []);
+  assert.ok(r.lowered.some(([k, p, n]) => k === "codeqlAlerts" && p === 6 && n === 2));
+});
+
+test("quality: raising codeqlAlerts.value is rejected", () => {
+  const after = qBefore();
+  after.metrics.codeqlAlerts.value = 138;
+  const r = verifyQualityBaseline(qBefore(), after);
+  assert.equal(r.problems.length, 1);
+  assert.match(r.problems[0], /codeqlAlerts RAISED 6 → 138/);
+});
+
+test("quality: codeqlAlerts rebaseline notes must survive verbatim", () => {
+  const after = qBefore();
+  after.metrics.codeqlAlerts.value = 2;
+  after.metrics.codeqlAlerts._rebaseline_2026_09_19 = "6 -> 138 justification";
+  const r = verifyQualityBaseline(qBefore(), after);
+  assert.equal(
+    r.problems.length,
+    1,
+    "adding a note under a movable metric is still rejected — notes are added manually"
+  );
+  assert.match(r.problems[0], /other than metrics\.cognitiveComplexity\.value/);
+});
+
+test("quality: codeqlAlerts notes preserved when only the value moves down", () => {
+  const after = JSON.parse(JSON.stringify(qBefore()));
+  after.metrics.codeqlAlerts.value = 2;
+  after.metrics.codeqlAlerts._rebaseline_2026_09_19 = "6 -> 138 justification";
+  const before = JSON.parse(JSON.stringify(qBefore()));
+  before.metrics.codeqlAlerts._rebaseline_2026_09_19 = "6 -> 138 justification";
+  const r = verifyQualityBaseline(before, after);
+  assert.deepEqual(r.problems, [], "note present on both sides survives; value may drop");
 });
 
 // --- aggregator ---

@@ -143,17 +143,30 @@ export function verifyComplexityBaseline(before, after) {
 export function verifyQualityBaseline(before, after) {
   const prev = before.metrics?.cognitiveComplexity?.value;
   const next = after.metrics?.cognitiveComplexity?.value;
-  // Only metrics.cognitiveComplexity.value may move; compare the rest of `metrics`
-  // by swapping in the old value and requiring a byte-identical result.
+  // cognitiveComplexity.value and codeqlAlerts.value may move; everything else in
+  // `metrics` is frozen. codeqlAlerts is SHRINK-ONLY like every cap here (raising
+  // it is a manual, justified rebaseline — see the _rebaseline_* notes); the
+  // banking lane must never raise it unattended, but a legitimate drop (alerts
+  // fixed upstream) may be banked like any other shrink.
   const patched = JSON.parse(JSON.stringify(after));
   if (patched.metrics?.cognitiveComplexity) patched.metrics.cognitiveComplexity.value = prev;
+  if (patched.metrics?.codeqlAlerts)
+    patched.metrics.codeqlAlerts.value = before.metrics?.codeqlAlerts?.value;
   const problems = jsonEqual(before, patched)
     ? []
-    : ["quality: something other than metrics.cognitiveComplexity.value changed"];
+    : [
+        "quality: something other than metrics.cognitiveComplexity.value or " +
+          "metrics.codeqlAlerts.value changed",
+      ];
   const lowered = [];
   if (typeof next !== "number") problems.push("quality: cognitiveComplexity.value is not a number");
   else if (next > prev) problems.push(`quality: cognitiveComplexity RAISED ${prev} → ${next}`);
   else if (next < prev) lowered.push(["cognitiveComplexity", prev, next]);
+  const cqPrev = before.metrics?.codeqlAlerts?.value;
+  const cqNext = after.metrics?.codeqlAlerts?.value;
+  if (typeof cqNext !== "number") problems.push("quality: codeqlAlerts.value is not a number");
+  else if (cqNext > cqPrev) problems.push(`quality: codeqlAlerts RAISED ${cqPrev} → ${cqNext}`);
+  else if (cqNext < cqPrev) lowered.push(["codeqlAlerts", cqPrev, cqNext]);
   return { problems, removed: [], lowered };
 }
 
