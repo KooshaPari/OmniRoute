@@ -256,7 +256,11 @@ bindHealthSchedulerEnv({
   isCloud,
   isBuildPhase,
   dataDir: DATA_DIR,
-  dbBackupsDir: DB_BACKUPS_DIR,
+  // DB_BACKUPS_DIR is null in cloud (see the const above). dbHealthScheduler keeps its own
+  // `_dbBackupsDir` with "" as the "derive from dataDir" sentinel and resolves it with
+  // `_dbBackupsDir || path.join(_dataDir, "db_backups")`, so null maps onto that sentinel.
+  // Same contract as src/lib/db/backup.ts:101 and the other DB_BACKUPS_DIR consumers.
+  dbBackupsDir: DB_BACKUPS_DIR ?? "",
 });
 bindHealthSchedulerDeps(getDbInstance);
 
