@@ -44,10 +44,7 @@ on:
         type: string
 
 permissions:
-  contents: write
-  id-token: write
-  packages: write
-  pull-requests: read
+  contents: read
 
 concurrency:
   # One auto-release in flight per ref. Cancels the previous attempt so a
@@ -221,6 +218,8 @@ jobs:
     needs: [trigger, resolve]
     if: ${{ needs.resolve.outputs.resolved != '' }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -288,6 +287,8 @@ jobs:
     # the literal string "false".
     if: ${{ needs.resolve.outputs.resolved != '' && (needs.resolve.outputs.resolved != 'nightly' || vars.NPM_FORCE_NIGHTLY != 'false') }}
     runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

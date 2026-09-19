@@ -12,9 +12,7 @@ on:
         type: string
 
 permissions:
-  contents: write
-  id-token: write
-  packages: write
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -89,6 +87,8 @@ jobs:
     name: Create GitHub release
     needs: [validate, changelog]
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

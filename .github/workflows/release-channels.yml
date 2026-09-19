@@ -44,9 +44,7 @@ on:
     - cron: "0 3 * * 0"
 
 permissions:
-  contents: write
-  id-token: write
-  packages: write
+  contents: read
 
 concurrency:
   group: release-channels-${{ github.ref }}
@@ -60,6 +58,10 @@ jobs:
     name: Promote to ${{ inputs.channel }}
     if: ${{ inputs.action == 'promote' }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
     outputs:
       version: ${{ steps.resolve.outputs.version }}
       resolved: ${{ steps.resolve.outputs.resolved }}
@@ -214,6 +216,9 @@ jobs:
     name: Retention cleanup
     if: ${{ inputs.action == 'cleanup' || github.event_name == 'schedule' }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -388,6 +393,8 @@ jobs:
     name: Cut LTS branch
     if: ${{ inputs.action == 'lts-cut' }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
