@@ -100,3 +100,12 @@ rules:
       - npm-publish.yml
       - opencode-plugin-ci.yml
       - opencode-provider-ci.yml
+
+  artipacked:
+    # wiki-sync.yml syncs docs to the GitHub wiki via `git push` (L65) using the
+    # checkout's persisted credential — the push target is the wiki remote of the
+    # same repository, guarded by `permissions: contents: write` on the job.
+    # persist-credentials: false would break the push (no credential left to push with).
+    # Accepted risk (same-repo wiki push, operator-controlled schedule), added 2026-09-19.
+    ignore:
+      - wiki-sync.yml

@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e4311558cf03e74e50c0c7c
         with:
           terraform_version: 1.9
@@ -32,6 +34,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e4311558cf03e74e50c0c7c
         with:
           terraform_version: 1.9

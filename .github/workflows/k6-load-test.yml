@@ -9,21 +9,21 @@ on:
   workflow_dispatch:
     inputs:
       scenario:
-        description: 'Load-test scenario'
+        description: "Load-test scenario"
         required: true
-        default: 'smoke'
+        default: "smoke"
         type: choice
         options:
           - smoke
           - soak
           - stress
       target:
-        description: 'Target base URL'
+        description: "Target base URL"
         required: true
-        default: 'http://localhost:8080'
+        default: "http://localhost:8080"
         type: string
   schedule:
-    - cron: '0 4 * * *'   # daily 04:00 UTC
+    - cron: "0 4 * * *" # daily 04:00 UTC
 
 permissions:
   contents: read
@@ -35,9 +35,11 @@ jobs:
     timeout-minutes: 30
     env:
       SCENARIO: ${{ inputs.scenario || 'smoke' }}
-      TARGET:   ${{ inputs.target || 'http://localhost:8080' }}
+      TARGET: ${{ inputs.target || 'http://localhost:8080' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
 
       - name: Install k6
         run: |

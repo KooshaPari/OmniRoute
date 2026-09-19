@@ -11,7 +11,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read  # to read PR labels for the dry-run
+  pull-requests: read # to read PR labels for the dry-run
 
 jobs:
   dry-run:
@@ -20,6 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Validate release-drafter config syntax

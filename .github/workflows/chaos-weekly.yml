@@ -2,13 +2,15 @@ name: chaos-weekly
 permissions:
   contents: read
 on:
-  schedule: [{cron: '0 14 * * 6'}]
+  schedule: [{ cron: "0 14 * * 6" }]
   workflow_dispatch: {}
 jobs:
   chaos:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
       - run: echo "Chaos drill - pod kill + latency injection"
       - run: |
           echo "  kill 1 random pod (dev mode: no-op)"

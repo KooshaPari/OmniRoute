@@ -2,13 +2,15 @@ name: sbom-weekly
 permissions:
   contents: read
 on:
-  schedule: [{cron: '0 10 * * 6'}]
+  schedule: [{ cron: "0 10 * * 6" }]
   workflow_dispatch: {}
 jobs:
   sbom:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - run: cargo install cargo-cyclonedx
       - run: cargo cyclonedx --all --format json
