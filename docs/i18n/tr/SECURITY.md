@@ -1,6 +1,6 @@
 # Güvenlik Politikası (Türkçe)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [el](../el/SECURITY.md) · [es](../es/SECURITY.md) · [et](../et/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [ga](../ga/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hr](../hr/SECURITY.md) · [hu](../hu/SECURITY.md) · [id](../id/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [lv](../lv/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [mt](../mt/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-CN](../zh-CN/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -22,11 +22,11 @@ OmniRoute'ta bir güvenlik açığı keşfederseniz, lütfen sorumlu bir şekild
 
 ## Desteklenen Sürümler
 
-| Sürüm   | Destek Durumu     |
-| ------- | ----------------- |
-| 3.8.x   | ✅ Aktif          |
-| 3.7.x   | ✅ Güvenlik       |
-| < 3.7.0 | ❌ Desteklenmiyor |
+| Sürüm   | Destek Durumu  |
+| ------- | -------------- |
+| 3.8.x   | Aktif          |
+| 3.7.x   | Güvenlik       |
+| < 3.7.0 | Desteklenmiyor |
 
 ---
 
@@ -40,7 +40,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
        → Rate Limiter → Circuit Breaker → Cooldown → Model Lockout → Provider
 ```
 
-### 🔐 Kimlik Doğrulama ve Yetkilendirme
+### Kimlik Doğrulama ve Yetkilendirme
 
 | Özellik                      | Uygulama                                                                                                                                |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,7 +54,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | **Yönetim Kapsamlı MCP**     | `manage` kapsamına sahip API anahtarlarıyla korunan uzak `/api/mcp/*` erişimi; `/api/cli-tools/runtime/*` katı yerel döngüde kalır.     |
 | **MCP Kapsamları**           | 32 ayrıntılı kapsam (read:health, write:combos, execute:completions vb.) — bkz. `docs/frameworks/MCP-SERVER.md`                         |
 
-### 🛡️ Dinlenmede Şifreleme (Encryption at Rest)
+### Dinlenmede Şifreleme (Encryption at Rest)
 
 SQLite'ta saklanan tüm hassas veriler, scrypt anahtar türetme ile **AES-256-GCM** kullanılarak şifrelenir:
 
@@ -67,7 +67,7 @@ SQLite'ta saklanan tüm hassas veriler, scrypt anahtar türetme ile **AES-256-GC
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Güvenlik Önlemleri Çerçevesi (Guardrails Framework)
+### Güvenlik Önlemleri Çerçevesi (Guardrails Framework)
 
 OmniRoute, öncelik sırasına göre sıralanmış 3 yerleşik güvenlik önlemi içeren, çalışırken yeniden yüklenebilir bir **güvenlik önlemleri kayıt defteri** (`src/lib/guardrails/`) ile gelir:
 
@@ -79,7 +79,7 @@ OmniRoute, öncelik sırasına göre sıralanmış 3 yerleşik güvenlik önlemi
 
 Özel güvenlik önlemleri `registerGuardrail(new MyGuardrail())` aracılığıyla kaydedilir. Model hata durumunda açıktır (fail-open; istisnalar trafiği asla engellemez). İstek başına devre dışı bırakma `x-omniroute-disabled-guardrails` başlığı ile yapılır. → Bkz. [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 İstem Enjeksiyonu Koruması (Prompt Injection Guard)
+### İstem Enjeksiyonu Koruması (Prompt Injection Guard)
 
 LLM isteklerindeki istem enjeksiyonu modellerini algılayan en iyi çaba (heuristic) ara yazılımıdır.
 **Eksiksiz bir istem enjeksiyonu güvenlik duvarı değildir** — yanlış pozitifler (zararsız
@@ -105,7 +105,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (enjeksiyon politikası; eski "reda
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (varsayılan) | medium | low — block modunda bu seviye ve üstü engellenir
 ```
 
-### 🔒 PII (Kişisel Veri) Maskeleme
+### PII (Kişisel Veri) Maskeleme
 
 Kişisel olarak tanımlanabilir bilgilerin otomatik olarak algılanması ve isteğe bağlı olarak maskelenmesi:
 
@@ -123,7 +123,7 @@ PII_REDACTION_ENABLED=true   # istek PII yeniden yazımı; INPUT_SANITIZER_MODE'
 PII_RESPONSE_SANITIZATION=true  # isteğe bağlı: istemcilere döndürülen sağlayıcı yanıtlarındaki PII'yi maskeler
 ```
 
-### 🌐 Ağ Güvenliği
+### Ağ Güvenliği
 
 | Özellik                                | Açıklama                                                                       |
 | -------------------------------------- | ------------------------------------------------------------------------------ |
@@ -134,7 +134,7 @@ PII_RESPONSE_SANITIZATION=true  # isteğe bağlı: istemcilere döndürülen sa�
 | **TLS Parmak İzi**                     | Bot algılamasını azaltmak için tarayıcı benzeri TLS parmak izi taklidi         |
 | **CLI Parmak İzi**                     | Yerel CLI imzalarıyla eşleşmesi için sağlayıcı başına başlık/gövde sıralaması  |
 
-### 🔌 Dayanıklılık ve Erişilebilirlik
+### Dayanıklılık ve Erişilebilirlik
 
 | Özellik                            | Açıklama                                                                  |
 | ---------------------------------- | ------------------------------------------------------------------------- |
@@ -143,7 +143,7 @@ PII_RESPONSE_SANITIZATION=true  # isteğe bağlı: istemcilere döndürülen sa�
 | **Üstel Geri Çekilme**             | Artan gecikmelerle otomatik yeniden deneme                                |
 | **Sağlık Panosu**                  | Gerçek zamanlı sağlayıcı sağlığı izleme                                   |
 
-### 📋 Uyumluluk (Compliance)
+### Uyumluluk (Compliance)
 
 | Özellik                    | Açıklama                                                                |
 | -------------------------- | ----------------------------------------------------------------------- |

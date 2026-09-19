@@ -99,7 +99,7 @@ Moduły siostrzane w tym samym bundle:
 
 Usuwa markery Stainless SDK (`x-stainless-lang`, `x-stainless-package-version`, `x-stainless-os`, `x-stainless-arch`, `x-stainless-runtime`, `x-stainless-runtime-version`, `x-stainless-timeout`, `x-stainless-retry-count`, `x-stainless-helper-method`) przed forwardem.
 
-### ⚠️ Ryzyko: `ANTIGRAVITY_CREDITS=always` (hot spot banów kont)
+### Ryzyko: `ANTIGRAVITY_CREDITS=always` (hot spot banów kont)
 
 `ANTIGRAVITY_CREDITS=always` (konsumowane przez `open-sse/executors/antigravity.ts`) kieruje **każde** żądanie przez Antigravity AI Credit Overages (płatne kredyty Google) zamiast pozwolić free-tier quota Google bramkować ruch. Jest to udokumentowane jako feature, ale to **najczęstszy raport naruszenia ToS, jaki widzimy** — wiele kont Google Ultra zostało zbanowanych z `403 / "service disabled for ToS violation" / insufficient_quota` po kilku godzinach z `=always`.
 

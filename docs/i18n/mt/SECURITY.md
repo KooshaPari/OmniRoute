@@ -1,6 +1,6 @@
 # Security Policy (Malti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [el](../el/SECURITY.md) · [es](../es/SECURITY.md) · [et](../et/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [ga](../ga/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hr](../hr/SECURITY.md) · [hu](../hu/SECURITY.md) · [id](../id/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [lv](../lv/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [tr](../tr/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-CN](../zh-CN/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -24,9 +24,9 @@ Jekk tiskopri vulnerabbiltà tas-sigurtà f'OmniRoute, jekk jogħġbok irrapport
 
 | Verżjoni | Status tal-Appoġġ |
 | -------- | ----------------- |
-| 3.8.x    | ✅ Attiv          |
-| 3.7.x    | ✅ Sigurtà        |
-| < 3.7.0  | ❌ Mhux Appoġġjat |
+| 3.8.x    | Attiv             |
+| 3.7.x    | Sigurtà           |
+| < 3.7.0  | Mhux Appoġġjat    |
 
 ---
 
@@ -40,7 +40,7 @@ Talba → CORS → Pipeline tal-awtorizzazzjoni (ikklassifika → politiki → i
       → Limitatur tar-Rata → Circuit Breaker → Perjodu ta' Stennija → Imblukkar tal-Mudell → Fornitur
 ```
 
-### 🔐 Awtentikazzjoni u Awtorizzazzjoni
+### Awtentikazzjoni u Awtorizzazzjoni
 
 | Karatteristika                        | Implimentazzjoni                                                                                                                                                                |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,7 +54,7 @@ Talba → CORS → Pipeline tal-awtorizzazzjoni (ikklassifika → politiki → i
 | **MCP bl-Ambitu tal-Ġestjoni**        | L-aċċess remot għal `/api/mcp/*` huwa kkontrollat minn API keys bl-ambitu `manage`; `/api/cli-tools/runtime/*` jibqa' ristrett strettament għal loopback. Ara ROUTE_GUARD_TIERS |
 | **Ambiti MCP**                        | 32 ambitu granulari (read:health, write:combos, execute:completions, eċċ.) — ara `docs/frameworks/MCP-SERVER.md`                                                                |
 
-### 🛡️ Kriptaġġ tad-Data Maħżuna
+### Kriptaġġ tad-Data Maħżuna
 
 Id-data sensittiva kollha maħżuna f'SQLite hija kriptata bl-użu ta' **AES-256-GCM** b'derivazzjoni taċ-ċavetta permezz ta' scrypt:
 
@@ -67,7 +67,7 @@ Id-data sensittiva kollha maħżuna f'SQLite hija kriptata bl-użu ta' **AES-256
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Qafas tas-Salvagwardji
+### Qafas tas-Salvagwardji
 
 OmniRoute jinkludi **reġistru tas-salvagwardji** li jista' jerġa' jitgħabba waqt it-tħaddim (`src/lib/guardrails/`) bi 3 salvagwardji integrati, ordnati skont il-prijorità:
 
@@ -79,7 +79,7 @@ OmniRoute jinkludi **reġistru tas-salvagwardji** li jista' jerġa' jitgħabba w
 
 Salvagwardji personalizzati jiġu rreġistrati permezz ta' `registerGuardrail(new MyGuardrail())`. Il-mudell huwa fail-open (l-eċċezzjonijiet qatt ma jimblukkaw it-traffiku). Tista' tagħżel li ma tużahomx għal kull talba permezz tal-header `x-omniroute-disabled-guardrails`. → Ara [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Protezzjoni Kontra l-Injezzjoni tal-Prompt
+### Protezzjoni Kontra l-Injezzjoni tal-Prompt
 
 Middleware ewristiku tal-aħjar sforz li jidentifika mudelli ta' injezzjoni tal-prompt fit-talbiet lil LLM.
 **Mhuwiex firewall komplut kontra l-injezzjoni tal-prompt** — jista' jipproduċi pożittivi foloz (prompts
@@ -105,7 +105,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (politika tal-injezzjoni; il-modali
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (predefinit) | medium | low — is-severitajiet f'dan il-livell jew ogħla jiġu mblukkati fil-modalità block
 ```
 
-### 🔒 Ċensura tal-PII
+### Ċensura tal-PII
 
 Identifikazzjoni awtomatika u ċensura fakultattiva ta' informazzjoni identifikabbli personalment:
 
@@ -123,7 +123,7 @@ PII_REDACTION_ENABLED=true   # kitba mill-ġdid tal-PII fit-talba; indipendenti 
 PII_RESPONSE_SANITIZATION=true  # fakultattiv: iċċensura l-PII fit-tweġibiet tal-fornitur mibgħuta lura lill-klijenti
 ```
 
-### 🌐 Sigurtà tan-Network
+### Sigurtà tan-Network
 
 | Karatteristika               | Deskrizzjoni                                                                                                    |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -134,7 +134,7 @@ PII_RESPONSE_SANITIZATION=true  # fakultattiv: iċċensura l-PII fit-tweġibiet 
 | **Marka tas-Swaba' TLS**     | Simulazzjoni ta' marka tas-swaba' TLS simili għal browser biex titnaqqas l-identifikazzjoni tal-bots            |
 | **Marka tas-Swaba' CLI**     | Ordni tal-headers/korp għal kull fornitur biex jaqbel mal-firem nattivi tas-CLI                                 |
 
-### 🔌 Reżiljenza u Disponibbiltà
+### Reżiljenza u Disponibbiltà
 
 | Karatteristika              | Deskrizzjoni                                                                      |
 | --------------------------- | --------------------------------------------------------------------------------- |
@@ -143,7 +143,7 @@ PII_RESPONSE_SANITIZATION=true  # fakultattiv: iċċensura l-PII fit-tweġibiet 
 | **Backoff Esponenzjali**    | Tentattiv awtomatiku mill-ġdid b'dewmien dejjem jiżdied                           |
 | **Pannell tas-Saħħa**       | Monitoraġġ f'ħin reali tas-saħħa tal-fornituri                                    |
 
-### 📋 Konformità
+### Konformità
 
 | Karatteristika                  | Deskrizzjoni                                                                          |
 | ------------------------------- | ------------------------------------------------------------------------------------- |

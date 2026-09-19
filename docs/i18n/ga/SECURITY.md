@@ -1,6 +1,6 @@
 # Security Policy (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [el](../el/SECURITY.md) · [es](../es/SECURITY.md) · [et](../et/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hr](../hr/SECURITY.md) · [hu](../hu/SECURITY.md) · [id](../id/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [lv](../lv/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [mt](../mt/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [tr](../tr/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-CN](../zh-CN/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -24,9 +24,9 @@ Má aimsíonn tú leochaileacht slándála i OmniRoute, cuir in iúl go freagrac
 
 | Leagan  | Stádas Tacaíochta |
 | ------- | ----------------- |
-| 3.8.x   | ✅ Gníomhach      |
-| 3.7.x   | ✅ Slándáil       |
-| < 3.7.0 | ❌ Gan tacaíocht  |
+| 3.8.x   | Gníomhach         |
+| 3.7.x   | Slándáil          |
+| < 3.7.0 | Gan tacaíocht     |
 
 ---
 
@@ -40,7 +40,7 @@ Iarratas → CORS → Líne (sainaithin → polasaithe → coinnigh)
        → Teorannóir rátaí → Briseadóir timthriall → Cúlamhais → Glasáil tsamhail → Soláthraí
 ```
 
-### 🔐 Fíordheimhniú agus Údarú
+### Fíordheimhniú agus Údarú
 
 | Gné                             | Impleadhú                                                                                                                                                         |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,7 +54,7 @@ Iarratas → CORS → Líne (sainaithin → polasaithe → coinnigh)
 | **MCP Scóip Bainistíochta**     | Rochtain iargúlta `/api/mcp/*` faoi mhaoirscéal eochracha API le scóip `manage`; fanann `/api/cli-tools/runtime/*` in lúb-dlúthshéansach. Féach ROUTE_GUARD_TIERS |
 | **Scóipanna MCP**               | 32 scóipmhíne (leabhar:sláinte, scríobh: combos, rith:completes, etc.) — féach `docs/frameworks/MCP-SERVER.md`                                                    |
 
-### 🛡️ Criptiú ag Stóráil
+### Criptiú ag Stóráil
 
 Tá gach sonra íogaire stóráilte i SQLite criptaithe le **AES-256-GCM** le díbhríú eochracha scrypt:
 
@@ -67,7 +67,7 @@ Tá gach sonra íogaire stóráilte i SQLite criptaithe le **AES-256-GCM** le d�
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Créatúr Cosanta
+### Créatúr Cosanta
 
 Tá **clárlann cosaintí** athluchtaithe te a sheachadann OmniRoute (`src/lib/guardrails/`) le 3 chosaintí ionsuite eagraithe de réir túsála:
 
@@ -79,7 +79,7 @@ Tá **clárlann cosaintí** athluchtaithe te a sheachadann OmniRoute (`src/lib/g
 
 Cláraíonn cosaintí saincheaptha trí `registerGuardrail(new MyGuardrail())`. Tá an tsamhail oscailte d'éifeachtaí (ní chuireann eisceachtaí cosc ar thráffic). Rogh-amach in aghaidh an iarratais tríd an ceanntinn `x-omniroute-disabled-guardrails`. → Féach [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Cosaint Ionsaí Achainí
+### Cosaint Ionsaí Achainí
 
 Mearshlua meicniseach iarracht ag braíodh patrúin ionsaí achainí iarratais LLM.
 **Ní toradh iomlán é scáileán ionsaí achainí** — is féidir dearbhú mícheart a dhéanamh (ciníos pearsanta/RPG mícheart) agus dearbhú dearfach a dhéanamh (leetspeak, spásáil, patrúin nach bhfuil i nGaeilge).
@@ -103,7 +103,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (polasaí ionsaí; "redact" dleatha
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (réamhshocraithe) | medium | low — cuirtear cosc ar dhligheadhanna atá agus os cionn an tsaghas seo sa mhód block
 ```
 
-### 🔒 Scriosadh PII
+### Scriosadh PII
 
 Braíodh uathoibríoch agus scriosadh roghnach eolas inaitheanta pearsanta:
 
@@ -121,7 +121,7 @@ PII_REDACTION_ENABLED=true   # athscríobh PII iarratais; neamhspleách ar INPUT
 PII_RESPONSE_SANITIZATION=true  # roghnach: scriosadh PII i freagraí soláthraithe ar ais do chliaint
 ```
 
-### 🌐 Slándáil Líonra
+### Slándáil Líonra
 
 | Gné                 | Cur síos                                                                                     |
 | ------------------- | -------------------------------------------------------------------------------------------- |
@@ -132,7 +132,7 @@ PII_RESPONSE_SANITIZATION=true  # roghnach: scriosadh PII i freagraí soláthrai
 | **Méarlorg TLS**    | Méarlorg TLS cosúil le brabhsálaí chun braiteadh bot a laghdú                                |
 | **Méarlorg CLI**    | Ordú ceanntinn/corp in aghaidh an tsoláthraithe chun comharthaí dúchasacha CLI a mheaitseáil |
 
-### 🔌 Seasmhacht agus Infhaighteacht
+### Seasmhacht agus Infhaighteacht
 
 | Gné                       | Cur síos                                                                                  |
 | ------------------------- | ----------------------------------------------------------------------------------------- |
@@ -141,7 +141,7 @@ PII_RESPONSE_SANITIZATION=true  # roghnach: scriosadh PII i freagraí soláthrai
 | **Cúlú Easpónantach**     | Ath-iarracht uathoibríoch le moilleanna méadaithe                                         |
 | **Dashboard Sláinte**     | Monatóireacht ar shláinte tsoláthraithe fíor-ama                                          |
 
-### 📋 Comhréireacht
+### Comhréireacht
 
 | Gné                | Cur síos                                                                 |
 | ------------------ | ------------------------------------------------------------------------ |

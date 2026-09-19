@@ -16,15 +16,15 @@ lastUpdated: 2026-06-28
 
 ### 快速示例
 
-| 模型 ID        | 变体     | 行为                                                                     |
-| -------------- | -------- | ------------------------------------------------------------------------ |
-| `auto`         | 默认     | 所有已连接服务商，LKGP 策略，均衡权重                                    |
-| `auto/coding`  | coding   | 质量优先权重，适合代码生成                                               |
-| `auto/fast`    | fast     | 低延迟加权选择                                                           |
-| `auto/cheap`   | cheap    | 成本优先路由（最便宜优先）                                               |
-| `auto/offline` | offline  | 偏好配额余量最高的服务商                                                 |
-| `auto/smart`   | smart    | 质量优先 + 更高探索率（10%）以获得更好的模型发现                         |
-| `auto/lkgp`    | lkgp     | 显式 LKGP（与默认 `auto` 相同）                                          |
+| 模型 ID        | 变体    | 行为                                             |
+| -------------- | ------- | ------------------------------------------------ |
+| `auto`         | 默认    | 所有已连接服务商，LKGP 策略，均衡权重            |
+| `auto/coding`  | coding  | 质量优先权重，适合代码生成                       |
+| `auto/fast`    | fast    | 低延迟加权选择                                   |
+| `auto/cheap`   | cheap   | 成本优先路由（最便宜优先）                       |
+| `auto/offline` | offline | 偏好配额余量最高的服务商                         |
+| `auto/smart`   | smart   | 质量优先 + 更高探索率（10%）以获得更好的模型发现 |
+| `auto/lkgp`    | lkgp    | 显式 LKGP（与默认 `auto` 相同）                  |
 
 ### 类别 × 层级组合（`auto/<category>:<tier>`）
 
@@ -33,13 +33,13 @@ OpenRouter 风格的后缀将**什么类型的路由**（类别）与**如何优
 - **类别**（按能力筛选候选池）：`coding` · `reasoning` · `vision` · `chat` · `multimodal`。`vision`/`multimodal` 保留具备视觉能力的模型；`reasoning` 保留推理/思考模型。
 - **层级**（选择评分权重 / 池过滤器）：`fast`（ship-fast）· `cheap`（别名 `floor`，cost-saver）· `reliable`（熔断器健康 + 延迟稳定性）· `free` / `pro`（通过 `classifyTier` 按模型层级筛选池——免费层 vs. 高级层）。
 
-| 示例                    | 解析为                                                 |
-| ----------------------- | ------------------------------------------------------ |
-| `auto/coding:fast`      | coding 池，低延迟权重                                  |
-| `auto/coding:cheap`     | coding 池，成本优先（别名 `auto/coding:floor`）        |
-| `auto/reasoning:pro`    | 仅推理/思考模型，高级层                                |
-| `auto/vision`           | 具备视觉能力的模型（无层级 → 均衡权重）                |
-| `auto/multimodal:free`  | 具备多模态能力的模型，仅免费层                          |
+| 示例                   | 解析为                                          |
+| ---------------------- | ----------------------------------------------- |
+| `auto/coding:fast`     | coding 池，低延迟权重                           |
+| `auto/coding:cheap`    | coding 池，成本优先（别名 `auto/coding:floor`） |
+| `auto/reasoning:pro`   | 仅推理/思考模型，高级层                         |
+| `auto/vision`          | 具备视觉能力的模型（无层级 → 均衡权重）         |
+| `auto/multimodal:free` | 具备多模态能力的模型，仅免费层                  |
 
 任何有效的 `auto/<category>[:<tier>]` 都按需解析；精选子集通过 `/v1/models` 和仪表盘宣传（`AUTO_SUFFIX_VARIANTS`，见 `open-sse/services/autoCombo/builtinCatalog.ts`）。过滤策略为**失效开放（fail-open）** ——如果约束条件未匹配到任何已连接的模型，则使用全量池，确保路由永不中断。核心评分器（`combo.ts`）保持不变；类别/层级过滤器在 `buildAutoCandidates` 中应用。
 
@@ -70,11 +70,11 @@ model: "auto/cheap"           # 每 Token 最便宜
 
 **核心特性：**
 
-- ✅ **始终在线：** 无需切换、无需创建 Combo、无需任何配置
-- ✅ **动态：** 自动反映当前已连接的服务商
-- ✅ **会话粘性：** LKGP 确保优先使用上一次成功的服务商
-- ✅ **多账号感知：** 每个服务商连接都成为独立的候选
-- ✅ **无数据库写入：** 虚拟 Combo 仅存在于请求期间，零持久化开销
+- **始终在线：** 无需切换、无需创建 Combo、无需任何配置
+- **动态：** 自动反映当前已连接的服务商
+- **会话粘性：** LKGP 确保优先使用上一次成功的服务商
+- **多账号感知：** 每个服务商连接都成为独立的候选
+- **无数据库写入：** 虚拟 Combo 仅存在于请求期间，零持久化开销
 
 **底层机制：**
 
@@ -92,13 +92,13 @@ handleComboChat（与持久化 Combo 相同的引擎）
 
 **实现文件：**
 
-| 文件                                                        | 用途                                     |
-| ----------------------------------------------------------- | ---------------------------------------- |
-| `open-sse/services/autoCombo/autoPrefix.ts`                 | 前缀解析器（`parseAutoPrefix`）          |
-| `open-sse/services/autoCombo/virtualFactory.ts`             | 创建虚拟 `AutoComboConfig` 对象          |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts`   | 模拟服务商注册表的测试 hook               |
-| `src/sse/handlers/chat.ts`                                  | 集成：auto 前缀短路                      |
-| `src/shared/constants/providers.ts`                         | `SYSTEM_PROVIDERS.auto` 系统条目          |
+| 文件                                                      | 用途                             |
+| --------------------------------------------------------- | -------------------------------- |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | 前缀解析器（`parseAutoPrefix`）  |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | 创建虚拟 `AutoComboConfig` 对象  |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | 模拟服务商注册表的测试 hook      |
+| `src/sse/handlers/chat.ts`                                | 集成：auto 前缀短路              |
+| `src/shared/constants/providers.ts`                       | `SYSTEM_PROVIDERS.auto` 系统条目 |
 
 ## 工作原理（持久化 Auto-Combo）
 
@@ -108,20 +108,20 @@ Auto-Combo 引擎使用**13 因子评分函数**（定义在 `open-sse/services/
 
 > 来源：[diagrams/auto-combo-scoring.mmd](../diagrams/auto-combo-scoring.mmd)（通过 `npm run docs:render-diagrams` 重新生成）。文件名为历史名称；当前图表包含全部 13 个因子。
 
-| 因子                    | 默认权重 | 描述                                                                                           |
-| :---------------------- | :------- | :--------------------------------------------------------------------------------------------- |
-| `health`                | 0.20     | 来自熔断器的健康评分（CLOSED=1.0，HALF_OPEN=0.5，OPEN=0.0）                                     |
-| `quota`                 | 0.15     | 剩余配额 / 速率限制余量 [0..1]                                                                  |
-| `costInv`               | 0.15     | 反向**混合**成本（60% 输入 + 40% 输出 Token 价格，归一化）——越便宜得分越高                      |
-| `latencyInv`            | 0.12     | 反向 p95 延迟，按池归一化——越快得分越高                                                         |
-| `taskFit`               | 0.08     | 任务类型适配度（coding、review、planning、analysis、debugging、docs）                           |
-| `stability`             | 0.05     | 基于方差的稳定性（低延迟标准差 / 错误率）                                                        |
-| `tierPriority`          | 0.05     | 账号层级优先级——Ultra=1.0，Pro=0.67，Standard=0.33，Free=0.0                                    |
-| `tierAffinity`          | 0.05     | 候选层级与清单推荐层级之间的亲和度                                                               |
-| `specificityMatch`      | 0.05     | 请求特异性（清单提示）与模型层级之间的匹配度                                                    |
-| `contextAffinity`       | 0.05     | 请求上下文窗口需求与模型上下文窗口之间的亲和度                                                  |
-| `connectionDensity`     | 0.05     | 将负载分散到同一服务商的不同连接上（反集中）                                                    |
-| `resetWindowAffinity`   | 0.00     | 偏向配额重置窗口有利的连接（默认禁用）                                                          |
+| 因子                  | 默认权重 | 描述                                                                       |
+| :-------------------- | :------- | :------------------------------------------------------------------------- |
+| `health`              | 0.20     | 来自熔断器的健康评分（CLOSED=1.0，HALF_OPEN=0.5，OPEN=0.0）                |
+| `quota`               | 0.15     | 剩余配额 / 速率限制余量 [0..1]                                             |
+| `costInv`             | 0.15     | 反向**混合**成本（60% 输入 + 40% 输出 Token 价格，归一化）——越便宜得分越高 |
+| `latencyInv`          | 0.12     | 反向 p95 延迟，按池归一化——越快得分越高                                    |
+| `taskFit`             | 0.08     | 任务类型适配度（coding、review、planning、analysis、debugging、docs）      |
+| `stability`           | 0.05     | 基于方差的稳定性（低延迟标准差 / 错误率）                                  |
+| `tierPriority`        | 0.05     | 账号层级优先级——Ultra=1.0，Pro=0.67，Standard=0.33，Free=0.0               |
+| `tierAffinity`        | 0.05     | 候选层级与清单推荐层级之间的亲和度                                         |
+| `specificityMatch`    | 0.05     | 请求特异性（清单提示）与模型层级之间的匹配度                               |
+| `contextAffinity`     | 0.05     | 请求上下文窗口需求与模型上下文窗口之间的亲和度                             |
+| `connectionDensity`   | 0.05     | 将负载分散到同一服务商的不同连接上（反集中）                               |
+| `resetWindowAffinity` | 0.00     | 偏向配额重置窗口有利的连接（默认禁用）                                     |
 
 **总和：** `0.20 + 0.15 + 0.15 + 0.12 + 0.08 + 0.05 + 0.05 + 0.05 + 0.05 + 0.05 + 0.05 + 0.00 = 1.0`（由 `validateWeights()` 校验）。
 
@@ -129,15 +129,15 @@ Auto-Combo 引擎使用**13 因子评分函数**（定义在 `open-sse/services/
 
 `open-sse/services/autoCombo/modePacks.ts` 中定义了四种预置的权重配置文件。每种模式包覆盖默认权重，以将选择偏向特定目标。以下是**每种模式包的完整权重表**（每行之和为 1.0）。
 
-| 因子           | ship-fast | cost-saver | quality-first | offline-friendly |
-| :------------- | :-------- | :--------- | :------------ | :--------------- |
-| quota          | 0.14      | 0.14       | 0.10          | **0.37**         |
-| health         | 0.28      | 0.19       | 0.18          | 0.28             |
-| costInv        | 0.05      | **0.37**   | 0.05          | 0.10             |
-| latencyInv     | **0.32**  | 0.05       | 0.05          | 0.05             |
-| taskFit        | 0.10      | 0.10       | **0.37**      | 0.00             |
-| stability      | 0.00      | 0.05       | 0.15          | 0.10             |
-| tierPriority   | 0.05      | 0.05       | 0.05          | 0.05             |
+| 因子         | ship-fast | cost-saver | quality-first | offline-friendly |
+| :----------- | :-------- | :--------- | :------------ | :--------------- |
+| quota        | 0.14      | 0.14       | 0.10          | **0.37**         |
+| health       | 0.28      | 0.19       | 0.18          | 0.28             |
+| costInv      | 0.05      | **0.37**   | 0.05          | 0.10             |
+| latencyInv   | **0.32**  | 0.05       | 0.05          | 0.05             |
+| taskFit      | 0.10      | 0.10       | **0.37**      | 0.00             |
+| stability    | 0.00      | 0.05       | 0.15          | 0.10             |
+| tierPriority | 0.05      | 0.05       | 0.05          | 0.05             |
 
 说明：
 
@@ -152,28 +152,28 @@ Auto-Combo 引擎使用**13 因子评分函数**（定义在 `open-sse/services/
 
 OmniRoute 的 Combo 引擎支持 **19 种公开路由策略**（声明在 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。Auto Combo 引擎本身以 `auto` 策略对外暴露；其余策略供持久化 Combo 使用。
 
-| 策略                  | 描述                                                                                       |
-| :-------------------- | :----------------------------------------------------------------------------------------- |
-| `priority`            | 带显式优先级的首个目标顺序列表                                                              |
-| `weighted`            | 按每目标权重的加权随机                                                                     |
-| `round-robin`         | 按顺序轮流遍历目标                                                                         |
-| `context-relay`       | 跨目标交接上下文（长对话）                                                                  |
-| `fill-first`          | 填满每个目标的配额后再移到下一个                                                            |
-| `p2c`                 | Power-of-2-choices 随机负载均衡                                                             |
-| `random`              | 均匀随机选择                                                                               |
-| `least-used`          | 选择当前负载最低的目标                                                                     |
-| `cost-optimized`      | 根据目录定价最小化每次请求的 $                                                              |
-| `reset-aware` ⭐      | 按配额重置时间优先——较短的重置窗口排名更高                                                  |
-| `reset-window`        | 偏好配额窗口最快重置的目标                                                                  |
-| `headroom`            | 选择剩余配额余量最多的目标                                                                  |
-| `strict-random`       | 无去重重复的随机选择                                                                        |
-| `auto`                | 使用 Auto Combo 评分（13 因子）——**推荐**                                                   |
-| `lkgp`                | 上一次成功路径（粘性路由到上次成功的目标）                                                  |
-| `context-optimized`   | 选择最适合当前上下文大小的目标                                                              |
-| `cache-optimized`     | 按 prompt cache affinity 重新排序目标                                                        |
-| `fusion` 🧬           | 并行扩散到一组评审团模型，然后通过裁判模型合成一个答案（见下文）                              |
+| 策略                | 描述                                                             |
+| :------------------ | :--------------------------------------------------------------- |
+| `priority`          | 带显式优先级的首个目标顺序列表                                   |
+| `weighted`          | 按每目标权重的加权随机                                           |
+| `round-robin`       | 按顺序轮流遍历目标                                               |
+| `context-relay`     | 跨目标交接上下文（长对话）                                       |
+| `fill-first`        | 填满每个目标的配额后再移到下一个                                 |
+| `p2c`               | Power-of-2-choices 随机负载均衡                                  |
+| `random`            | 均匀随机选择                                                     |
+| `least-used`        | 选择当前负载最低的目标                                           |
+| `cost-optimized`    | 根据目录定价最小化每次请求的 $                                   |
+| `reset-aware` ⭐    | 按配额重置时间优先——较短的重置窗口排名更高                       |
+| `reset-window`      | 偏好配额窗口最快重置的目标                                       |
+| `headroom`          | 选择剩余配额余量最多的目标                                       |
+| `strict-random`     | 无去重重复的随机选择                                             |
+| `auto`              | 使用 Auto Combo 评分（13 因子）——**推荐**                        |
+| `lkgp`              | 上一次成功路径（粘性路由到上次成功的目标）                       |
+| `context-optimized` | 选择最适合当前上下文大小的目标                                   |
+| `cache-optimized`   | 按 prompt cache affinity 重新排序目标                            |
+| `fusion`            | 并行扩散到一组评审团模型，然后通过裁判模型合成一个答案（见下文） |
 
-⭐ = v3.8.0 新增 · 🧬 = v3.8.36 新增
+⭐ = v3.8.0 新增 · = v3.8.36 新增
 
 ## Fusion 策略
 
@@ -190,12 +190,12 @@ OmniRoute 的 Combo 引擎支持 **19 种公开路由策略**（声明在 `src/s
 
 在 Combo 的 `config` blob 上配置（无需 Schema 迁移——复用现有的 `combos` 表）：
 
-| 字段                                      | 类型     | 默认值             | 用途                                                                              |
-| :---------------------------------------- | :------- | :----------------- | :-------------------------------------------------------------------------------- |
-| `config.judgeModel`                       | `string` | 第一个评审团模型   | 合成最终答案的模型                                                                |
-| `config.fusionTuning.minPanel`            | `number` | `2`                | 宽限计时器启动前需要的成功答案数（限制在 `[2, panelSize]` 范围内）                |
-| `config.fusionTuning.stragglerGraceMs`    | `number` | `8000`             | 达到法定人数后等待落后者的时长                                                    |
-| `config.fusionTuning.panelHardTimeoutMs`  | `number` | `90000`            | 绝对上限，防止一个挂起的模型阻塞整个请求                                          |
+| 字段                                     | 类型     | 默认值           | 用途                                                               |
+| :--------------------------------------- | :------- | :--------------- | :----------------------------------------------------------------- |
+| `config.judgeModel`                      | `string` | 第一个评审团模型 | 合成最终答案的模型                                                 |
+| `config.fusionTuning.minPanel`           | `number` | `2`              | 宽限计时器启动前需要的成功答案数（限制在 `[2, panelSize]` 范围内） |
+| `config.fusionTuning.stragglerGraceMs`   | `number` | `8000`           | 达到法定人数后等待落后者的时长                                     |
+| `config.fusionTuning.panelHardTimeoutMs` | `number` | `90000`          | 绝对上限，防止一个挂起的模型阻塞整个请求                           |
 
 默认值见 `FUSION_DEFAULTS`（`open-sse/services/fusion.ts`）。
 
@@ -365,13 +365,13 @@ class LatencyStrategyImpl implements RouterStrategy {
 
 按候选满足已配置 SLO 策略的程度评分：
 
-| 因子              | 权重 | 公式                                              |
-| ----------------- | ---- | ------------------------------------------------- |
-| 延迟评分          | 35%  | `threshold / max(value, ε)`                       |
-| 错误评分          | 35%  | `threshold / max(value, ε)`                       |
-| 健康评分          | 15%  | `1.0`（CLOSED）/ `0.5`（HALF_OPEN）/ `0.0`（OPEN） |
-| 成本评分          | 10%  | `threshold / max(value, ε)` 或反向归一化          |
-| 稳定性评分        | 5%   | 反向归一化延迟标准差                              |
+| 因子       | 权重 | 公式                                               |
+| ---------- | ---- | -------------------------------------------------- |
+| 延迟评分   | 35%  | `threshold / max(value, ε)`                        |
+| 错误评分   | 35%  | `threshold / max(value, ε)`                        |
+| 健康评分   | 15%  | `1.0`（CLOSED）/ `0.5`（HALF_OPEN）/ `0.0`（OPEN） |
+| 成本评分   | 10%  | `threshold / max(value, ε)` 或反向归一化           |
+| 稳定性评分 | 5%   | 反向归一化延迟标准差                               |
 
 当 `hardConstraints: true` 时，候选主要按**违规评分**（超出任何 SLO 的程度）排序，然后按综合评分。否则仅按综合评分。
 
@@ -488,13 +488,13 @@ registerStrategy("my-custom", new MyCustomStrategy());
 
 ### Router 策略选择指南
 
-| 使用场景     | 策略        | 原因                               |
-| ------------ | ----------- | ---------------------------------- |
-| 均衡工作负载 | `rules`     | 默认——考虑所有因素               |
-| 最小化成本   | `cost`      | 始终选择最便宜的                   |
-| 最小化延迟   | `latency`   | 选择最快且可靠的服务商             |
-| 严格 SLO     | `sla-aware` | 按 p95/错误/成本阈值过滤          |
-| 多轮聊天     | `lkgp`      | 会话粘性                           |
+| 使用场景     | 策略        | 原因                     |
+| ------------ | ----------- | ------------------------ |
+| 均衡工作负载 | `rules`     | 默认——考虑所有因素       |
+| 最小化成本   | `cost`      | 始终选择最便宜的         |
+| 最小化延迟   | `latency`   | 选择最快且可靠的服务商   |
+| 严格 SLO     | `sla-aware` | 按 p95/错误/成本阈值过滤 |
+| 多轮聊天     | `lkgp`      | 会话粘性                 |
 
 SLA-aware 字段：
 
@@ -554,11 +554,11 @@ SLA-aware 字段：
 
 ### 有人值守的实时冒烟测试（非 CI —— 真实服务商）
 
-| 命令                                    | 功能                                                                             |
-| :-------------------------------------- | :------------------------------------------------------------------------------- |
-| `npm run test:combo:live`               | 进程内真实路由，`RUN_COMBO_LIVE=1`；对活跃的 OmniRoute 数据库做快照               |
-| `npm run test:combo:live:vps`           | 针对活跃的 OmniRoute 服务器进行 HTTP 调用（设置 `COMBO_LIVE_BASE_URL`）            |
-| `npm run test:combo:live:vps:failover`  | 同上，包含预定的容灾方案场景                                                      |
+| 命令                                   | 功能                                                                    |
+| :------------------------------------- | :---------------------------------------------------------------------- |
+| `npm run test:combo:live`              | 进程内真实路由，`RUN_COMBO_LIVE=1`；对活跃的 OmniRoute 数据库做快照     |
+| `npm run test:combo:live:vps`          | 针对活跃的 OmniRoute 服务器进行 HTTP 调用（设置 `COMBO_LIVE_BASE_URL`） |
+| `npm run test:combo:live:vps:failover` | 同上，包含预定的容灾方案场景                                            |
 
 这些冒烟测试演练了真实的网络路径（Combo → 服务商 → 补全）。它们被特地从 CI 中排除，因为需要真实凭据和 VPS 访问。
 
@@ -566,15 +566,15 @@ SLA-aware 字段：
 
 ## 文件
 
-| 文件                                                        | 用途                                                                      |
-| :---------------------------------------------------------- | :------------------------------------------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`                    | 13 因子评分函数、`DEFAULT_WEIGHTS`、池归一化                               |
-| `open-sse/services/autoCombo/taskFitness.ts`                | 模型 × 任务适配度查找                                                       |
-| `open-sse/services/autoCombo/engine.ts`                     | 选择逻辑、bandit、预算上限                                                   |
-| `open-sse/services/autoCombo/selfHealing.ts`                | 排除、探测、事故模式                                                        |
-| `open-sse/services/autoCombo/modePacks.ts`                  | 4 种权重配置（ship-fast、cost-saver、quality-first、offline-friendly）      |
-| `open-sse/services/autoCombo/autoPrefix.ts`                 | `auto/` 前缀解析器 + 6 种变体                                                |
-| `open-sse/services/autoCombo/virtualFactory.ts`             | 从活跃连接构建仅内存的 `AutoComboConfig`                                     |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts`   | 模拟服务商注册表的测试 hook                                                 |
-| `src/shared/constants/routingStrategies.ts`                 | `ROUTING_STRATEGY_VALUES`（19 种公开策略）                                  |
-| `src/sse/handlers/chat.ts`                                  | 集成：auto 前缀短路                                                         |
+| 文件                                                      | 用途                                                                   |
+| :-------------------------------------------------------- | :--------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 13 因子评分函数、`DEFAULT_WEIGHTS`、池归一化                           |
+| `open-sse/services/autoCombo/taskFitness.ts`              | 模型 × 任务适配度查找                                                  |
+| `open-sse/services/autoCombo/engine.ts`                   | 选择逻辑、bandit、预算上限                                             |
+| `open-sse/services/autoCombo/selfHealing.ts`              | 排除、探测、事故模式                                                   |
+| `open-sse/services/autoCombo/modePacks.ts`                | 4 种权重配置（ship-fast、cost-saver、quality-first、offline-friendly） |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` 前缀解析器 + 6 种变体                                          |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | 从活跃连接构建仅内存的 `AutoComboConfig`                               |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | 模拟服务商注册表的测试 hook                                            |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`（19 种公开策略）                             |
+| `src/sse/handlers/chat.ts`                                | 集成：auto 前缀短路                                                    |

@@ -1,10 +1,10 @@
 ---
-title: "📖 Przewodnik instalacji — OmniRoute"
+title: " Przewodnik instalacji — OmniRoute"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# 📖 Przewodnik instalacji — OmniRoute
+# Przewodnik instalacji — OmniRoute
 
 > Kompletne odniesienie do instalacji OmniRoute. Szybka wersja: [Szybki start w README](../README.md#-quick-start).
 

@@ -383,15 +383,15 @@ Zachowywane są zarówno **head**, jak i **tail** każdej sekcji; środkowa tre�
 
 ### Co zostaje, a co jest wycinane
 
-| Treść                      | minimal      | standard     | aggressive   |
-| -------------------------- | ------------ | ------------ | ------------ |
-| Błędy / stack trace'y      | ✅ zachowane | ✅ zachowane | ✅ zachowane |
-| Porażki testów             | ✅ zachowane | ✅ zachowane | ✅ zachowane |
-| Błędy builda               | ✅ zachowane | ✅ zachowane | ✅ zachowane |
-| Przejścia testów (verbose) | ✅ zachowane | 🟡 zwinięte  | 🟡 zwinięte  |
-| Rutynowe wyjście (info)    | 🟡 zwinięte  | 🟡 zwinięte  | ❌ usunięte  |
-| Paski postępu              | 🟡 zwinięte  | ❌ usunięte  | ❌ usunięte  |
-| Banner / ASCII art         | 🟡 zwinięte  | ❌ usunięte  | ❌ usunięte  |
+| Treść                      | minimal   | standard  | aggressive |
+| -------------------------- | --------- | --------- | ---------- |
+| Błędy / stack trace'y      | zachowane | zachowane | zachowane  |
+| Porażki testów             | zachowane | zachowane | zachowane  |
+| Błędy builda               | zachowane | zachowane | zachowane  |
+| Przejścia testów (verbose) | zachowane | zwinięte  | zwinięte   |
+| Rutynowe wyjście (info)    | zwinięte  | zwinięte  | usunięte   |
+| Paski postępu              | zwinięte  | usunięte  | usunięte   |
+| Banner / ASCII art         | zwinięte  | usunięte  | usunięte   |
 
 ### Wybór właściwej intensywności
 

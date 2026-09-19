@@ -1,10 +1,10 @@
 ---
-title: "🌐 Przewodnik po proxy OmniRoute"
+title: " Przewodnik po proxy OmniRoute"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# 🌐 Przewodnik po proxy OmniRoute
+# Przewodnik po proxy OmniRoute
 
 > **Omijaj blokady geograficzne, chroń tożsamość i kieruj ruch AI przez dowolne proxy — bez złożonej konfiguracji.**
 
@@ -89,10 +89,10 @@ OmniRoute obsługuje konfigurację proxy w **czterech niezależnych zakresach**,
 ```
 Priority Resolution Order (highest → lowest):
 
-  1. 🔵 Account/Connection Proxy  →  per API key / OAuth connection
-  2. 🟡 Provider Proxy            →  per provider (e.g., all OpenAI traffic)
-  3. 🟠 Combo Proxy               →  per combo/routing configuration
-  4. 🟢 Global Proxy              →  all traffic, all providers
+  1. Account/Connection Proxy  →  per API key / OAuth connection
+  2. Provider Proxy            →  per provider (e.g., all OpenAI traffic)
+  3. Combo Proxy               →  per combo/routing configuration
+  4. Global Proxy              →  all traffic, all providers
 ```
 
 ### Jak działa rozwiązywanie
@@ -110,14 +110,14 @@ Pierwsze dopasowanie wygrywa. Oznacza to, że możesz ustawić globalne proxy ja
 
 | Typ ruchu             | Proxy? | Uwagi                                             |
 | --------------------- | ------ | ------------------------------------------------- |
-| Chat completions      | ✅     | Wszystkie żądania `/v1/chat/completions`          |
-| Embeddings            | ✅     | `/v1/embeddings`                                  |
-| Generowanie obrazów   | ✅     | `/v1/images/generations`                          |
-| Audio (TTS/STT)       | ✅     | `/v1/audio/*`                                     |
-| Wymiana tokenów OAuth | ✅     | Rozwiązuje `unsupported_country_region_territory` |
-| Testy połączeń        | ✅     | Przycisk „Test Connection” używa proxy            |
-| Odświeżanie tokenów   | ✅     | Tło: odnawianie OAuth                             |
-| Sync modeli           | ✅     | Listowanie i odkrywanie modeli                    |
+| Chat completions      |        | Wszystkie żądania `/v1/chat/completions`          |
+| Embeddings            |        | `/v1/embeddings`                                  |
+| Generowanie obrazów   |        | `/v1/images/generations`                          |
+| Audio (TTS/STT)       |        | `/v1/audio/*`                                     |
+| Wymiana tokenów OAuth |        | Rozwiązuje `unsupported_country_region_territory` |
+| Testy połączeń        |        | Przycisk „Test Connection” używa proxy            |
+| Odświeżanie tokenów   |        | Tło: odnawianie OAuth                             |
+| Sync modeli           |        | Listowanie i odkrywanie modeli                    |
 
 ---
 
@@ -261,7 +261,7 @@ Dzieje się to raz przy pierwszym starcie po upgrade. Użyj `migrateLegacyProxyC
 
 ## 1proxy — darmowy marketplace
 
-> 🆕 **Wkład [@oyi77](https://github.com/oyi77)** — PR [#1847](https://github.com/diegosouzapw/OmniRoute/pull/1847) (Issue [#1788](https://github.com/diegosouzapw/OmniRoute/issues/1788))
+> **Wkład [@oyi77](https://github.com/oyi77)** — PR [#1847](https://github.com/diegosouzapw/OmniRoute/pull/1847) (Issue [#1788](https://github.com/diegosouzapw/OmniRoute/issues/1788))
 
 OmniRoute integruje się z platformą społecznościową **[1proxy](https://1proxy-api.aitradepulse.com)**, by dać dostęp do **setek darmowych, zwalidowanych proxy** z całego świata. Idealne dla użytkowników bez własnej infrastruktury proxy.
 
@@ -398,9 +398,9 @@ Kolorowe odznaki w dashboardzie pokazują, który poziom proxy jest aktywny:
 
 | Odznaka | Poziom     | Znaczenie                                  |
 | ------- | ---------- | ------------------------------------------ |
-| 🟢      | Global     | Cały ruch idzie przez to proxy             |
-| 🟡      | Provider   | Tylko ruch tego dostawcy jest proxyowany   |
-| 🔵      | Connection | Ten konkretny key/account używa tego proxy |
+|         | Global     | Cały ruch idzie przez to proxy             |
+|         | Provider   | Tylko ruch tego dostawcy jest proxyowany   |
+|         | Connection | Ten konkretny key/account używa tego proxy |
 
 Odznaka pokazuje też rozwiązane IP proxy do weryfikacji.
 
@@ -768,7 +768,7 @@ evenly)
 
 ---
 
-> 📖 **Powiązana dokumentacja:**
+> **Powiązana dokumentacja:**
 >
 > - [User Guide](../guides/USER_GUIDE.md) — Ogólna konfiguracja i setup
 > - [API Reference](../reference/API_REFERENCE.md) — Pełna dokumentacja API

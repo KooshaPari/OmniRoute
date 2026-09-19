@@ -1,6 +1,6 @@
 # Security Policy (Eesti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [el](../el/SECURITY.md) · [es](../es/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [ga](../ga/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hr](../hr/SECURITY.md) · [hu](../hu/SECURITY.md) · [id](../id/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [lv](../lv/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [mt](../mt/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [tr](../tr/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-CN](../zh-CN/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -22,11 +22,11 @@ Kui avastate OmniRoute'is turvanõrkuse, teatage sellest vastutustundlikult:
 
 ## Toetatud versioonid
 
-| Versioon | Toe olek     |
-| -------- | ------------ |
-| 3.8.x    | ✅ Aktiivne  |
-| 3.7.x    | ✅ Turvatugi |
-| < 3.7.0  | ❌ Toetamata |
+| Versioon | Toe olek  |
+| -------- | --------- |
+| 3.8.x    | Aktiivne  |
+| 3.7.x    | Turvatugi |
+| < 3.7.0  | Toetamata |
 
 ---
 
@@ -40,7 +40,7 @@ Päring → CORS → Autoriseerimiskonveier (klassifitseerimine → reeglid → 
        → Sageduspiiraja → Kaitselüliti → Ooteaeg → Mudeli lukustus → Teenusepakkuja
 ```
 
-### 🔐 Autentimine ja autoriseerimine
+### Autentimine ja autoriseerimine
 
 | Funktsioon                      | Teostus                                                                                                                                                                      |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,7 +54,7 @@ Päring → CORS → Autoriseerimiskonveier (klassifitseerimine → reeglid → 
 | **Manage-ulatusega MCP**        | Kaugjuurdepääs marsruudile `/api/mcp/*` on piiratud `manage`-ulatusega API-võtmetega; `/api/cli-tools/runtime/*` jääb rangelt tagasisideahela-põhiseks. Vt ROUTE_GUARD_TIERS |
 | **MCP ulatused**                | 32 üksikasjalikku ulatust (read:health, write:combos, execute:completions jne) — vt `docs/frameworks/MCP-SERVER.md`                                                          |
 
-### 🛡️ Andmete krüpteerimine jõudeolekus
+### Andmete krüpteerimine jõudeolekus
 
 Kõik SQLite'i talletatud tundlikud andmed krüpteeritakse algoritmiga **AES-256-GCM**, kasutades scrypt-võtmetuletust:
 
@@ -67,7 +67,7 @@ Kõik SQLite'i talletatud tundlikud andmed krüpteeritakse algoritmiga **AES-256
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Kaitsepiirete raamistik
+### Kaitsepiirete raamistik
 
 OmniRoute sisaldab käigult uuesti laaditavat **kaitsepiirete registrit** (`src/lib/guardrails/`) kolme sisseehitatud kaitsepiirdega, mis on järjestatud prioriteedi alusel:
 
@@ -79,7 +79,7 @@ OmniRoute sisaldab käigult uuesti laaditavat **kaitsepiirete registrit** (`src/
 
 Kohandatud kaitsepiirded registreeritakse käsuga `registerGuardrail(new MyGuardrail())`. Mudel töötab tõrke korral avatult (erandid ei blokeeri kunagi liiklust). Üksikpäringu tasemel saab loobuda päise `x-omniroute-disabled-guardrails` abil. → Vt [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Kaitse viibasüstide vastu
+### Kaitse viibasüstide vastu
 
 Parima võimaliku tulemuse põhimõttel töötav heuristiline vahevara, mis tuvastab LLM-päringutes viibasüsti mustreid.
 **See ei ole täielik viibasüstide tulemüür** — see võib anda valepositiivseid (ohutud
@@ -105,7 +105,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (süstereegel; pärandrežiim "reda
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (vaikimisi) | medium | low — selle või kõrgema taseme tõsidused blokeeritakse režiimis block
 ```
 
-### 🔒 PII redigeerimine
+### PII redigeerimine
 
 Isikut tuvastada võimaldava teabe automaatne tuvastamine ja valikuline redigeerimine:
 
@@ -123,7 +123,7 @@ PII_REDACTION_ENABLED=true   # päringu PII ümberkirjutamine; sõltumatu muutuj
 PII_RESPONSE_SANITIZATION=true  # valikuline: redigeeri klientidele tagastatavates teenusepakkuja vastustes olev PII
 ```
 
-### 🌐 Võrguturve
+### Võrguturve
 
 | Funktsioon                 | Kirjeldus                                                                                                 |
 | -------------------------- | --------------------------------------------------------------------------------------------------------- |
@@ -134,7 +134,7 @@ PII_RESPONSE_SANITIZATION=true  # valikuline: redigeeri klientidele tagastatavat
 | **TLS-sõrmejälg**          | Brauserilaadse TLS-sõrmejälje matkimine robotituvastuse vähendamiseks                                     |
 | **CLI-sõrmejälg**          | Teenusepakkujapõhine päiste/keha järjestus loomulike CLI-signatuuride jäljendamiseks                      |
 
-### 🔌 Tõrkekindlus ja saadavus
+### Tõrkekindlus ja saadavus
 
 | Funktsioon                   | Kirjeldus                                                                                     |
 | ---------------------------- | --------------------------------------------------------------------------------------------- |
@@ -143,7 +143,7 @@ PII_RESPONSE_SANITIZATION=true  # valikuline: redigeeri klientidele tagastatavat
 | **Eksponentsiaalne ooteaeg** | Automaatne korduskatse järjest pikenevate viivitustega                                        |
 | **Seisundi juhtpaneel**      | Teenusepakkujate seisundi jälgimine reaalajas                                                 |
 
-### 📋 Nõuetele vastavus
+### Nõuetele vastavus
 
 | Funktsioon               | Kirjeldus                                                                       |
 | ------------------------ | ------------------------------------------------------------------------------- |

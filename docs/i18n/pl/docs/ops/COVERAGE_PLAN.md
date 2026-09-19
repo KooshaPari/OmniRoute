@@ -44,11 +44,11 @@ Zalecana linia bazowa to liczba, względem której należy optymalizować.
 
 | Faza    |                    Cel | Fokus                                                  | Status      |
 | ------- | ---------------------: | ------------------------------------------------------ | ----------- |
-| Phase 1 | 60% statements / lines | Szybkie wygrane i niskoryzykowne pokrycie utility      | ✅ Done     |
-| Phase 2 | 65% statements / lines | Fundamenty DB i tras                                   | ✅ Done     |
-| Phase 3 | 70% statements / lines | Walidacja providerów i analityka użycia                | ✅ Done     |
-| Phase 4 | 75% statements / lines | Translatory i helpery `open-sse`                       | ✅ Done     |
-| Phase 5 | 80% statements / lines | Handlery `open-sse` i gałęzie executorów               | ✅ Done     |
+| Phase 1 | 60% statements / lines | Szybkie wygrane i niskoryzykowne pokrycie utility      | Done        |
+| Phase 2 | 65% statements / lines | Fundamenty DB i tras                                   | Done        |
+| Phase 3 | 70% statements / lines | Walidacja providerów i analityka użycia                | Done        |
+| Phase 4 | 75% statements / lines | Translatory i helpery `open-sse`                       | Done        |
+| Phase 5 | 80% statements / lines | Handlery `open-sse` i gałęzie executorów               | Done        |
 | Phase 6 | 85% statements / lines | Trudniejsze edge case’y, dług gałęzi, suite’y regresji | In progress |
 | Phase 7 | 90% statements / lines | Finalny przegląd, domknięcie luk, ścisły ratchet       | Pending     |
 

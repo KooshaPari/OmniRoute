@@ -1,6 +1,6 @@
 # Security Policy (Latviešu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [el](../el/SECURITY.md) · [es](../es/SECURITY.md) · [et](../et/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [ga](../ga/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hr](../hr/SECURITY.md) · [hu](../hu/SECURITY.md) · [id](../id/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [mt](../mt/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [tr](../tr/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-CN](../zh-CN/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -22,11 +22,11 @@ Ja atklājat drošības ievainojamību OmniRoute, lūdzu, ziņojiet par to atbil
 
 ## Atbalstītās versijas
 
-| Versija | Atbalsta statuss     |
-| ------- | -------------------- |
-| 3.8.x   | ✅ Aktīva            |
-| 3.7.x   | ✅ Drošības atbalsts |
-| < 3.7.0 | ❌ Nav atbalstīta    |
+| Versija | Atbalsta statuss  |
+| ------- | ----------------- |
+| 3.8.x   | Aktīva            |
+| 3.7.x   | Drošības atbalsts |
+| < 3.7.0 | Nav atbalstīta    |
 
 ---
 
@@ -40,7 +40,7 @@ Pieprasījums → CORS → Autorizācijas konveijers (klasificēšana → politi
        → Ātruma ierobežotājs → Ķēdes pārtraucējs → Atdzišanas periods → Modeļa bloķēšana → Nodrošinātājs
 ```
 
-### 🔐 Autentifikācija un autorizācija
+### Autentifikācija un autorizācija
 
 | Funkcija                             | Implementācija                                                                                                                                                                           |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,7 +54,7 @@ Pieprasījums → CORS → Autorizācijas konveijers (klasificēšana → politi
 | **Manage-scope MCP**                 | Attālināta piekļuve `/api/mcp/*` tiek kontrolēta ar API atslēgām, kurām ir `manage` tvērums; `/api/cli-tools/runtime/*` paliek stingri ierobežota ar loopback. Skatiet ROUTE_GUARD_TIERS |
 | **MCP tvērumi**                      | 32 detalizēti tvērumi (read:health, write:combos, execute:completions u. c.) — skatiet `docs/frameworks/MCP-SERVER.md`                                                                   |
 
-### 🛡️ Šifrēšana miera stāvoklī
+### Šifrēšana miera stāvoklī
 
 Visi SQLite saglabātie sensitīvie dati tiek šifrēti, izmantojot **AES-256-GCM** ar scrypt atslēgas atvasināšanu:
 
@@ -67,7 +67,7 @@ Visi SQLite saglabātie sensitīvie dati tiek šifrēti, izmantojot **AES-256-GC
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Aizsargmehānismu ietvars
+### Aizsargmehānismu ietvars
 
 OmniRoute komplektācijā ir iekļauts dinamiski pārlādējams **aizsargmehānismu reģistrs** (`src/lib/guardrails/`) ar 3 iebūvētiem aizsargmehānismiem, kas sakārtoti pēc prioritātes:
 
@@ -79,7 +79,7 @@ OmniRoute komplektācijā ir iekļauts dinamiski pārlādējams **aizsargmehāni
 
 Pielāgoti aizsargmehānismi tiek reģistrēti, izmantojot `registerGuardrail(new MyGuardrail())`. Modelis darbojas pēc principa fail-open (izņēmumi nekad nebloķē datplūsmu). Atteikšanās no aizsargmehānismiem katram pieprasījumam atsevišķi, izmantojot `x-omniroute-disabled-guardrails` galveni. → Skatiet [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Uzvedņu injekciju aizsargs
+### Uzvedņu injekciju aizsargs
 
 Heiristisks starpprogrammatūras risinājums ar labāko iespējamo efektivitāti, kas nosaka uzvedņu injekciju modeļus LLM pieprasījumos.  
 **Tas nav pilnīgs uzvedņu injekciju ugunsmūris** — var rasties kļūdaini pozitīvi rezultāti (nekaitīgas
@@ -105,7 +105,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (injekciju politika; mantotais "red
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (noklusējums) | medium | low — nopietnības līmeņi, sākot ar norādīto, tiek bloķēti block režīmā
 ```
 
-### 🔒 PII noņemšana
+### PII noņemšana
 
 Automātiska personu identificējošas informācijas noteikšana un, pēc izvēles, noņemšana:
 
@@ -123,7 +123,7 @@ PII_REDACTION_ENABLED=true   # pieprasīt PII pārrakstīšanu; neatkarīgi no I
 PII_RESPONSE_SANITIZATION=true  # pēc izvēles: noņemt PII no klientiem atgrieztajām nodrošinātāju atbildēm
 ```
 
-### 🌐 Tīkla drošība
+### Tīkla drošība
 
 | Funkcija                                 | Apraksts                                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
@@ -134,7 +134,7 @@ PII_RESPONSE_SANITIZATION=true  # pēc izvēles: noņemt PII no klientiem atgrie
 | **TLS pirkstu nospiedums**               | Pārlūkprogrammai līdzīga TLS pirkstu nospieduma viltošana, lai mazinātu robotu noteikšanu          |
 | **CLI pirkstu nospiedums**               | Galveņu/satura secība katram nodrošinātājam, lai atbilstu sākotnējā CLI parakstiem                 |
 
-### 🔌 Noturība un pieejamība
+### Noturība un pieejamība
 
 | Funkcija                           | Apraksts                                                                          |
 | ---------------------------------- | --------------------------------------------------------------------------------- |
@@ -143,7 +143,7 @@ PII_RESPONSE_SANITIZATION=true  # pēc izvēles: noņemt PII no klientiem atgrie
 | **Eksponenciāla atkāpšanās**       | Automātiska atkārtota mēģināšana ar pieaugošām aizturēm                           |
 | **Veselības informācijas panelis** | Nodrošinātāju veselības uzraudzība reāllaikā                                      |
 
-### 📋 Atbilstība
+### Atbilstība
 
 | Funkcija                        | Apraksts                                                               |
 | ------------------------------- | ---------------------------------------------------------------------- |

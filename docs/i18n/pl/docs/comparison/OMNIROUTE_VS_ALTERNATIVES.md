@@ -15,28 +15,28 @@ Obiektywne porównanie funkcji z popularnymi open-source'owymi routerami AI.
 | --------------------------------------------------- | :------------------------------------------------: | :------------: | :---------------: | :---------: |
 | **Dostawcy**                                        |                      **329**                       |      ~100      |        ~50        |     ~30     |
 | **Dostawcy free-tier**                              |               **155 wpisy katalogu**               |      n/a       |    passthrough    |     n/a     |
-| **Self-hosting**                                    |                         ✅                         |       ✅       |        ❌         |   ⚠ paid    |
-| **Dostawcy OAuth (Claude, Codex, Copilot itd.)**    |               **23 wpisy katalogu**                |    partial     |        ❌         |     ❌      |
+| **Self-hosting**                                    |                                                    |                |                   |    paid     |
+| **Dostawcy OAuth (Claude, Codex, Copilot itd.)**    |               **23 wpisy katalogu**                |    partial     |                   |             |
 | **Combo z auto-fallbackiem**                        |                  **19 strategii**                  | priority-based |    tier-based     |  weighted   |
-| **Fusion (panel równoległy + synteza sędziego)**    |                         ✅                         |       ❌       |        ❌         |     ❌      |
-| **Fallback Tier 1/2/3 (subskrypcja→tani→darmowy)**  |                      ✅ + UI                       |     manual     |        n/a        |   manual    |
+| **Fusion (panel równoległy + synteza sędziego)**    |                                                    |                |                   |             |
+| **Fallback Tier 1/2/3 (subskrypcja→tani→darmowy)**  |                        + UI                        |     manual     |        n/a        |   manual    |
 | **Kompresja tokenów**                               | pipeline 12 silników (RTK + Caveman + LLMLingua-2) |      none      |       none        |    none     |
-| **Generowanie multimodalne (speech/music/video)**   |                         ✅                         |       ❌       |    passthrough    |     ❌      |
-| **Wbudowany serwer MCP**                            |              ✅ 107 tools, 32 scopes               |       ❌       |        ❌         |     ❌      |
-| **Protokół A2A**                                    |                    ✅ 6 skills                     |       ❌       |        ❌         |     ❌      |
-| **Pamięć (FTS5 + vector)**                          |                         ✅                         |       ❌       |        ❌         |     ❌      |
-| **Guardrails (PII, injection, vision)**             |                         ✅                         |    partial     |        ❌         |   ✅ paid   |
-| **Integracje cloud agent**                          |            Codex, Cursor, Devin, Jules             |       ❌       |        ❌         |     ❌      |
-| **Circuit breaker per dostawca**                    |             ✅ 3 stany, lazy recovery              |     basic      |        ❌         |     ✅      |
-| **Stealth odcisku TLS (JA3/JA4)**                   |                     ✅ wreq-js                     |       ❌       |        ❌         |     ❌      |
-| **Framework ewaluacji**                             |                    ✅ built-in                     |       ❌       |        ❌         |   ⚠ paid    |
-| **Proxy MITM (przechwytuje Cursor/Antigravity)**    |                 ✅ cross-platform                  |       ❌       |        ❌         |     ❌      |
-| **CLI z tacką systemową (bez Electron)**            |                         ✅                         |       ❌       |        n/a        |     n/a     |
-| **CLI auto-auth po machine-ID**                     |                         ✅                         |       ❌       |        n/a        |     n/a     |
+| **Generowanie multimodalne (speech/music/video)**   |                                                    |                |    passthrough    |             |
+| **Wbudowany serwer MCP**                            |                107 tools, 32 scopes                |                |                   |             |
+| **Protokół A2A**                                    |                      6 skills                      |                |                   |             |
+| **Pamięć (FTS5 + vector)**                          |                                                    |                |                   |             |
+| **Guardrails (PII, injection, vision)**             |                                                    |    partial     |                   |    paid     |
+| **Integracje cloud agent**                          |            Codex, Cursor, Devin, Jules             |                |                   |             |
+| **Circuit breaker per dostawca**                    |               3 stany, lazy recovery               |     basic      |                   |             |
+| **Stealth odcisku TLS (JA3/JA4)**                   |                      wreq-js                       |                |                   |             |
+| **Framework ewaluacji**                             |                      built-in                      |                |                   |    paid     |
+| **Proxy MITM (przechwytuje Cursor/Antigravity)**    |                   cross-platform                   |                |                   |             |
+| **CLI z tacką systemową (bez Electron)**            |                                                    |                |        n/a        |     n/a     |
+| **CLI auto-auth po machine-ID**                     |                                                    |                |        n/a        |     n/a     |
 | **Dashboard**                                       |                     Next.js 16                     |     basic      |    proprietary    | proprietary |
-| **i18n**                                            |                  **42+ locales**                   |       ❌       |        ❌         |      ⚠      |
-| **Publiczne agent skills (SKILL.md)**               |                       ✅ 43                        |       ❌       |        ❌         |     ❌      |
-| **Wsparcie tuneli (Cloudflared, Tailscale, Ngrok)** |                         ✅                         |       ❌       |        n/a        |     n/a     |
+| **i18n**                                            |                  **42+ locales**                   |                |                   |             |
+| **Publiczne agent skills (SKILL.md)**               |                         43                         |                |                   |             |
+| **Wsparcie tuneli (Cloudflared, Tailscale, Ngrok)** |                                                    |                |        n/a        |     n/a     |
 | **Licencja**                                        |                        MIT                         |      MIT       |    proprietary    | proprietary |
 
 ## Kiedy wybrać OmniRoute

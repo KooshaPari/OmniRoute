@@ -99,7 +99,7 @@ jako globalne ustawienie `customBannedSignals` przez `PATCH /api/settings`). Są
 przy zapisie (oraz przy starcie) przez `setCustomBannedSignals()`. Każde słowo
 kluczowe ma limit 200 znaków; nie ma limitu długości tablicy.
 
-**⚠ Ryzyko false-positive — wybieraj konkretne frazy.** Detekcja to surowe
+** Ryzyko false-positive — wybieraj konkretne frazy.** Detekcja to surowe
 dopasowanie podciągu na całym ciele odpowiedzi, a trafienie jest **trwałe**
 (1-roczny cooldown, ręczny recovery). Zbyt ogólne słowo kluczowe może zbanować
 w pełni zdrowe połączenie:

@@ -31,21 +31,21 @@ This means you can:
 
 | Feature           | 9router | anti-api | llm-interceptor | **OmniRoute AgentBridge** |
 | ----------------- | :-----: | :------: | :-------------: | :-----------------------: |
-| Antigravity       |    ✓    |    ✓     |        —        |             ✓             |
-| GitHub Copilot    |    ✓    |    ✓     |        —        |             ✓             |
-| Kiro (AWS)        |    ✓    |    ✓     |        —        |             ✓             |
-| OpenAI Codex      |    —    |    ✓     |        —        |             ✓             |
-| Cursor IDE        |    ✓    |    ✓     |        —        |             ✓             |
-| Zed Industries    |    —    |    ✓     |        —        |             ✓             |
-| Claude Code       |    —    |    —     |        ✓        |             ✓             |
-| Open Code         |    —    |    —     |        ✓        |             ✓             |
-| Trae              |    —    |    —     |        —        |     🔍 Investigating      |
-| Dashboard UI      |    ✓    |    ✗     |        ✗        |             ✓             |
-| Traffic Inspector |    ✗    |    ✗     |        ✓        |             ✓             |
-| OmniRoute routing |    ✗    |    ✗     |        ✗        |             ✓             |
-| Model mapping UI  |    ✗    |    ✗     |        ✗        |             ✓             |
-| Bypass list       |    ✗    |    ✗     |        ✓        |             ✓             |
-| Upstream CA cert  |    ✗    |    ✗     |        ✓        |             ✓             |
+| Antigravity       |         |          |        —        |                           |
+| GitHub Copilot    |         |          |        —        |                           |
+| Kiro (AWS)        |         |          |        —        |                           |
+| OpenAI Codex      |    —    |          |        —        |                           |
+| Cursor IDE        |         |          |        —        |                           |
+| Zed Industries    |    —    |          |        —        |                           |
+| Claude Code       |    —    |    —     |                 |                           |
+| Open Code         |    —    |    —     |                 |                           |
+| Trae              |    —    |    —     |        —        |       Investigating       |
+| Dashboard UI      |         |          |                 |                           |
+| Traffic Inspector |         |          |                 |                           |
+| OmniRoute routing |         |          |                 |                           |
+| Model mapping UI  |         |          |                 |                           |
+| Bypass list       |         |          |                 |                           |
+| Upstream CA cert  |         |          |                 |                           |
 
 ---
 
@@ -287,7 +287,7 @@ The dashboard exposes a **Maintenance & Diagnostics** card (`AgentBridgeMaintena
 
 | Button            | Route                                  | What it does                                                                                                                                                                     |
 | ----------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Diagnose**      | `GET /api/tools/agent-bridge/diagnose` | Runs the capture-pipeline self-test and shows a per-check report (✓/✗ + remediation hint).                                                                                       |
+| **Diagnose**      | `GET /api/tools/agent-bridge/diagnose` | Runs the capture-pipeline self-test and shows a per-check report (/ + remediation hint).                                                                                         |
 | **Repair**        | `POST /api/tools/agent-bridge/repair`  | Undoes orphaned MITM system state (DNS spoof entries, root CA, system proxy) left behind by a crash or SIGKILL. Idempotent — reports "Nothing to repair" when state is clean.    |
 | **Remove CA**     | `DELETE /api/tools/agent-bridge/cert`  | Untrusts and removes the MITM root CA from the OS trust store (explicit, idempotent). Shown only when the CA is currently trusted; requires an inline "Remove CA?" confirmation. |
 | **Export config** | `GET /api/tools/agent-bridge/config`   | Downloads the portable config JSON (see §3.7).                                                                                                                                   |
@@ -343,17 +343,17 @@ What is **NOT** in the config: server running state, cert paths, per-agent DNS s
 
 ## §4 Per-agent reference
 
-| #   | Agent              | Status           | Hosts intercepted                                                  | Auth type      |
-| --- | ------------------ | ---------------- | ------------------------------------------------------------------ | -------------- |
-| 1   | **Antigravity**    | ✅ Supported     | `daily-cloudcode-pa.googleapis.com`, `cloudcode-pa.googleapis.com` | Firebase OAuth |
-| 2   | **Kiro (AWS)**     | ✅ Supported     | `prod.kiro.aws`, `dev.kiro.aws`                                    | AWS SigV4      |
-| 3   | **GitHub Copilot** | ✅ Supported     | `api.githubcopilot.com`, `copilot-proxy.githubusercontent.com`     | GitHub OAuth   |
-| 4   | **OpenAI Codex**   | ✅ Supported     | `api.openai.com` (Codex paths), `chatgpt.com`                      | OpenAI key     |
-| 5   | **Cursor IDE**     | ✅ Supported     | `api2.cursor.sh`, `api.cursor.sh`                                  | Cursor OAuth   |
-| 6   | **Zed Industries** | ✅ Supported     | `api.zed.dev`, `llm.zed.dev`                                       | Zed OAuth      |
-| 7   | **Claude Code**    | ✅ Supported     | `api.anthropic.com` (opt-in)                                       | Anthropic key  |
-| 8   | **Open Code**      | ✅ Supported     | `openrouter.ai`, `api.openai.com` (zen paths)                      | API key        |
-| 9   | **Trae**           | 🔍 Investigating | TBD — see §8                                                       | TBD            |
+| #   | Agent              | Status        | Hosts intercepted                                                  | Auth type      |
+| --- | ------------------ | ------------- | ------------------------------------------------------------------ | -------------- |
+| 1   | **Antigravity**    | Supported     | `daily-cloudcode-pa.googleapis.com`, `cloudcode-pa.googleapis.com` | Firebase OAuth |
+| 2   | **Kiro (AWS)**     | Supported     | `prod.kiro.aws`, `dev.kiro.aws`                                    | AWS SigV4      |
+| 3   | **GitHub Copilot** | Supported     | `api.githubcopilot.com`, `copilot-proxy.githubusercontent.com`     | GitHub OAuth   |
+| 4   | **OpenAI Codex**   | Supported     | `api.openai.com` (Codex paths), `chatgpt.com`                      | OpenAI key     |
+| 5   | **Cursor IDE**     | Supported     | `api2.cursor.sh`, `api.cursor.sh`                                  | Cursor OAuth   |
+| 6   | **Zed Industries** | Supported     | `api.zed.dev`, `llm.zed.dev`                                       | Zed OAuth      |
+| 7   | **Claude Code**    | Supported     | `api.anthropic.com` (opt-in)                                       | Anthropic key  |
+| 8   | **Open Code**      | Supported     | `openrouter.ai`, `api.openai.com` (zen paths)                      | API key        |
+| 9   | **Trae**           | Investigating | TBD — see §8                                                       | TBD            |
 
 ### Setup wizard steps (per agent)
 

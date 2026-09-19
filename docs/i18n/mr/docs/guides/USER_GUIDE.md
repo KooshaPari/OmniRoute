@@ -1,6 +1,6 @@
 # User Guide (मराठी)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇬🇷 [el](../../../el/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+**Languages:** [English](../../../../guides/USER_GUIDE.md) · [ar](../../../ar/docs/guides/USER_GUIDE.md) · [az](../../../az/docs/guides/USER_GUIDE.md) · [bg](../../../bg/docs/guides/USER_GUIDE.md) · [bn](../../../bn/docs/guides/USER_GUIDE.md) · [cs](../../../cs/docs/guides/USER_GUIDE.md) · [da](../../../da/docs/guides/USER_GUIDE.md) · [de](../../../de/docs/guides/USER_GUIDE.md) · [el](../../../el/docs/guides/USER_GUIDE.md) · [es](../../../es/docs/guides/USER_GUIDE.md) · [et](../../../et/docs/guides/USER_GUIDE.md) · [fa](../../../fa/docs/guides/USER_GUIDE.md) · [fi](../../../fi/docs/guides/USER_GUIDE.md) · [fr](../../../fr/docs/guides/USER_GUIDE.md) · [ga](../../../ga/docs/guides/USER_GUIDE.md) · [gu](../../../gu/docs/guides/USER_GUIDE.md) · [he](../../../he/docs/guides/USER_GUIDE.md) · [hi](../../../hi/docs/guides/USER_GUIDE.md) · [hr](../../../hr/docs/guides/USER_GUIDE.md) · [hu](../../../hu/docs/guides/USER_GUIDE.md) · [id](../../../id/docs/guides/USER_GUIDE.md) · [it](../../../it/docs/guides/USER_GUIDE.md) · [ja](../../../ja/docs/guides/USER_GUIDE.md) · [ko](../../../ko/docs/guides/USER_GUIDE.md) · [lt](../../../lt/docs/guides/USER_GUIDE.md) · [lv](../../../lv/docs/guides/USER_GUIDE.md) · [ms](../../../ms/docs/guides/USER_GUIDE.md) · [mt](../../../mt/docs/guides/USER_GUIDE.md) · [nl](../../../nl/docs/guides/USER_GUIDE.md) · [no](../../../no/docs/guides/USER_GUIDE.md) · [phi](../../../phi/docs/guides/USER_GUIDE.md) · [pl](../../../pl/docs/guides/USER_GUIDE.md) · [pt](../../../pt/docs/guides/USER_GUIDE.md) · [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · [ro](../../../ro/docs/guides/USER_GUIDE.md) · [ru](../../../ru/docs/guides/USER_GUIDE.md) · [sk](../../../sk/docs/guides/USER_GUIDE.md) · [sl](../../../sl/docs/guides/USER_GUIDE.md) · [sr](../../../sr/docs/guides/USER_GUIDE.md) · [sv](../../../sv/docs/guides/USER_GUIDE.md) · [sw](../../../sw/docs/guides/USER_GUIDE.md) · [ta](../../../ta/docs/guides/USER_GUIDE.md) · [te](../../../te/docs/guides/USER_GUIDE.md) · [th](../../../th/docs/guides/USER_GUIDE.md) · [tr](../../../tr/docs/guides/USER_GUIDE.md) · [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · [ur](../../../ur/docs/guides/USER_GUIDE.md) · [vi](../../../vi/docs/guides/USER_GUIDE.md) · [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
@@ -41,33 +41,33 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 
 ---
 
-## 💰 Pricing at a Glance
+## Pricing at a Glance
 
-| Tier                | Provider          | Cost        | Quota Reset           | Best For               |
-| ------------------- | ----------------- | ----------- | --------------------- | ---------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly           | Already subscribed     |
-|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly           | OpenAI users           |
-|                     | GitHub Copilot    | $10-19/mo   | Monthly               | GitHub users           |
-| **🔑 API KEY**      | DeepSeek          | Pay per use | None                  | Cheap reasoning        |
-|                     | Groq              | Pay per use | None                  | Ultra-fast inference   |
-|                     | xAI (Grok)        | Pay per use | None                  | Grok 4 reasoning       |
-|                     | Mistral           | Pay per use | None                  | EU-hosted models       |
-|                     | Perplexity        | Pay per use | None                  | Search-augmented       |
-|                     | Together AI       | Pay per use | None                  | Open-source models     |
-|                     | Fireworks AI      | Pay per use | None                  | Fast FLUX images       |
-|                     | Cerebras          | Pay per use | None                  | Wafer-scale speed      |
-|                     | Cohere            | Pay per use | None                  | Command R+ RAG         |
-|                     | NVIDIA NIM        | Pay per use | None                  | Enterprise models      |
-|                     | Baidu Qianfan     | Pay per use | None                  | ERNIE models           |
-| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM            | Budget backup          |
-|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling        | Cheapest option        |
-|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo         | Predictable cost       |
-| **🆓 FREE**         | Qoder             | $0          | Provider limits apply | Verify current catalog |
-|                     | Kiro              | $0          | ~50 credits/mo        | Claude free            |
+| Tier              | Provider          | Cost        | Quota Reset           | Best For               |
+| ----------------- | ----------------- | ----------- | --------------------- | ---------------------- |
+| ** SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly           | Already subscribed     |
+|                   | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly           | OpenAI users           |
+|                   | GitHub Copilot    | $10-19/mo   | Monthly               | GitHub users           |
+| ** API KEY**      | DeepSeek          | Pay per use | None                  | Cheap reasoning        |
+|                   | Groq              | Pay per use | None                  | Ultra-fast inference   |
+|                   | xAI (Grok)        | Pay per use | None                  | Grok 4 reasoning       |
+|                   | Mistral           | Pay per use | None                  | EU-hosted models       |
+|                   | Perplexity        | Pay per use | None                  | Search-augmented       |
+|                   | Together AI       | Pay per use | None                  | Open-source models     |
+|                   | Fireworks AI      | Pay per use | None                  | Fast FLUX images       |
+|                   | Cerebras          | Pay per use | None                  | Wafer-scale speed      |
+|                   | Cohere            | Pay per use | None                  | Command R+ RAG         |
+|                   | NVIDIA NIM        | Pay per use | None                  | Enterprise models      |
+|                   | Baidu Qianfan     | Pay per use | None                  | ERNIE models           |
+| ** CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM            | Budget backup          |
+|                   | MiniMax M2.1      | $0.2/1M     | 5-hour rolling        | Cheapest option        |
+|                   | Kimi K2           | $9/mo flat  | 10M tokens/mo         | Predictable cost       |
+| ** FREE**         | Qoder             | $0          | Provider limits apply | Verify current catalog |
+|                   | Kiro              | $0          | ~50 credits/mo        | Claude free            |
 
 ---
 
-## 🎯 Use Cases
+## Use Cases
 
 ### Case 1: "I have Claude Pro subscription"
 
@@ -128,11 +128,11 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## 📖 Provider Setup
+## Provider Setup
 
 To bulk-add API-key connections from a CSV or JSON file, use **Dashboard → Providers → Import from file**. Columns are positional (`provider,name,apiKey,baseUrl,priority`); `provider` must already exist as a managed provider or a compatible node. See [Import providers from a CSV or JSON file](../providers/CSV-IMPORT.md).
 
-### 🔐 Subscription Providers
+### Subscription Providers
 
 #### Claude Code (Pro/Max)
 
@@ -182,7 +182,7 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Cheap Providers
+### Cheap Providers
 
 #### GLM-4.7 (Daily reset, $0.6/1M)
 
@@ -213,7 +213,7 @@ Models:
 
 **Use:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, or another Qianfan OpenAI-compatible model ID.
 
-### 🆓 FREE Providers
+### FREE Providers
 
 No-auth free providers have a switch beside **No authentication required** on their provider page.
 Turning it off disables that provider, removes it from Providers configured/compact views, and
@@ -237,7 +237,7 @@ Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 
 ---
 
-## 🎨 Combos
+## Combos
 
 You can reorder combo cards directly in **Dashboard → Combos** by dragging the handle on each card. The order is stored in SQLite and restored on reload.
 
@@ -268,7 +268,7 @@ Cost: currently listed as $0; terms and availability may change
 
 ---
 
-## 🔧 CLI Integration
+## CLI Integration
 
 ### Cursor IDE
 
@@ -345,7 +345,7 @@ Model: cc/claude-opus-4-7
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### Global npm install (Recommended)
 
@@ -617,7 +617,7 @@ For the full environment variable reference, see the [README](../README.md).
 
 ---
 
-## 📊 Available Models
+## Available Models
 
 <details>
 <summary><b>View all available models</b></summary>
@@ -676,7 +676,7 @@ For the full environment variable reference, see the [README](../README.md).
 
 ---
 
-## 🧩 Advanced Features
+## Advanced Features
 
 ### Custom Models
 
@@ -1092,7 +1092,7 @@ Access via **Dashboard → Health**. Real-time system health overview with 6 car
 
 ---
 
-## 🤖 Auto-Routing (Zero-config)
+## Auto-Routing (Zero-config)
 
 OmniRoute ships with a **score-driven auto-router** that picks the best model for each request across every connected provider — no combo to maintain. Just send the request with one of the `auto/*` prefixes and OmniRoute will assemble a virtual combo on the fly, scoring candidates on latency, cost, success rate, context fit, model fitness for the task, recent failures, quota, and circuit-breaker state.
 
@@ -1123,7 +1123,7 @@ The auto-router is fully described in [AUTO-COMBO.md](../routing/AUTO-COMBO.md) 
 
 ---
 
-## 🔌 MCP & A2A Integration
+## MCP & A2A Integration
 
 OmniRoute is both an **MCP server** (Model Context Protocol) and an **A2A server** (Agent-to-Agent JSON-RPC 2.0). Any MCP-compatible IDE or agent host can call OmniRoute tools directly — no extra wrapper required.
 
@@ -1158,7 +1158,7 @@ MCP currently defines 32 named scopes. Each Bearer key can be limited to specifi
 
 ---
 
-## 🧠 Skills System
+## Skills System
 
 OmniRoute exposes an extensible **skill framework** (`src/lib/skills/`) so agents and the A2A endpoint can run domain-specific routines (e.g. `code-review`, `summarize`, `extract-facts`, `web-research`).
 
@@ -1170,7 +1170,7 @@ Full reference: [SKILLS.md](../frameworks/SKILLS.md).
 
 ---
 
-## 💾 Memory System
+## Memory System
 
 OmniRoute persists **long-term conversational memory** with hybrid retrieval:
 
@@ -1183,7 +1183,7 @@ Manage memories in **Dashboard → Memory** (search, edit, export, purge). The H
 
 ---
 
-## 🔔 Webhooks
+## Webhooks
 
 Subscribe to OmniRoute events for real-time monitoring and automation.
 
@@ -1196,7 +1196,7 @@ Full schema in [WEBHOOKS.md](../frameworks/WEBHOOKS.md).
 
 ---
 
-## ☁️ Cloud Agents
+## Cloud Agents
 
 OmniRoute integrates with cloud coding agents (**OpenAI Codex Cloud**, **Devin**, **Jules**, **Antigravity**) so you can dispatch long-running tasks from the same dashboard that handles your local routing.
 
@@ -1208,7 +1208,7 @@ Full reference: [CLOUD_AGENT.md](../frameworks/CLOUD_AGENT.md).
 
 ---
 
-## 🛠️ Programmatic Management
+## Programmatic Management
 
 You can manage every OmniRoute resource (providers, combos, keys, settings) over HTTP using a **Bearer key with the `manage` scope**.
 
@@ -1241,7 +1241,7 @@ See [API_REFERENCE.md](../reference/API_REFERENCE.md) for the full endpoint cata
 
 ---
 
-## 💻 Internal CLI
+## Internal CLI
 
 OmniRoute ships an internal CLI (`omniroute …`) for setup, diagnostics, and runtime control. This is **separate from the "CLI Tools" page in the dashboard**, which configures third-party CLIs (Claude Code, Cursor, Codex, Cline, …) so they can talk to OmniRoute.
 
@@ -1272,7 +1272,7 @@ Tip: pair `omniroute doctor --json` with your monitoring tool to alert on unheal
 
 ---
 
-## 🖥️ Desktop Application (Tauri 2)
+## Desktop Application (Tauri 2)
 
 OmniRoute is available as a native desktop application for Windows, macOS, and Linux, built on Tauri 2 (Rust shell + system webview).
 
@@ -1312,4 +1312,4 @@ Output → `apps/desktop/src-tauri/target/release/bundle/` (`macos/OmniRoute.app
 | `OMNIROUTE_PORT`      | `20128` | Server port                      |
 | `OMNIROUTE_MEMORY_MB` | `512`   | Node.js heap limit (64–16384 MB) |
 
-📖 Full documentation: [`apps/desktop/README.md`](../../apps/desktop/README.md)
+Full documentation: [`apps/desktop/README.md`](../../apps/desktop/README.md)

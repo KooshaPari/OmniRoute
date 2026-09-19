@@ -1,6 +1,6 @@
 # 安全策略 (中文 (简体))
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [el](../el/SECURITY.md) · [es](../es/SECURITY.md) · [et](../et/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [ga](../ga/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hr](../hr/SECURITY.md) · [hu](../hu/SECURITY.md) · [id](../id/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [lv](../lv/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [mt](../mt/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [tr](../tr/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -22,11 +22,11 @@
 
 ## 支持的版本
 
-| 版本    | 支持状态    |
-| ------- | ----------- |
-| 3.8.x   | ✅ 活跃支持 |
-| 3.7.x   | ✅ 安全维护 |
-| < 3.7.0 | ❌ 不再支持 |
+| 版本    | 支持状态 |
+| ------- | -------- |
+| 3.8.x   | 活跃支持 |
+| 3.7.x   | 安全维护 |
+| < 3.7.0 | 不再支持 |
 
 ---
 
@@ -40,7 +40,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
        → Rate Limiter → Circuit Breaker → Cooldown → Model Lockout → Provider
 ```
 
-### 🔐 认证与授权
+### 认证与授权
 
 | 特性                  | 实现                                                                                                                              |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,7 +54,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | **Manage 权限域 MCP** | 远程 `/api/mcp/*` 访问受拥有 `manage` 权限域的 API Key 管控；`/api/cli-tools/runtime/*` 保持严格 loopback。参见 ROUTE_GUARD_TIERS |
 | **MCP 权限域**        | 约 13 个细粒度权限域（read:health、write:combos、execute:completions 等）— 参见 `docs/frameworks/MCP-SERVER.md`                   |
 
-### 🛡️ 静态加密
+### 静态加密
 
 所有存储在 SQLite 中的敏感数据均使用 **AES-256-GCM** 加密，配合 scrypt 密钥派生：
 
@@ -67,7 +67,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ 安全护栏框架
+### 安全护栏框架
 
 OmniRoute 附带一个支持热重载的**安全护栏注册表**（`src/lib/guardrails/`），包含 3 个内置安全护栏，按优先级排序：
 
@@ -79,7 +79,7 @@ OmniRoute 附带一个支持热重载的**安全护栏注册表**（`src/lib/gua
 
 自定义安全护栏通过 `registerGuardrail(new MyGuardrail())` 注册。模型采用 fail-open 策略（异常不会阻断流量）。可通过 `x-omniroute-disabled-guardrails` 请求头按请求单独退出。→ 参见 [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md)。
 
-### 🧠 提示注入防护
+### 提示注入防护
 
 检测并阻止 LLM 请求中提示注入攻击的中间件：
 
@@ -98,7 +98,7 @@ INPUT_SANITIZER_ENABLED=true
 INPUT_SANITIZER_MODE=block    # warn | block | redact
 ```
 
-### 🔒 PII 脱敏
+### PII 脱敏
 
 自动检测并可选择性脱敏个人身份信息：
 
@@ -115,7 +115,7 @@ INPUT_SANITIZER_MODE=block    # warn | block | redact
 PII_REDACTION_ENABLED=true
 ```
 
-### 🌐 网络安全
+### 网络安全
 
 | 特性             | 描述                                                           |
 | ---------------- | -------------------------------------------------------------- |
@@ -126,7 +126,7 @@ PII_REDACTION_ENABLED=true
 | **TLS 指纹伪装** | 模拟浏览器 TLS 指纹，降低机器人检测                            |
 | **CLI 指纹伪装** | 按服务商定制请求头/正文顺序，匹配原生 CLI 签名                 |
 
-### 🔌 容灾与可用性
+### 容灾与可用性
 
 | 特性         | 描述                                                           |
 | ------------ | -------------------------------------------------------------- |
@@ -135,7 +135,7 @@ PII_REDACTION_ENABLED=true
 | **指数退避** | 自动重试，延迟时间逐次增加                                     |
 | **健康面板** | 服务商实时健康监控                                             |
 
-### 📋 合规
+### 合规
 
 | 特性               | 描述                                             |
 | ------------------ | ------------------------------------------------ |

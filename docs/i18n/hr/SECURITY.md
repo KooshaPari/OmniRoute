@@ -1,6 +1,6 @@
 # Security Policy (Hrvatski)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [el](../el/SECURITY.md) · [es](../es/SECURITY.md) · [et](../et/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [ga](../ga/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hu](../hu/SECURITY.md) · [id](../id/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [lv](../lv/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [mt](../mt/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [tr](../tr/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-CN](../zh-CN/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -24,9 +24,9 @@ Ako otkrijete sigurnosnu ranjivost u OmniRoute, molimo prijavite je odgovorno:
 
 | Verzija | Status podrške |
 | ------- | -------------- |
-| 3.8.x   | ✅ Aktivna     |
-| 3.7.x   | ✅ Sigurnosna  |
-| < 3.7.0 | ❌ Nepodržana  |
+| 3.8.x   | Aktivna        |
+| 3.7.x   | Sigurnosna     |
+| < 3.7.0 | Nepodržana     |
 
 ---
 
@@ -40,7 +40,7 @@ Zahtjev → CORS → Authz pipeline (klasifikacija → pravila → primjena)
         → Ograničivač brzine → Circuit Breaker → Cooldown → Blokiranje modela → Davatelj
 ```
 
-### 🔐 Autentifikacija i Autorizacija
+### Autentifikacija i Autorizacija
 
 | Značajka                        | Implementacija                                                                                                                                                   |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,7 +54,7 @@ Zahtjev → CORS → Authz pipeline (klasifikacija → pravila → primjena)
 | **MCP s upravljačkim opsegom**  | Udaljeni pristup `/api/mcp/*` kontroliran API ključevima s `manage` opsegom; `/api/cli-tools/runtime/*` ostaje strogo na loopbacku. Pogledajte ROUTE_GUARD_TIERS |
 | **MCP opsezi**                  | 32 granularna opsega (read:health, write:combos, execute:completions, itd.) — pogledajte `docs/frameworks/MCP-SERVER.md`                                         |
 
-### 🛡️ Enkripcija Podataka u Mirovanju
+### Enkripcija Podataka u Mirovanju
 
 Svi osjetljivi podaci pohranjeni u SQLite enkriptirani su pomoću **AES-256-GCM** s derivacijom ključa putem scrypt:
 
@@ -67,7 +67,7 @@ Svi osjetljivi podaci pohranjeni u SQLite enkriptirani su pomoću **AES-256-GCM*
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Okvir Zaštitnika
+### Okvir Zaštitnika
 
 OmniRoute isporučuje **registar zaštitnika** koji se može vruće ponovno učitati (`src/lib/guardrails/`) s 3 ugrađena zaštitnika poredana po prioritetu:
 
@@ -79,7 +79,7 @@ OmniRoute isporučuje **registar zaštitnika** koji se može vruće ponovno uči
 
 Prilagođeni zaštitnici registriraju se putem `registerGuardrail(new MyGuardrail())`. Model je fail-open (iznimke nikada ne blokiraju promet). Isključivanje po zahtjevu putem zaglavlja `x-omniroute-disabled-guardrails`. → Pogledajte [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Zaštita od Prompt Injectiona
+### Zaštita od Prompt Injectiona
 
 Heuristički međusloj koji se temelji na najboljim naporima i otkriva uzorke prompt injectiona u LLM zahtjevima.
 **Nije potpuni vatrozid za prompt injection** — može generirati lažne pozitive (bezopasni
@@ -105,7 +105,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (pravila injectiona; naslijeđeni "
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (zadano) | medium | low — ozbiljnosti na ovoj razini i iznad blokiraju se u block načinu
 ```
 
-### 🔒 Uklanjanje PII-a
+### Uklanjanje PII-a
 
 Automatsko otkrivanje i opcionalno uklanjanje osobnih podataka koji mogu identificirati osobu:
 
@@ -123,7 +123,7 @@ PII_REDACTION_ENABLED=true   # prepisivanje PII-a u zahtjevu; neovisno o INPUT_S
 PII_RESPONSE_SANITIZATION=true  # opcionalno: uklanjanje PII-a iz odgovora davatelja koji se vraćaju klijentima
 ```
 
-### 🌐 Mrežna Sigurnost
+### Mrežna Sigurnost
 
 | Značajka                         | Opis                                                                                    |
 | -------------------------------- | --------------------------------------------------------------------------------------- |
@@ -134,7 +134,7 @@ PII_RESPONSE_SANITIZATION=true  # opcionalno: uklanjanje PII-a iz odgovora davat
 | **TLS otisak prsta**             | Lažiranje TLS otiska prsta nalik pregledniku radi smanjenja detekcije botova            |
 | **CLI otisak prsta**             | Naručivanje zaglavlja/tijela po davatelju radi usklađivanja s izvornim CLI potpisima    |
 
-### 🔌 Otpornost i Dostupnost
+### Otpornost i Dostupnost
 
 | Značajka                    | Opis                                                                              |
 | --------------------------- | --------------------------------------------------------------------------------- |
@@ -143,7 +143,7 @@ PII_RESPONSE_SANITIZATION=true  # opcionalno: uklanjanje PII-a iz odgovora davat
 | **Eksponencijalni backoff** | Automatsko ponavljanje s povećavajućim odgodama                                   |
 | **Nadzorna ploča zdravlja** | Praćenje zdravlja davatelja u stvarnom vremenu                                    |
 
-### 📋 Usklađenost
+### Usklađenost
 
 | Značajka                      | Opis                                                                  |
 | ----------------------------- | --------------------------------------------------------------------- |

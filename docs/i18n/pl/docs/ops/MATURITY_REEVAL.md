@@ -35,7 +35,7 @@ SLSA L3, CodeQL advanced); o lado-código do programa está essencialmente compl
 
 ## 2. Deltas desde 2026-06-16 (o que as Ondas 0–3 entregaram)
 
-### 2.1 🔴→✅ Buraco fast-gates FECHADO (era a fraqueza estrutural #1)
+### 2.1 → Buraco fast-gates FECHADO (era a fraqueza estrutural #1)
 
 O baseline alertava: `quality.yml` (PR→`release/**`) rodava **só gates de filesystem** — sem
 typecheck, testes ou build —, então regressões determinísticas só explodiam no PR→`main`.
@@ -44,7 +44,7 @@ typecheck, testes ou build —, então regressões determinísticas só explodia
 fast-path do **vitest**, e shards de unit. O gate agora roda **onde o merge acontece** (shift-left),
 exatamente o princípio transversal que o playbook prescreve.
 
-### 2.2 🟠→✅ Mutation score virou CATRACA (era a fraqueza #3 / P0 #1)
+### 2.2 → Mutation score virou CATRACA (era a fraqueza #3 / P0 #1)
 
 O antídoto mais forte contra coverage-gaming estava **advisory**. **Hoje**:
 
@@ -54,7 +54,7 @@ O antídoto mais forte contra coverage-gaming estava **advisory**. **Hoje**:
 
 Resultado: o score de mutação por-módulo **não pode regredir** — cobertura deixou de ser vanity-metric.
 
-### 2.3 ✅ Quick-wins de gate (Fase 6A/7) entregues
+### 2.3 Quick-wins de gate (Fase 6A/7) entregues
 
 - **a11y axe-core "fake-green" corrigido:** `@axe-core/playwright` em devDeps; `a11y.spec.ts` com skip condicional `REQUIRE_AXE`; job no `nightly-resilience.yml`.
 - **complexity varre `bin/`:** `check-complexity.mjs` inclui esse diretório no `ESLINT_ARGS`.
@@ -64,20 +64,20 @@ Resultado: o score de mutação por-módulo **não pode regredir** — cobertura
 
 ## 3. As 12 categorias — situação (delta-focada)
 
-| #   | Categoria                          | Situação 06-30                                                                           |
-| --- | ---------------------------------- | ---------------------------------------------------------------------------------------- |
-| 1   | Estilo & formatação                | ✅ inalterado (Prettier+ESLint lint-staged)                                              |
-| 2   | Tipos                              | ✅ **reforçado** — `typecheck:core` agora também no gate PR→release                      |
-| 3   | Testes (intensidade)               | ✅ **reforçado** — mutation testing virou catraca; suíte determinística no gate-de-merge |
-| 4   | Política de testes (anti-gaming)   | ✅ inalterado (pr-test-policy/test-masking/pr-evidence)                                  |
-| 5   | Complexidade & saúde               | ✅ **reforçado** — complexity varre bin/                                                 |
-| 6   | Segurança estática (SAST+segredos) | 🟡 CodeQL default-setup (advanced = owner); semgrep cloud não-versionado                 |
-| 7   | Supply-chain (deps)                | ✅ inalterado (osv/audit/Trivy/Dependabot + allowlist)                                   |
-| 8   | Supply-chain (build/release)       | 🟡 SLSA L2 (L3 = builder hermético, owner/infra)                                         |
-| 9   | Contratos & API                    | 🟡 oasdiff/osv advisory (candidatos a bloqueante-com-escopo, P1)                         |
-| 10  | Docs & i18n (anti-rot)             | ✅ **reforçado** — `fabricated-docs --strict` bloqueante (verificado exit 0)             |
-| 11  | Anti-alucinação / consistência     | ✅ inalterado (known-symbols/fetch-targets/docs-symbols/db-rules)                        |
-| 12  | Resiliência & domínio              | ✅ inalterado (chaos/heap/k6/promptfoo/garak nightly)                                    |
+| #   | Categoria                          | Situação 06-30                                                                        |
+| --- | ---------------------------------- | ------------------------------------------------------------------------------------- |
+| 1   | Estilo & formatação                | inalterado (Prettier+ESLint lint-staged)                                              |
+| 2   | Tipos                              | **reforçado** — `typecheck:core` agora também no gate PR→release                      |
+| 3   | Testes (intensidade)               | **reforçado** — mutation testing virou catraca; suíte determinística no gate-de-merge |
+| 4   | Política de testes (anti-gaming)   | inalterado (pr-test-policy/test-masking/pr-evidence)                                  |
+| 5   | Complexidade & saúde               | **reforçado** — complexity varre bin/                                                 |
+| 6   | Segurança estática (SAST+segredos) | CodeQL default-setup (advanced = owner); semgrep cloud não-versionado                 |
+| 7   | Supply-chain (deps)                | inalterado (osv/audit/Trivy/Dependabot + allowlist)                                   |
+| 8   | Supply-chain (build/release)       | SLSA L2 (L3 = builder hermético, owner/infra)                                         |
+| 9   | Contratos & API                    | oasdiff/osv advisory (candidatos a bloqueante-com-escopo, P1)                         |
+| 10  | Docs & i18n (anti-rot)             | **reforçado** — `fabricated-docs --strict` bloqueante (verificado exit 0)             |
+| 11  | Anti-alucinação / consistência     | inalterado (known-symbols/fetch-targets/docs-symbols/db-rules)                        |
+| 12  | Resiliência & domínio              | inalterado (chaos/heap/k6/promptfoo/garak nightly)                                    |
 
 ---
 

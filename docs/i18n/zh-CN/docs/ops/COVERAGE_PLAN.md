@@ -1,6 +1,6 @@
 # 测试覆盖计划 (中文 (简体))
 
-🌐 **Languages:** 🇺🇸 [English](../../../../ops/COVERAGE_PLAN.md) · 🇸🇦 [ar](../../../ar/docs/ops/COVERAGE_PLAN.md) · 🇦🇿 [az](../../../az/docs/ops/COVERAGE_PLAN.md) · 🇧🇬 [bg](../../../bg/docs/ops/COVERAGE_PLAN.md) · 🇧🇩 [bn](../../../bn/docs/ops/COVERAGE_PLAN.md) · 🇨🇿 [cs](../../../cs/docs/ops/COVERAGE_PLAN.md) · 🇩🇰 [da](../../../da/docs/ops/COVERAGE_PLAN.md) · 🇩🇪 [de](../../../de/docs/ops/COVERAGE_PLAN.md) · 🇬🇷 [el](../../../el/docs/ops/COVERAGE_PLAN.md) · 🇪🇸 [es](../../../es/docs/ops/COVERAGE_PLAN.md) · 🇪🇪 [et](../../../et/docs/ops/COVERAGE_PLAN.md) · 🇮🇷 [fa](../../../fa/docs/ops/COVERAGE_PLAN.md) · 🇫🇮 [fi](../../../fi/docs/ops/COVERAGE_PLAN.md) · 🇫🇷 [fr](../../../fr/docs/ops/COVERAGE_PLAN.md) · 🇮🇪 [ga](../../../ga/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [gu](../../../gu/docs/ops/COVERAGE_PLAN.md) · 🇮🇱 [he](../../../he/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [hi](../../../hi/docs/ops/COVERAGE_PLAN.md) · 🇭🇷 [hr](../../../hr/docs/ops/COVERAGE_PLAN.md) · 🇭🇺 [hu](../../../hu/docs/ops/COVERAGE_PLAN.md) · 🇮🇩 [id](../../../id/docs/ops/COVERAGE_PLAN.md) · 🇮🇹 [it](../../../it/docs/ops/COVERAGE_PLAN.md) · 🇯🇵 [ja](../../../ja/docs/ops/COVERAGE_PLAN.md) · 🇰🇷 [ko](../../../ko/docs/ops/COVERAGE_PLAN.md) · 🇱🇹 [lt](../../../lt/docs/ops/COVERAGE_PLAN.md) · 🇱🇻 [lv](../../../lv/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [mr](../../../mr/docs/ops/COVERAGE_PLAN.md) · 🇲🇾 [ms](../../../ms/docs/ops/COVERAGE_PLAN.md) · 🇲🇹 [mt](../../../mt/docs/ops/COVERAGE_PLAN.md) · 🇳🇱 [nl](../../../nl/docs/ops/COVERAGE_PLAN.md) · 🇳🇴 [no](../../../no/docs/ops/COVERAGE_PLAN.md) · 🇵🇭 [phi](../../../phi/docs/ops/COVERAGE_PLAN.md) · 🇵🇱 [pl](../../../pl/docs/ops/COVERAGE_PLAN.md) · 🇵🇹 [pt](../../../pt/docs/ops/COVERAGE_PLAN.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/COVERAGE_PLAN.md) · 🇷🇴 [ro](../../../ro/docs/ops/COVERAGE_PLAN.md) · 🇷🇺 [ru](../../../ru/docs/ops/COVERAGE_PLAN.md) · 🇸🇰 [sk](../../../sk/docs/ops/COVERAGE_PLAN.md) · 🇸🇮 [sl](../../../sl/docs/ops/COVERAGE_PLAN.md) · 🇷🇸 [sr](../../../sr/docs/ops/COVERAGE_PLAN.md) · 🇸🇪 [sv](../../../sv/docs/ops/COVERAGE_PLAN.md) · 🇰🇪 [sw](../../../sw/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [ta](../../../ta/docs/ops/COVERAGE_PLAN.md) · 🇮🇳 [te](../../../te/docs/ops/COVERAGE_PLAN.md) · 🇹🇭 [th](../../../th/docs/ops/COVERAGE_PLAN.md) · 🇹🇷 [tr](../../../tr/docs/ops/COVERAGE_PLAN.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/COVERAGE_PLAN.md) · 🇵🇰 [ur](../../../ur/docs/ops/COVERAGE_PLAN.md) · 🇻🇳 [vi](../../../vi/docs/ops/COVERAGE_PLAN.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/COVERAGE_PLAN.md)
+**Languages:** [English](../../../../ops/COVERAGE_PLAN.md) · [ar](../../../ar/docs/ops/COVERAGE_PLAN.md) · [az](../../../az/docs/ops/COVERAGE_PLAN.md) · [bg](../../../bg/docs/ops/COVERAGE_PLAN.md) · [bn](../../../bn/docs/ops/COVERAGE_PLAN.md) · [cs](../../../cs/docs/ops/COVERAGE_PLAN.md) · [da](../../../da/docs/ops/COVERAGE_PLAN.md) · [de](../../../de/docs/ops/COVERAGE_PLAN.md) · [el](../../../el/docs/ops/COVERAGE_PLAN.md) · [es](../../../es/docs/ops/COVERAGE_PLAN.md) · [et](../../../et/docs/ops/COVERAGE_PLAN.md) · [fa](../../../fa/docs/ops/COVERAGE_PLAN.md) · [fi](../../../fi/docs/ops/COVERAGE_PLAN.md) · [fr](../../../fr/docs/ops/COVERAGE_PLAN.md) · [ga](../../../ga/docs/ops/COVERAGE_PLAN.md) · [gu](../../../gu/docs/ops/COVERAGE_PLAN.md) · [he](../../../he/docs/ops/COVERAGE_PLAN.md) · [hi](../../../hi/docs/ops/COVERAGE_PLAN.md) · [hr](../../../hr/docs/ops/COVERAGE_PLAN.md) · [hu](../../../hu/docs/ops/COVERAGE_PLAN.md) · [id](../../../id/docs/ops/COVERAGE_PLAN.md) · [it](../../../it/docs/ops/COVERAGE_PLAN.md) · [ja](../../../ja/docs/ops/COVERAGE_PLAN.md) · [ko](../../../ko/docs/ops/COVERAGE_PLAN.md) · [lt](../../../lt/docs/ops/COVERAGE_PLAN.md) · [lv](../../../lv/docs/ops/COVERAGE_PLAN.md) · [mr](../../../mr/docs/ops/COVERAGE_PLAN.md) · [ms](../../../ms/docs/ops/COVERAGE_PLAN.md) · [mt](../../../mt/docs/ops/COVERAGE_PLAN.md) · [nl](../../../nl/docs/ops/COVERAGE_PLAN.md) · [no](../../../no/docs/ops/COVERAGE_PLAN.md) · [phi](../../../phi/docs/ops/COVERAGE_PLAN.md) · [pl](../../../pl/docs/ops/COVERAGE_PLAN.md) · [pt](../../../pt/docs/ops/COVERAGE_PLAN.md) · [pt-BR](../../../pt-BR/docs/ops/COVERAGE_PLAN.md) · [ro](../../../ro/docs/ops/COVERAGE_PLAN.md) · [ru](../../../ru/docs/ops/COVERAGE_PLAN.md) · [sk](../../../sk/docs/ops/COVERAGE_PLAN.md) · [sl](../../../sl/docs/ops/COVERAGE_PLAN.md) · [sr](../../../sr/docs/ops/COVERAGE_PLAN.md) · [sv](../../../sv/docs/ops/COVERAGE_PLAN.md) · [sw](../../../sw/docs/ops/COVERAGE_PLAN.md) · [ta](../../../ta/docs/ops/COVERAGE_PLAN.md) · [te](../../../te/docs/ops/COVERAGE_PLAN.md) · [th](../../../th/docs/ops/COVERAGE_PLAN.md) · [tr](../../../tr/docs/ops/COVERAGE_PLAN.md) · [uk-UA](../../../uk-UA/docs/ops/COVERAGE_PLAN.md) · [ur](../../../ur/docs/ops/COVERAGE_PLAN.md) · [vi](../../../vi/docs/ops/COVERAGE_PLAN.md) · [zh-TW](../../../zh-TW/docs/ops/COVERAGE_PLAN.md)
 
 ---
 
@@ -40,15 +40,15 @@
 
 ## 里程碑
 
-| 阶段      |          目标 | 焦点                               | 状态      |
-| --------- | ------------: | ---------------------------------- | --------- |
-| 第 1 阶段 | 60% 语句 / 行 | 速赢项和低风险工具函数覆盖         | ✅ 已完成 |
-| 第 2 阶段 | 65% 语句 / 行 | 数据库和路由基础                   | ✅ 已完成 |
-| 第 3 阶段 | 70% 语句 / 行 | 服务商校验和用量分析               | ✅ 已完成 |
-| 第 4 阶段 | 75% 语句 / 行 | `open-sse` 翻译器与辅助函数        | ✅ 已完成 |
-| 第 5 阶段 | 80% 语句 / 行 | `open-sse` 处理器和执行器分支      | ✅ 已完成 |
-| 第 6 阶段 | 85% 语句 / 行 | 高难度边界情况、分支欠账、回归套件 | 进行中    |
-| 第 7 阶段 | 90% 语句 / 行 | 最终扫尾、填补缺口、严格递增       | 待开始    |
+| 阶段      |          目标 | 焦点                               | 状态   |
+| --------- | ------------: | ---------------------------------- | ------ |
+| 第 1 阶段 | 60% 语句 / 行 | 速赢项和低风险工具函数覆盖         | 已完成 |
+| 第 2 阶段 | 65% 语句 / 行 | 数据库和路由基础                   | 已完成 |
+| 第 3 阶段 | 70% 语句 / 行 | 服务商校验和用量分析               | 已完成 |
+| 第 4 阶段 | 75% 语句 / 行 | `open-sse` 翻译器与辅助函数        | 已完成 |
+| 第 5 阶段 | 80% 语句 / 行 | `open-sse` 处理器和执行器分支      | 已完成 |
+| 第 6 阶段 | 85% 语句 / 行 | 高难度边界情况、分支欠账、回归套件 | 进行中 |
+| 第 7 阶段 | 90% 语句 / 行 | 最终扫尾、填补缺口、严格递增       | 待开始 |
 
 每个阶段都应推动分支和函数覆盖率递增，但主要硬性目标是语句 / 行覆盖率。
 

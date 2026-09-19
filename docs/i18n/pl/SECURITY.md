@@ -18,11 +18,11 @@ Jeśli odkryjesz lukę bezpieczeństwa w OmniRoute, zgłoś ją w odpowiedzialny
 
 ## Wspierane wersje
 
-| Wersja  | Status wsparcia   |
-| ------- | ----------------- |
-| 3.8.x   | ✅ Aktywne        |
-| 3.7.x   | ✅ Bezpieczeństwo |
-| < 3.7.0 | ❌ Niewspierane   |
+| Wersja  | Status wsparcia |
+| ------- | --------------- |
+| 3.8.x   | Aktywne         |
+| 3.7.x   | Bezpieczeństwo  |
+| < 3.7.0 | Niewspierane    |
 
 ---
 
@@ -36,7 +36,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
        → Rate Limiter → Circuit Breaker → Cooldown → Model Lockout → Provider
 ```
 
-### 🔐 Uwierzytelnianie i autoryzacja
+### Uwierzytelnianie i autoryzacja
 
 | Funkcja               | Implementacja                                                                                                                                       |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -50,7 +50,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | **Manage-Scope MCP**  | Zdalny dostęp `/api/mcp/*` ograniczony kluczami API ze scope `manage`; `/api/cli-tools/runtime/*` pozostaje strict-loopback. Zob. ROUTE_GUARD_TIERS |
 | **MCP Scopes**        | 32 granularne scope'y (read:health, write:combos, execute:completions itd.) — zob. `docs/frameworks/MCP-SERVER.md`                                  |
 
-### 🛡️ Szyfrowanie w spoczynku
+### Szyfrowanie w spoczynku
 
 Wszystkie wrażliwe dane przechowywane w SQLite są szyfrowane algorytmem **AES-256-GCM** z derywacją klucza scrypt:
 
@@ -63,7 +63,7 @@ Wszystkie wrażliwe dane przechowywane w SQLite są szyfrowane algorytmem **AES-
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Framework Guardrails
+### Framework Guardrails
 
 OmniRoute dostarcza przeładowywalny na gorąco **rejestr guardrails** (`src/lib/guardrails/`) z 3 wbudowanymi guardrails uporządkowanymi według priorytetu:
 
@@ -75,7 +75,7 @@ OmniRoute dostarcza przeładowywalny na gorąco **rejestr guardrails** (`src/lib
 
 Własne guardrails rejestruje się przez `registerGuardrail(new MyGuardrail())`. Model jest fail-open (wyjątki nigdy nie blokują ruchu). Rezygnacja per żądanie przez nagłówek `x-omniroute-disabled-guardrails`. → Zob. [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Ochrona przed prompt injection
+### Ochrona przed prompt injection
 
 Heurystyczny middleware best-effort, który wykrywa wzorce prompt injection w żądaniach LLM.
 **To nie jest kompletna zapora przed prompt injection** — może generować fałszywe alarmy (nieszkodliwe
@@ -101,7 +101,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (injection policy; legacy "redact" 
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (default) | medium | low — severities at/above this are blocked in block mode
 ```
 
-### 🔒 Redakcja PII
+### Redakcja PII
 
 Automatyczne wykrywanie i opcjonalna redakcja danych osobowych (PII):
 
@@ -119,7 +119,7 @@ PII_REDACTION_ENABLED=true   # request PII rewrite; independent of INPUT_SANITIZ
 PII_RESPONSE_SANITIZATION=true  # optional: redact PII in provider responses returned to clients
 ```
 
-### 🌐 Bezpieczeństwo sieci
+### Bezpieczeństwo sieci
 
 | Funkcja                  | Opis                                                                            |
 | ------------------------ | ------------------------------------------------------------------------------- |
@@ -130,7 +130,7 @@ PII_RESPONSE_SANITIZATION=true  # optional: redact PII in provider responses ret
 | **TLS Fingerprint**      | Spoofing odcisku TLS jak w przeglądarce w celu ograniczenia detekcji botów      |
 | **CLI Fingerprint**      | Kolejność nagłówków/ciała per dostawca dopasowana do natywnych sygnatur CLI     |
 
-### 🔌 Odporność i dostępność
+### Odporność i dostępność
 
 | Funkcja                 | Opis                                                                 |
 | ----------------------- | -------------------------------------------------------------------- |
@@ -139,7 +139,7 @@ PII_RESPONSE_SANITIZATION=true  # optional: redact PII in provider responses ret
 | **Exponential Backoff** | Automatyczne ponawianie z rosnącymi opóźnieniami                     |
 | **Health Dashboard**    | Monitorowanie zdrowia dostawców w czasie rzeczywistym                |
 
-### 📋 Zgodność
+### Zgodność
 
 | Funkcja            | Opis                                                                     |
 | ------------------ | ------------------------------------------------------------------------ |

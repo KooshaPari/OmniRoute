@@ -70,11 +70,11 @@ model: "auto/cheap"           # cheapest per token
 
 **Kluczowe właściwości:**
 
-- ✅ **Always-on:** Bez przełącznika, bez tworzenia combo, bez konfiguracji
-- ✅ **Dynamiczne:** Automatycznie odzwierciedla aktualnie podłączonych providerów
-- ✅ **Session stickiness:** LKGP priorytetyzuje ostatniego udanego providera
-- ✅ **Świadomość multi-account:** Każde połączenie providera staje się osobnym kandydatem
-- ✅ **Bez zapisów do DB:** Wirtualne combo istnieje tylko na czas żądania, zerowy narzut persystencji
+- **Always-on:** Bez przełącznika, bez tworzenia combo, bez konfiguracji
+- **Dynamiczne:** Automatycznie odzwierciedla aktualnie podłączonych providerów
+- **Session stickiness:** LKGP priorytetyzuje ostatniego udanego providera
+- **Świadomość multi-account:** Każde połączenie providera staje się osobnym kandydatem
+- **Bez zapisów do DB:** Wirtualne combo istnieje tylko na czas żądania, zerowy narzut persystencji
 
 ### Kontrola kandydatów per-key (#7819, Level 1+2)
 
@@ -257,11 +257,11 @@ Silnik combo OmniRoute obsługuje **19 strategii routingu** (zadeklarowanych w `
 | `auto`              | Scoring Auto Combo (13-factor) — **zalecane**                                                                                           |
 | `lkgp`              | Last-Known-Good Path (lepka trasa do ostatniego udanego targetu)                                                                        |
 | `context-optimized` | Wybierz target najlepiej pasujący do bieżącego rozmiaru kontekstu                                                                       |
-| `cache-optimized`   | Uporządkuj targety według affinity prompt cache                                                                                          |
-| `fusion` 🧬         | Fan-out do panelu modeli równolegle, potem synteza jednej odpowiedzi przez judge (zob. poniżej)                                         |
+| `cache-optimized`   | Uporządkuj targety według affinity prompt cache                                                                                         |
+| `fusion`            | Fan-out do panelu modeli równolegle, potem synteza jednej odpowiedzi przez judge (zob. poniżej)                                         |
 | `pipeline`          | Uruchamia targety sekwencyjnie, przekładając output każdego kroku na input następnego; zwracana jest tylko ostateczna odpowiedź (#6396) |
 
-⭐ = Nowe w v3.8.0 · 🧬 = Nowe w v3.8.36
+⭐ = Nowe w v3.8.0 · = Nowe w v3.8.36
 
 ## Strategia Fusion
 

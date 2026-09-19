@@ -1,6 +1,6 @@
 # Security Policy (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [es](../es/SECURITY.md) · [et](../et/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [ga](../ga/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hr](../hr/SECURITY.md) · [hu](../hu/SECURITY.md) · [id](../id/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [lv](../lv/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [mt](../mt/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [tr](../tr/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-CN](../zh-CN/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -24,9 +24,9 @@
 
 | Έκδοση  | Κατάσταση Υποστήριξης |
 | ------- | --------------------- |
-| 3.8.x   | ✅ Ενεργή             |
-| 3.7.x   | ✅ Ασφάλεια           |
-| < 3.7.0 | ❌ Μη υποστηριζόμενη  |
+| 3.8.x   | Ενεργή                |
+| 3.7.x   | Ασφάλεια              |
+| < 3.7.0 | Μη υποστηριζόμενη     |
 
 ---
 
@@ -40,7 +40,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
        → Rate Limiter → Circuit Breaker → Cooldown → Model Lockout → Provider
 ```
 
-### 🔐 Αυθεντικοποίηση & Εξουσιοδότηση
+### Αυθεντικοποίηση & Εξουσιοδότηση
 
 | Λειτουργία                  | Υλοποίηση                                                                                                                                                          |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -54,7 +54,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | **Manage-Scope MCP**        | Η απομακρυσμένη πρόσβαση `/api/mcp/*` ελέγχεται από API keys με εμβέλεια `manage`· το `/api/cli-tools/runtime/*` παραμένει αυστηρά loopback. Βλ. ROUTE_GUARD_TIERS |
 | **MCP Scopes**              | 32 λεπτομερείς εμβέλειες (read:health, write:combos, execute:completions, κ.λπ.) — βλ. `docs/frameworks/MCP-SERVER.md`                                             |
 
-### 🛡️ Κρυπτογράφηση σε Ηρεμία
+### Κρυπτογράφηση σε Ηρεμία
 
 Όλα τα ευαίσθητα δεδομένα που αποθηκεύονται στο SQLite κρυπτογραφούνται με **AES-256-GCM** και παραγωγή κλειδιού scrypt:
 
@@ -67,7 +67,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Πλαίσιο Guardrails
+### Πλαίσιο Guardrails
 
 Το OmniRoute διαθέτει ένα **μητρώο guardrails** που επαναφορτώνεται εν ώρα λειτουργίας (`src/lib/guardrails/`) με 3 ενσωματωμένα guardrails ταξινομημένα κατά προτεραιότητα:
 
@@ -79,7 +79,7 @@ STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 
 Τα προσαρμοσμένα guardrails δηλώνονται μέσω `registerGuardrail(new MyGuardrail())`. Το μοντέλο είναι fail-open (οι εξαιρέσεις δεν αποκλείουν ποτέ την κίνηση). Απόρριψη ανά αίτημα μέσω της κεφαλίδας `x-omniroute-disabled-guardrails`. → Βλ. [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Φρουρός Έγχυσης Οδηγιών
+### Φρουρός Έγχυσης Οδηγιών
 
 Ευρετικό middleware καλύτερης προσπάθειας που ανιχνεύει μοτίβα έγχυσης οδηγιών σε αιτήματα LLM.
 **Δεν αποτελεί πλήρες τείχος προστασίας έγχυσης οδηγιών** — μπορεί να παράγει ψευδώς θετικά (αβλαβείς
@@ -105,7 +105,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (πολιτική έγχυσης· 
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (προεπιλογή) | medium | low — σοβαρότητες ίσες ή πάνω από αυτό αποκλείονται σε λειτουργία block
 ```
 
-### 🔒 Απόκρυψη PII
+### Απόκρυψη PII
 
 Αυτόματη ανίχνευση και προαιρετική απόκρυψη προσωπικά αναγνωρίσιμων πληροφοριών:
 
@@ -123,7 +123,7 @@ PII_REDACTION_ENABLED=true   # επανεγγραφή PII αιτήματος· �
 PII_RESPONSE_SANITIZATION=true  # προαιρετικό: απόκρυψη PII στις αποκρίσεις παρόχου που επιστρέφονται στους πελάτες
 ```
 
-### 🌐 Ασφάλεια Δικτύου
+### Ασφάλεια Δικτύου
 
 | Λειτουργία               | Περιγραφή                                                                            |
 | ------------------------ | ------------------------------------------------------------------------------------ |
@@ -134,7 +134,7 @@ PII_RESPONSE_SANITIZATION=true  # προαιρετικό: απόκρυψη PII �
 | **TLS Fingerprint**      | Πλαστογράφηση TLS fingerprint τύπου browser για μείωση ανίχνευσης bot                |
 | **CLI Fingerprint**      | Διάταξη κεφαλίδων/σώματος ανά πάροχο για αντιστοίχιση με υπογραφές native CLI        |
 
-### 🔌 Ανθεκτικότητα & Διαθεσιμότητα
+### Ανθεκτικότητα & Διαθεσιμότητα
 
 | Λειτουργία                | Περιγραφή                                                               |
 | ------------------------- | ----------------------------------------------------------------------- |
@@ -143,7 +143,7 @@ PII_RESPONSE_SANITIZATION=true  # προαιρετικό: απόκρυψη PII �
 | **Εκθετική Καθυστέρηση**  | Αυτόματη επανάληψη με αυξανόμενες καθυστερήσεις                         |
 | **Dashboard Υγείας**      | Παρακολούθηση υγείας παρόχου σε πραγματικό χρόνο                        |
 
-### 📋 Συμμόρφωση
+### Συμμόρφωση
 
 | Λειτουργία              | Περιγραφή                                                                      |
 | ----------------------- | ------------------------------------------------------------------------------ |

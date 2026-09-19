@@ -102,7 +102,7 @@ Domyślne URL-e:
 
 ## Przepływ pracy Git
 
-> ⚠️ **NIGDY nie commituj bezpośrednio do `main`.** Zawsze używaj branchy funkcyjnych.
+> **NIGDY nie commituj bezpośrednio do `main`.** Zawsze używaj branchy funkcyjnych.
 >
 > **Baza PR:** celuj w aktywny branch `release/vX.Y.Z` (nie `main`). Zobacz
 > [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md) dla modelu

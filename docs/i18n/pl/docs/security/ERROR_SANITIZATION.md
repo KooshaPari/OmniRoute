@@ -94,7 +94,7 @@ try {
 
 ### 4. Zabronione wzorce
 
-❌ **Nigdy** nie wstawiaj surowego wyjścia wyjątku do body Response:
+**Nigdy** nie wstawiaj surowego wyjścia wyjątku do body Response:
 
 ```ts
 // BAD: stack trace + file paths reach the client
@@ -103,16 +103,16 @@ return new Response(JSON.stringify({ error: { message: err.stack || err.message 
 });
 ```
 
-❌ **Nigdy** nie pisz własnego splittera pierwszej linii:
+**Nigdy** nie pisz własnego splittera pierwszej linii:
 
 ```ts
 // BAD: forgets to strip absolute paths, may drift from the canonical helper
 const safe = String(err).split("\n")[0];
 ```
 
-❌ **Nigdy** nie sanityzuj w route i nie zapominaj o ścieżce SSE. Wszystko, co pisze do strumienia, przechodzi przez `writeStreamError` (lub leżące pod spodem `buildErrorBody`).
+**Nigdy** nie sanityzuj w route i nie zapominaj o ścieżce SSE. Wszystko, co pisze do strumienia, przechodzi przez `writeStreamError` (lub leżące pod spodem `buildErrorBody`).
 
-❌ **Nigdy** nie umieszczaj `process.cwd()`, `__filename`, `__dirname`, ścieżek pochodzących z env w komunikatach błędów — omijają one regex ścieżek i ujawniają topologię wdrożenia.
+**Nigdy** nie umieszczaj `process.cwd()`, `__filename`, `__dirname`, ścieżek pochodzących z env w komunikatach błędów — omijają one regex ścieżek i ujawniają topologię wdrożenia.
 
 ## Pokrycie w CI
 

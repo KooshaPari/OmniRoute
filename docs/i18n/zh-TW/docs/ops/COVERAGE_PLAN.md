@@ -14,11 +14,11 @@ lastUpdated: 2026-06-28
 
 根據報告計算方式的不同，會有多組覆蓋率數字。在規劃上，只有其中一組具有參考價值。
 
-| 指標                   | 範圍                                                  | 陳述式／行 | 條件分支 | 函式      | 備註                                              |
-| ---------------------- | ----------------------------------------------------- | ---------: | -------: | --------: | ------------------------------------------------- |
-| 舊版                   | 舊有 `npm run test:coverage`                          |     79.42% |   75.15% |    67.94% | 失真：計入了測試檔且排除 `open-sse`                |
-| 診斷用                 | 僅原始碼，排除測試檔且排除 `open-sse`                 |     68.16% |   63.55% |    64.06% | 僅用於隔離 `src/**` 分析                          |
-| 建議基準               | 僅原始碼，排除測試檔且納入 `open-sse`                 |     82.58% |   75.22% |    84.23% | 這是應改善的專案級基準                             |
+| 指標     | 範圍                                  | 陳述式／行 | 條件分支 |   函式 | 備註                                |
+| -------- | ------------------------------------- | ---------: | -------: | -----: | ----------------------------------- |
+| 舊版     | 舊有 `npm run test:coverage`          |     79.42% |   75.15% | 67.94% | 失真：計入了測試檔且排除 `open-sse` |
+| 診斷用   | 僅原始碼，排除測試檔且排除 `open-sse` |     68.16% |   63.55% | 64.06% | 僅用於隔離 `src/**` 分析            |
+| 建議基準 | 僅原始碼，排除測試檔且納入 `open-sse` |     82.58% |   75.22% | 84.23% | 這是應改善的專案級基準              |
 
 建議基準是應優化的目標數字。
 
@@ -42,15 +42,15 @@ lastUpdated: 2026-06-28
 
 ## 里程碑
 
-| 階段     |                  目標 | 重點                                             | 狀態          |
-| -------- | -------------------: | ------------------------------------------------ | ------------- |
-| 第 1 階段 | 60% 陳述式／行       | 快速取勝與低風險通用工具覆蓋率                    | ✅ 已完成     |
-| 第 2 階段 | 65% 陳述式／行       | 資料庫與路由基礎                                  | ✅ 已完成     |
-| 第 3 階段 | 70% 陳述式／行       | Provider 驗證與使用分析                           | ✅ 已完成     |
-| 第 4 階段 | 75% 陳述式／行       | `open-sse` 轉換器與輔助工具                       | ✅ 已完成     |
-| 第 5 階段 | 80% 陳述式／行       | `open-sse` 處理器與執行器分支                     | ✅ 已完成     |
-| 第 6 階段 | 85% 陳述式／行       | 較難的邊界案例、分支負債、回歸測試套件            | 進行中        |
-| 第 7 階段 | 90% 陳述式／行       | 最終掃蕩、缺口補齊、嚴格棘輪機制                  | 待處理        |
+| 階段      |           目標 | 重點                                   | 狀態   |
+| --------- | -------------: | -------------------------------------- | ------ |
+| 第 1 階段 | 60% 陳述式／行 | 快速取勝與低風險通用工具覆蓋率         | 已完成 |
+| 第 2 階段 | 65% 陳述式／行 | 資料庫與路由基礎                       | 已完成 |
+| 第 3 階段 | 70% 陳述式／行 | Provider 驗證與使用分析                | 已完成 |
+| 第 4 階段 | 75% 陳述式／行 | `open-sse` 轉換器與輔助工具            | 已完成 |
+| 第 5 階段 | 80% 陳述式／行 | `open-sse` 處理器與執行器分支          | 已完成 |
+| 第 6 階段 | 85% 陳述式／行 | 較難的邊界案例、分支負債、回歸測試套件 | 進行中 |
+| 第 7 階段 | 90% 陳述式／行 | 最終掃蕩、缺口補齊、嚴格棘輪機制       | 待處理 |
 
 條件分支與函式應隨各階段逐步提升，但主要硬目標仍為陳述式／行。
 
@@ -58,28 +58,28 @@ lastUpdated: 2026-06-28
 
 這些檔案目前行覆蓋率最低（< 60%），在第 6–7 階段中能帶來最佳改善效益。資料來源為 `coverage/coverage-summary.json`（2026-05-13）：
 
-| #   | 檔案                                                          | 行覆蓋率 % |
-| --- | ------------------------------------------------------------- | --------: |
-| 1   | `open-sse/services/compression/validation.ts`                 |     7.87% |
-| 2   | `src/app/api/v1/batches/route.ts`                             |     9.67% |
-| 3   | `src/app/docs/components/FeedbackWidget.tsx`                  |     9.80% |
-| 4   | `open-sse/services/compression/toolResultCompressor.ts`       |    10.00% |
-| 5   | `src/app/docs/components/DocCodeBlocks.tsx`                   |    10.63% |
-| 6   | `open-sse/services/compression/engines/rtk/lineFilter.ts`     |    10.96% |
-| 7   | `open-sse/services/specificityRules.ts`                       |    11.28% |
-| 8   | `src/mitm/systemCommands.ts`                                  |    12.19% |
-| 9   | `open-sse/services/compression/aggressive.ts`                 |    12.77% |
-| 10  | `src/app/api/v1/batches/[id]/cancel/route.ts`                 |    12.98% |
-| 11  | `open-sse/services/compression/progressiveAging.ts`           |    13.26% |
-| 12  | `open-sse/services/compression/engines/rtk/smartTruncate.ts`  |    13.43% |
-| 13  | `open-sse/services/compression/engines/rtk/deduplicator.ts`   |    13.51% |
-| 14  | `src/lib/cloudAgent/agents/jules.ts`                          |    13.52% |
-| 15  | `open-sse/services/compression/lite.ts`                       |    14.46% |
-| 16  | `src/app/api/v1/rerank/route.ts`                              |    14.94% |
-| 17  | `open-sse/services/compression/preservation.ts`               |    15.07% |
-| 18  | `src/lib/cloudAgent/agents/codex.ts`                          |    15.54% |
-| 19  | `open-sse/services/tierResolver.ts`                           |    16.66% |
-| 20  | `src/app/docs/components/DocsLazyWrapper.tsx`                 |    16.66% |
+| #   | 檔案                                                         | 行覆蓋率 % |
+| --- | ------------------------------------------------------------ | ---------: |
+| 1   | `open-sse/services/compression/validation.ts`                |      7.87% |
+| 2   | `src/app/api/v1/batches/route.ts`                            |      9.67% |
+| 3   | `src/app/docs/components/FeedbackWidget.tsx`                 |      9.80% |
+| 4   | `open-sse/services/compression/toolResultCompressor.ts`      |     10.00% |
+| 5   | `src/app/docs/components/DocCodeBlocks.tsx`                  |     10.63% |
+| 6   | `open-sse/services/compression/engines/rtk/lineFilter.ts`    |     10.96% |
+| 7   | `open-sse/services/specificityRules.ts`                      |     11.28% |
+| 8   | `src/mitm/systemCommands.ts`                                 |     12.19% |
+| 9   | `open-sse/services/compression/aggressive.ts`                |     12.77% |
+| 10  | `src/app/api/v1/batches/[id]/cancel/route.ts`                |     12.98% |
+| 11  | `open-sse/services/compression/progressiveAging.ts`          |     13.26% |
+| 12  | `open-sse/services/compression/engines/rtk/smartTruncate.ts` |     13.43% |
+| 13  | `open-sse/services/compression/engines/rtk/deduplicator.ts`  |     13.51% |
+| 14  | `src/lib/cloudAgent/agents/jules.ts`                         |     13.52% |
+| 15  | `open-sse/services/compression/lite.ts`                      |     14.46% |
+| 16  | `src/app/api/v1/rerank/route.ts`                             |     14.94% |
+| 17  | `open-sse/services/compression/preservation.ts`              |     15.07% |
+| 18  | `src/lib/cloudAgent/agents/codex.ts`                         |     15.54% |
+| 19  | `open-sse/services/tierResolver.ts`                          |     16.66% |
+| 20  | `src/app/docs/components/DocsLazyWrapper.tsx`                |     16.66% |
 
 第 6–7 階段的主題：
 

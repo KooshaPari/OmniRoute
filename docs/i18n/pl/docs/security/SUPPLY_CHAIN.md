@@ -25,7 +25,7 @@ bez blokowania; krok _CRITICAL gate_ (`severity: CRITICAL`, `ignore-unfixed: tru
 `exit-code: 1`) oblewa release przy CRITICAL CVE **z dostępną poprawką**. `ignore-unfixed`
 zapobiega blokowaniu release z powodu CVE obrazu bazowego bez upstreamowego patcha.
 
-## ⚠️ Wariancja CVE (blokujące bramki osv/Trivy)
+## Wariancja CVE (blokujące bramki osv/Trivy)
 
 osv i Trivy porównują zależności z bazami CVE, które **ciągle rosną**. PR,
 który **nie dotyka żadnych zależności**, może nagle zredzić się, bo ujawniono nowe CVE

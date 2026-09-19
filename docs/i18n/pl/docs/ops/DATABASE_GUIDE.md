@@ -119,10 +119,10 @@ OmniRoute ma **94 pliki modułów** w `src/lib/db/`. Poniżej próbka kluczowych
 Kluczowa reguła architektoniczna: **moduły nie sięgają bezpośrednio do tabel innych modułów**. Aby pracować z danymi innego modułu, zaimportuj funkcję z tego modułu.
 
 ```ts
-// ❌ WRONG: direct SQL from another module
+// WRONG: direct SQL from another module
 db.prepare("SELECT * FROM provider_connections").all();
 
-// ✅ RIGHT: use the providers module function
+// RIGHT: use the providers module function
 import { listProviders } from "@/lib/db/providers";
 const providers = await listProviders();
 ```

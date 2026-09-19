@@ -156,7 +156,7 @@ DELETE /api/v1/agents/tasks/[id]
 
 ### Auth
 
-⚠️ **Wszystkie endpointy `/api/v1/agents/tasks/*` wymagają management auth** (commit `588a0333`). Wywołujący tylko Bearer dostają 401 od v3.8.0.
+**Wszystkie endpointy `/api/v1/agents/tasks/*` wymagają management auth** (commit `588a0333`). Wywołujący tylko Bearer dostają 401 od v3.8.0.
 
 ### Deep dive
 

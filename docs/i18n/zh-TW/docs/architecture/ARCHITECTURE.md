@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # OmniRoute 架構
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇬🇷 [el](../../../el/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇱 [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md)
+**Languages:** [English](../../../../architecture/ARCHITECTURE.md) · [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · [az](../../../az/docs/architecture/ARCHITECTURE.md) · [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · [da](../../../da/docs/architecture/ARCHITECTURE.md) · [de](../../../de/docs/architecture/ARCHITECTURE.md) · [el](../../../el/docs/architecture/ARCHITECTURE.md) · [es](../../../es/docs/architecture/ARCHITECTURE.md) · [et](../../../et/docs/architecture/ARCHITECTURE.md) · [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · [he](../../../he/docs/architecture/ARCHITECTURE.md) · [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · [id](../../../id/docs/architecture/ARCHITECTURE.md) · [it](../../../it/docs/architecture/ARCHITECTURE.md) · [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · [no](../../../no/docs/architecture/ARCHITECTURE.md) · [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · [pl](../../../pl/docs/architecture/ARCHITECTURE.md) · [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · [te](../../../te/docs/architecture/ARCHITECTURE.md) · [th](../../../th/docs/architecture/ARCHITECTURE.md) · [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md)
 
 _最後更新：2026-06-28_
 
@@ -910,64 +910,64 @@ flowchart LR
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md)（自動產生）或
 > `src/shared/constants/providers.ts`（載入時經 Zod 驗證）中的權威來源。
 
-| 提供者              | 格式             | 驗證                  | 串流             | 非串流 | 令牌刷新 | 用量 API         |
-| ------------------- | ---------------- | --------------------- | ---------------- | ------ | -------- | ---------------- |
-| Claude              | claude           | API 金鑰 / OAuth      | ✅               | ✅     | ✅       | ⚠️ 僅管理員      |
-| Gemini              | gemini           | API 金鑰 / OAuth      | ✅               | ✅     | ✅       | ⚠️ Cloud Console |
-| Antigravity         | antigravity      | OAuth                 | ✅               | ✅     | ✅       | ✅ 完整配額 API  |
-| OpenAI              | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Codex               | openai-responses | OAuth                 | ✅ 強制          | ❌     | ✅       | ✅ 速率限制      |
-| ChatGPT Web (Codex) | openai-responses | 瀏覽器工作階段        | ✅ 強制          | ❌     | ❌       | ❌               |
-| GitHub Copilot      | openai           | OAuth + Copilot 令牌  | ✅               | ✅     | ✅       | ✅ 配額快照      |
-| Cursor              | cursor           | 自訂 checksum         | ✅               | ✅     | ❌       | ❌               |
-| Kiro                | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌     | ✅       | ✅ 用量限制      |
-| Qoder               | openai           | OAuth / PAT           | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
-| Kilo Code           | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
-| Cline               | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
-| Kimi Coding         | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
-| OpenRouter          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| GLM/Kimi/MiniMax    | claude           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| DeepSeek            | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Groq                | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| xAI（Grok）         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Mistral             | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Perplexity          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Together AI         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Fireworks AI        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Cerebras            | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Cohere              | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| NVIDIA NIM          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Cloudflare AI       | openai           | API 令牌 + 帳戶 ID    | ✅               | ✅     | ❌       | ❌               |
-| Pollinations        | openai           | 無（無需金鑰）        | ✅               | ✅     | ❌       | ❌               |
-| Scaleway AI         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| LongCat             | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Ollama Cloud        | openai           | API 金鑰（選用）      | ✅               | ✅     | ❌       | ❌               |
-| HuggingFace         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Nebius              | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| SiliconFlow         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Hyperbolic          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Vertex AI           | gemini           | 服務帳戶              | ✅               | ✅     | ✅       | ⚠️ Cloud Console |
-| Command Code        | openai           | OAuth                 | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
-| Z.AI / GLM          | openai           | API 金鑰 / OAuth      | ✅               | ✅     | ❌       | ❌               |
-| GLMT（預設）        | claude           | API 金鑰              | ✅               | ✅     | ❌       | ⚠️ 每次請求      |
-| Kimi Coding         | openai           | OAuth / API 金鑰      | ✅               | ✅     | ✅       | ❌               |
-| KIE                 | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Devin Desktop       | openai           | 匯入的 API 金鑰       | ✅ (Connect→SSE) | ✅     | ❌       | ⚠️ 每次請求      |
-| GitLab Duo          | openai           | OAuth（GitLab）       | ✅               | ✅     | ✅       | ❌               |
-| Devin CLI           | openai           | 本機 CLI 登入         | ✅               | ✅     | ❌       | ✅ 任務 API      |
-| Codex Cloud         | openai-responses | OAuth                 | ✅               | ❌     | ✅       | ✅ 速率限制      |
-| Jules               | openai           | OAuth                 | ✅               | ✅     | ✅       | ✅ 任務 API      |
-| AgentRouter         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Grok-Web            | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
-| Perplexity-Web      | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
-| BlackBox-Web        | openai           | 工作階段 Cookie + TLS | ✅               | ✅     | ❌       | ❌               |
-| Muse-Spark-Web      | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
-| ModelScope          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ⚠️ 配額政策      |
-| BazaarLink          | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
-| Petals              | openai           | 無                    | ✅               | ✅     | ❌       | ❌               |
-| Qoder               | openai           | OAuth / PAT           | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
-| OpenCode（Go/Zen）  | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
-| CLIProxyAPI         | openai           | 自訂                  | ✅               | ✅     | ❌       | ❌               |
+| 提供者              | 格式             | 驗證                  | 串流          | 非串流 | 令牌刷新 | 用量 API      |
+| ------------------- | ---------------- | --------------------- | ------------- | ------ | -------- | ------------- |
+| Claude              | claude           | API 金鑰 / OAuth      |               |        |          | 僅管理員      |
+| Gemini              | gemini           | API 金鑰 / OAuth      |               |        |          | Cloud Console |
+| Antigravity         | antigravity      | OAuth                 |               |        |          | 完整配額 API  |
+| OpenAI              | openai           | API 金鑰              |               |        |          |               |
+| Codex               | openai-responses | OAuth                 | 強制          |        |          | 速率限制      |
+| ChatGPT Web (Codex) | openai-responses | 瀏覽器工作階段        | 強制          |        |          |               |
+| GitHub Copilot      | openai           | OAuth + Copilot 令牌  |               |        |          | 配額快照      |
+| Cursor              | cursor           | 自訂 checksum         |               |        |          |               |
+| Kiro                | kiro             | AWS SSO OIDC          | (EventStream) |        |          | 用量限制      |
+| Qoder               | openai           | OAuth / PAT           |               |        |          | 每次請求      |
+| Kilo Code           | openai           | OAuth                 |               |        |          |               |
+| Cline               | openai           | OAuth                 |               |        |          |               |
+| Kimi Coding         | openai           | OAuth                 |               |        |          |               |
+| OpenRouter          | openai           | API 金鑰              |               |        |          |               |
+| GLM/Kimi/MiniMax    | claude           | API 金鑰              |               |        |          |               |
+| DeepSeek            | openai           | API 金鑰              |               |        |          |               |
+| Groq                | openai           | API 金鑰              |               |        |          |               |
+| xAI（Grok）         | openai           | API 金鑰              |               |        |          |               |
+| Mistral             | openai           | API 金鑰              |               |        |          |               |
+| Perplexity          | openai           | API 金鑰              |               |        |          |               |
+| Together AI         | openai           | API 金鑰              |               |        |          |               |
+| Fireworks AI        | openai           | API 金鑰              |               |        |          |               |
+| Cerebras            | openai           | API 金鑰              |               |        |          |               |
+| Cohere              | openai           | API 金鑰              |               |        |          |               |
+| NVIDIA NIM          | openai           | API 金鑰              |               |        |          |               |
+| Cloudflare AI       | openai           | API 令牌 + 帳戶 ID    |               |        |          |               |
+| Pollinations        | openai           | 無（無需金鑰）        |               |        |          |               |
+| Scaleway AI         | openai           | API 金鑰              |               |        |          |               |
+| LongCat             | openai           | API 金鑰              |               |        |          |               |
+| Ollama Cloud        | openai           | API 金鑰（選用）      |               |        |          |               |
+| HuggingFace         | openai           | API 金鑰              |               |        |          |               |
+| Nebius              | openai           | API 金鑰              |               |        |          |               |
+| SiliconFlow         | openai           | API 金鑰              |               |        |          |               |
+| Hyperbolic          | openai           | API 金鑰              |               |        |          |               |
+| Vertex AI           | gemini           | 服務帳戶              |               |        |          | Cloud Console |
+| Command Code        | openai           | OAuth                 |               |        |          | 每次請求      |
+| Z.AI / GLM          | openai           | API 金鑰 / OAuth      |               |        |          |               |
+| GLMT（預設）        | claude           | API 金鑰              |               |        |          | 每次請求      |
+| Kimi Coding         | openai           | OAuth / API 金鑰      |               |        |          |               |
+| KIE                 | openai           | API 金鑰              |               |        |          |               |
+| Devin Desktop       | openai           | 匯入的 API 金鑰       | (Connect→SSE) |        |          | 每次請求      |
+| GitLab Duo          | openai           | OAuth（GitLab）       |               |        |          |               |
+| Devin CLI           | openai           | 本機 CLI 登入         |               |        |          | 任務 API      |
+| Codex Cloud         | openai-responses | OAuth                 |               |        |          | 速率限制      |
+| Jules               | openai           | OAuth                 |               |        |          | 任務 API      |
+| AgentRouter         | openai           | API 金鑰              |               |        |          |               |
+| Grok-Web            | openai           | 工作階段 Cookie       |               |        |          |               |
+| Perplexity-Web      | openai           | 工作階段 Cookie       |               |        |          |               |
+| BlackBox-Web        | openai           | 工作階段 Cookie + TLS |               |        |          |               |
+| Muse-Spark-Web      | openai           | 工作階段 Cookie       |               |        |          |               |
+| ModelScope          | openai           | API 金鑰              |               |        |          | 配額政策      |
+| BazaarLink          | openai           | API 金鑰              |               |        |          |               |
+| Petals              | openai           | 無                    |               |        |          |               |
+| Qoder               | openai           | OAuth / PAT           |               |        |          | 每次請求      |
+| OpenCode（Go/Zen）  | openai           | OAuth                 |               |        |          |               |
+| CLIProxyAPI         | openai           | 自訂                  |               |        |          |               |
 
 ## 格式轉換覆蓋範圍
 

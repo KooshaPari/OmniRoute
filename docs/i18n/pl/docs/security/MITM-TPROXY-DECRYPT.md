@@ -25,7 +25,7 @@ odszyfrowaną wymianę i ponownie szyfruje żądanie do oryginalnego destination
 
 **Źródło:** `src/mitm/tproxy/`
 **Trasa API:** `GET / POST / DELETE /api/tools/agent-bridge/tproxy`
-**Przełącznik w dashboardzie:** Traffic Inspector → pasek capture-modes → **"TPROXY Decrypt"** ⚠
+**Przełącznik w dashboardzie:** Traffic Inspector → pasek capture-modes → **"TPROXY Decrypt"**
 **Zobacz też:** [`docs/frameworks/TRAFFIC_INSPECTOR.md`](../frameworks/TRAFFIC_INSPECTOR.md),
 [`docs/frameworks/AGENTBRIDGE.md`](../frameworks/AGENTBRIDGE.md)
 
@@ -319,7 +319,7 @@ body POST albo domyślne wartości powyżej.
 ## §9 Włączanie z Traffic Inspector
 
 1. Otwórz **Traffic Inspector** (`/dashboard/tools/traffic-inspector`).
-2. Na pasku capture-modes znajdź przycisk **"TPROXY Decrypt"** ⚠
+2. Na pasku capture-modes znajdź przycisk **"TPROXY Decrypt"**
    (`src/app/(dashboard)/dashboard/tools/traffic-inspector/components/CaptureModesToolbar.tsx`).
    - Jeśli jest **disabled** z tooltipem "TPROXY decrypt requires Linux + root +
      the native addon", natywny addon jest niedostępny na tym hoście (nie-Linux,

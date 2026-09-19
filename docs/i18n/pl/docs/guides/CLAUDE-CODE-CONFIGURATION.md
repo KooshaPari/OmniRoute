@@ -86,7 +86,7 @@ notatkę „active via environment variable”). Przełączniki per provider i p
 doprecyzowują dalej — np. globalnie wyłączone + provider Kimi włączony eksponuje
 tylko modele Kimi.
 
-> ⚠️ **Niezgodność okna w modelach spoza Claude.** Claude Code zakłada okno kontekstu 200K
+> **Niezgodność okna w modelach spoza Claude.** Claude Code zakłada okno kontekstu 200K
 > dla każdego id, którego nie rozpoznaje (nie odczytuje prawdziwego okna z
 > `/v1/models`). Dla modelu z większym oknem (np. Kimi K2 — 256K) ustaw
 > `CLAUDE_CODE_AUTO_COMPACT_WINDOW` na wartość poniżej realnego okna modelu, aby

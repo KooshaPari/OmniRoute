@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Architektura OmniRoute
 
-🌐 **Languages:** 🇺🇸 [English](../../../../architecture/ARCHITECTURE.md) · 🇸🇦 [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · 🇦🇿 [az](../../../az/docs/architecture/ARCHITECTURE.md) · 🇧🇬 [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · 🇧🇩 [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · 🇨🇿 [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · 🇩🇰 [da](../../../da/docs/architecture/ARCHITECTURE.md) · 🇩🇪 [de](../../../de/docs/architecture/ARCHITECTURE.md) · 🇬🇷 [el](../../../el/docs/architecture/ARCHITECTURE.md) · 🇪🇸 [es](../../../es/docs/architecture/ARCHITECTURE.md) · 🇪🇪 [et](../../../et/docs/architecture/ARCHITECTURE.md) · 🇮🇷 [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · 🇫🇮 [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · 🇫🇷 [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · 🇮🇪 [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · 🇮🇱 [he](../../../he/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · 🇭🇷 [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · 🇭🇺 [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · 🇮🇩 [id](../../../id/docs/architecture/ARCHITECTURE.md) · 🇮🇹 [it](../../../it/docs/architecture/ARCHITECTURE.md) · 🇯🇵 [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · 🇰🇷 [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · 🇱🇹 [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · 🇱🇻 [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · 🇲🇾 [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · 🇲🇹 [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · 🇳🇱 [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · 🇳🇴 [no](../../../no/docs/architecture/ARCHITECTURE.md) · 🇵🇭 [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · 🇵🇹 [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · 🇷🇴 [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · 🇷🇺 [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · 🇸🇰 [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · 🇸🇮 [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · 🇷🇸 [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · 🇸🇪 [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · 🇰🇪 [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · 🇮🇳 [te](../../../te/docs/architecture/ARCHITECTURE.md) · 🇹🇭 [th](../../../th/docs/architecture/ARCHITECTURE.md) · 🇹🇷 [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · 🇵🇰 [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · 🇻🇳 [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/architecture/ARCHITECTURE.md)
+**Languages:** [English](../../../../architecture/ARCHITECTURE.md) · [ar](../../../ar/docs/architecture/ARCHITECTURE.md) · [az](../../../az/docs/architecture/ARCHITECTURE.md) · [bg](../../../bg/docs/architecture/ARCHITECTURE.md) · [bn](../../../bn/docs/architecture/ARCHITECTURE.md) · [cs](../../../cs/docs/architecture/ARCHITECTURE.md) · [da](../../../da/docs/architecture/ARCHITECTURE.md) · [de](../../../de/docs/architecture/ARCHITECTURE.md) · [el](../../../el/docs/architecture/ARCHITECTURE.md) · [es](../../../es/docs/architecture/ARCHITECTURE.md) · [et](../../../et/docs/architecture/ARCHITECTURE.md) · [fa](../../../fa/docs/architecture/ARCHITECTURE.md) · [fi](../../../fi/docs/architecture/ARCHITECTURE.md) · [fr](../../../fr/docs/architecture/ARCHITECTURE.md) · [ga](../../../ga/docs/architecture/ARCHITECTURE.md) · [gu](../../../gu/docs/architecture/ARCHITECTURE.md) · [he](../../../he/docs/architecture/ARCHITECTURE.md) · [hi](../../../hi/docs/architecture/ARCHITECTURE.md) · [hr](../../../hr/docs/architecture/ARCHITECTURE.md) · [hu](../../../hu/docs/architecture/ARCHITECTURE.md) · [id](../../../id/docs/architecture/ARCHITECTURE.md) · [it](../../../it/docs/architecture/ARCHITECTURE.md) · [ja](../../../ja/docs/architecture/ARCHITECTURE.md) · [ko](../../../ko/docs/architecture/ARCHITECTURE.md) · [lt](../../../lt/docs/architecture/ARCHITECTURE.md) · [lv](../../../lv/docs/architecture/ARCHITECTURE.md) · [mr](../../../mr/docs/architecture/ARCHITECTURE.md) · [ms](../../../ms/docs/architecture/ARCHITECTURE.md) · [mt](../../../mt/docs/architecture/ARCHITECTURE.md) · [nl](../../../nl/docs/architecture/ARCHITECTURE.md) · [no](../../../no/docs/architecture/ARCHITECTURE.md) · [phi](../../../phi/docs/architecture/ARCHITECTURE.md) · [pt](../../../pt/docs/architecture/ARCHITECTURE.md) · [pt-BR](../../../pt-BR/docs/architecture/ARCHITECTURE.md) · [ro](../../../ro/docs/architecture/ARCHITECTURE.md) · [ru](../../../ru/docs/architecture/ARCHITECTURE.md) · [sk](../../../sk/docs/architecture/ARCHITECTURE.md) · [sl](../../../sl/docs/architecture/ARCHITECTURE.md) · [sr](../../../sr/docs/architecture/ARCHITECTURE.md) · [sv](../../../sv/docs/architecture/ARCHITECTURE.md) · [sw](../../../sw/docs/architecture/ARCHITECTURE.md) · [ta](../../../ta/docs/architecture/ARCHITECTURE.md) · [te](../../../te/docs/architecture/ARCHITECTURE.md) · [th](../../../th/docs/architecture/ARCHITECTURE.md) · [tr](../../../tr/docs/architecture/ARCHITECTURE.md) · [uk-UA](../../../uk-UA/docs/architecture/ARCHITECTURE.md) · [ur](../../../ur/docs/architecture/ARCHITECTURE.md) · [vi](../../../vi/docs/architecture/ARCHITECTURE.md) · [zh-CN](../../../zh-CN/docs/architecture/ARCHITECTURE.md) · [zh-TW](../../../zh-TW/docs/architecture/ARCHITECTURE.md)
 
 _Ostatnia aktualizacja: 2026-06-28_
 
@@ -934,64 +934,64 @@ Wszystkie pozostałe dostawcy (w tym niestandardowe węzły kompatybilne) używa
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md) (auto-generowana) lub źródło
 > prawdy w `src/shared/constants/providers.ts` (walidowane Zod przy ładowaniu).
 
-| Dostawca            | Format           | Auth                    | Stream           | Non-Stream | Token Refresh | Usage API          |
-| ------------------- | ---------------- | ----------------------- | ---------------- | ---------- | ------------- | ------------------ |
-| Claude              | claude           | API Key / OAuth         | ✅               | ✅         | ✅            | ⚠️ Tylko Admin     |
-| Gemini              | gemini           | API Key / OAuth         | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Antigravity         | antigravity      | OAuth                   | ✅               | ✅         | ✅            | ✅ Pełne API quota |
-| OpenAI              | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Codex               | openai-responses | OAuth                   | ✅ wymuszony     | ❌         | ✅            | ✅ Rate limity     |
-| ChatGPT Web (Codex) | openai-responses | Sesja przeglądarki      | ✅ wymuszony     | ❌         | ❌            | ❌                 |
-| GitHub Copilot      | openai           | OAuth + Copilot Token   | ✅               | ✅         | ✅            | ✅ Snapshoty quota |
-| Cursor              | cursor           | Niestandardowy checksum | ✅               | ✅         | ❌            | ❌                 |
-| Kiro                | kiro             | AWS SSO OIDC            | ✅ (EventStream) | ❌         | ✅            | ✅ Limity użycia   |
-| Qoder               | openai           | OAuth / PAT             | ✅               | ✅         | ✅            | ⚠️ Per żądanie     |
-| Kilo Code           | openai           | OAuth                   | ✅               | ✅         | ✅            | ❌                 |
-| Cline               | openai           | OAuth                   | ✅               | ✅         | ✅            | ❌                 |
-| Kimi Coding         | openai           | OAuth                   | ✅               | ✅         | ✅            | ❌                 |
-| OpenRouter          | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| GLM/Kimi/MiniMax    | claude           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| DeepSeek            | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Groq                | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| xAI (Grok)          | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Mistral             | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Perplexity          | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Together AI         | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Fireworks AI        | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Cerebras            | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Cohere              | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| NVIDIA NIM          | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Cloudflare AI       | openai           | API Token + Acct ID     | ✅               | ✅         | ❌            | ❌                 |
-| Pollinations        | openai           | Brak (bez klucza)       | ✅               | ✅         | ❌            | ❌                 |
-| Scaleway AI         | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| LongCat             | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Ollama Cloud        | openai           | API Key (opcjonalny)    | ✅               | ✅         | ❌            | ❌                 |
-| HuggingFace         | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Nebius              | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| SiliconFlow         | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Hyperbolic          | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Vertex AI           | gemini           | Service Account         | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Command Code        | openai           | OAuth                   | ✅               | ✅         | ✅            | ⚠️ Per żądanie     |
-| Z.AI / GLM          | openai           | API Key / OAuth         | ✅               | ✅         | ❌            | ❌                 |
-| GLMT (preset)       | claude           | API Key                 | ✅               | ✅         | ❌            | ⚠️ Per żądanie     |
-| Kimi Coding         | openai           | OAuth / API Key         | ✅               | ✅         | ✅            | ❌                 |
-| KIE                 | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Devin Desktop       | openai           | Importowany klucz API   | ✅ (Connect→SSE) | ✅         | ❌            | ⚠️ Na żądanie      |
-| GitLab Duo          | openai           | OAuth (GitLab)          | ✅               | ✅         | ✅            | ❌                 |
-| Devin CLI           | openai           | Lokalne logowanie CLI   | ✅               | ✅         | ❌            | ✅ Task API        |
-| Codex Cloud         | openai-responses | OAuth                   | ✅               | ❌         | ✅            | ✅ Rate limity     |
-| Jules               | openai           | OAuth                   | ✅               | ✅         | ✅            | ✅ Task API        |
-| AgentRouter         | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Grok-Web            | openai           | Cookie sesji            | ✅               | ✅         | ❌            | ❌                 |
-| Perplexity-Web      | openai           | Cookie sesji            | ✅               | ✅         | ❌            | ❌                 |
-| BlackBox-Web        | openai           | Cookie sesji + TLS      | ✅               | ✅         | ❌            | ❌                 |
-| Muse-Spark-Web      | openai           | Cookie sesji            | ✅               | ✅         | ❌            | ❌                 |
-| ModelScope          | openai           | API Key                 | ✅               | ✅         | ❌            | ⚠️ Polityka quota  |
-| BazaarLink          | openai           | API Key                 | ✅               | ✅         | ❌            | ❌                 |
-| Petals              | openai           | Brak                    | ✅               | ✅         | ❌            | ❌                 |
-| Qoder               | openai           | OAuth / PAT             | ✅               | ✅         | ✅            | ⚠️ Per żądanie     |
-| OpenCode (Go/Zen)   | openai           | OAuth                   | ✅               | ✅         | ✅            | ❌                 |
-| CLIProxyAPI         | openai           | Custom                  | ✅               | ✅         | ❌            | ❌                 |
+| Dostawca            | Format           | Auth                    | Stream        | Non-Stream | Token Refresh | Usage API       |
+| ------------------- | ---------------- | ----------------------- | ------------- | ---------- | ------------- | --------------- |
+| Claude              | claude           | API Key / OAuth         |               |            |               | Tylko Admin     |
+| Gemini              | gemini           | API Key / OAuth         |               |            |               | Cloud Console   |
+| Antigravity         | antigravity      | OAuth                   |               |            |               | Pełne API quota |
+| OpenAI              | openai           | API Key                 |               |            |               |                 |
+| Codex               | openai-responses | OAuth                   | wymuszony     |            |               | Rate limity     |
+| ChatGPT Web (Codex) | openai-responses | Sesja przeglądarki      | wymuszony     |            |               |                 |
+| GitHub Copilot      | openai           | OAuth + Copilot Token   |               |            |               | Snapshoty quota |
+| Cursor              | cursor           | Niestandardowy checksum |               |            |               |                 |
+| Kiro                | kiro             | AWS SSO OIDC            | (EventStream) |            |               | Limity użycia   |
+| Qoder               | openai           | OAuth / PAT             |               |            |               | Per żądanie     |
+| Kilo Code           | openai           | OAuth                   |               |            |               |                 |
+| Cline               | openai           | OAuth                   |               |            |               |                 |
+| Kimi Coding         | openai           | OAuth                   |               |            |               |                 |
+| OpenRouter          | openai           | API Key                 |               |            |               |                 |
+| GLM/Kimi/MiniMax    | claude           | API Key                 |               |            |               |                 |
+| DeepSeek            | openai           | API Key                 |               |            |               |                 |
+| Groq                | openai           | API Key                 |               |            |               |                 |
+| xAI (Grok)          | openai           | API Key                 |               |            |               |                 |
+| Mistral             | openai           | API Key                 |               |            |               |                 |
+| Perplexity          | openai           | API Key                 |               |            |               |                 |
+| Together AI         | openai           | API Key                 |               |            |               |                 |
+| Fireworks AI        | openai           | API Key                 |               |            |               |                 |
+| Cerebras            | openai           | API Key                 |               |            |               |                 |
+| Cohere              | openai           | API Key                 |               |            |               |                 |
+| NVIDIA NIM          | openai           | API Key                 |               |            |               |                 |
+| Cloudflare AI       | openai           | API Token + Acct ID     |               |            |               |                 |
+| Pollinations        | openai           | Brak (bez klucza)       |               |            |               |                 |
+| Scaleway AI         | openai           | API Key                 |               |            |               |                 |
+| LongCat             | openai           | API Key                 |               |            |               |                 |
+| Ollama Cloud        | openai           | API Key (opcjonalny)    |               |            |               |                 |
+| HuggingFace         | openai           | API Key                 |               |            |               |                 |
+| Nebius              | openai           | API Key                 |               |            |               |                 |
+| SiliconFlow         | openai           | API Key                 |               |            |               |                 |
+| Hyperbolic          | openai           | API Key                 |               |            |               |                 |
+| Vertex AI           | gemini           | Service Account         |               |            |               | Cloud Console   |
+| Command Code        | openai           | OAuth                   |               |            |               | Per żądanie     |
+| Z.AI / GLM          | openai           | API Key / OAuth         |               |            |               |                 |
+| GLMT (preset)       | claude           | API Key                 |               |            |               | Per żądanie     |
+| Kimi Coding         | openai           | OAuth / API Key         |               |            |               |                 |
+| KIE                 | openai           | API Key                 |               |            |               |                 |
+| Devin Desktop       | openai           | Importowany klucz API   | (Connect→SSE) |            |               | Na żądanie      |
+| GitLab Duo          | openai           | OAuth (GitLab)          |               |            |               |                 |
+| Devin CLI           | openai           | Lokalne logowanie CLI   |               |            |               | Task API        |
+| Codex Cloud         | openai-responses | OAuth                   |               |            |               | Rate limity     |
+| Jules               | openai           | OAuth                   |               |            |               | Task API        |
+| AgentRouter         | openai           | API Key                 |               |            |               |                 |
+| Grok-Web            | openai           | Cookie sesji            |               |            |               |                 |
+| Perplexity-Web      | openai           | Cookie sesji            |               |            |               |                 |
+| BlackBox-Web        | openai           | Cookie sesji + TLS      |               |            |               |                 |
+| Muse-Spark-Web      | openai           | Cookie sesji            |               |            |               |                 |
+| ModelScope          | openai           | API Key                 |               |            |               | Polityka quota  |
+| BazaarLink          | openai           | API Key                 |               |            |               |                 |
+| Petals              | openai           | Brak                    |               |            |               |                 |
+| Qoder               | openai           | OAuth / PAT             |               |            |               | Per żądanie     |
+| OpenCode (Go/Zen)   | openai           | OAuth                   |               |            |               |                 |
+| CLIProxyAPI         | openai           | Custom                  |               |            |               |                 |
 
 ## Pokrycie tłumaczenia formatów
 
