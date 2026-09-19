@@ -66,5 +66,5 @@ otherwise put in `/tmp` — to `_artifacts/` at the repo root instead.
 
 Before cutting a branch or opening a PR, run the base-green check (`AGENTS.md` → Git Workflow →
 "Base-green check"; project skills reference it as `.agents/skills/_shared/base-green.md`). A PR
-opened while the base tip is red must carry `⚠️ base-red inherited: #<issue>` in its body. To
+opened while the base tip is red must carry ` base-red inherited: #<issue>` in its body. To
 drain an accumulated red state (base tip + red PRs), use the `/sweep-reds` skill.

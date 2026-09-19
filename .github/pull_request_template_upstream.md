@@ -1,5 +1,5 @@
 ---
-name: 🏗️ Upstream Contribution
+name: Upstream Contribution
 about: Submit a fix or feature to diegosouzapw/OmniRoute upstream
 title: "[fix|feat|chore|docs]: <short title>"
 labels: ""

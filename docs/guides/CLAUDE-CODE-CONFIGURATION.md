@@ -86,7 +86,7 @@ an "active via environment variable" note when it does). Per-provider and
 per-model toggles refine from there — e.g. global off + Kimi provider on exposes
 only Kimi's models.
 
-> ⚠️ **Window mismatch on non-Claude models.** Claude Code assumes a 200K context
+> **Window mismatch on non-Claude models.** Claude Code assumes a 200K context
 > window for any id it doesn't recognize (it can't read a real window from
 > `/v1/models`). For a model with a larger window (e.g. Kimi K2's 256K), set
 > `CLAUDE_CODE_AUTO_COMPACT_WINDOW` to a value below the model's real window so

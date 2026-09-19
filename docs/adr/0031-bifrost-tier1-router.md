@@ -118,16 +118,16 @@ This is a **2-tier** architecture (same pattern as Envoy AI Gateway's two-tier m
 
 ## Decision Matrix
 
-| Criterion                     | Bifrost (A)                | sgl-model-gateway (B) | vLLM/sglang (C/D)   | LiteLLM (E)                     | Envoy AI (F)               | Hand-roll Rust/Zig/Mojo (G/H/I)                |
-| ----------------------------- | -------------------------- | --------------------- | ------------------- | ------------------------------- | -------------------------- | ---------------------------------------------- |
-| Fit for multi-provider router | ✅ High                    | ❌ Workers-only       | ❌ Inference engine | ✅ High                         | ⚠️ General                 | ⚠️ TBD                                         |
-| Latency overhead              | <100µs                     | low (Rust)            | n/a (wrong role)    | ~8ms (Python)                   | low (Go)                   | low (after months of work)                     |
-| Provider coverage             | 23+ (matches tier-1)       | 1 (SGLang)            | 1 (per model)       | 100+                            | n/a (lower-level)          | n/a                                            |
-| Ecosystem reuse               | ✅ (vendored)              | ⚠️ (specialized)      | ❌ (wrong role)     | ✅ (mature)                     | ✅ (CNCF)                  | ❌ (none)                                      |
-| Implementation effort         | 1-2 weeks (executor + map) | 3-6 months (fork)     | 12 months           | 3-6 months (Python integration) | 3-6 months (custom config) | 6-12 months (build)                            |
-| License compatibility         | MIT                        | Apache-2.0            | Apache-2.0          | MIT                             | Apache-2.0                 | n/a                                            |
-| Fleet language alignment      | ✅ Go (matches fleet)      | ⚠️ Rust (1 repo)      | ⚠️ Python (2 repos) | ❌ Python-heavy                 | ✅ Go (matches fleet)      | ❌ New language (Zig/Mojo) or redundant (Rust) |
-| Already vendored locally      | ✅ (5 copies)              | ❌                    | ❌                  | ❌                              | ❌                         | n/a                                            |
+| Criterion                     | Bifrost (A)                | sgl-model-gateway (B) | vLLM/sglang (C/D) | LiteLLM (E)                     | Envoy AI (F)               | Hand-roll Rust/Zig/Mojo (G/H/I)             |
+| ----------------------------- | -------------------------- | --------------------- | ----------------- | ------------------------------- | -------------------------- | ------------------------------------------- |
+| Fit for multi-provider router | High                       | Workers-only          | Inference engine  | High                            | General                    | TBD                                         |
+| Latency overhead              | <100µs                     | low (Rust)            | n/a (wrong role)  | ~8ms (Python)                   | low (Go)                   | low (after months of work)                  |
+| Provider coverage             | 23+ (matches tier-1)       | 1 (SGLang)            | 1 (per model)     | 100+                            | n/a (lower-level)          | n/a                                         |
+| Ecosystem reuse               | (vendored)                 | (specialized)         | (wrong role)      | (mature)                        | (CNCF)                     | (none)                                      |
+| Implementation effort         | 1-2 weeks (executor + map) | 3-6 months (fork)     | 12 months         | 3-6 months (Python integration) | 3-6 months (custom config) | 6-12 months (build)                         |
+| License compatibility         | MIT                        | Apache-2.0            | Apache-2.0        | MIT                             | Apache-2.0                 | n/a                                         |
+| Fleet language alignment      | Go (matches fleet)         | Rust (1 repo)         | Python (2 repos)  | Python-heavy                    | Go (matches fleet)         | New language (Zig/Mojo) or redundant (Rust) |
+| Already vendored locally      | (5 copies)                 |                       |                   |                                 |                            | n/a                                         |
 
 **A (Bifrost) wins on every dimension except provider count (Bifrost 23 vs LiteLLM 100+), but Bifrost's 23 covers all of OmniRoute's tier-1 surface.**
 

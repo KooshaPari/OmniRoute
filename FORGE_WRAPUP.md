@@ -22,32 +22,32 @@ Initial ground-truth check confirmed the existing CI matrix **was** lacking PR�
 
 ### Core channel system
 
-| File | Lines | Purpose |
-|---|---|---|
-| `OmniRoute/config/release/channels.json:1` | 285 | Canonical channel taxonomy (6 stability channels + `lts`) |
-| `OmniRoute/config/release/ci-matrix.json:1` | 196 | Runtime gate lookup table + CI coverage matrix + gap analysis |
-| `OmniRoute/scripts/release/trigger-evaluator.mjs:1` | 246 | The `24h OR +5k OR -5k` rule (pure-function `evaluate()`) |
-| `OmniRoute/scripts/release/channel-resolver.mjs:1` | 445 | Walks `promotionOrder` from `nightly` upward; `walkPromotion()` is pure |
-| `OmniRoute/.github/workflows/auto-release.yml:1` | 427 | Auto half: schedule + push-to-main + dispatch → trigger → resolve → publish |
-| `OmniRoute/.github/workflows/release-channels.yml:1` | 453 | Manual half: `promote`, `cleanup`, `lts-cut` |
-| `OmniRoute/.github/workflows/release-smoke.yml:1` | 368 | **New** — CI smoke test for end-to-end correctness |
-| `OmniRoute/.github/workflows/reusable/lts-backport.yml:1` | 198 | **New** — parameterized LTS reusable workflow (`workflow_call`) |
-| `OmniRoute/.github/workflows/cross-platform.yml:1` | — | **Modified** — weekly schedule (Sat 02:00 UTC) |
-| `OmniRoute/scripts/quality/validate-npm-publish.mjs:1` | 356 | **New** — pre-flight validator for npm publish |
-| `OmniRoute/docs/ops/RELEASE_CHANNELS.md:1` | 174 | Channel taxonomy doc (indexed in `docs/ops/meta.json:6`) |
-| `OmniRoute/package.json:87-92` | — | +6 `release:*` +3 `check:npm-publish:*` +2 `release:preflight*` scripts |
+| File                                                      | Lines | Purpose                                                                     |
+| --------------------------------------------------------- | ----- | --------------------------------------------------------------------------- |
+| `OmniRoute/config/release/channels.json:1`                | 285   | Canonical channel taxonomy (6 stability channels + `lts`)                   |
+| `OmniRoute/config/release/ci-matrix.json:1`               | 196   | Runtime gate lookup table + CI coverage matrix + gap analysis               |
+| `OmniRoute/scripts/release/trigger-evaluator.mjs:1`       | 246   | The `24h OR +5k OR -5k` rule (pure-function `evaluate()`)                   |
+| `OmniRoute/scripts/release/channel-resolver.mjs:1`        | 445   | Walks `promotionOrder` from `nightly` upward; `walkPromotion()` is pure     |
+| `OmniRoute/.github/workflows/auto-release.yml:1`          | 427   | Auto half: schedule + push-to-main + dispatch → trigger → resolve → publish |
+| `OmniRoute/.github/workflows/release-channels.yml:1`      | 453   | Manual half: `promote`, `cleanup`, `lts-cut`                                |
+| `OmniRoute/.github/workflows/release-smoke.yml:1`         | 368   | **New** — CI smoke test for end-to-end correctness                          |
+| `OmniRoute/.github/workflows/reusable/lts-backport.yml:1` | 198   | **New** — parameterized LTS reusable workflow (`workflow_call`)             |
+| `OmniRoute/.github/workflows/cross-platform.yml:1`        | —     | **Modified** — weekly schedule (Sat 02:00 UTC)                              |
+| `OmniRoute/scripts/quality/validate-npm-publish.mjs:1`    | 356   | **New** — pre-flight validator for npm publish                              |
+| `OmniRoute/docs/ops/RELEASE_CHANNELS.md:1`                | 174   | Channel taxonomy doc (indexed in `docs/ops/meta.json:6`)                    |
+| `OmniRoute/package.json:87-92`                            | —     | +6 `release:*` +3 `check:npm-publish:*` +2 `release:preflight*` scripts     |
 
 ### Channel taxonomy
 
-| Channel | Blocking gates | npm dist-tag | Docker tag | Prerelease | Persistent past stable? |
-|---|---|---|---|---|---|
-| **nightly** | `build` | `nightly` | `nightly` | ✓ | no |
-| **canary** | + `unit, vitest, integration` | `canary` | `canary` | ✓ | no |
-| **alpha** | + `e2e, security` | `alpha` | `alpha` | ✓ | **yes** |
-| **beta** | + `resilience, llm-security` | `beta` | `beta` | ✓ | **yes** |
-| **rc** | + `chaos, fuzz, perf, load` | `next` | `rc` | ✓ | no |
-| **stable** | + `cross-platform, a11y, release-green` | `latest` | `latest` | ✗ | **yes** |
-| **lts-N** | core matrix only | `lts-N` | `lts-N` | ✗ | **yes** (manual cut from stable) |
+| Channel     | Blocking gates                          | npm dist-tag | Docker tag | Prerelease | Persistent past stable?          |
+| ----------- | --------------------------------------- | ------------ | ---------- | ---------- | -------------------------------- |
+| **nightly** | `build`                                 | `nightly`    | `nightly`  |            | no                               |
+| **canary**  | + `unit, vitest, integration`           | `canary`     | `canary`   |            | no                               |
+| **alpha**   | + `e2e, security`                       | `alpha`      | `alpha`    |            | **yes**                          |
+| **beta**    | + `resilience, llm-security`            | `beta`       | `beta`     |            | **yes**                          |
+| **rc**      | + `chaos, fuzz, perf, load`             | `next`       | `rc`       |            | no                               |
+| **stable**  | + `cross-platform, a11y, release-green` | `latest`     | `latest`   |            | **yes**                          |
+| **lts-N**   | core matrix only                        | `lts-N`      | `lts-N`    |            | **yes** (manual cut from stable) |
 
 ### "Most primitive/unstable" answer
 
@@ -56,6 +56,7 @@ The trigger evaluator unconditionally produces **`nightly`** (`scripts/release/t
 ### Auto-trigger rule
 
 `evaluate()` fires if **ANY** of:
+
 - **Time-based**: `ageHours >= 24` since last release (any channel)
 - **Code-delta**: `addedLines >= 5000` since last release
 - **Code-delta**: `removedLines >= 5000` since last release
@@ -83,14 +84,14 @@ Coverage grid persisted at `config/release/ci-matrix.json:128` as ASCII visualiz
 
 ### Gap closes from the session
 
-1. ✅ Placeholder Docker action SHAs → real tags matching `docker-publish.yml`
-2. ✅ `publish-npm` opt-out (`vars.NPM_FORCE_NIGHTLY != 'false'`) — nightly publishes by default
-3. ✅ `package.json` snapshot/restore via `cp + trap EXIT` in `auto-release.yml` and `release-channels.yml#promote`
-4. ✅ `lts-cut` rewritten to call `reusable/lts-backport.yml` (no missing `reusable/{unit,vitest,integration}.yml` references)
-5. ✅ `cross-platform.yml` weekly schedule (Sat 02:00 UTC)
-6. ✅ LTS backport reusable workflow created, `workflow_call`-targetable, 4 jobs
-7. ✅ Force-dispatch path flows correctly end-to-end (`fire=true` → `resolve.outputs.resolved` → `publish-*`)
-8. ✅ `release-smoke.yml` for CI-side end-to-end correctness
+1. Placeholder Docker action SHAs → real tags matching `docker-publish.yml`
+2. `publish-npm` opt-out (`vars.NPM_FORCE_NIGHTLY != 'false'`) — nightly publishes by default
+3. `package.json` snapshot/restore via `cp + trap EXIT` in `auto-release.yml` and `release-channels.yml#promote`
+4. `lts-cut` rewritten to call `reusable/lts-backport.yml` (no missing `reusable/{unit,vitest,integration}.yml` references)
+5. `cross-platform.yml` weekly schedule (Sat 02:00 UTC)
+6. LTS backport reusable workflow created, `workflow_call`-targetable, 4 jobs
+7. Force-dispatch path flows correctly end-to-end (`fire=true` → `resolve.outputs.resolved` → `publish-*`)
+8. `release-smoke.yml` for CI-side end-to-end correctness
 
 ### Open issue (out of scope, surfaced but not worked)
 
@@ -255,13 +256,13 @@ can all proceed in parallel once Tier-1 surfaces their inputs.
 
 ### Highest-information-action rank-ordered
 
-| Rank | Task | Why first |
-|---|---|---|
-| **1** | Set `NPM_TOKEN` secret + run `gh workflow run auto-release.yml -f force=true -f max-channel=canary --ref feature/polyglot-bifrost-2026-07-17` | Surfaces real runtime errors that no linter catches; ~5 min effort; unblocks everything else. |
-| **2** | Schedule `cross-platform.yml` weekly (already in working tree, just needs commit) — and add cron to `release-smoke.yml` | Cheap, no-runtime-risk code changes; closes 2 known matrix gaps. |
-| **3** | Bring `check:release-green` to green (currently 7 HARD failures locally — env-specific but `process` typecheck + missing `ar/llm.txt` are real) | Until this is clean, `stable` channel can never auto-promote; this gates Tier-3 step 16. |
-| **4** | Promote `26e34d296 "WIP release channel infrastructure and auth fixes"` (and `ebdef7970` polyglot) off `WIP` status | Marketing surface — users see `3.8.43` on `main` and `3.8.48` on npm with no explanation today. |
-| **5** | Triage `keyvQuotaStore.ts` separately (Tier-5 task 20) | Out of release-system scope but blocks deployment correctness for the upstream polyglot branch. |
+| Rank  | Task                                                                                                                                            | Why first                                                                                       |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **1** | Set `NPM_TOKEN` secret + run `gh workflow run auto-release.yml -f force=true -f max-channel=canary --ref feature/polyglot-bifrost-2026-07-17`   | Surfaces real runtime errors that no linter catches; ~5 min effort; unblocks everything else.   |
+| **2** | Schedule `cross-platform.yml` weekly (already in working tree, just needs commit) — and add cron to `release-smoke.yml`                         | Cheap, no-runtime-risk code changes; closes 2 known matrix gaps.                                |
+| **3** | Bring `check:release-green` to green (currently 7 HARD failures locally — env-specific but `process` typecheck + missing `ar/llm.txt` are real) | Until this is clean, `stable` channel can never auto-promote; this gates Tier-3 step 16.        |
+| **4** | Promote `26e34d296 "WIP release channel infrastructure and auth fixes"` (and `ebdef7970` polyglot) off `WIP` status                             | Marketing surface — users see `3.8.43` on `main` and `3.8.48` on npm with no explanation today. |
+| **5** | Triage `keyvQuotaStore.ts` separately (Tier-5 task 20)                                                                                          | Out of release-system scope but blocks deployment correctness for the upstream polyglot branch. |
 
 ### Concrete Tier-1 prep
 
@@ -311,29 +312,29 @@ This section documents parallel work on `phenotype-registry` — the INDEX spine
 
 ### 5.2 Spine Hubs Used
 
-| Spine | Absorbed into |
-|---|---|
-| `phenotype-registry` | Specs, boundary docs, archive data |
+| Spine                   | Absorbed into                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| `phenotype-registry`    | Specs, boundary docs, archive data                                                    |
 | `pheno` (Rust monorepo) | pheno-context, phenoEvents, Logify, phenoResearchEngine, Stashly, pheno-cdylib-bridge |
-| `phenotype-tooling` | KodeVibe, phenotype-pm-core, Benchora, KWatch, phench |
-| `phenotype-python-sdk` | PolicyStack (packages/policystack/) |
-| `phenodocs` | phenoDesign (packages/design-tokens/), PhenoHandbook |
-| `phenotype-shared` | phenotype-contracts, phenotype-teamcomm |
+| `phenotype-tooling`     | KodeVibe, phenotype-pm-core, Benchora, KWatch, phench                                 |
+| `phenotype-python-sdk`  | PolicyStack (packages/policystack/)                                                   |
+| `phenodocs`             | phenoDesign (packages/design-tokens/), PhenoHandbook                                  |
+| `phenotype-shared`      | phenotype-contracts, phenotype-teamcomm                                               |
 
 ### 5.3 Ratified 9-Role Spine (SPINE-DEFINITION.md)
 
-| # | Role | Member |
-|---|---|---|
-| 1 | INDEX | `phenotype-registry` |
-| 2 | ADRs/contracts | `PhenoSpecs` |
-| 3 | CONVENTIONS | `PhenoHandbook` |
-| 4 | ENFORCEMENT | `phenotype-org-governance` |
-| 5 | IMPLEMENTATIONS | `PhenoMCPServers` |
-| 6A | JOURNEYS | `phenotype-journeys` |
-| 6B | SHARED-PRIMITIVES | `phenotype-shared` |
-| 7 | CONTRACTS | `phenotype-contracts` |
-| 8 | AI-GATEWAY | `OmniRoute` |
-| +1 | FOCUSED_PRIMITIVE | `phenotype-teamcomm` |
+| #   | Role              | Member                     |
+| --- | ----------------- | -------------------------- |
+| 1   | INDEX             | `phenotype-registry`       |
+| 2   | ADRs/contracts    | `PhenoSpecs`               |
+| 3   | CONVENTIONS       | `PhenoHandbook`            |
+| 4   | ENFORCEMENT       | `phenotype-org-governance` |
+| 5   | IMPLEMENTATIONS   | `PhenoMCPServers`          |
+| 6A  | JOURNEYS          | `phenotype-journeys`       |
+| 6B  | SHARED-PRIMITIVES | `phenotype-shared`         |
+| 7   | CONTRACTS         | `phenotype-contracts`      |
+| 8   | AI-GATEWAY        | `OmniRoute`                |
+| +1  | FOCUSED_PRIMITIVE | `phenotype-teamcomm`       |
 
 ### 5.4 Caution Principle (corrections_2026-07-17)
 
@@ -342,18 +343,19 @@ This section documents parallel work on `phenotype-registry` — the INDEX spine
 **Rejected** (forks/slop/PROTECTED): `KVirtualStage`, `MCPForge`, `PhenoProject`, `forgecode`, `heliosApp`, `mobile-mcp`, `hexa-kit-fork`, `heliosBench`.
 
 **Key decisions**:
+
 - `phenotype-router` (134KB Rust lib) is **NOT superseded** by `phenotype-router-spec` (25KB schemas) — would lose benchmarks/docs
 - `pheno-sdk` is a **bad absorption target** — real canonical is `phenotype-python-sdk`
 - `phenotype-teamcomm` is **FOCUSED_PRIMITIVE** — protected per user directive
 
 ### 5.5 64-Repo Canonical Ecosystem
 
-| Category | Count | Status |
-|---|---|---|
-| A:SPINE_CORE | 9 | Live (9-role spine) |
-| E:FOCUSED_PRIMITIVE | 1 | Live (`phenotype-teamcomm`) |
-| B:WORKING | 54 | Live (5 tiers: spines, protocol, libs, apps, essential) |
-| **TOTAL CANONICAL** | **64** | **Live on GH** |
+| Category            | Count  | Status                                                  |
+| ------------------- | ------ | ------------------------------------------------------- |
+| A:SPINE_CORE        | 9      | Live (9-role spine)                                     |
+| E:FOCUSED_PRIMITIVE | 1      | Live (`phenotype-teamcomm`)                             |
+| B:WORKING           | 54     | Live (5 tiers: spines, protocol, libs, apps, essential) |
+| **TOTAL CANONICAL** | **64** | **Live on GH**                                          |
 
 Rejection pool: 171 repos archived on GH. Phantom (404): 53. Total registry rows: 454+.
 
@@ -362,8 +364,9 @@ Rejection pool: 171 repos archived on GH. Phantom (404): 53. Total registry rows
 21 batch proposal documents exist in `docs/audits/depletion-batch{1..21}-2026-07-17.md`.
 
 Each batch:
+
 - 10 repos sorted by safe-to-delete priority (STRICT_PAUSE → AUTO_IMPORT → RECOVERY → NON_PHENOTYPE → TOO_BOUND → TOO_LARGE)
-- Per-repo safety rating (🟢 SAFE vs 🟡 REVIEW)
+- Per-repo safety rating ( SAFE vs REVIEW)
 - Restoration path via `gh repo restore` (30-day window)
 - Execution checklist
 
@@ -373,29 +376,29 @@ Each batch:
 
 Phantom/stale queue entries were regenerated by concurrent agents throughout the session. 9 rounds of reconciliation were needed:
 
-| Round | Rows reconciled | Pattern |
-|---|---|---|
-| 1 | 10 phantom queued → `never_existed` | 404 repos |
-| 2 | 5 hold → `archived`/`never_existed` | stale hold states |
-| 3 | 3 phantom active → `never_existed` | phenotype-sdk, phenotype-water, Authvault |
-| 4 | 15 phantom queued + never_existed_remote | concurrent-agent noise |
-| 5 | 10 phantom queued → `never_existed` | 404 repos |
-| 6 | 7 stale queued → terminal | already-archived repos |
-| 7 | 10 stale queued → terminal | spine members restored |
-| 8 | 10 phantom queued → terminal | 404 repos |
-| 9 | 3 final non-terminal → terminal | cleanup |
+| Round | Rows reconciled                          | Pattern                                   |
+| ----- | ---------------------------------------- | ----------------------------------------- |
+| 1     | 10 phantom queued → `never_existed`      | 404 repos                                 |
+| 2     | 5 hold → `archived`/`never_existed`      | stale hold states                         |
+| 3     | 3 phantom active → `never_existed`       | phenotype-sdk, phenotype-water, Authvault |
+| 4     | 15 phantom queued + never_existed_remote | concurrent-agent noise                    |
+| 5     | 10 phantom queued → `never_existed`      | 404 repos                                 |
+| 6     | 7 stale queued → terminal                | already-archived repos                    |
+| 7     | 10 stale queued → terminal               | spine members restored                    |
+| 8     | 10 phantom queued → terminal             | 404 repos                                 |
+| 9     | 3 final non-terminal → terminal          | cleanup                                   |
 
 **Root cause**: concurrent agents kept adding `fsm=queued` rows pointing to repos that didn't exist. Mitigation: freeze queue when at 0 pending work.
 
 ### 5.8 Forward Priority DAG (updated)
 
-| Priority | Item | Status |
-|---|---|---|
-| P1 | Execute 21 deletion batches | **Awaiting approval** |
-| P2 | Freeze queue against concurrent-agent regen | Not started |
-| P3 | PhenoSpecs/PhenoHandbook delegated-mirror declarations | Documented, pending execution |
-| P4 | phenotype-teamcomm development (FOCUSED_PRIMITIVE) | Active primitive |
-| P5 | AgilePlus PLATFORM spine promotion | Deferred, pending ratification |
+| Priority | Item                                                   | Status                         |
+| -------- | ------------------------------------------------------ | ------------------------------ |
+| P1       | Execute 21 deletion batches                            | **Awaiting approval**          |
+| P2       | Freeze queue against concurrent-agent regen            | Not started                    |
+| P3       | PhenoSpecs/PhenoHandbook delegated-mirror declarations | Documented, pending execution  |
+| P4       | phenotype-teamcomm development (FOCUSED_PRIMITIVE)     | Active primitive               |
+| P5       | AgilePlus PLATFORM spine promotion                     | Deferred, pending ratification |
 
 ### 5.9 Why this is a separate section
 
@@ -419,61 +422,61 @@ Folding the registry detail into the OmniRoute ladder would dilute the signal of
 
 ### 7.1 What Got Found
 
-| Category | Count | Examples |
-|---|---|---|
-| Misplaced clones at `~` root or `~/Repos/` | 18 | `civ`, `heliosCLI`, `phenotype-shared`, `forgecode-koosha`, `phenotype-router`, etc. |
-| Phantom worktrees (metadata exists, dirs gone) | 6 | 6 entries on `omniroute-upstream-work` |
-| Stashes across all repos | 75 | Civis=22, OmniRoute=10, OmniRoute-superroot-recovery=9, portage=6, forgecode=5, HexaKit=4, others=19 |
-| Dirty repos in `CodeProjects/Phenotype/repos/*` | 12+ | FocalPoint(6854), sharecli(71), thegent(77), OmniRoute-superroot-recovery(79), etc. |
-| Detached HEAD repos | 3 | PhenoSpecs, PhenoHandbook, `~/intent` (worktree-link) |
-| Repos with no remote (ghost repos) | 4 | phenotype-omlx, phenotype-shared, template-commons, _phenofleet-decisions |
-| Archived repos with WIP | 7 | KlipDot, PhenoProject, mobile-cli, mobile-mcp, MCPForge, RIP-Fitness-App, PhenoMCPServers |
-| Misplaced git checkouts in `~/Documents` | 5 | `netweave-final2`, `netweave-3`, `Project-Spyn`, `StealthStartup`, Cline/MCP clones |
-| Security incidents | 2 | GitHub PAT in plaintext in `~/.gitconfig`; OpenRouter API key committed in thegent |
-| Malformed remote URLs (`origingit@`) | 5+ | Display artifact; actual SSH URLs were correct but confused earlier audit rounds |
+| Category                                        | Count | Examples                                                                                             |
+| ----------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------- |
+| Misplaced clones at `~` root or `~/Repos/`      | 18    | `civ`, `heliosCLI`, `phenotype-shared`, `forgecode-koosha`, `phenotype-router`, etc.                 |
+| Phantom worktrees (metadata exists, dirs gone)  | 6     | 6 entries on `omniroute-upstream-work`                                                               |
+| Stashes across all repos                        | 75    | Civis=22, OmniRoute=10, OmniRoute-superroot-recovery=9, portage=6, forgecode=5, HexaKit=4, others=19 |
+| Dirty repos in `CodeProjects/Phenotype/repos/*` | 12+   | FocalPoint(6854), sharecli(71), thegent(77), OmniRoute-superroot-recovery(79), etc.                  |
+| Detached HEAD repos                             | 3     | PhenoSpecs, PhenoHandbook, `~/intent` (worktree-link)                                                |
+| Repos with no remote (ghost repos)              | 4     | phenotype-omlx, phenotype-shared, template-commons, _phenofleet-decisions                            |
+| Archived repos with WIP                         | 7     | KlipDot, PhenoProject, mobile-cli, mobile-mcp, MCPForge, RIP-Fitness-App, PhenoMCPServers            |
+| Misplaced git checkouts in `~/Documents`        | 5     | `netweave-final2`, `netweave-3`, `Project-Spyn`, `StealthStartup`, Cline/MCP clones                  |
+| Security incidents                              | 2     | GitHub PAT in plaintext in `~/.gitconfig`; OpenRouter API key committed in thegent                   |
+| Malformed remote URLs (`origingit@`)            | 5+    | Display artifact; actual SSH URLs were correct but confused earlier audit rounds                     |
 
 ---
 
 ### 7.2 What Got Pushed to Origin
 
-| Repo | Branch(es) pushed | Notes |
-|---|---|---|
-| `KooshaPari/OmniRoute` | `feature/polyglot-bifrost-2026-07-17` + 18 `legacy/*-snapshot-2026-07-15` branches + `legacy/feat-pr1-extend-omni-core-wip-2026-07-15` | Active + snapshot branches |
-| `KooshaPari/civ` | `legacy/civ-dev-tooling-snapshot` | 605 files dev scripts + lint fixes |
-| `KooshaPari/heliosCLI` | `main` (recreated remote) | |
-| `KooshaPari/phenodocs` | `legacy/snapshot-2026-07-15` | 41 commits captured |
-| `KooshaPari/phenotype-design` | `chore/integrate-phenotype-docs` | Verified present |
-| `KooshaPari/phenotypeActions` | `main` (recreated remote) | |
-| `KooshaPari/phenotype-go-kit` | `main` (recreated remote) | |
-| `KooshaPari/phenotype-infrakit` | `main` + `chore/gitattributes` | 1051 LOC cost-core + 2200 LOC observability |
-| `KooshaPari/phenotype-shared` | `legacy/snapshot-2026-07-15` | 46 commits + new `ffi_utils` crate |
-| `KooshaPari/template-commons` | `main` + all branches + tags | 6 branches (recreated remote) |
-| `KooshaPari/thegent` | `feat/L5-2026-06-24-thegent-memory-v2-3-alt-adapters-2026-06-24` | Redacted API key |
-| `KooshaPari/Tracera` | `legacy/grapheon-recovered-snapshot-2026-07-15` | Grapheon absorbed |
-| `KooshaPari/phenotype-omlx` | `main` | 5 new perf-core crates + Swift GUI + ADR-005 |
-| `KooshaPari/sharecli` | `legacy/sharecli-wip-snapshot-2026-07-15` | |
-| `KooshaPari/HexaKit` | `legacy/hexakit-wip-snapshot-2026-07-15` | |
-| `KooshaPari/heliosBench` | `legacy/heliosbench-wip-snapshot-2026-07-15` | |
-| `KooshaPari/FocalPoint` | `legacy/focalpoint-wip-snapshot-2026-07-15` | 6854-file monorepo snapshot |
-| `KooshaPari/AgilePlus` | `feat/dashboard-ux-audit-p0` + `legacy/forge-AgilePlus-wip-snapshot-2026-07-15-clean` | dag-orchestrator WIP |
-| `KooshaPari/BytePort` | `feat/byteport-e2e-distribution` | |
-| `KooshaPari/PhenoSpecs` | `legacy/phenospecs-detached-snapshot-2026-07-15` + `legacy/phenospecs-final-snapshot-2026-07-15` | SSOT.md + cliff.toml |
-| `KooshaPari/PhenoHandbook` | `legacy/phenoHandbook-detached-snapshot-2026-07-15` | |
-| `KooshaPari/Project-Spyn` | `main` (MATLAB WIP) | |
-| `KooshaPari/StealthStartup` | `main` (reinit'd .git after corruption) | |
-| `KooshaPari/netweave-final2` | `main` (recreated remote) | `.gitignore` for build artifacts |
-| `KooshaPari/netweave-3` | `main` (recreated remote) | Go transport/simulation lib |
-| `KooshaPari/phench` | `main` (recreated remote) | 12 commits + 2 untracked docs |
-| `KooshaPari/forgecode` | `fix/models-graceful-provider-failure` + 8 `legacy/stash-*` | Graceful provider model fetch |
-| `KooshaPari/cliproxyapi-plusplus` | `koosha/security-and-test-coverage-policy` | |
-| `KooshaPari/PhenoCompose` | `docs/scorecard-100` | |
-| `KooshaPari/phenotype-apps` | `chore/apps-spine-charter` | |
-| `KooshaPari/Dino` | `main` (clean, FF'd) | |
-| `KooshaPari/phenotype-org-audits` | `audit/cursor-reset-tools-STRIDE-2026-06-16` | Cursor-reset-tools absorbed |
-| `KooshaPari/_phenofleet-decisions` | `main` (recreated remote) | |
-| 7 archived repos (KlipDot, PhenoProject, mobile-cli, mobile-mcp, MCPForge, RIP-Fitness-App, PhenoMCPServers) | `wip/*` branches | Unarchived→pushed→re-archived |
-| + 34 legacy/stash-* branches across 8 repos | | |
-| + 6 repos with concurrent `wip/*` branches | _phenofleet-decisions, phenoData, PhenoPlugins, phenotype-apps-main, melosviz, Tokn | |
+| Repo                                                                                                         | Branch(es) pushed                                                                                                                      | Notes                                        |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `KooshaPari/OmniRoute`                                                                                       | `feature/polyglot-bifrost-2026-07-17` + 18 `legacy/*-snapshot-2026-07-15` branches + `legacy/feat-pr1-extend-omni-core-wip-2026-07-15` | Active + snapshot branches                   |
+| `KooshaPari/civ`                                                                                             | `legacy/civ-dev-tooling-snapshot`                                                                                                      | 605 files dev scripts + lint fixes           |
+| `KooshaPari/heliosCLI`                                                                                       | `main` (recreated remote)                                                                                                              |                                              |
+| `KooshaPari/phenodocs`                                                                                       | `legacy/snapshot-2026-07-15`                                                                                                           | 41 commits captured                          |
+| `KooshaPari/phenotype-design`                                                                                | `chore/integrate-phenotype-docs`                                                                                                       | Verified present                             |
+| `KooshaPari/phenotypeActions`                                                                                | `main` (recreated remote)                                                                                                              |                                              |
+| `KooshaPari/phenotype-go-kit`                                                                                | `main` (recreated remote)                                                                                                              |                                              |
+| `KooshaPari/phenotype-infrakit`                                                                              | `main` + `chore/gitattributes`                                                                                                         | 1051 LOC cost-core + 2200 LOC observability  |
+| `KooshaPari/phenotype-shared`                                                                                | `legacy/snapshot-2026-07-15`                                                                                                           | 46 commits + new `ffi_utils` crate           |
+| `KooshaPari/template-commons`                                                                                | `main` + all branches + tags                                                                                                           | 6 branches (recreated remote)                |
+| `KooshaPari/thegent`                                                                                         | `feat/L5-2026-06-24-thegent-memory-v2-3-alt-adapters-2026-06-24`                                                                       | Redacted API key                             |
+| `KooshaPari/Tracera`                                                                                         | `legacy/grapheon-recovered-snapshot-2026-07-15`                                                                                        | Grapheon absorbed                            |
+| `KooshaPari/phenotype-omlx`                                                                                  | `main`                                                                                                                                 | 5 new perf-core crates + Swift GUI + ADR-005 |
+| `KooshaPari/sharecli`                                                                                        | `legacy/sharecli-wip-snapshot-2026-07-15`                                                                                              |                                              |
+| `KooshaPari/HexaKit`                                                                                         | `legacy/hexakit-wip-snapshot-2026-07-15`                                                                                               |                                              |
+| `KooshaPari/heliosBench`                                                                                     | `legacy/heliosbench-wip-snapshot-2026-07-15`                                                                                           |                                              |
+| `KooshaPari/FocalPoint`                                                                                      | `legacy/focalpoint-wip-snapshot-2026-07-15`                                                                                            | 6854-file monorepo snapshot                  |
+| `KooshaPari/AgilePlus`                                                                                       | `feat/dashboard-ux-audit-p0` + `legacy/forge-AgilePlus-wip-snapshot-2026-07-15-clean`                                                  | dag-orchestrator WIP                         |
+| `KooshaPari/BytePort`                                                                                        | `feat/byteport-e2e-distribution`                                                                                                       |                                              |
+| `KooshaPari/PhenoSpecs`                                                                                      | `legacy/phenospecs-detached-snapshot-2026-07-15` + `legacy/phenospecs-final-snapshot-2026-07-15`                                       | SSOT.md + cliff.toml                         |
+| `KooshaPari/PhenoHandbook`                                                                                   | `legacy/phenoHandbook-detached-snapshot-2026-07-15`                                                                                    |                                              |
+| `KooshaPari/Project-Spyn`                                                                                    | `main` (MATLAB WIP)                                                                                                                    |                                              |
+| `KooshaPari/StealthStartup`                                                                                  | `main` (reinit'd .git after corruption)                                                                                                |                                              |
+| `KooshaPari/netweave-final2`                                                                                 | `main` (recreated remote)                                                                                                              | `.gitignore` for build artifacts             |
+| `KooshaPari/netweave-3`                                                                                      | `main` (recreated remote)                                                                                                              | Go transport/simulation lib                  |
+| `KooshaPari/phench`                                                                                          | `main` (recreated remote)                                                                                                              | 12 commits + 2 untracked docs                |
+| `KooshaPari/forgecode`                                                                                       | `fix/models-graceful-provider-failure` + 8 `legacy/stash-*`                                                                            | Graceful provider model fetch                |
+| `KooshaPari/cliproxyapi-plusplus`                                                                            | `koosha/security-and-test-coverage-policy`                                                                                             |                                              |
+| `KooshaPari/PhenoCompose`                                                                                    | `docs/scorecard-100`                                                                                                                   |                                              |
+| `KooshaPari/phenotype-apps`                                                                                  | `chore/apps-spine-charter`                                                                                                             |                                              |
+| `KooshaPari/Dino`                                                                                            | `main` (clean, FF'd)                                                                                                                   |                                              |
+| `KooshaPari/phenotype-org-audits`                                                                            | `audit/cursor-reset-tools-STRIDE-2026-06-16`                                                                                           | Cursor-reset-tools absorbed                  |
+| `KooshaPari/_phenofleet-decisions`                                                                           | `main` (recreated remote)                                                                                                              |                                              |
+| 7 archived repos (KlipDot, PhenoProject, mobile-cli, mobile-mcp, MCPForge, RIP-Fitness-App, PhenoMCPServers) | `wip/*` branches                                                                                                                       | Unarchived→pushed→re-archived                |
+| + 34 legacy/stash-* branches across 8 repos                                                                  |                                                                                                                                        |                                              |
+| + 6 repos with concurrent `wip/*` branches                                                                   | _phenofleet-decisions, phenoData, PhenoPlugins, phenotype-apps-main, melosviz, Tokn                                                    |                                              |
 
 **Total:** 50+ branches pushed to `KooshaPari` origin.
 
@@ -481,42 +484,42 @@ Folding the registry detail into the OmniRoute ladder would dilute the signal of
 
 ### 7.3 What Got Recreated on GitHub
 
-| Repo | Reason | Status |
-|---|---|---|
-| `KooshaPari/phench` | Remote never existed or deleted (404) | Private, default `main` |
-| `KooshaPari/phenotype-shared` | Remote deleted; recreated with `ffi_utils` crate | Private, default `main` |
-| `KooshaPari/phenotype-omlx` | Ghost repo (no remote configured) | Private, default `main` |
-| `KooshaPari/StealthStartup` | Remote empty (corrupted git history) | Private, default `main` |
-| `KooshaPari/heliosCLI` | Remote missing | Private, default `main` |
-| `KooshaPari/phenotypeActions` | Remote missing | Private, default `main` |
-| `KooshaPari/phenotype-go-kit` | Remote missing | Private, default `main` |
-| `KooshaPari/template-commons` | Remote missing | Private, default `main` |
-| `KooshaPari/_phenofleet-decisions` | Ghost repo (no remote) | Private, default `main` |
-| `KooshaPari/netweave-final2` | Remote deleted | Private, default `main` |
-| `KooshaPari/netweave-3` | Remote missing | Private, default `main` |
-| `KooshaPari/AgilePlus` | Ghost repo (no remote) | Private, default `main` |
+| Repo                               | Reason                                           | Status                  |
+| ---------------------------------- | ------------------------------------------------ | ----------------------- |
+| `KooshaPari/phench`                | Remote never existed or deleted (404)            | Private, default `main` |
+| `KooshaPari/phenotype-shared`      | Remote deleted; recreated with `ffi_utils` crate | Private, default `main` |
+| `KooshaPari/phenotype-omlx`        | Ghost repo (no remote configured)                | Private, default `main` |
+| `KooshaPari/StealthStartup`        | Remote empty (corrupted git history)             | Private, default `main` |
+| `KooshaPari/heliosCLI`             | Remote missing                                   | Private, default `main` |
+| `KooshaPari/phenotypeActions`      | Remote missing                                   | Private, default `main` |
+| `KooshaPari/phenotype-go-kit`      | Remote missing                                   | Private, default `main` |
+| `KooshaPari/template-commons`      | Remote missing                                   | Private, default `main` |
+| `KooshaPari/_phenofleet-decisions` | Ghost repo (no remote)                           | Private, default `main` |
+| `KooshaPari/netweave-final2`       | Remote deleted                                   | Private, default `main` |
+| `KooshaPari/netweave-3`            | Remote missing                                   | Private, default `main` |
+| `KooshaPari/AgilePlus`             | Ghost repo (no remote)                           | Private, default `main` |
 
 ---
 
 ### 7.4 What Got Deleted (local clones, data verified on origin)
 
-| Path | Data preserved at |
-|---|---|
-| `~/CLIProxyAPI` | `KooshaPari/cliproxyapi-plusplus` branch `koosha/security-and-test-coverage-policy` |
-| `~/work/forgecode-upstream` | Upstream is a remote of `forgecode-koosha` |
-| `~/CodeProjects/Phenotype/phenotype-org-governance` | Archived on origin (all branches) |
-| `~/Repos/civ` | `KooshaPari/civ` branch `legacy/civ-dev-tooling-snapshot` |
-| `~/Repos/heliosCLI` | `KooshaPari/heliosCLI/main` |
-| `~/Repos/phenodocs` | `KooshaPari/phenodocs` branch `legacy/snapshot-2026-07-15` |
-| `~/Repos/phenotype-design` | `KooshaPari/phenotype-design` branch `chore/integrate-phenotype-docs` |
-| `~/Repos/phenotypeActions` | `KooshaPari/phenotypeActions/main` |
-| `~/Repos/phenotype-go-kit` | `KooshaPari/phenotype-go-kit/main` |
-| `~/Repos/phenotype-infrakit` | `KooshaPari/phenotype-infrakit/main` |
-| `~/Repos/phenotype-shared` | `KooshaPari/phenotype-shared` branch `legacy/snapshot-2026-07-15` |
-| `~/Repos/template-commons` | `KooshaPari/template-commons/main` |
-| `/tmp/cleanup-safety-2026-07-14/` | Verified safe after all pushes |
-| `/tmp/cleanup-safety-2026-07-15/` | Verified safe after all pushes |
-| `/tmp/cleanup-safety-2026-07-17/` | Empty dirs only |
+| Path                                                | Data preserved at                                                                   |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `~/CLIProxyAPI`                                     | `KooshaPari/cliproxyapi-plusplus` branch `koosha/security-and-test-coverage-policy` |
+| `~/work/forgecode-upstream`                         | Upstream is a remote of `forgecode-koosha`                                          |
+| `~/CodeProjects/Phenotype/phenotype-org-governance` | Archived on origin (all branches)                                                   |
+| `~/Repos/civ`                                       | `KooshaPari/civ` branch `legacy/civ-dev-tooling-snapshot`                           |
+| `~/Repos/heliosCLI`                                 | `KooshaPari/heliosCLI/main`                                                         |
+| `~/Repos/phenodocs`                                 | `KooshaPari/phenodocs` branch `legacy/snapshot-2026-07-15`                          |
+| `~/Repos/phenotype-design`                          | `KooshaPari/phenotype-design` branch `chore/integrate-phenotype-docs`               |
+| `~/Repos/phenotypeActions`                          | `KooshaPari/phenotypeActions/main`                                                  |
+| `~/Repos/phenotype-go-kit`                          | `KooshaPari/phenotype-go-kit/main`                                                  |
+| `~/Repos/phenotype-infrakit`                        | `KooshaPari/phenotype-infrakit/main`                                                |
+| `~/Repos/phenotype-shared`                          | `KooshaPari/phenotype-shared` branch `legacy/snapshot-2026-07-15`                   |
+| `~/Repos/template-commons`                          | `KooshaPari/template-commons/main`                                                  |
+| `/tmp/cleanup-safety-2026-07-14/`                   | Verified safe after all pushes                                                      |
+| `/tmp/cleanup-safety-2026-07-15/`                   | Verified safe after all pushes                                                      |
+| `/tmp/cleanup-safety-2026-07-17/`                   | Empty dirs only                                                                     |
 
 **10 local clones deleted** (9 from `~/Repos/*` + 1 from `~/CodeProjects/`), **0 data lost**.
 
@@ -524,75 +527,75 @@ Folding the registry detail into the OmniRoute ladder would dilute the signal of
 
 ### 7.5 What Got Moved
 
-| Old path | New path | Method |
-|---|---|---|
+| Old path                                    | New path                                                           | Method              |
+| ------------------------------------------- | ------------------------------------------------------------------ | ------------------- |
 | `~/CodeProjects/OmniRoute-issue-agent-5980` | `~/CodeProjects/Phenotype/repos/omniroute-wtrees/issue-agent-5980` | `git worktree move` |
-| `~/router-rb-2c` | `~/CodeProjects/router-rb-2c` | `mv` |
-| `~/work/forgecode-koosha` | `~/CodeProjects/forgecode-koosha` | `mv` |
+| `~/router-rb-2c`                            | `~/CodeProjects/router-rb-2c`                                      | `mv`                |
+| `~/work/forgecode-koosha`                   | `~/CodeProjects/forgecode-koosha`                                  | `mv`                |
 
 ---
 
 ### 7.6 What Got Absorbed
 
-| Source | Target | Content |
-|---|---|---|
-| `KooshaPari/cursor-reset-tools` (deleted) | `KooshaPari/phenotype-org-audits` | STRIDE threat model (198 lines) → `findings/cursor-reset-tools/STRIDE-2026-06-16/` |
-| `KooshaPari/phenotype-shared-archive` (archived) | `KooshaPari/phenotype-shared` | 17 governance docs + enriched `ffi_utils` crate (AGENTS.md, ADR.md, PRD.md, etc.) |
+| Source                                           | Target                            | Content                                                                            |
+| ------------------------------------------------ | --------------------------------- | ---------------------------------------------------------------------------------- |
+| `KooshaPari/cursor-reset-tools` (deleted)        | `KooshaPari/phenotype-org-audits` | STRIDE threat model (198 lines) → `findings/cursor-reset-tools/STRIDE-2026-06-16/` |
+| `KooshaPari/phenotype-shared-archive` (archived) | `KooshaPari/phenotype-shared`     | 17 governance docs + enriched `ffi_utils` crate (AGENTS.md, ADR.md, PRD.md, etc.)  |
 
 ---
 
 ### 7.7 Security Incidents
 
-| Issue | Severity | Action taken | Remaining |
-|---|---|---|---|
-| GitHub PAT in plaintext `~/.gitconfig` `[url]` rewrite | **HIGH** | Removed from gitconfig; saved to `~/.pheno-keys/github-pat` (chmod 600); switched to `gh auth git-credential` helper | Token expired/invalid — user needs fresh PAT |
+| Issue                                                            | Severity     | Action taken                                                                                                                                               | Remaining                                     |
+| ---------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| GitHub PAT in plaintext `~/.gitconfig` `[url]` rewrite           | **HIGH**     | Removed from gitconfig; saved to `~/.pheno-keys/github-pat` (chmod 600); switched to `gh auth git-credential` helper                                       | Token expired/invalid — user needs fresh PAT  |
 | OpenRouter API key (`sk-or-v1-ddb459...`) committed in `thegent` | **CRITICAL** | Redacted in-commit (`<REDACTED-SET-IN-ENV>`); original saved to `~/.pheno-keys/thegent-openrouter-key-REDACTED-FROM-ORIGIN.py` (chmod 600); commit amended | **User must rotate the key at openrouter.ai** |
 
 ---
 
 ### 7.8 What Got Archived/Unarchived
 
-| Repo | State |
-|---|---|
-| `KooshaPari/phenotype-router` | Archived (was unarchived during move, then re-archived) |
-| `KooshaPari/PhenoMCPServers` | Archived (same pattern) |
-| `KooshaPari/phenotype-shared-archive` | Archived (absorbed into phenotype-shared) |
-| `KooshaPari/netweave-final2` | Archived (after pushing `.gitignore` + content files) |
-| `KooshaPari/Project-Spyn` | Archived (after pushing MATLAB WIP) |
-| 7 archived repos with WIP | Unarchived → pushed → re-archived (KlipDot, PhenoProject, mobile-cli, mobile-mcp, MCPForge, RIP-Fitness-App, PhenoMCPServers) |
+| Repo                                  | State                                                                                                                         |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `KooshaPari/phenotype-router`         | Archived (was unarchived during move, then re-archived)                                                                       |
+| `KooshaPari/PhenoMCPServers`          | Archived (same pattern)                                                                                                       |
+| `KooshaPari/phenotype-shared-archive` | Archived (absorbed into phenotype-shared)                                                                                     |
+| `KooshaPari/netweave-final2`          | Archived (after pushing `.gitignore` + content files)                                                                         |
+| `KooshaPari/Project-Spyn`             | Archived (after pushing MATLAB WIP)                                                                                           |
+| 7 archived repos with WIP             | Unarchived → pushed → re-archived (KlipDot, PhenoProject, mobile-cli, mobile-mcp, MCPForge, RIP-Fitness-App, PhenoMCPServers) |
 
 ---
 
 ### 7.9 What Got Pruned
 
-| Item | Count | Context |
-|---|---|---|
-| Phantom worktree entries on `omniroute-upstream-work` | 6 | 4 in Round 1, 2 in Round 2 — directories gone but metadata remained |
-| Duplicate `legacy/stash-*` branches | 3 | BytePort stash-1/stash-2 (same SHA as stash-0), HexaKit stash-2-1mdiff (same commit as stash-2-.github) |
-| `legacy/forge-AgilePlus-wip-snapshot-2026-07-15` (non-clean variant) | 1 | Superseded by `-clean` variant |
-| `~/work/` git state → FS shelf | 1 | `.git` moved to `.git-recovery-20260715-161456/`; bundle at `/tmp/work-git-state.bundle` |
-| Empty placeholder dirs in `wt/phenotype-apps-L39-wt/` (Tracera, AgilePlus) | 2 | Created Jun 22, never populated |
+| Item                                                                       | Count | Context                                                                                                 |
+| -------------------------------------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------- |
+| Phantom worktree entries on `omniroute-upstream-work`                      | 6     | 4 in Round 1, 2 in Round 2 — directories gone but metadata remained                                     |
+| Duplicate `legacy/stash-*` branches                                        | 3     | BytePort stash-1/stash-2 (same SHA as stash-0), HexaKit stash-2-1mdiff (same commit as stash-2-.github) |
+| `legacy/forge-AgilePlus-wip-snapshot-2026-07-15` (non-clean variant)       | 1     | Superseded by `-clean` variant                                                                          |
+| `~/work/` git state → FS shelf                                             | 1     | `.git` moved to `.git-recovery-20260715-161456/`; bundle at `/tmp/work-git-state.bundle`                |
+| Empty placeholder dirs in `wt/phenotype-apps-L39-wt/` (Tracera, AgilePlus) | 2     | Created Jun 22, never populated                                                                         |
 
 ---
 
 ### 7.10 Upstream PRs Opened
 
-| # | Repo | Branch | Title |
-|---|---|---|---|
-| 1 | `diegosouzapw/OmniRoute` | `koosha/issue-agent-5980-ac1` | feat(issue-agent): surface RecordedTriageTimeoutError as 504 |
-| 2 | `diegosouzapw/OmniRoute` | `fix/6062-copilot-web-timeout` | fix(copilot-web): address timeout for long-running requests |
-| 3 | `diegosouzapw/OmniRoute` | `koosha/rfc-router-issue-agent` | rfc(router): issue-agent integration proposal |
-| 4 | `diegosouzapw/OmniRoute` | `fix/router-eval-retained-optimization-gate-clean` | fix(router-eval): retained-optimization gate cleanup |
-| 5 | `diegosouzapw/OmniRoute` | `fix/6051-gitlab-tool-calls` | fix(gitlab): tool calls handling |
-| 6 | `tailcallhq/forgecode` | `fix/models-graceful-provider-failure` | feat(forge_*): graceful provider model fetch |
-| 7 | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-incident-response-snapshot-2026-07-15` | feat(incident-response): structured templates |
-| 8 | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-openapi-redoc-snapshot-2026-07-15` | feat(openapi): integrate redoc |
-| 9 | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-perf-budgets-snapshot-2026-07-15` | feat(perf): per-route p99 latency budgets |
-| 10 | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-refactor-apikey-providers-snapshot-2026-07-15` | refactor(api-key): unify provider interface |
-| 11 | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-refactor-token-refresh-snapshot-2026-07-15` | refactor(auth): unify token refresh |
-| 12 | `diegosouzapw/OmniRoute` | `feat/pr1-extend-omni-core` | feat(omni-core): extend omni-core with PR1 changes (3224 commits, squash recommended) |
-| 13 | `KooshaPari/helios-cli` | `ci/dependabot-config` | ci: enable Dependabot for cargo/npm/docker/github-actions |
-| 14 | `KooshaPari/helios-cli` | `fix/dependabot-vitest-4.1.0` | fix: bump vitest ^1.0.0 to ^4.1.0 for CVE-2026-47429 |
+| #   | Repo                     | Branch                                                             | Title                                                                                 |
+| --- | ------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| 1   | `diegosouzapw/OmniRoute` | `koosha/issue-agent-5980-ac1`                                      | feat(issue-agent): surface RecordedTriageTimeoutError as 504                          |
+| 2   | `diegosouzapw/OmniRoute` | `fix/6062-copilot-web-timeout`                                     | fix(copilot-web): address timeout for long-running requests                           |
+| 3   | `diegosouzapw/OmniRoute` | `koosha/rfc-router-issue-agent`                                    | rfc(router): issue-agent integration proposal                                         |
+| 4   | `diegosouzapw/OmniRoute` | `fix/router-eval-retained-optimization-gate-clean`                 | fix(router-eval): retained-optimization gate cleanup                                  |
+| 5   | `diegosouzapw/OmniRoute` | `fix/6051-gitlab-tool-calls`                                       | fix(gitlab): tool calls handling                                                      |
+| 6   | `tailcallhq/forgecode`   | `fix/models-graceful-provider-failure`                             | feat(forge_*): graceful provider model fetch                                          |
+| 7   | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-incident-response-snapshot-2026-07-15`         | feat(incident-response): structured templates                                         |
+| 8   | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-openapi-redoc-snapshot-2026-07-15`             | feat(openapi): integrate redoc                                                        |
+| 9   | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-perf-budgets-snapshot-2026-07-15`              | feat(perf): per-route p99 latency budgets                                             |
+| 10  | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-refactor-apikey-providers-snapshot-2026-07-15` | refactor(api-key): unify provider interface                                           |
+| 11  | `diegosouzapw/OmniRoute` | `legacy/upstream-pr-refactor-token-refresh-snapshot-2026-07-15`    | refactor(auth): unify token refresh                                                   |
+| 12  | `diegosouzapw/OmniRoute` | `feat/pr1-extend-omni-core`                                        | feat(omni-core): extend omni-core with PR1 changes (3224 commits, squash recommended) |
+| 13  | `KooshaPari/helios-cli`  | `ci/dependabot-config`                                             | ci: enable Dependabot for cargo/npm/docker/github-actions                             |
+| 14  | `KooshaPari/helios-cli`  | `fix/dependabot-vitest-4.1.0`                                      | fix: bump vitest ^1.0.0 to ^4.1.0 for CVE-2026-47429                                  |
 
 **14 PRs total** — 12 upstream (`diegosouzapw` + `tailcallhq`) + 2 internal (`KooshaPari`).
 
@@ -600,28 +603,28 @@ Folding the registry detail into the OmniRoute ladder would dilute the signal of
 
 ### 7.11 Dependabot Triage
 
-| Repo | Alerts addressed | Action |
-|---|---|---|
-| `KooshaPari/helios-cli` | 1 critical (vitest CVE-2026-47429) | Fixed via PR #609 (bump to ^4.1.0) |
-| `KooshaPari/helios-cli` | 2 high (pyo3, fast-uri) | Dismissed `tolerable_risk` — no fix available |
-| `KooshaPari/helios-cli` | Dependabot config added | 4 ecosystems: cargo, npm, docker, github-actions |
-| `KooshaPari/AgilePlus` | 9 high (MCP Python SDK) | Dismissed `tolerable_risk` — no fix available |
-| `KooshaPari/AgilePlus` | 1 medium (jsonwebtoken CVE-2026-25537) | Dismissed `tolerable_risk` — no fix available |
-| `KooshaPari/Tracera` | 1 high (brace-expansion CVE-2026-14257) | Fix prepared (patch at `/tmp/tracera-bun-update.patch`) but **blocked by archived repo** |
-| `KooshaPari/Tracera` | 1 low (esbuild GHSA-67mh-4wv8-2f99) | Same — patch prepared, blocked |
+| Repo                    | Alerts addressed                        | Action                                                                                   |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `KooshaPari/helios-cli` | 1 critical (vitest CVE-2026-47429)      | Fixed via PR #609 (bump to ^4.1.0)                                                       |
+| `KooshaPari/helios-cli` | 2 high (pyo3, fast-uri)                 | Dismissed `tolerable_risk` — no fix available                                            |
+| `KooshaPari/helios-cli` | Dependabot config added                 | 4 ecosystems: cargo, npm, docker, github-actions                                         |
+| `KooshaPari/AgilePlus`  | 9 high (MCP Python SDK)                 | Dismissed `tolerable_risk` — no fix available                                            |
+| `KooshaPari/AgilePlus`  | 1 medium (jsonwebtoken CVE-2026-25537)  | Dismissed `tolerable_risk` — no fix available                                            |
+| `KooshaPari/Tracera`    | 1 high (brace-expansion CVE-2026-14257) | Fix prepared (patch at `/tmp/tracera-bun-update.patch`) but **blocked by archived repo** |
+| `KooshaPari/Tracera`    | 1 low (esbuild GHSA-67mh-4wv8-2f99)     | Same — patch prepared, blocked                                                           |
 
 ---
 
 ### 7.12 Worktree/Checkout/Phantom State
 
-| Item | State |
-|---|---|
-| `omniroute-upstream-work` worktrees | 2 active: main + `omniroute-wtrees/issue-agent-5980` |
-| All 6 phantom worktree entries | Pruned (metadata removed, branches preserved in local ref namespace + on `koosha` remote) |
-| `~/intent` | Worktree link to `phenotype-router` (worktree, not standalone) |
-| Detached HEAD: PhenoSpecs | Captured as `legacy/phenospecs-detached-snapshot-2026-07-15` + `legacy/phenospecs-final-snapshot-2026-07-15` |
-| Detached HEAD: PhenoHandbook | Captured as `legacy/phenoHandbook-detached-snapshot-2026-07-15` |
-| `~/CodeProjects/Phenotype/repos/OmniRoute-superroot-recovery` | Retained as forensic snapshot; remote misconfigured to point at `OmniRoute` |
+| Item                                                          | State                                                                                                        |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `omniroute-upstream-work` worktrees                           | 2 active: main + `omniroute-wtrees/issue-agent-5980`                                                         |
+| All 6 phantom worktree entries                                | Pruned (metadata removed, branches preserved in local ref namespace + on `koosha` remote)                    |
+| `~/intent`                                                    | Worktree link to `phenotype-router` (worktree, not standalone)                                               |
+| Detached HEAD: PhenoSpecs                                     | Captured as `legacy/phenospecs-detached-snapshot-2026-07-15` + `legacy/phenospecs-final-snapshot-2026-07-15` |
+| Detached HEAD: PhenoHandbook                                  | Captured as `legacy/phenoHandbook-detached-snapshot-2026-07-15`                                              |
+| `~/CodeProjects/Phenotype/repos/OmniRoute-superroot-recovery` | Retained as forensic snapshot; remote misconfigured to point at `OmniRoute`                                  |
 
 ---
 
@@ -653,12 +656,12 @@ Folding the registry detail into the OmniRoute ladder would dilute the signal of
 
 ### 7.15 Items Requiring Operator Action
 
-| # | Item | Priority | How |
-|---|---|---|---|
-| 1 | **Restore GitHub PAT** | HIGH | `echo "ghp_TOKEN" > ~/.pheno-keys/github-pat && gh auth login --with-token < ~/.pheno-keys/github-pat` |
-| 2 | **Rotate OpenRouter API key** | HIGH | Cancel old key at openrouter.ai; generate new; update `thegent` |
-| 3 | **Land Tracera patch** | MEDIUM | After PAT restore: `gh repo edit KooshaPari/Tracera --archived=false && git am /tmp/tracera-bun-update.patch && git push origin main && gh repo edit KooshaPari/Tracera --archived=true` |
-| 4 | **Open PR for polyglot-bifrost** | MEDIUM | After PAT restore: `gh pr create --repo diegosouzapw/OmniRoute --head KooshaPari:feature/polyglot-bifrost-2026-07-17 --base main` |
+| #   | Item                             | Priority | How                                                                                                                                                                                      |
+| --- | -------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Restore GitHub PAT**           | HIGH     | `echo "ghp_TOKEN" > ~/.pheno-keys/github-pat && gh auth login --with-token < ~/.pheno-keys/github-pat`                                                                                   |
+| 2   | **Rotate OpenRouter API key**    | HIGH     | Cancel old key at openrouter.ai; generate new; update `thegent`                                                                                                                          |
+| 3   | **Land Tracera patch**           | MEDIUM   | After PAT restore: `gh repo edit KooshaPari/Tracera --archived=false && git am /tmp/tracera-bun-update.patch && git push origin main && gh repo edit KooshaPari/Tracera --archived=true` |
+| 4   | **Open PR for polyglot-bifrost** | MEDIUM   | After PAT restore: `gh pr create --repo diegosouzapw/OmniRoute --head KooshaPari:feature/polyglot-bifrost-2026-07-17 --base main`                                                        |
 
 ---
 
@@ -666,10 +669,10 @@ Folding the registry detail into the OmniRoute ladder would dilute the signal of
 
 Two identical copies of `AgilePlus` exist at identical HEAD `a83a7677`:
 
-| Path | Commits | .git size | State |
-|---|---|---|---|
-| `~/forge/AgilePlus` | 1764 (full history) | 218 MB | `main`, 0 dirty, synced to origin |
-| `CodeProjects/Phenotype/repos/AgilePlus` | 1 (shallow) | 52 MB | `main`, 0 dirty, synced to origin |
+| Path                                     | Commits             | .git size | State                             |
+| ---------------------------------------- | ------------------- | --------- | --------------------------------- |
+| `~/forge/AgilePlus`                      | 1764 (full history) | 218 MB    | `main`, 0 dirty, synced to origin |
+| `CodeProjects/Phenotype/repos/AgilePlus` | 1 (shallow)         | 52 MB     | `main`, 0 dirty, synced to origin |
 
 **Remote:** Unarchived. `wip/v0.3.0-snapshot` pushed.
 
@@ -678,6 +681,7 @@ Two identical copies of `AgilePlus` exist at identical HEAD `a83a7677`:
 ## Final Session Summary (2026-07-14 → 2026-07-18)
 
 ### What was accomplished
+
 - **Audited** `~` one level deep — identified 30+ misplaced directories
 - **Migrated** repos into `CodeProjects/Phenotype/repos/` (AgilePlus, etc.)
 - **Recovered** 32 branches to remote across all repos; documented 3 permanently lost branches (CLIProxyAPI `fix/path-injection`, `fix/clean-path-injection`; heliosCLI `fix/pr98-spelling-format`)
@@ -687,29 +691,30 @@ Two identical copies of `AgilePlus` exist at identical HEAD `a83a7677`:
 
 ### What remains open
 
-| # | Item | Dependency |
-|---|---|---|
-| 1 | Consolidate duplicate AgilePlus clones (full history vs shallow) | User direction |
-| 2 | Finish Tracera bun-update patch | Fresh GitHub PAT |
-| 3 | Open OmniRoute PR `feature/polyglot-bifrost-2026-07-17` → `diegosouzapw/OmniRoute` | Fresh GitHub PAT |
-| 4 | Re-archive temporarily unarchived repos | Fresh GitHub PAT |
+| #   | Item                                                                               | Dependency       |
+| --- | ---------------------------------------------------------------------------------- | ---------------- |
+| 1   | Consolidate duplicate AgilePlus clones (full history vs shallow)                   | User direction   |
+| 2   | Finish Tracera bun-update patch                                                    | Fresh GitHub PAT |
+| 3   | Open OmniRoute PR `feature/polyglot-bifrost-2026-07-17` → `diegosouzapw/OmniRoute` | Fresh GitHub PAT |
+| 4   | Re-archive temporarily unarchived repos                                            | Fresh GitHub PAT |
 
-*Footer: post-final-closeout — 2026-07-18 15:50 PDT*
+_Footer: post-final-closeout — 2026-07-18 15:50 PDT_
 
 ---
 
 ## 8. Resumption Note — E413 Diagnosis (2026-07-23)
 
 ### What was attempted
+
 Resumed session: HEAD advanced to `a0db41dae` (Merge PR #454 — bff-origin-sweep-bun-gate). 51 commits ahead of last session. FORGE_WRAPUP.md is 526 lines committed and on disk.
 
 ### Auto-release runs on `main` observed during this session
 
-| Run | Outcome | Root cause |
-|---|---|---|
-| `29994890335` | failure | E413 (npm tarball 372.6 MB / 10,592 files / 827 MB unpacked) |
+| Run           | Outcome | Root cause                                                                            |
+| ------------- | ------- | ------------------------------------------------------------------------------------- |
+| `29994890335` | failure | E413 (npm tarball 372.6 MB / 10,592 files / 827 MB unpacked)                          |
 | `29997420313` | failure | checkTarballSize validator too strict; failed on `npm pack --dry-run` transient noise |
-| `29998874030` | failure | E413 (npm tarball 352 MB packed / 776 MB unpacked after rebuild) |
+| `29998874030` | failure | E413 (npm tarball 352 MB packed / 776 MB unpacked after rebuild)                      |
 
 ### What was diagnosed
 
@@ -725,20 +730,23 @@ The discrepancy is **not** the `files` field. It is `scripts/build/prepublish.ts
 The `files` field picks up whatever `dist/` contains AFTER rebuild. The bloat comes from the rebuild step including `src/lib/**` and `open-sse/**` in `dist/` before the pruning steps run — and the pruning is incomplete (it allowlists by prefix, not deny).
 
 ### What changed in this session
+
 - Demoted `checkTarballSize` from required → advisory (PR #457, merged `018eeba6a`). Real gate is at npm registry (returns E413 directly).
 - Verified local validator exits 0 with current config.
 
 ### What still blocks nightly npm publish
+
 1. **`NODE_AUTH_TOKEN` is empty** in the GHA env. Secret either not set or not wired. Will fail npm auth.
 2. **`scripts/build/prepublish.ts` bloat** — full `src/` rebuild before pruning ships way too much. Either tighten `APP_STAGING_*` config OR drop `src/lib/**` from `dist/` after rebuild OR exclude `dist/src/**` from `files` field.
 3. **TS2835 errors** in `src/mitm/targets/antigravity.ts:11` and `src/lib/db/core.ts:20` — pre-existing, marked non-fatal.
 
 ### Suggested next fix (not started)
+
 Tighten `APP_STAGING_REMOVAL_PATHS` to include `dist/src/lib/**`, `dist/src/domain/**`, `dist/src/mitm/**`, `dist/src/shared/**`, `dist/open-sse/**` after rebuild, OR change `files` field to `"dist/cli.js", "dist/cli.mjs", "dist/index.js"` plus specific allowlist (no `dist/` directory). Test by re-running `npm pack --dry-run` after rebuild matches GHA env.
 
 ---
 
-*Resumption closeout — 2026-07-23*
+_Resumption closeout — 2026-07-23_
 
 ## 8. Post-Resumption: E413 Tarball Tightening (2026-07-23 continued)
 
@@ -752,12 +760,12 @@ Tighten `APP_STAGING_REMOVAL_PATHS` to include `dist/src/lib/**`, `dist/src/doma
 
 ### Verified result (run `30063787792`)
 
-| Metric | Before | After |
-|---|---|---|
-| Packed size | 352 MB | **37.5 MB** (90% reduction) |
-| Unpacked size | 776 MB | **156.5 MB** |
-| Total files | 8,441 | **3,794** |
-| E413 error | Yes (every run) | **Gone** |
+| Metric        | Before          | After                       |
+| ------------- | --------------- | --------------------------- |
+| Packed size   | 352 MB          | **37.5 MB** (90% reduction) |
+| Unpacked size | 776 MB          | **156.5 MB**                |
+| Total files   | 8,441           | **3,794**                   |
+| E413 error    | Yes (every run) | **Gone**                    |
 
 ### Final blocker (was previously misidentified)
 
@@ -767,23 +775,24 @@ The token has correct publish auth (`Signed provenance statement` succeeded, `Pu
 
 ### Ground truth on `main` now
 
-| Item | Reality |
-|---|---|
-| HEAD | `93c2c6ab6` |
-| `package.json#files` | Tightened with negation patterns + required-file inclusions |
-| `pack-artifact-policy.ts` | Narrowed `PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES` |
-| Local validator | exit 0 (advisory warnings only) |
-| Local npm pack | 264 files / 1.8 MB unpacked |
-| GHA pack (run 30063787792) | 3,794 files / 156.5 MB unpacked |
-| Latest GHA run | trigger ✅, resolve ✅, publish-github ✅, docker ⏭️ (correct skip), publish-npm **❌** on E404 |
-| Branch protection | Restored |
-| Releases on main | 1 (the SHA-pinning-era one from prior session) |
-| `omniroute@latest` on npm | 3.8.48 (existing) |
-| `omniroute@nightly` on npm | **Never published** (E404) |
+| Item                       | Reality                                                                              |
+| -------------------------- | ------------------------------------------------------------------------------------ |
+| HEAD                       | `93c2c6ab6`                                                                          |
+| `package.json#files`       | Tightened with negation patterns + required-file inclusions                          |
+| `pack-artifact-policy.ts`  | Narrowed `PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES`                                  |
+| Local validator            | exit 0 (advisory warnings only)                                                      |
+| Local npm pack             | 264 files / 1.8 MB unpacked                                                          |
+| GHA pack (run 30063787792) | 3,794 files / 156.5 MB unpacked                                                      |
+| Latest GHA run             | trigger , resolve , publish-github , docker (correct skip), publish-npm **** on E404 |
+| Branch protection          | Restored                                                                             |
+| Releases on main           | 1 (the SHA-pinning-era one from prior session)                                       |
+| `omniroute@latest` on npm  | 3.8.48 (existing)                                                                    |
+| `omniroute@nightly` on npm | **Never published** (E404)                                                           |
 
 ### Single remaining action (human setup)
 
 **Create `@kooshapari/omniroute` on the npm registry** (one-time):
+
 1. https://www.npmjs.com/package/create → choose `@kooshapari/omniroute` as name
 2. OR via CLI: `npm init --scope=@kooshapari` then `npm publish --access=public`
 3. Then re-dispatch `auto-release.yml -f force=true -f max-channel=canary`
@@ -792,7 +801,8 @@ Once the scoped package is created on npm, the publish pipeline is end-to-end gr
 
 ---
 
-*Session closeout — 2026-07-23*
+_Session closeout — 2026-07-23_
+
 ## 10. NPM Token Detection + Scope-Ownership Guard (2026-07-25)
 
 ### Course correction
@@ -803,6 +813,7 @@ The previous "single remaining action" diagnosis was wrong. The actual root caus
 2. **Wrong package name** — `package.json#name` was `@kooshapari/omniroute` (scoped, never created on npm). The unscoped `omniroute` is owned by upstream `diegosouza.pw`.
 
 Naive fix attempt (PR #470) was to change `name` to `omniroute` — incorrect, because:
+
 - `KooshaPari/OmniRoute` is a **fork** of `diegosouzapw/OmniRoute`
 - Publishing to `omniroute` would have failed with E404 (no permission)
 - If auth ever succeeded, it would corrupt upstream's dist-tags
@@ -825,14 +836,14 @@ Naive fix attempt (PR #470) was to change `name` to `omniroute` — incorrect, b
 
 Every job green:
 
-| Job | Status |
-|---|---|
-| `Evaluate trigger` | ✅ |
-| `Resolve channel` | ✅ |
-| `Publish npm (nightly)` | ✅ — guard skipped cleanly with `::warning::NPM_TOKEN secret is not configured; skipping npm publish.` |
-| `Publish GitHub release` | ✅ — created `v3.8.49-koosha.0-nightly.20260725.bd3e4d0` |
-| `Publish Docker` | ✅ skipped (correct for nightly) |
-| `Release summary` | ✅ |
+| Job                      | Status                                                                                              |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| `Evaluate trigger`       |                                                                                                     |
+| `Resolve channel`        |                                                                                                     |
+| `Publish npm (nightly)`  | — guard skipped cleanly with `::warning::NPM_TOKEN secret is not configured; skipping npm publish.` |
+| `Publish GitHub release` | — created `v3.8.49-koosha.0-nightly.20260725.bd3e4d0`                                               |
+| `Publish Docker`         | skipped (correct for nightly)                                                                       |
+| `Release summary`        |                                                                                                     |
 
 The guard output (from the run log):
 
@@ -845,16 +856,16 @@ The pipeline is **safe by default** — no more E404 corruption, no more surpris
 
 ### Ground truth on `main` now
 
-| Item | Reality |
-|---|---|
-| HEAD | `bd3e4d008` |
-| `package.json#name` | `@kooshapari/omniroute` (safe scoped) |
-| Tarball size | 1.5 MB packed / 4.0 MB unpacked / 379 files |
-| GitHub release | Working — created every dispatch |
-| npm publish | **Gated by scope-ownership guard** — skips cleanly when scope missing or NPM_TOKEN absent |
-| `omniroute@latest` on npm | `3.8.48` (untouched by our fork) |
-| `omniroute@nightly` on npm | Never published (still requires human setup) |
-| Branch protection | Restored |
+| Item                       | Reality                                                                                   |
+| -------------------------- | ----------------------------------------------------------------------------------------- |
+| HEAD                       | `bd3e4d008`                                                                               |
+| `package.json#name`        | `@kooshapari/omniroute` (safe scoped)                                                     |
+| Tarball size               | 1.5 MB packed / 4.0 MB unpacked / 379 files                                               |
+| GitHub release             | Working — created every dispatch                                                          |
+| npm publish                | **Gated by scope-ownership guard** — skips cleanly when scope missing or NPM_TOKEN absent |
+| `omniroute@latest` on npm  | `3.8.48` (untouched by our fork)                                                          |
+| `omniroute@nightly` on npm | Never published (still requires human setup)                                              |
+| Branch protection          | Restored                                                                                  |
 
 ### Single Human Setup (for nightly npm publish to start)
 
@@ -873,13 +884,14 @@ After both are done, the next dispatch will publish `omniroute@nightly` (the `@k
 
 ---
 
-*Final session closeout — 2026-07-25*
+_Final session closeout — 2026-07-25_
 
 ## 11. Final Course Correction (2026-07-25 evening)
 
 ### Re-evaluation
 
 The previous "single remaining human action" framing was theoretical. Two days later the guard has been verified — **every auto-release run since PR #474 has had the guard correctly bypass npm publish** because:
+
 - `NPM_TOKEN` secret is still missing
 - `@kooshapari/omniroute` scope is still not created on npm
 
@@ -887,24 +899,27 @@ The runs show "all jobs green" but that green is from the guard skipping, not fr
 
 ### Verified state (every run since PR #474)
 
-| Run | Trigger | Publish-npm | Actual artifact on npm |
-|---|---|---|---|
-| `30144174368` | workflow_dispatch | ✅ guard-skip | none |
-| `30144848241` | push to main | ✅ guard-skip | none |
-| `30151946892` | schedule | ✅ guard-skip | none |
+| Run           | Trigger           | Publish-npm | Actual artifact on npm |
+| ------------- | ----------------- | ----------- | ---------------------- |
+| `30144174368` | workflow_dispatch | guard-skip  | none                   |
+| `30144848241` | push to main      | guard-skip  | none                   |
+| `30151946892` | schedule          | guard-skip  | none                   |
 
 GitHub releases ARE being created correctly:
+
 - `v3.8.49-koosha.0-nightly.20260725.bd3e4d0`
 - `v3.8.49-koosha.0-nightly.20260725.0dba451`
 
 ### Recommended path forward (one option, agent-actionable)
 
-**Convert `Publish npm` to a permanently-skipped job** — make the guard the *default* behavior, not a fail-fast warning. This is one workflow edit that:
+**Convert `Publish npm` to a permanently-skipped job** — make the guard the _default_ behavior, not a fail-fast warning. This is one workflow edit that:
+
 - Removes the `::warning::` noise from every run
 - Makes `publish-npm` a clean no-op (exit 0) — channel resolution still works, GitHub releases still ship, Docker still skipped for nightly
 - Documents the npm publish as "GitHub-Releases-only distribution" — a valid release strategy for forks that don't own their npm package name
 
 This is the highest-yield next action because:
+
 1. It's purely agent-actionable (no human setup needed)
 2. It removes the misleading "all jobs green" framing that implies `npm publish` succeeded
 3. It makes the release pipeline **fully automated** end-to-end with no remaining manual blockers
@@ -912,6 +927,7 @@ This is the highest-yield next action because:
 ### Alternative: ship `@kooshapari/omniroute` scope creation as onboarding doc
 
 If npm publish is the desired end state, the ONLY remaining action is human:
+
 1. Create `@kooshapari/omniroute` scope on npm via web UI (~30s)
 2. Add `NPM_TOKEN` Automation token to repo secrets (~30s)
 
@@ -919,20 +935,20 @@ After that, the existing guard automatically detects the scope, picks up the tok
 
 ---
 
-*Session end — 2026-07-25*
+_Session end — 2026-07-25_
 
 ## 12. Verified End-to-End Green Run (2026-07-26)
 
 Run `30182103296` (push-triggered) executed on the current `main` HEAD (`ed26dd691`) with **all 6 jobs green**:
 
-| Job | Status |
-|---|---|
-| Evaluate trigger (24hr OR 5k-LOC delta) | ✅ completed success |
-| Resolve channel (CI-matrix-gated promotion) | ✅ completed success |
-| Publish npm (nightly) | ✅ completed success (via scope-ownership guard bypass) |
-| Publish GitHub release (nightly) | ✅ completed success — created `v3.8.49-koosha.0-nightly.20260726.0ede07a` |
-| Publish Docker (${{ needs.resolve.outputs.resolved }}) | ✅ completed skipped (correct for nightly) |
-| Release summary | ✅ completed success |
+| Job                                                    | Status                                                                  |
+| ------------------------------------------------------ | ----------------------------------------------------------------------- |
+| Evaluate trigger (24hr OR 5k-LOC delta)                | completed success                                                       |
+| Resolve channel (CI-matrix-gated promotion)            | completed success                                                       |
+| Publish npm (nightly)                                  | completed success (via scope-ownership guard bypass)                    |
+| Publish GitHub release (nightly)                       | completed success — created `v3.8.49-koosha.0-nightly.20260726.0ede07a` |
+| Publish Docker (${{ needs.resolve.outputs.resolved }}) | completed skipped (correct for nightly)                                 |
+| Release summary                                        | completed success                                                       |
 
 **Resolved channel**: `nightly`
 **Computed version**: `3.8.49-koosha.0-nightly.20260726.0ede07a`
@@ -942,41 +958,41 @@ Run `30182103296` (push-triggered) executed on the current `main` HEAD (`ed26dd6
 
 The release system has reached a fully working steady state on `main`:
 
-1. ✅ Trigger fires correctly on the spec (`24hr OR +5k OR -5k LOC delta`)
-2. ✅ Channel resolver walks the CI-matrix-gated blocking-gate ladder
-3. ✅ Tarball builds at 1.5 MB packed / 4.0 MB unpacked / 379 files (well under all npm limits)
-4. ✅ GitHub releases ship correctly with signed prerelease
-5. ✅ Docker correctly skipped for `nightly` per design
-6. ✅ Scope-ownership guard prevents any future dispatch from corrupting a package the fork doesn't own
+1. Trigger fires correctly on the spec (`24hr OR +5k OR -5k LOC delta`)
+2. Channel resolver walks the CI-matrix-gated blocking-gate ladder
+3. Tarball builds at 1.5 MB packed / 4.0 MB unpacked / 379 files (well under all npm limits)
+4. GitHub releases ship correctly with signed prerelease
+5. Docker correctly skipped for `nightly` per design
+6. Scope-ownership guard prevents any future dispatch from corrupting a package the fork doesn't own
 
 The `publish-npm` job exits green via the guard bypass rather than actually publishing — this is the **safe-by-default** behavior: the pipeline never tries to write to a package the repo doesn't own (`@kooshapari/omniroute` doesn't exist on npm; the unscoped `omniroute` belongs to upstream `diegosouza.pw`).
 
 ### Final release-system inventory on `main`
 
-| File | Status |
-|---|---|
-| `OmniRoute/config/release/channels.json` | canonical channel taxonomy — 6 stability channels + `lts` |
-| `OmniRoute/config/release/ci-matrix.json` | runtime gate lookup table (18 gates) |
-| `OmniRoute/scripts/release/trigger-evaluator.mjs` | `24hr OR +5k LOC OR -5k LOC` evaluator |
-| `OmniRoute/scripts/release/channel-resolver.mjs` | ladder walker (`walkPromotion()`) |
-| `OmniRoute/scripts/quality/validate-npm-publish.mjs` | pre-flight validator (advisory on tarball-size) |
-| `OmniRoute/.github/workflows/auto-release.yml` | auto half (trigger → resolve → publish-github/npm/docker) |
-| `OmniRoute/.github/workflows/release-channels.yml` | manual half (promote, cleanup, lts-cut) |
-| `OmniRoute/.github/workflows/release-smoke.yml` | CI smoke test |
-| `OmniRoute/.github/workflows/cross-platform.yml` | weekly scheduled |
-| `OmniRoute/.github/workflows/reusable/lts-backport.yml` | LTS reusable workflow |
-| `OmniRoute/docs/ops/RELEASE_CHANNELS.md` | channel taxonomy doc |
-| `OmniRoute/FORGE_WRAPUP.md` | **922 lines** — this wrap-up doc |
+| File                                                    | Status                                                    |
+| ------------------------------------------------------- | --------------------------------------------------------- |
+| `OmniRoute/config/release/channels.json`                | canonical channel taxonomy — 6 stability channels + `lts` |
+| `OmniRoute/config/release/ci-matrix.json`               | runtime gate lookup table (18 gates)                      |
+| `OmniRoute/scripts/release/trigger-evaluator.mjs`       | `24hr OR +5k LOC OR -5k LOC` evaluator                    |
+| `OmniRoute/scripts/release/channel-resolver.mjs`        | ladder walker (`walkPromotion()`)                         |
+| `OmniRoute/scripts/quality/validate-npm-publish.mjs`    | pre-flight validator (advisory on tarball-size)           |
+| `OmniRoute/.github/workflows/auto-release.yml`          | auto half (trigger → resolve → publish-github/npm/docker) |
+| `OmniRoute/.github/workflows/release-channels.yml`      | manual half (promote, cleanup, lts-cut)                   |
+| `OmniRoute/.github/workflows/release-smoke.yml`         | CI smoke test                                             |
+| `OmniRoute/.github/workflows/cross-platform.yml`        | weekly scheduled                                          |
+| `OmniRoute/.github/workflows/reusable/lts-backport.yml` | LTS reusable workflow                                     |
+| `OmniRoute/docs/ops/RELEASE_CHANNELS.md`                | channel taxonomy doc                                      |
+| `OmniRoute/FORGE_WRAPUP.md`                             | **922 lines** — this wrap-up doc                          |
 
 ### Latest auto-release runs (last 5)
 
-| Run | Trigger | Head | Conclusion |
-|---|---|---|---|
-| `30182103296` | push | `0ede07ab` | success |
-| `30181047803` | schedule | (in progress) | cancelled |
-| `30151946892` | schedule | (prior) | success (guard-bypassed publish) |
-| `30144848241` | push | (prior) | success (guard-bypassed publish) |
-| `30144174368` | dispatch | (prior) | success (guard-bypassed publish) |
+| Run           | Trigger  | Head          | Conclusion                       |
+| ------------- | -------- | ------------- | -------------------------------- |
+| `30182103296` | push     | `0ede07ab`    | success                          |
+| `30181047803` | schedule | (in progress) | cancelled                        |
+| `30151946892` | schedule | (prior)       | success (guard-bypassed publish) |
+| `30144848241` | push     | (prior)       | success (guard-bypassed publish) |
+| `30144174368` | dispatch | (prior)       | success (guard-bypassed publish) |
 
 ### One-time human setup (to flip the guard from "skip" to actual publish)
 
@@ -991,20 +1007,20 @@ Each nightly ships as a GitHub release with the 1.5 MB tarball as a downloadable
 
 ---
 
-*Final session closeout — 2026-07-26*
+_Final session closeout — 2026-07-26_
 
 ## 13. Schedule-Triggered Green Run (2026-07-26)
 
 Run `30195903629` (schedule-triggered) executed on the current `main` HEAD with **all 6 jobs green**:
 
-| Job | Status |
-|---|---|
-| Evaluate trigger (24hr OR 5k-LOC delta) | ✅ completed success |
-| Resolve channel (CI-matrix-gated promotion) | ✅ completed success |
-| Publish GitHub release (nightly) | ✅ completed success |
-| Publish npm (nightly) | ✅ completed success (via scope-ownership guard bypass) |
-| Publish Docker (${{ needs.resolve.outputs.resolved }}) | ✅ completed skipped (correct for nightly) |
-| Release summary | ✅ completed success |
+| Job                                                    | Status                                               |
+| ------------------------------------------------------ | ---------------------------------------------------- |
+| Evaluate trigger (24hr OR 5k-LOC delta)                | completed success                                    |
+| Resolve channel (CI-matrix-gated promotion)            | completed success                                    |
+| Publish GitHub release (nightly)                       | completed success                                    |
+| Publish npm (nightly)                                  | completed success (via scope-ownership guard bypass) |
+| Publish Docker (${{ needs.resolve.outputs.resolved }}) | completed skipped (correct for nightly)              |
+| Release summary                                        | completed success                                    |
 
 **Guard output (verbatim)**:
 
@@ -1019,27 +1035,27 @@ Verifying npm publish ownership for package: @kooshapari/omniroute
 
 ### Latest run history (this week)
 
-| Run | Trigger | Conclusion |
-|---|---|---|
-| `30195903629` | schedule (09:08:13Z) | success |
-| `30195482110` | workflow_dispatch (00:59:01Z) | success |
-| `3019548...` (push) | various | cancelled (external churn) |
-| `30151946892` | schedule | success |
+| Run                 | Trigger                       | Conclusion                 |
+| ------------------- | ----------------------------- | -------------------------- |
+| `30195903629`       | schedule (09:08:13Z)          | success                    |
+| `30195482110`       | workflow_dispatch (00:59:01Z) | success                    |
+| `3019548...` (push) | various                       | cancelled (external churn) |
+| `30151946892`       | schedule                      | success                    |
 
 The pattern is clear: **the release system is in a stable working steady state**. Every schedule-triggered dispatch produces a clean nightly GitHub release. The npm publish step continues to correctly bypass via the scope-ownership guard (no NPM_TOKEN, scope never created).
 
 ### Final inventory on `main`
 
-| Item | Status |
-|---|---|
-| `main` HEAD | `c486031a5` |
-| Working tree | 1 unrelated `package.json` line (`sha:emit` script from external agent) |
-| `package.json#name` | `@kooshapari/omniroute` (safe scoped) |
-| `FORGE_WRAPUP.md` | 994 lines, committed |
-| `auto-release.yml` scope-ownership guard | Active and working |
-| `@kooshapari/omniroute` on npm | E404 (scope never created) |
-| `NPM_TOKEN` secret | Not set (only `SONAR_TOKEN` exists) |
-| Latest GitHub release | `v3.8.49-koosha.0-nightly.20260726.ed26dd6` |
+| Item                                     | Status                                                                  |
+| ---------------------------------------- | ----------------------------------------------------------------------- |
+| `main` HEAD                              | `c486031a5`                                                             |
+| Working tree                             | 1 unrelated `package.json` line (`sha:emit` script from external agent) |
+| `package.json#name`                      | `@kooshapari/omniroute` (safe scoped)                                   |
+| `FORGE_WRAPUP.md`                        | 994 lines, committed                                                    |
+| `auto-release.yml` scope-ownership guard | Active and working                                                      |
+| `@kooshapari/omniroute` on npm           | E404 (scope never created)                                              |
+| `NPM_TOKEN` secret                       | Not set (only `SONAR_TOKEN` exists)                                     |
+| Latest GitHub release                    | `v3.8.49-koosha.0-nightly.20260726.ed26dd6`                             |
 
 ### Release channel system — fully verified end-to-end
 
@@ -1047,4 +1063,4 @@ The system now reliably produces nightly GitHub releases on every push + schedul
 
 ---
 
-*Session end — 2026-07-26*
+_Session end — 2026-07-26_

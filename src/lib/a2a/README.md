@@ -281,10 +281,10 @@ response = requests.post(f"{BASE_URL}/a2a", headers=HEADERS, json={
     }
 })
 result = response.json()["result"]
-print(f"\n📝 Response: {result['artifacts'][0]['content'][:200]}...")
-print(f"🔀 Routing: {result['metadata']['routing_explanation']}")
-print(f"💰 Cost: ${result['metadata']['cost_envelope']['actual']}")
-print(f"🛡️ Policy: {result['metadata']['policy_verdict']['reason']}")
+print(f"\n Response: {result['artifacts'][0]['content'][:200]}...")
+print(f" Routing: {result['metadata']['routing_explanation']}")
+print(f" Cost: ${result['metadata']['cost_envelope']['actual']}")
+print(f" Policy: {result['metadata']['policy_verdict']['reason']}")
 
 # 3. Query quota status
 quota_resp = requests.post(f"{BASE_URL}/a2a", headers=HEADERS, json={
@@ -297,7 +297,7 @@ quota_resp = requests.post(f"{BASE_URL}/a2a", headers=HEADERS, json={
     }
 })
 quota_result = quota_resp.json()["result"]
-print(f"\n📊 Quota: {quota_result['artifacts'][0]['content']}")
+print(f"\n Quota: {quota_result['artifacts'][0]['content']}")
 ```
 
 ### TypeScript — Multi-Agent Orchestrator
@@ -388,7 +388,7 @@ while (true) {
         process.stdout.write(event.params.chunk.content);
       }
       if (event.params.task.state === "completed") {
-        console.log("\n✅ Stream completed");
+        console.log("\n Stream completed");
       }
     }
   }
@@ -535,7 +535,7 @@ func main() {
 
 ## Use Cases
 
-### 🤖 Use Case 1: Multi-Agent Coding Pipeline
+### Use Case 1: Multi-Agent Coding Pipeline
 
 An orchestrator agent delegates code generation to OmniRoute, then passes the output to a review agent.
 
@@ -560,7 +560,7 @@ def coding_pipeline(task: str):
     return {"code": code, "review": review}
 ```
 
-### 💡 Use Case 2: Quota-Aware Agent Swarm
+### Use Case 2: Quota-Aware Agent Swarm
 
 Multiple agents share quota through OmniRoute, using the quota skill to coordinate.
 
@@ -579,7 +579,7 @@ async def quota_aware_agent(agent_name: str, task: str):
 
     policy = result["metadata"]["policy_verdict"]
     if not policy["allowed"]:
-        print(f"[{agent_name}] ⚠️ Budget exceeded: {policy['reason']}")
+        print(f"[{agent_name}] Budget exceeded: {policy['reason']}")
         # Fall back to free combo
         quota = a2a_send("quota-management", [
             {"role": "user", "content": "Suggest free combos"}
@@ -589,7 +589,7 @@ async def quota_aware_agent(agent_name: str, task: str):
     return result
 ```
 
-### 📊 Use Case 3: Real-Time Streaming Dashboard
+### Use Case 3: Real-Time Streaming Dashboard
 
 A monitoring agent streams responses and displays progress in real-time.
 
@@ -628,11 +628,11 @@ async function streamingDashboard(prompt: string) {
         if (state === "completed") {
           const meta = event.params.metadata;
           console.log(
-            `\n✅ Done | Cost: $${meta?.cost_envelope?.actual || 0} | Route: ${meta?.routing_explanation || "N/A"}`
+            `\n Done | Cost: $${meta?.cost_envelope?.actual || 0} | Route: ${meta?.routing_explanation || "N/A"}`
           );
         }
         if (state === "failed") {
-          console.error(`\n❌ Failed: ${event.params.metadata?.error}`);
+          console.error(`\n Failed: ${event.params.metadata?.error}`);
         }
       }
     }
@@ -640,7 +640,7 @@ async function streamingDashboard(prompt: string) {
 }
 ```
 
-### 🔁 Use Case 4: Task Polling Pattern
+### Use Case 4: Task Polling Pattern
 
 For long-running tasks, poll the task status instead of waiting synchronously.
 

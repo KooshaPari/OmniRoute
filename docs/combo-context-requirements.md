@@ -70,16 +70,16 @@ When `minContextWindow` is set:
 
 **Lenient mode** (default):
 
-- ✅ Includes models with context >= minContextWindow
-- ✅ Includes models with unknown context limits
-- ❌ Excludes models with context < minContextWindow
+- Includes models with context >= minContextWindow
+- Includes models with unknown context limits
+- Excludes models with context < minContextWindow
 
 **Strict mode**:
 
-- ✅ Includes models with context >= minContextWindow
-- ❌ Excludes models with unknown context limits (when at least one known-good target remains)
-- ❌ Excludes models with context < minContextWindow
-- ⚠️ **Fail-open (#8786)**: if strict filtering would empty the pool and at least one
+- Includes models with context >= minContextWindow
+- Excludes models with unknown context limits (when at least one known-good target remains)
+- Excludes models with context < minContextWindow
+- **Fail-open (#8786)**: if strict filtering would empty the pool and at least one
   unknown-context target exists, those unknowns are restored instead of returning
   `404 Combo has no executable targets`. Known-too-small targets are never resurrected.
   When the pool is still empty (every known target is below `minContextWindow`), the
@@ -220,7 +220,7 @@ npm test tests/unit/combo/context-requirements-integration.test.ts
 - Schema validation: 6 tests
 - Filtering logic: 6 tests
 - Integration: 5 tests
-- **Total**: 17/17 passing ✅
+- **Total**: 17/17 passing
 
 ## Troubleshooting
 

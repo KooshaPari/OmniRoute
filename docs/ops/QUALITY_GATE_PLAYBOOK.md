@@ -66,28 +66,28 @@ alignment signal (we didn't copy a checklist; we converged on the right practice
 
 ### Honest weaknesses (real gaps)
 
-1. **🔴 The fast-gates split still leaves a structural hole.** `quality.yml` (PR→`release/**`)
+1. ** The fast-gates split still leaves a structural hole.** `quality.yml` (PR→`release/**`)
    now runs typecheck, fast deterministic tests, and an advisory production build for code PRs,
    but it still does not run the full release-PR surface from `ci.yml` (coverage ratchets,
    package artifact, integration, E2E, SonarQube). The motivation (speed) is valid, but the gate
    should be where the merge happens (shift-left). **Largest pending structural fix.**
-2. **🟠 Gate sprawl/fatigue risk.** ~46 gates + 25 jobs is A LOT. Sonar itself warns:
+2. ** Gate sprawl/fatigue risk.** ~46 gates + 25 jobs is A LOT. Sonar itself warns:
    too many conditions cause "gate fatigue" and priority debates, with risk of a gate being
    ignored. DORA warns that heavy gates cost lead-time. We mitigate with advisory tiers and
    non-absolute ratchets, but a **periodic ROI review per gate** is missing (some micro-gates for
    doc-sync are consolidatable).
-3. **🟠 Mutation score is not yet a ratchet.** The strongest antidote against coverage-gaming is
+3. ** Mutation score is not yet a ratchet.** The strongest antidote against coverage-gaming is
    **advisory**. It's the highest-value pending item (and already 90% built).
-4. **🟡 Advisories that should block (with the right scope).** `osv` (vulnCount) and `oasdiff` are
+4. ** Advisories that should block (with the right scope).** `osv` (vulnCount) and `oasdiff` are
    advisory despite frozen baselines. osv-advisory makes sense (a new CVE on an old dep would block
    an unrelated PR) — but there's a middle ground (block only CRITICAL+fixable, as we did with
    Trivy). oasdiff advisory means a contract-breaking change can pass.
-5. **🟡 Runtime security is nightly-only.** schemathesis/garak/promptfoo/chaos/k6 run at night.
+5. ** Runtime security is nightly-only.** schemathesis/garak/promptfoo/chaos/k6 run at night.
    Correct decision (slow, need a live server), but a PR can introduce an injection-guard regression
    that only gets caught the following night.
-6. **🟡 Branch-protection on `main` is OFF.** `BRANCH_LOCK_TOKEN` locks _release_ branches, but
+6. ** Branch-protection on `main` is OFF.** `BRANCH_LOCK_TOKEN` locks _release_ branches, but
    `main` itself is unprotected. Scorecard/DSOMM ding. Owner action required.
-7. **🟡 CodeQL default-setup; semgrep not codified.** default-setup works (0 alerts), but a
+7. ** CodeQL default-setup; semgrep not codified.** default-setup works (0 alerts), but a
    committed `codeql.yml` gives more control; semgrep runs via an external cloud platform, not
    versioned in the repo.
 

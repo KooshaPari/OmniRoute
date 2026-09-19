@@ -23,7 +23,7 @@
 
 ```
 $ node --import tsx/esm --test tests/unit/a2a-history-route.test.ts   # ANTES do fix (C1.2)
-✔ 10 pré-existentes  ✖ 7 novos   (falha típica: metadata {} esperado ≠ { memoryHits: [...] } / timeline extra 'completed')
+10 pré-existentes  7 novos   (falha típica: metadata {} esperado ≠ { memoryHits: [...] } / timeline extra 'completed')
 
 $ node --import tsx/esm --test tests/unit/a2a-history-route.test.ts   # DEPOIS (C1.4)
 ℹ tests 17
@@ -43,7 +43,7 @@ $ npx eslint 'src/app/api/a2a/tasks/[id]/route.ts' tests/unit/a2a-history-route.
 eslint exit=0
 
 $ git commit  (husky ativo, sem --no-verify)
-lint-staged: prettier + eslint --fix  ✔
+lint-staged: prettier + eslint --fix
 [docs-sync] PASS
 [t11:any-budget] PASS
 [tracked-artifacts] OK

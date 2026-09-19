@@ -19,14 +19,14 @@ three-tab Studio unifying web search, web scraping, and side-by-side provider co
 
 ```
 ┌ Search Tools ──────────────────────────────────────────────────────────┐
-│ [🔍 Search] [📄 Scrape] [⚖ Compare]             142ms · $0.001  </>    │
+│ [ Search] [ Scrape] [ Compare]             142ms · $0.001  </>    │
 │ ⓘ [Modalities guide]                                                    │
 ├──────────────────────────────────────────┬─────────────────────────────┤
 │  {active tab content}                    │ ─ Config                    │
 │                                          │ Provider [auto ∨]           │
-│                                          │   🟢 Serper  $0.001         │
-│                                          │   🟢 Tavily  $0.008         │
-│                                          │   🔥 Firecrawl (fetch)      │
+│                                          │   Serper  $0.001         │
+│                                          │   Tavily  $0.008         │
+│                                          │   Firecrawl (fetch)      │
 │                                          │ Type   [web | news]         │
 │                                          │ Full page [ ] (scrape)      │
 │                                          │ Format [md|text|html]       │

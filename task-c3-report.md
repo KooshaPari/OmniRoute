@@ -96,7 +96,7 @@ $ npx vitest run tests/unit/ui/orchestrationDrawerRepeat.test.tsx
       Tests  35 passed (35)
 
 $ node --import tsx/esm --test tests/unit/conductor-routes-auth.test.ts tests/unit/conductor-create-route.test.ts tests/unit/client-bundle-no-server-only-10692.test.ts
-✔ src/app/api/conductor/tasks/route.ts: requireManagementAuth antes do proxy ao hub (4.175999ms)
+src/app/api/conductor/tasks/route.ts: requireManagementAuth antes do proxy ao hub (4.175999ms)
 ℹ tests 12
 ℹ pass 12
 ℹ fail 0

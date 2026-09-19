@@ -117,7 +117,7 @@ That's it! Your IDE now uses OmniRoute with automatic provider selection.
 ```
 
 3. In the Continue.dev chat pane, select `OmniRoute - Auto` and you will make requests to OmniRoute.
-4. (Optional) Exercise for the reader - have your IDE update the `config.yaml` with all the other prebuilt configurations 😊
+4. (Optional) Exercise for the reader - have your IDE update the `config.yaml` with all the other prebuilt configurations
 
 ### CLI Example: Codex CLI
 

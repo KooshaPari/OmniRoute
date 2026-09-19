@@ -18,8 +18,8 @@ omniroute memory search "react hooks"
 **Not allowed**:
 
 ```
-omniroute --add-key openai sk-xxx     # ❌ flag-as-verb
-omniroute add-key openai sk-xxx       # ❌ hyphen at the top level
+omniroute --add-key openai sk-xxx     # flag-as-verb
+omniroute add-key openai sk-xxx       # hyphen at the top level
 ```
 
 ## 2. Flags

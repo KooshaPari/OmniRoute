@@ -71,11 +71,11 @@ model: "auto/cheap"           # cheapest per token
 
 **Key properties:**
 
-- ✅ **Always-on:** No toggle, no combo creation, no configuration needed
-- ✅ **Dynamic:** Reflects current connected providers automatically
-- ✅ **Session stickiness:** LKGP ensures last successful provider is prioritized
-- ✅ **Multi-account aware:** Each provider connection becomes a separate candidate
-- ✅ **No DB writes:** Virtual combo exists only for the request, zero persistence overhead
+- **Always-on:** No toggle, no combo creation, no configuration needed
+- **Dynamic:** Reflects current connected providers automatically
+- **Session stickiness:** LKGP ensures last successful provider is prioritized
+- **Multi-account aware:** Each provider connection becomes a separate candidate
+- **No DB writes:** Virtual combo exists only for the request, zero persistence overhead
 
 ### Per-key candidate control (#7819, Level 1+2)
 
@@ -296,10 +296,10 @@ OmniRoute's combo engine supports **19 routing strategies** (declared in `src/sh
 | `lkgp`              | Last-Known-Good Path (pins to the last successful provider, then falls back to rules)                                                                                                     |
 | `context-optimized` | Pick target with best fit for current context size                                                                                                                                        |
 | `cache-optimized`   | Reorder targets by prompt-cache affinity — the connection likeliest to already hold this request's cached prefix is tried first (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Fan out to a panel of models in parallel, then synthesize one answer via a judge (see below)                                                                                              |
+| `fusion`            | Fan out to a panel of models in parallel, then synthesize one answer via a judge (see below)                                                                                              |
 | `pipeline`          | Run targets sequentially, threading each step's output into the next step's input; only the final answer is returned (#6396)                                                              |
 
-⭐ = New in v3.8.0 · 🧬 = New in v3.8.36
+⭐ = New in v3.8.0 · = New in v3.8.36
 
 ### `weighted` semantics
 

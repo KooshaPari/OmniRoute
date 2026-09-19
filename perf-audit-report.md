@@ -30,44 +30,44 @@
 
 | # | Finding | Impact | Effort | Fix |
 |---|---------|--------|--------|-----|
-| 1 | 🔴 **Proxy fallback loaded eagerly at startup** | **210ms** on first import | Low | Dynamic `import()` in proxyFetch.ts error handler |
-| 2 | 🔴 **egressCache memory leak** (never evicts) | HIGH — unbounded growth | Very Low | Lazy TTL cleanup on `getCachedEgressIp` |
-| 3 | 🔴 **Missing composite index: usage_history(provider, model, timestamp)** | HIGH — full scan on `getModelLatencyStats` | Very Low | `CREATE INDEX IF NOT EXISTS …` in schemaColumns.ts |
-| 4 | 🔴 **Missing composite index: provider_connections(provider, auth_type)** | HIGH — full scan on 6+ queries | Very Low | `CREATE INDEX IF NOT EXISTS …` in schemaColumns.ts |
-| 5 | 🔴 **mmap_size PRAGMA never applied** | HIGH — 256MB setting stored but unused | Very Low | PRAGMA applied after `applyStoredDatabaseOptimizationSettings` |
+| 1 | **Proxy fallback loaded eagerly at startup** | **210ms** on first import | Low | Dynamic `import()` in proxyFetch.ts error handler |
+| 2 | **egressCache memory leak** (never evicts) | HIGH — unbounded growth | Very Low | Lazy TTL cleanup on `getCachedEgressIp` |
+| 3 | **Missing composite index: usage_history(provider, model, timestamp)** | HIGH — full scan on `getModelLatencyStats` | Very Low | `CREATE INDEX IF NOT EXISTS …` in schemaColumns.ts |
+| 4 | **Missing composite index: provider_connections(provider, auth_type)** | HIGH — full scan on 6+ queries | Very Low | `CREATE INDEX IF NOT EXISTS …` in schemaColumns.ts |
+| 5 | **mmap_size PRAGMA never applied** | HIGH — 256MB setting stored but unused | Very Low | PRAGMA applied after `applyStoredDatabaseOptimizationSettings` |
 
 ### Already in PR #7893 (pre-Phase 1)
 
 | # | Finding | Impact | Effort |
 |---|---------|--------|--------|
-| 6 | 🔴 **Startup serialization** | 500+ms serial blocking (early imports + background services) | Low → wrapped in Promise.all / Promise.allSettled |
-| 7 | 🟡 **Per-chunk structuredClone in createSSEStream** | GC pressure on every chunk | Low → replaced with minimal object spread |
-| 8 | 🟡 **Per-chunk `new TextDecoder()` in progressTracker** | Minor GC churn | Very Low → module-level const |
-| 9 | 🟡 **P2C quota re-evaluated per comparison (exponential blowup)** | N² work on each pool filter | Medium → Map cache threaded through pipeline |
-| 10 | 🟡 **Dual `.filter()` passes in selectPoolSubset** | Double iteration on active set | Very Low → single `for` loop |
-| 11 | 🟢 **Debug-loop re-filters 6 function calls** | No-op in production | Very Low → Map-based string comparisons |
-| 12 | 🟢 **Backoff decay loop uses full CRUD update** | SELECT+encrypt+invalidate per unused connection | Low → targeted `resetConnectionBackoff` |
-| 13 | 🟢 **Lazy PROVIDERS/PROVIDER_MODELS** | Startup saving per lazy Proxy 0.2ms | Low → Proxy on constants.ts + providerModels.ts |
-| 14 | 🟢 **TextEncoder lift (claude-web.ts)** | Eliminates per-chunk instances | Low → module-level encoder |
-| 15 | 🟢 **13 route files `getSettings()` → `getCachedSettings()`** | Avoids redundant decrypts | Low → import swap |
-| 16 | 🟢 **settingsCache.ts dead file deletion** | Cleanup | Very Low → removed |
+| 6 | **Startup serialization** | 500+ms serial blocking (early imports + background services) | Low → wrapped in Promise.all / Promise.allSettled |
+| 7 | **Per-chunk structuredClone in createSSEStream** | GC pressure on every chunk | Low → replaced with minimal object spread |
+| 8 | **Per-chunk `new TextDecoder()` in progressTracker** | Minor GC churn | Very Low → module-level const |
+| 9 | **P2C quota re-evaluated per comparison (exponential blowup)** | N² work on each pool filter | Medium → Map cache threaded through pipeline |
+| 10 | **Dual `.filter()` passes in selectPoolSubset** | Double iteration on active set | Very Low → single `for` loop |
+| 11 | **Debug-loop re-filters 6 function calls** | No-op in production | Very Low → Map-based string comparisons |
+| 12 | **Backoff decay loop uses full CRUD update** | SELECT+encrypt+invalidate per unused connection | Low → targeted `resetConnectionBackoff` |
+| 13 | **Lazy PROVIDERS/PROVIDER_MODELS** | Startup saving per lazy Proxy 0.2ms | Low → Proxy on constants.ts + providerModels.ts |
+| 14 | **TextEncoder lift (claude-web.ts)** | Eliminates per-chunk instances | Low → module-level encoder |
+| 15 | **13 route files `getSettings()` → `getCachedSettings()`** | Avoids redundant decrypts | Low → import swap |
+| 16 | **settingsCache.ts dead file deletion** | Cleanup | Very Low → removed |
 
 ### Future opportunities (not yet implemented)
 
 | # | Finding | Impact | Effort | Priority |
 |---|---------|--------|--------|----------|
-| 17 | 🔴 **`saveRequestUsage` dedup guard uses COALESCE on indexed columns** | FULL TABLE SCAN on every request completion | Medium | **NEXT** |
-| 18 | 🔴 **24 module-level `setInterval` timers (many NOT `unref()`-ed)** | Prevent process exit + 2μs/call overhead | Low | Soon |
-| 19 | 🔴 **`providerFallback.ts` (2nd path via proxyAutoSelector→transport→validation)** | 210ms but already lazy (route handlers only) | Low | Bonded |
-| 20 | 🟡 **Sync DB writes block event loop after every stream** | saveRequestUsage + saveCallLog serialize through single-writer lock | High | Candidate for worker_thread |
-| 21 | 🟡 **DB cache_size conservate (16MB)** | For 1.4GB DB, increases page reads | Very Low | PRAGMA change |
-| 22 | 🟡 **Enable Redis for auth cache + quota store** | Offloads SQLite read/write pressure | Low | Config change + doc |
-| 23 | 🟡 **DashboardLayout is `"use client"` with 7+ heavy children** | Entire dashboard forced to client render | High | Structural layout split |
-| 24 | 🟢 **mermaid (84MB unused in src/) in dependencies** | Install bloat, not server-side cost | Very Low | Move to devDeps |
-| 25 | 🟢 **3 duplicated deps in root + open-sse** | Redundant install | Very Low | Deduplicate |
-| 26 | 🟡 **`SELECT *` unbounded in `getUsageHistory` (admin API)** | Risks scan of 250K+ rows | Low | Add LIMIT |
-| 27 | 🟢 **Sync `readFileSync` at module eval in config loading** | Blocks event-loop-startup once | Very Low | Could defer |
-| 28 | 🟡 **SetInterval timers: confirm all `unref()`-ed for remaining** | ~12 without `unref()` prevent clean exit | Low | Audit + fix |
+| 17 | **`saveRequestUsage` dedup guard uses COALESCE on indexed columns** | FULL TABLE SCAN on every request completion | Medium | **NEXT** |
+| 18 | **24 module-level `setInterval` timers (many NOT `unref()`-ed)** | Prevent process exit + 2μs/call overhead | Low | Soon |
+| 19 | **`providerFallback.ts` (2nd path via proxyAutoSelector→transport→validation)** | 210ms but already lazy (route handlers only) | Low | Bonded |
+| 20 | **Sync DB writes block event loop after every stream** | saveRequestUsage + saveCallLog serialize through single-writer lock | High | Candidate for worker_thread |
+| 21 | **DB cache_size conservate (16MB)** | For 1.4GB DB, increases page reads | Very Low | PRAGMA change |
+| 22 | **Enable Redis for auth cache + quota store** | Offloads SQLite read/write pressure | Low | Config change + doc |
+| 23 | **DashboardLayout is `"use client"` with 7+ heavy children** | Entire dashboard forced to client render | High | Structural layout split |
+| 24 | **mermaid (84MB unused in src/) in dependencies** | Install bloat, not server-side cost | Very Low | Move to devDeps |
+| 25 | **3 duplicated deps in root + open-sse** | Redundant install | Very Low | Deduplicate |
+| 26 | **`SELECT *` unbounded in `getUsageHistory` (admin API)** | Risks scan of 250K+ rows | Low | Add LIMIT |
+| 27 | **Sync `readFileSync` at module eval in config loading** | Blocks event-loop-startup once | Very Low | Could defer |
+| 28 | **SetInterval timers: confirm all `unref()`-ed for remaining** | ~12 without `unref()` prevent clean exit | Low | Audit + fix |
 
 ## Status summary
 

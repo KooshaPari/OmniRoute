@@ -156,19 +156,19 @@ See `docs/sessions/20260912-omniroute-fork-audit/01_BIFROST_DECISION_BRIEF.md`.
 
 ### 2.5.2 v8.1 Task Track (B1–B10)
 
-| ID       | Task                                                                                                                                                               | Owner         | Effort | Status                    |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- | ------ | ------------------------- |
-| **B1**   | Pick canonical Bifrost copy (3 vendored; see `docs/adr/0031-bifrost-tier1-router.md` §6)                                                                           | core          | S      | 🔄 this turn              |
-| **B2**   | `open-sse/executors/bifrost.ts` — `BifrostBackend` executor (Tier-2 surface)                                                                                       | core          | S      | ✅ this PR                |
-| **B3**   | `bifrostProviderMap.ts` — OmniRoute→Bifrost name translation (232 → 23+ mapping)                                                                                   | core          | S      | ✅ this PR                |
-| **B4**   | `bifrostModels` SQL table + migration (cache Bifrost's model catalog locally)                                                                                      | data          | S      | ☑ DONE 2026-06-18         |
-| **B5**   | Virtual-key minting UI + cost-tracking integration                                                                                                                 | dashboard     | M      | ☐ Q3                      |
-| **B6**   | Drop-in swap: traffic-shadow mode (5% → 25% → 100% over 14 days)                                                                                                   | ops           | M      | ☐ Q3                      |
-| **B7**   | Migration playbook (`docs/operations/bifrost-migration.md`)                                                                                                        | ops           | S      | ✅ PR #91 OPEN 2026-06-19 |
-| **B8**   | Bifrost MCP client integration (use Bifrost as upstream MCP source for OmniRoute's MCP-router)                                                                     | mcp           | M      | ✅ PR #93 OPEN 2026-06-19 |
-| **B9**   | Kill switch: keep OmniRoute's `open-sse/` engine as fallback if Bifrost fails SLOs for 7 days                                                                      | core          | S      | ✅ PR #95 OPEN 2026-06-20 |
-| **B9.1** | Wire kill switch into `BifrostBackendExecutor` (pre-check `isActive`, post `recordObservation`, healthCheck propagation, `BIFROST_KILLSWITCH_DISABLED` env-bypass) | core          | S      | ✅ DONE 2026-06-20        |
-| **B10**  | **OTel bridge — unified traces Tier-1 (Bifrost, Go) ⇄ Tier-2 (OmniRoute, TS) via W3C `traceparent`**                                                               | observability | M      | ✅ DONE 2026-06-21        |
+| ID       | Task                                                                                                                                                               | Owner         | Effort | Status                 |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- | ------ | ---------------------- |
+| **B1**   | Pick canonical Bifrost copy (3 vendored; see `docs/adr/0031-bifrost-tier1-router.md` §6)                                                                           | core          | S      | this turn              |
+| **B2**   | `open-sse/executors/bifrost.ts` — `BifrostBackend` executor (Tier-2 surface)                                                                                       | core          | S      | this PR                |
+| **B3**   | `bifrostProviderMap.ts` — OmniRoute→Bifrost name translation (232 → 23+ mapping)                                                                                   | core          | S      | this PR                |
+| **B4**   | `bifrostModels` SQL table + migration (cache Bifrost's model catalog locally)                                                                                      | data          | S      | DONE 2026-06-18        |
+| **B5**   | Virtual-key minting UI + cost-tracking integration                                                                                                                 | dashboard     | M      | Q3                     |
+| **B6**   | Drop-in swap: traffic-shadow mode (5% → 25% → 100% over 14 days)                                                                                                   | ops           | M      | Q3                     |
+| **B7**   | Migration playbook (`docs/operations/bifrost-migration.md`)                                                                                                        | ops           | S      | PR #91 OPEN 2026-06-19 |
+| **B8**   | Bifrost MCP client integration (use Bifrost as upstream MCP source for OmniRoute's MCP-router)                                                                     | mcp           | M      | PR #93 OPEN 2026-06-19 |
+| **B9**   | Kill switch: keep OmniRoute's `open-sse/` engine as fallback if Bifrost fails SLOs for 7 days                                                                      | core          | S      | PR #95 OPEN 2026-06-20 |
+| **B9.1** | Wire kill switch into `BifrostBackendExecutor` (pre-check `isActive`, post `recordObservation`, healthCheck propagation, `BIFROST_KILLSWITCH_DISABLED` env-bypass) | core          | S      | DONE 2026-06-20        |
+| **B10**  | **OTel bridge — unified traces Tier-1 (Bifrost, Go) ⇄ Tier-2 (OmniRoute, TS) via W3C `traceparent`**                                                               | observability | M      | DONE 2026-06-21        |
 
 ### 2.5.3 Decision review schedule
 
@@ -289,31 +289,31 @@ pareto_router/ports/adapters) per the 2026-06-03 disambiguation note.
 
 ## 7. Governance Roadmap
 
-| Item                                             | Status        | Notes                                                         |
-| ------------------------------------------------ | ------------- | ------------------------------------------------------------- |
-| `SPEC.md` (v8)                                   | ✅ this turn  | Reflects current architecture                                 |
-| `PLAN.md` (v8)                                   | ✅ this turn  | Q3 2026 → Q4 2026                                             |
-| `AGENTS.md`                                      | ✅ existing   | v3.8.24, 595 lines, comprehensive                             |
-| `ADR.md`                                         | ⏳ this turn  | Add ADRs 002–007                                              |
-| `docs/adr/0001-record-architecture-decisions.md` | ✅ existing   | ADR template                                                  |
-| `docs/adr/0002-test-runner-vitest-vs-jest.md`    | ✅ existing   | vitest over jest                                              |
-| `docs/adr/0003-coverage-floor-70-pct.md`         | ✅ existing   | 70% rationale                                                 |
-| `docs/adr/0004-decomposition-into-packages.md`   | ⏳ deprecated | Superseded by convergence plan                                |
-| `docs/adr/0005-i18n-gitignore-strategy.md`       | ✅ existing   | Generated content policy                                      |
-| `docs/OKR.md`                                    | ⏳ this turn  | Fill with real KPIs                                           |
-| `docs/COST.md`                                   | ⏳ this turn  | Fill with real cost data                                      |
-| `docs/TECH_DEBT.md`                              | ⏳ this turn  | Populate from baseline scan                                   |
-| `docs/SSOT.md`                                   | ✅ existing   | SSOT pointer                                                  |
-| `docs/traceability.md`                           | ⏳ this turn  | Cross-doc traceability                                        |
-| `.codecov.yml`                                   | ⏳ next       | Coverage upload                                               |
-| Coverage workflow                                | ✅ existing   | `npm run test:coverage`                                       |
-| BDD `.feature` files                             | ⏳ future     | cucumber-js (1 file exists: `proxy-egress-isolation.feature`) |
-| OpenSSF Scorecard                                | ✅ existing   | weekly                                                        |
-| Zizmor workflow lint                             | ✅ existing   | `.zizmor.yml`                                                 |
-| Gitleaks secret scan                             | ✅ existing   | `.gitleaks.toml`                                              |
-| Dependabot grouped                               | ✅ existing   | `.github/dependabot.yml`                                      |
-| CODEOWNERS                                       | ✅ existing   | `.github/CODEOWNERS`                                          |
-| Renovate (dual automation)                       | ⏳ ADR-003    | Reduce missed updates                                         |
+| Item                                             | Status     | Notes                                                         |
+| ------------------------------------------------ | ---------- | ------------------------------------------------------------- |
+| `SPEC.md` (v8)                                   | this turn  | Reflects current architecture                                 |
+| `PLAN.md` (v8)                                   | this turn  | Q3 2026 → Q4 2026                                             |
+| `AGENTS.md`                                      | existing   | v3.8.24, 595 lines, comprehensive                             |
+| `ADR.md`                                         | this turn  | Add ADRs 002–007                                              |
+| `docs/adr/0001-record-architecture-decisions.md` | existing   | ADR template                                                  |
+| `docs/adr/0002-test-runner-vitest-vs-jest.md`    | existing   | vitest over jest                                              |
+| `docs/adr/0003-coverage-floor-70-pct.md`         | existing   | 70% rationale                                                 |
+| `docs/adr/0004-decomposition-into-packages.md`   | deprecated | Superseded by convergence plan                                |
+| `docs/adr/0005-i18n-gitignore-strategy.md`       | existing   | Generated content policy                                      |
+| `docs/OKR.md`                                    | this turn  | Fill with real KPIs                                           |
+| `docs/COST.md`                                   | this turn  | Fill with real cost data                                      |
+| `docs/TECH_DEBT.md`                              | this turn  | Populate from baseline scan                                   |
+| `docs/SSOT.md`                                   | existing   | SSOT pointer                                                  |
+| `docs/traceability.md`                           | this turn  | Cross-doc traceability                                        |
+| `.codecov.yml`                                   | next       | Coverage upload                                               |
+| Coverage workflow                                | existing   | `npm run test:coverage`                                       |
+| BDD `.feature` files                             | future     | cucumber-js (1 file exists: `proxy-egress-isolation.feature`) |
+| OpenSSF Scorecard                                | existing   | weekly                                                        |
+| Zizmor workflow lint                             | existing   | `.zizmor.yml`                                                 |
+| Gitleaks secret scan                             | existing   | `.gitleaks.toml`                                              |
+| Dependabot grouped                               | existing   | `.github/dependabot.yml`                                      |
+| CODEOWNERS                                       | existing   | `.github/CODEOWNERS`                                          |
+| Renovate (dual automation)                       | ADR-003    | Reduce missed updates                                         |
 
 ---
 

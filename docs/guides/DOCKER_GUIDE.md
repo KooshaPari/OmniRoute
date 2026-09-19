@@ -1,10 +1,10 @@
 ---
-title: "🐳 Docker Guide — OmniRoute"
+title: " Docker Guide — OmniRoute"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# 🐳 Docker Guide — OmniRoute
+# Docker Guide — OmniRoute
 
 > Complete Docker deployment reference. For a quick start, see the [README Docker section](../README.md#-docker).
 
@@ -256,7 +256,7 @@ Three build args control what the `builder` stage costs. They are build-time onl
 | `OMNIROUTE_BUILD_WORKERS`   | `2`     | Feeds `CIRCLE_NODE_TOTAL`; Next derives `workers = N - 1` for page-data collection. |
 
 `OMNIROUTE_BUILD_WORKERS` is the one to raise on a big builder and the one to
-suspect when a constrained build dies **after** `✓ Compiled successfully`. Each
+suspect when a constrained build dies **after** ` Compiled successfully`. Each
 page-data worker is its own process, and so is the parent `next build` itself;
 a live VPS reproduction (issue #7518) measured each process's peak RSS at
 ~4.5 GB independent of the `NODE_OPTIONS` heap flag (Turbopack compiles in
@@ -329,22 +329,22 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 Beyond the defaults documented in [ENVIRONMENT.md](../reference/ENVIRONMENT.md), the following variables matter most when running under Docker:
 
-| Variable                      | Purpose                                                                                                                                                                    | Default                  |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Shared secret for the WebSocket bridge. **Required in production** — set to a strong random string.                                                                        | unset (must be provided) |
-| `REDIS_URL`                   | Connection string for the rate limiter / cache backend                                                                                                                     | `redis://redis:6379`     |
-| `REDIS_PORT`                  | Host-side port for the bundled Redis container                                                                                                                             | `6379`                   |
-| `REDIS_BIND_HOST`             | Host interface the bundled Redis port is published on (loopback unless you add AUTH)                                                                                       | `127.0.0.1`              |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Host path mounted into `cli` profile at `/workspace/omniroute` for self-update workflows                                                                                   | `.` (current directory)  |
-| `OMNIROUTE_MEMORY_MB`         | Runtime Node heap ceiling for the Docker standalone server; overrides the image default above. Coding agents: `8192`+ (see [runtime RAM](#runtime-ram-for-coding-agents)). | `1024`                   |
-| `DASHBOARD_PORT` / `API_PORT` | Override exposed ports for dashboard (20128) and API (20129)                                                                                                               | `20128` / `20129`        |
+| Variable                      | Purpose                                                                                                                                                                                                                                              | Default                  |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Shared secret for the WebSocket bridge. **Required in production** — set to a strong random string.                                                                                                                                                  | unset (must be provided) |
+| `REDIS_URL`                   | Connection string for the rate limiter / cache backend                                                                                                                                                                                               | `redis://redis:6379`     |
+| `REDIS_PORT`                  | Host-side port for the bundled Redis container                                                                                                                                                                                                       | `6379`                   |
+| `REDIS_BIND_HOST`             | Host interface the bundled Redis port is published on (loopback unless you add AUTH)                                                                                                                                                                 | `127.0.0.1`              |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Host path mounted into `cli` profile at `/workspace/omniroute` for self-update workflows                                                                                                                                                             | `.` (current directory)  |
+| `OMNIROUTE_MEMORY_MB`         | Runtime Node heap ceiling for the Docker standalone server; overrides the image default above. Coding agents: `8192`+ (see [runtime RAM](#runtime-ram-for-coding-agents)).                                                                           | `1024`                   |
+| `DASHBOARD_PORT` / `API_PORT` | Override exposed ports for dashboard (20128) and API (20129)                                                                                                                                                                                         | `20128` / `20129`        |
 | `APP_BIND_HOST`               | Host interface docker-compose publishes the dashboard/API/live-WS ports on. With `REQUIRE_API_KEY=false` (the default), `0.0.0.0` exposes the anonymous `/v1` proxy to the LAN — only widen with `REQUIRE_API_KEY=true` or a reverse proxy in front. | `127.0.0.1`              |
-| `CLIPROXY_BIND_HOST`          | Host interface docker-compose publishes the `cliproxyapi` sidecar on — its data volume holds provider credentials.                                                        | `127.0.0.1`              |
-| `OMNIROUTE_PLUGINS_DIR`       | Directory the runtime plugin scanner reads and installs into. Set it when plugins are bind-mounted: the default follows `HOME`, which an image need not export.            | `~/.omniroute/plugins`   |
-| `OMNIROUTE_BASE_PATH`         | URL subpath when the app is published behind a reverse proxy (e.g. `/omniroute`)                                                                                           | _(empty = root)_         |
-| `NEXT_PUBLIC_BASE_URL`        | Public browser origin including the subpath (e.g. `https://host/omniroute`)                                                                                                | unset                    |
-| `PROD_DASHBOARD_PORT`         | Host-side dashboard port for `docker-compose.prod.yml`                                                                                                                     | `20130`                  |
-| `CLIPROXYAPI_PORT`            | Host-side port for the `cliproxyapi` sidecar                                                                                                                               | `8317`                   |
+| `CLIPROXY_BIND_HOST`          | Host interface docker-compose publishes the `cliproxyapi` sidecar on — its data volume holds provider credentials.                                                                                                                                   | `127.0.0.1`              |
+| `OMNIROUTE_PLUGINS_DIR`       | Directory the runtime plugin scanner reads and installs into. Set it when plugins are bind-mounted: the default follows `HOME`, which an image need not export.                                                                                      | `~/.omniroute/plugins`   |
+| `OMNIROUTE_BASE_PATH`         | URL subpath when the app is published behind a reverse proxy (e.g. `/omniroute`)                                                                                                                                                                     | _(empty = root)_         |
+| `NEXT_PUBLIC_BASE_URL`        | Public browser origin including the subpath (e.g. `https://host/omniroute`)                                                                                                                                                                          | unset                    |
+| `PROD_DASHBOARD_PORT`         | Host-side dashboard port for `docker-compose.prod.yml`                                                                                                                                                                                               | `20130`                  |
+| `CLIPROXYAPI_PORT`            | Host-side port for the `cliproxyapi` sidecar                                                                                                                                                                                                         | `8317`                   |
 
 ## Reverse Proxy on a Subpath (Traefik / nginx)
 

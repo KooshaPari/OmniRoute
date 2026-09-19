@@ -104,23 +104,23 @@ lastUpdated: 2026-07-18
 
 | Control                    | Coverage                   | Status |
 | -------------------------- | -------------------------- | ------ |
-| Transport encryption (TLS) | All external               | ✅     |
-| CSP headers                | Dashboard UI               | ✅     |
-| HSTS preload               | All HTTP                   | ✅     |
-| API key auth               | Management + Client API    | ✅     |
-| JWT auth                   | Dashboard                  | ✅     |
-| Rate limiting              | Per-key, per-endpoint      | ✅     |
-| Circuit breakers           | OAuth, API-key, Local      | ✅     |
-| Error sanitization         | All HTTP/SSE/MCP responses | ✅     |
-| PII masker                 | Response-side LLM output   | ✅     |
-| Prompt injection guard     | Chat completions           | ✅     |
-| SSRF validation            | Outbound connections       | ✅     |
-| Audit logging              | MCP, webhooks, API calls   | ✅     |
-| SBOM generation            | CI/CD                      | ✅     |
-| CodeQL scanning            | CI (PR + push)             | ✅     |
-| Gitleaks scanning          | CI (PR + push)             | ✅     |
-| Dependency audit           | CI (npm audit)             | ✅     |
-| OpenSSF Scorecard          | Weekly                     | ✅     |
+| Transport encryption (TLS) | All external               |        |
+| CSP headers                | Dashboard UI               |        |
+| HSTS preload               | All HTTP                   |        |
+| API key auth               | Management + Client API    |        |
+| JWT auth                   | Dashboard                  |        |
+| Rate limiting              | Per-key, per-endpoint      |        |
+| Circuit breakers           | OAuth, API-key, Local      |        |
+| Error sanitization         | All HTTP/SSE/MCP responses |        |
+| PII masker                 | Response-side LLM output   |        |
+| Prompt injection guard     | Chat completions           |        |
+| SSRF validation            | Outbound connections       |        |
+| Audit logging              | MCP, webhooks, API calls   |        |
+| SBOM generation            | CI/CD                      |        |
+| CodeQL scanning            | CI (PR + push)             |        |
+| Gitleaks scanning          | CI (PR + push)             |        |
+| Dependency audit           | CI (npm audit)             |        |
+| OpenSSF Scorecard          | Weekly                     |        |
 
 ---
 

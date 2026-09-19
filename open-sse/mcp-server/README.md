@@ -445,7 +445,7 @@ func main() {
 
 ## Use Cases
 
-### 🔄 Use Case 1: Auto-Healing Agent
+### Use Case 1: Auto-Healing Agent
 
 An agent that monitors OmniRoute health and auto-switches combos when providers degrade.
 
@@ -480,12 +480,12 @@ async def auto_healing_loop(session):
             await session.call_tool("omniroute_switch_combo", {
                 "comboId": combo_id, "active": True
             })
-            print(f"⚠️ Auto-healed: switched to {combo_id}")
+            print(f" Auto-healed: switched to {combo_id}")
 
         await asyncio.sleep(30)  # Check every 30 seconds
 ```
 
-### 💰 Use Case 2: Budget-Aware Coding Agent
+### Use Case 2: Budget-Aware Coding Agent
 
 An agent that monitors costs in real-time and degrades to cheaper models when nearing budget.
 
@@ -525,7 +525,7 @@ async def budget_aware_coding(session, task: str, max_budget: float):
     return json.loads(result.content[0].text)["response"]["content"]
 ```
 
-### 🧪 Use Case 3: Combo Benchmarking Agent
+### Use Case 3: Combo Benchmarking Agent
 
 An agent that periodically benchmarks all combos and reports the fastest/cheapest.
 
@@ -554,12 +554,12 @@ async def benchmark_combos(session):
             "success_rate": f'{test_data["summary"]["successful"]}/{test_data["summary"]["totalProviders"]}',
         })
 
-    print("📊 Combo Benchmark Results:")
+    print(" Combo Benchmark Results:")
     for r in results:
         print(f"  {r['combo']}: fastest={r['fastest']}, cheapest={r['cheapest']}, success={r['success_rate']}")
 ```
 
-### 🔍 Use Case 4: Post-Mortem Debugging Agent
+### Use Case 4: Post-Mortem Debugging Agent
 
 An agent that explains why a request was routed to a specific provider.
 
@@ -589,7 +589,7 @@ async function debugRouting(client: Client, requestId: string) {
 }
 ```
 
-### 📋 Use Case 5: Model Discovery Agent
+### Use Case 5: Model Discovery Agent
 
 An agent that discovers the cheapest models for a given capability.
 
@@ -608,7 +608,7 @@ async def find_cheapest_models(session, capability="chat"):
     ]
     priced.sort(key=lambda m: m["pricing"]["inputPerMillion"] or float("inf"))
 
-    print(f"💡 Cheapest {capability} models:")
+    print(f" Cheapest {capability} models:")
     for m in priced[:5]:
         input_cost = m["pricing"]["inputPerMillion"] or 0
         output_cost = m["pricing"]["outputPerMillion"] or 0

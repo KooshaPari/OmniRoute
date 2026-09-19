@@ -97,7 +97,7 @@ Simple Browser instead of an external browser. Embedding is **opt-in on the serv
 `X-Frame-Options: DENY`. The API surface (`/api`, `/v1`, `/v1beta`, `/a2a`, `/healthz`) keeps the
 strict headers either way.
 
-> ⚠️ **It is a build-time flag, not a runtime one.** Next.js compiles `headers()` into the route
+> **It is a build-time flag, not a runtime one.** Next.js compiles `headers()` into the route
 > manifest, so `next.config.mjs` reads the variable while the bundle is built
 > (`next.config.mjs` → `resolveDashboardEmbedMode`, `scripts/build/dashboardEmbed.mjs`).
 > Exporting it in front of an already-built server changes nothing — the headers are baked.
@@ -108,11 +108,11 @@ DASHBOARD_ALLOW_EMBED=vscode npm run build        # or npm run build:release
 npm start
 ```
 
-| How you installed          | Can you enable embedding?                                                                                                               |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| From source                | ✅ set the variable on the build command, as above                                                                                      |
-| `npm install -g omniroute` | ❌ the published package ships a prebuilt bundle — build from source instead                                                            |
-| Docker image               | ✅ `docker build --build-arg DASHBOARD_ALLOW_EMBED=vscode -t omniroute:embed .` — the prebuilt image on Docker Hub is not embed-enabled |
+| How you installed          | Can you enable embedding?                                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| From source                | set the variable on the build command, as above                                                                                      |
+| `npm install -g omniroute` | the published package ships a prebuilt bundle — build from source instead                                                            |
+| Docker image               | `docker build --build-arg DASHBOARD_ALLOW_EMBED=vscode -t omniroute:embed .` — the prebuilt image on Docker Hub is not embed-enabled |
 
 Without an embed-enabled build the page refuses to frame, the extension detects that from the
 response headers and falls back to the external browser — nothing breaks, and it says so once.

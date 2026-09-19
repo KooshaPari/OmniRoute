@@ -54,7 +54,7 @@ Open the dashboard and go to **Costs → Free Provider Rankings**, or navigate d
 
 The page (`src/app/(dashboard)/dashboard/free-provider-rankings/page.tsx`) shows:
 
-- A **top-3 podium** (🥇 🥈 🥉) of the best-ranked free providers.
+- A **top-3 podium** ( ) of the best-ranked free providers.
 - A full **ranking table** with columns: **Rank**, **Provider**, **Top Model**,
   **Score**, **Avg Score**, **Models**, **Type**.
 - **Category filter buttons**: _All Categories_, _Default_, _Coding_, _Review_,

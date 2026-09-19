@@ -106,7 +106,7 @@ the built-in list — never a replacement — and hot-reload on save (and at sta
 via `setCustomBannedSignals()`. Each keyword is capped at 200 characters; there is
 no array-length limit.
 
-**⚠ False-positive risk — choose specific phrases.** Detection is a raw substring
+**False-positive risk — choose specific phrases.** Detection is a raw substring
 match on the whole response body, and a match is **permanent** (1-year cooldown,
 manual recovery). A broad keyword can ban a perfectly healthy connection:
 

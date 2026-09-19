@@ -44,11 +44,11 @@ The recommended baseline is the number to optimize against.
 
 | Phase   |                 Target | Focus                                             | Status      |
 | ------- | ---------------------: | ------------------------------------------------- | ----------- |
-| Phase 1 | 60% statements / lines | Quick wins and low-risk utility coverage          | ✅ Done     |
-| Phase 2 | 65% statements / lines | DB and route foundations                          | ✅ Done     |
-| Phase 3 | 70% statements / lines | Provider validation and usage analytics           | ✅ Done     |
-| Phase 4 | 75% statements / lines | `open-sse` translators and helpers                | ✅ Done     |
-| Phase 5 | 80% statements / lines | `open-sse` handlers and executor branches         | ✅ Done     |
+| Phase 1 | 60% statements / lines | Quick wins and low-risk utility coverage          | Done        |
+| Phase 2 | 65% statements / lines | DB and route foundations                          | Done        |
+| Phase 3 | 70% statements / lines | Provider validation and usage analytics           | Done        |
+| Phase 4 | 75% statements / lines | `open-sse` translators and helpers                | Done        |
+| Phase 5 | 80% statements / lines | `open-sse` handlers and executor branches         | Done        |
 | Phase 6 | 85% statements / lines | Harder edge cases, branch debt, regression suites | In progress |
 | Phase 7 | 90% statements / lines | Final sweep, gap closure, strict ratchet          | Pending     |
 

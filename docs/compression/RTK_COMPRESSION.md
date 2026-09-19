@@ -382,15 +382,15 @@ Both the **head** and **tail** of each section are preserved; middle content is 
 
 ### What Stays vs. What Gets Cut
 
-| Content                    | minimal      | standard     | aggressive   |
-| -------------------------- | ------------ | ------------ | ------------ |
-| Errors / stack traces      | ✅ preserved | ✅ preserved | ✅ preserved |
-| Test failures              | ✅ preserved | ✅ preserved | ✅ preserved |
-| Build errors               | ✅ preserved | ✅ preserved | ✅ preserved |
-| Test passes (verbose)      | ✅ preserved | 🟡 collapsed | 🟡 collapsed |
-| Routine output (info logs) | 🟡 collapsed | 🟡 collapsed | ❌ dropped   |
-| Progress bars              | 🟡 collapsed | ❌ dropped   | ❌ dropped   |
-| Banner / ASCII art         | 🟡 collapsed | ❌ dropped   | ❌ dropped   |
+| Content                    | minimal   | standard  | aggressive |
+| -------------------------- | --------- | --------- | ---------- |
+| Errors / stack traces      | preserved | preserved | preserved  |
+| Test failures              | preserved | preserved | preserved  |
+| Build errors               | preserved | preserved | preserved  |
+| Test passes (verbose)      | preserved | collapsed | collapsed  |
+| Routine output (info logs) | collapsed | collapsed | dropped    |
+| Progress bars              | collapsed | dropped   | dropped    |
+| Banner / ASCII art         | collapsed | dropped   | dropped    |
 
 ### Choosing the Right Intensity
 
@@ -425,9 +425,7 @@ Both the **head** and **tail** of each section are preserved; middle content is 
 ```json
 {
   "combo": "my-coding-combo",
-  "routing": {
-    /* ... */
-  },
+  "routing": {/* ... */},
   "compression": {
     "engine": "rtk",
     "intensity": "aggressive"

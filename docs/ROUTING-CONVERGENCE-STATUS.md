@@ -35,7 +35,7 @@ others consume.
 
 ---
 
-## ⚠ Three Different "bifrost" Referents (naming-collision hazard)
+## Three Different "bifrost" Referents (naming-collision hazard)
 
 This is the most common source of cross-repo confusion. Per **ADR-009** (2026-06-18):
 

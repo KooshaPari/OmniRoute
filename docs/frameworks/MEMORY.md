@@ -966,14 +966,14 @@ Singleton orchestrator that:
 
 **Fallback behavior:**
 
-| Operation | Primary              | Fallbacks               |
-| --------- | -------------------- | ----------------------- |
-| `create`  | ✅ Primary only      | ❌                      |
-| `get`     | ✅ Try primary first | ✅ Fallback if null     |
-| `update`  | ✅ Primary only      | ✅ Fire-and-forget sync |
-| `delete`  | ✅ Primary only      | ✅ Fire-and-forget sync |
-| `list`    | ✅ Primary only      | ❌                      |
-| `search`  | ✅ Primary first     | ✅ Fallback on error    |
+| Operation | Primary           | Fallbacks            |
+| --------- | ----------------- | -------------------- |
+| `create`  | Primary only      |                      |
+| `get`     | Try primary first | Fallback if null     |
+| `update`  | Primary only      | Fire-and-forget sync |
+| `delete`  | Primary only      | Fire-and-forget sync |
+| `list`    | Primary only      |                      |
+| `search`  | Primary first     | Fallback on error    |
 
 #### GenericMemoryBackend (`genericBackend.ts`)
 

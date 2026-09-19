@@ -24,16 +24,17 @@ curl http://localhost:20128/v1/models
 ## Configuration
 
 Edit docker-compose.scale.yml to:
+
 - Adjust heap cap (NODE_OPTIONS)
 - Add/remove replicas
 - Change scale factor
 
 ## Trade-offs
 
-- ✗ No HMR (hot reload) — docker images are static
-- ✓ Horizontal scaling
-- ✓ Transparent failover
-- ✓ ~24GB total memory (3 × 8GB)
+- No HMR (hot reload) — docker images are static
+- Horizontal scaling
+- Transparent failover
+- ~24GB total memory (3 × 8GB)
 
 ## Cleanup
 

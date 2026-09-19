@@ -20,9 +20,9 @@ If you discover a security vulnerability in OmniRoute, please report it responsi
 
 | Version | Support Status |
 | ------- | -------------- |
-| 3.8.x   | ✅ Active      |
-| 3.7.x   | ✅ Security    |
-| < 3.7.0 | ❌ Unsupported |
+| 3.8.x   | Active         |
+| 3.7.x   | Security       |
+| < 3.7.0 | Unsupported    |
 
 ---
 
@@ -36,7 +36,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
        → Rate Limiter → Circuit Breaker → Cooldown → Model Lockout → Provider
 ```
 
-### 🔐 Authentication & Authorization
+### Authentication & Authorization
 
 | Feature               | Implementation                                                                                                                            |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -50,7 +50,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | **Manage-Scope MCP**  | Remote `/api/mcp/*` access gated by API keys with `manage` scope; `/api/cli-tools/runtime/*` stays strict-loopback. See ROUTE_GUARD_TIERS |
 | **MCP Scopes**        | 32 granular scopes (read:health, write:combos, execute:completions, etc.) — see `docs/frameworks/MCP-SERVER.md`                           |
 
-### 🛡️ Encryption at Rest
+### Encryption at Rest
 
 All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
 
@@ -63,7 +63,7 @@ All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scry
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Guardrails Framework
+### Guardrails Framework
 
 OmniRoute ships a hot-reloadable **guardrails registry** (`src/lib/guardrails/`) with 3 built-in guardrails ordered by priority:
 
@@ -75,7 +75,7 @@ OmniRoute ships a hot-reloadable **guardrails registry** (`src/lib/guardrails/`)
 
 Custom guardrails register via `registerGuardrail(new MyGuardrail())`. The model is fail-open (exceptions never block traffic). Per-request opt-out via `x-omniroute-disabled-guardrails` header. → See [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Prompt Injection Guard
+### Prompt Injection Guard
 
 Best-effort heuristic middleware that detects prompt injection patterns in LLM requests.
 **Not a complete prompt-injection firewall** — can produce false positives (benign
@@ -101,7 +101,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (injection policy; legacy "redact" 
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (default) | medium | low — severities at/above this are blocked in block mode
 ```
 
-### 🔒 PII Redaction
+### PII Redaction
 
 Automatic detection and optional redaction of personally identifiable information:
 
@@ -119,7 +119,7 @@ PII_REDACTION_ENABLED=true   # request PII rewrite; independent of INPUT_SANITIZ
 PII_RESPONSE_SANITIZATION=true  # optional: redact PII in provider responses returned to clients
 ```
 
-### 🌐 Network Security
+### Network Security
 
 | Feature                  | Description                                                                    |
 | ------------------------ | ------------------------------------------------------------------------------ |
@@ -130,7 +130,7 @@ PII_RESPONSE_SANITIZATION=true  # optional: redact PII in provider responses ret
 | **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection                  |
 | **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures               |
 
-### 🔌 Resilience & Availability
+### Resilience & Availability
 
 | Feature                 | Description                                                        |
 | ----------------------- | ------------------------------------------------------------------ |
@@ -139,7 +139,7 @@ PII_RESPONSE_SANITIZATION=true  # optional: redact PII in provider responses ret
 | **Exponential Backoff** | Automatic retry with increasing delays                             |
 | **Health Dashboard**    | Real-time provider health monitoring                               |
 
-### 📋 Compliance
+### Compliance
 
 | Feature            | Description                                                 |
 | ------------------ | ----------------------------------------------------------- |

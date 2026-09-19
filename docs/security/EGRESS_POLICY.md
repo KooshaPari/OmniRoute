@@ -240,7 +240,7 @@ When a resolved proxy object carries a non-`auto` `family`, `proxyConfigToUrl` a
 
 ## Related Documentation
 
-> 📖 **Related documentation:**
+> **Related documentation:**
 >
 > - [Proxy Guide](../ops/PROXY_GUIDE.md) — full proxy system: registry CRUD, 4-level resolution, rotation, health checking, API reference
 > - `docs/security/STEALTH_GUIDE.md` (git; not compiled into `/docs`) — TLS fingerprint and CLI fingerprint layers that ride on top of the proxy

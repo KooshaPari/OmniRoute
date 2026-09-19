@@ -8,7 +8,7 @@ lastUpdated: 2026-06-28
 
 > **For Users**: Looking for quick fixes? See the [Quick Reference](#quick-reference) below.
 
-🌐 **Translations:** Generated on demand; see [the i18n guide](../guides/I18N.md).
+**Translations:** Generated on demand; see [the i18n guide](../guides/I18N.md).
 
 Common problems and solutions for OmniRoute.
 

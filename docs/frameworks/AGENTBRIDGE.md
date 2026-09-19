@@ -31,21 +31,21 @@ This means you can:
 
 | Feature           | 9router | anti-api | llm-interceptor | **OmniRoute AgentBridge** |
 | ----------------- | :-----: | :------: | :-------------: | :-----------------------: |
-| Antigravity       |    ✓    |    ✓     |        —        |             ✓             |
-| GitHub Copilot    |    ✓    |    ✓     |        —        |             ✓             |
-| Kiro (AWS)        |    ✓    |    ✓     |        —        |             ✓             |
-| OpenAI Codex      |    —    |    ✓     |        —        |             ✓             |
-| Cursor IDE        |    ✓    |    ✓     |        —        |             ✓             |
-| Zed Industries    |    —    |    ✓     |        —        |             ✓             |
-| Claude Code       |    —    |    —     |        ✓        |             ✓             |
-| Open Code         |    —    |    —     |        ✓        |             ✓             |
-| Trae              |    —    |    —     |        —        |     🔍 Investigating      |
-| Dashboard UI      |    ✓    |    ✗     |        ✗        |             ✓             |
-| Traffic Inspector |    ✗    |    ✗     |        ✓        |             ✓             |
-| OmniRoute routing |    ✗    |    ✗     |        ✗        |             ✓             |
-| Model mapping UI  |    ✗    |    ✗     |        ✗        |             ✓             |
-| Bypass list       |    ✗    |    ✗     |        ✓        |             ✓             |
-| Upstream CA cert  |    ✗    |    ✗     |        ✓        |             ✓             |
+| Antigravity       |         |          |        —        |                           |
+| GitHub Copilot    |         |          |        —        |                           |
+| Kiro (AWS)        |         |          |        —        |                           |
+| OpenAI Codex      |    —    |          |        —        |                           |
+| Cursor IDE        |         |          |        —        |                           |
+| Zed Industries    |    —    |          |        —        |                           |
+| Claude Code       |    —    |    —     |                 |                           |
+| Open Code         |    —    |    —     |                 |                           |
+| Trae              |    —    |    —     |        —        |       Investigating       |
+| Dashboard UI      |         |          |                 |                           |
+| Traffic Inspector |         |          |                 |                           |
+| OmniRoute routing |         |          |                 |                           |
+| Model mapping UI  |         |          |                 |                           |
+| Bypass list       |         |          |                 |                           |
+| Upstream CA cert  |         |          |                 |                           |
 
 ---
 
@@ -287,7 +287,7 @@ The dashboard exposes a **Maintenance & Diagnostics** card (`AgentBridgeMaintena
 
 | Button            | Route                                  | What it does                                                                                                                                                                     |
 | ----------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Diagnose**      | `GET /api/tools/agent-bridge/diagnose` | Runs the capture-pipeline self-test and shows a per-check report (✓/✗ + remediation hint).                                                                                       |
+| **Diagnose**      | `GET /api/tools/agent-bridge/diagnose` | Runs the capture-pipeline self-test and shows a per-check report (/ + remediation hint).                                                                                         |
 | **Repair**        | `POST /api/tools/agent-bridge/repair`  | Undoes orphaned MITM system state (DNS spoof entries, root CA, system proxy) left behind by a crash or SIGKILL. Idempotent — reports "Nothing to repair" when state is clean.    |
 | **Remove CA**     | `DELETE /api/tools/agent-bridge/cert`  | Untrusts and removes the MITM root CA from the OS trust store (explicit, idempotent). Shown only when the CA is currently trusted; requires an inline "Remove CA?" confirmation. |
 | **Export config** | `GET /api/tools/agent-bridge/config`   | Downloads the portable config JSON (see §3.7).                                                                                                                                   |
@@ -343,17 +343,17 @@ What is **NOT** in the config: server running state, cert paths, per-agent DNS s
 
 ## §4 Per-agent reference
 
-| #   | Agent              | Status           | Hosts intercepted                                                  | Auth type      |
-| --- | ------------------ | ---------------- | ------------------------------------------------------------------ | -------------- |
-| 1   | **Antigravity**    | ✅ Supported     | `daily-cloudcode-pa.googleapis.com`, `cloudcode-pa.googleapis.com` | Firebase OAuth |
-| 2   | **Kiro (AWS)**     | ✅ Supported     | `prod.kiro.aws`, `dev.kiro.aws`                                    | AWS SigV4      |
-| 3   | **GitHub Copilot** | ✅ Supported     | `api.githubcopilot.com`, `copilot-proxy.githubusercontent.com`     | GitHub OAuth   |
-| 4   | **OpenAI Codex**   | ✅ Supported     | `api.openai.com` (Codex paths), `chatgpt.com`                      | OpenAI key     |
-| 5   | **Cursor IDE**     | ✅ Supported     | `api2.cursor.sh`, `api.cursor.sh`                                  | Cursor OAuth   |
-| 6   | **Zed Industries** | ✅ Supported     | `api.zed.dev`, `llm.zed.dev`                                       | Zed OAuth      |
-| 7   | **Claude Code**    | ✅ Supported     | `api.anthropic.com` (opt-in)                                       | Anthropic key  |
-| 8   | **Open Code**      | ✅ Supported     | `openrouter.ai`, `api.openai.com` (zen paths)                      | API key        |
-| 9   | **Trae**           | 🔍 Investigating | TBD — see §8                                                       | TBD            |
+| #   | Agent              | Status        | Hosts intercepted                                                  | Auth type      |
+| --- | ------------------ | ------------- | ------------------------------------------------------------------ | -------------- |
+| 1   | **Antigravity**    | Supported     | `daily-cloudcode-pa.googleapis.com`, `cloudcode-pa.googleapis.com` | Firebase OAuth |
+| 2   | **Kiro (AWS)**     | Supported     | `prod.kiro.aws`, `dev.kiro.aws`                                    | AWS SigV4      |
+| 3   | **GitHub Copilot** | Supported     | `api.githubcopilot.com`, `copilot-proxy.githubusercontent.com`     | GitHub OAuth   |
+| 4   | **OpenAI Codex**   | Supported     | `api.openai.com` (Codex paths), `chatgpt.com`                      | OpenAI key     |
+| 5   | **Cursor IDE**     | Supported     | `api2.cursor.sh`, `api.cursor.sh`                                  | Cursor OAuth   |
+| 6   | **Zed Industries** | Supported     | `api.zed.dev`, `llm.zed.dev`                                       | Zed OAuth      |
+| 7   | **Claude Code**    | Supported     | `api.anthropic.com` (opt-in)                                       | Anthropic key  |
+| 8   | **Open Code**      | Supported     | `openrouter.ai`, `api.openai.com` (zen paths)                      | API key        |
+| 9   | **Trae**           | Investigating | TBD — see §8                                                       | TBD            |
 
 ### Setup wizard steps (per agent)
 
@@ -501,32 +501,32 @@ All routes are `LOCAL_ONLY` (loopback-only, enforced before auth) and `SPAWN_CAP
 
 Base path: `/api/tools/agent-bridge/`
 
-| Method              | Path                                           | Description                                                                                                                |
-| ------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | Global server state + per-agent detection/status                                                                           |
-| GET                 | `/api/tools/agent-bridge/agents`               | List registered agents (id, name, hosts, viability, state)                                                                 |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | State of one agent (target config + detection + stored state)                                                              |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Update `setup_completed` for agent                                                                                         |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Run detection probe for agent (`installed`, `version?`, `path?`)                                                           |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Enable/disable DNS for agent (`{enabled: boolean}`)                                                                        |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Model mappings for agent                                                                                                   |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Replace model mappings                                                                                                     |
-| POST                | `/api/tools/agent-bridge/server`               | Start/stop/restart server (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                          |
-| GET                 | `/api/tools/agent-bridge/cert`                 | Cert status (`exists`, `trusted`, `path`)                                                                                  |
-| POST                | `/api/tools/agent-bridge/cert`                 | Trust (install) the MITM root CA                                                                                           |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | Untrust (remove) the MITM root CA — idempotent (see §3.6)                                                                  |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Regenerate the self-signed MITM cert                                                                                       |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | Stream the PEM cert for download                                                                                           |
-| GET                 | `/api/tools/agent-bridge/bypass`               | List bypass patterns (`default` + `user`)                                                                                  |
-| POST                | `/api/tools/agent-bridge/bypass`               | Replace user-defined bypass patterns wholesale                                                                             |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Remove a single user-defined bypass pattern                                                                                |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Capture-pipeline self-test (see §3.6)                                                                                      |
-| POST                | `/api/tools/agent-bridge/repair`               | Undo orphaned MITM system state (see §3.6)                                                                                 |
-| GET                 | `/api/tools/agent-bridge/config`               | Export portable config JSON (see §3.7)                                                                                     |
-| POST                | `/api/tools/agent-bridge/config`               | Import portable config JSON (see §3.7)                                                                                     |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Get configured upstream CA path                                                                                            |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Validate + persist upstream CA path                                                                                        |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Validate-only (dry-run) an upstream CA path — does not persist                                                             |
+| Method              | Path                                           | Description                                                                                                           |
+| ------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | Global server state + per-agent detection/status                                                                      |
+| GET                 | `/api/tools/agent-bridge/agents`               | List registered agents (id, name, hosts, viability, state)                                                            |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | State of one agent (target config + detection + stored state)                                                         |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Update `setup_completed` for agent                                                                                    |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Run detection probe for agent (`installed`, `version?`, `path?`)                                                      |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Enable/disable DNS for agent (`{enabled: boolean}`)                                                                   |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Model mappings for agent                                                                                              |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Replace model mappings                                                                                                |
+| POST                | `/api/tools/agent-bridge/server`               | Start/stop/restart server (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                     |
+| GET                 | `/api/tools/agent-bridge/cert`                 | Cert status (`exists`, `trusted`, `path`)                                                                             |
+| POST                | `/api/tools/agent-bridge/cert`                 | Trust (install) the MITM root CA                                                                                      |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | Untrust (remove) the MITM root CA — idempotent (see §3.6)                                                             |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Regenerate the self-signed MITM cert                                                                                  |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | Stream the PEM cert for download                                                                                      |
+| GET                 | `/api/tools/agent-bridge/bypass`               | List bypass patterns (`default` + `user`)                                                                             |
+| POST                | `/api/tools/agent-bridge/bypass`               | Replace user-defined bypass patterns wholesale                                                                        |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Remove a single user-defined bypass pattern                                                                           |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Capture-pipeline self-test (see §3.6)                                                                                 |
+| POST                | `/api/tools/agent-bridge/repair`               | Undo orphaned MITM system state (see §3.6)                                                                            |
+| GET                 | `/api/tools/agent-bridge/config`               | Export portable config JSON (see §3.7)                                                                                |
+| POST                | `/api/tools/agent-bridge/config`               | Import portable config JSON (see §3.7)                                                                                |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Get configured upstream CA path                                                                                       |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Validate + persist upstream CA path                                                                                   |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Validate-only (dry-run) an upstream CA path — does not persist                                                        |
 | GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY transparent-decrypt capture mode — see `docs/security/MITM-TPROXY-DECRYPT.md` (git; not compiled into `/docs`) |
 
 Full OpenAPI schemas: `docs/openapi.yaml` → tag `AgentBridge`.

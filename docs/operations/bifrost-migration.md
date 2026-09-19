@@ -30,7 +30,7 @@ This playbook documents the **safe cut-over from OmniRoute's legacy TypeScript d
 
 Prerequisites:
 
-- B1–B6 infrastructure landed in `main` (✅ all done per [PLAN.md § 2.5.2](../../PLAN.md))
+- B1–B6 infrastructure landed in `main` ( all done per [PLAN.md § 2.5.2](../../PLAN.md))
 - At least 14 days of B6 shadow data collected (5% → 25% → 100% mirror)
 - 30-day decision review completed with "commit" verdict
 - Post-#89 merge: `trafficShadow.ts`, `bifrostShadow.ts`, `bifrost.ts` wired in main

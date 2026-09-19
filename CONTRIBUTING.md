@@ -125,7 +125,7 @@ Default URLs:
 
 ## Git Workflow
 
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+> **NEVER commit directly to `main`.** Always use feature branches.
 >
 > **PR base:** target the active `release/vX.Y.Z` branch (not `main`). See
 > [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md) for the

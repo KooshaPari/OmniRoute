@@ -20,7 +20,7 @@ shell that renders four tabs and a shared config pane.
 
 ```
 ┌ Playground ──────────────────────────────────────────────────────────┐
-│ [💬 Chat] [⚖ Compare] [{} API] [🔧 Build]     142↑ 38↓ · $0.002 </>│
+│ [ Chat] [ Compare] [{} API] [ Build]     142↑ 38↓ · $0.002 </>│
 ├──────────────────────────────────────────┬───────────────────────────┤
 │  {active tab content}                    │ ─ Config                  │
 │                                          │ Endpoint  [chat ∨]        │
@@ -28,7 +28,7 @@ shell that renders four tabs and a shared config pane.
 │                                          │ System    [textarea]      │
 │                                          │ Temp      ▕▕▔▔ 0.7        │
 │                                          │ Presets [▾ load][save]    │
-│                                          │ [✨ Improve prompt]        │
+│                                          │ [ Improve prompt]        │
 └──────────────────────────────────────────┴───────────────────────────┘
 ```
 

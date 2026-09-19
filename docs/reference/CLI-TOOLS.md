@@ -177,7 +177,7 @@ All tools that appear in `/dashboard/cli-code`. Those with `baseUrlSupport: none
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Tools with `baseUrlSupport: "partial"` show a badge "⚠ Base URL parcial" in the dashboard card.
+Tools with `baseUrlSupport: "partial"` show a badge " Base URL parcial" in the dashboard card.
 ---
 
 ## 2. CLI Agents Catalog (10 tools)
@@ -694,7 +694,7 @@ omniroute reset-encrypted-columns       # Show warning + dry-run for encrypted c
 omniroute reset-encrypted-columns --force  # Actually null out encrypted credentials in SQLite
 ```
 
-### Credential Export (⚠ handle with care)
+### Credential Export ( handle with care)
 
 ```bash
 omniroute auth export                                 # Show warning + confirmation gate — no DB access
