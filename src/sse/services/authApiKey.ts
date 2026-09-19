@@ -1,9 +1,9 @@
 /**
  * API key extraction and validation.
  *
-<<<<<<< HEAD
  * Extracted from auth.ts for modularity. Handles Bearer tokens, x-api-key
  * (Anthropic contract), x-goog-api-key, and path-scoped VS Code tokens.
+ * The barrel re-exports from auth.ts preserve all existing import paths.
  *
  * @module authApiKey
  */
@@ -13,35 +13,13 @@ import { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
 import { validateApiKey } from "@/lib/db/apiKeys";
 
 // ─── Types ────────────────────────────────────────────────────
-=======
- * Provides extractApiKey() for extracting credentials from request headers
- * and URL paths, and isValidApiKey() for validating keys against the DB
- * and environment variables.
- *
- * Extracted from auth.ts for modularity. The barrel re-exports from auth.ts
- * preserve all existing import paths.
- */
-import { extractGoogApiKeyHeader } from "./googApiKeyAuth.ts";
-import { validateApiKey } from "@/lib/db/apiKeys";
-import { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
-
-// ──────────────────────────────────────────────────────────
-// Types
-// ──────────────────────────────────────────────────────────
->>>>>>> 1123bc181b (refactor: decompose auth.ts (3541 lines) into modular sub-modules)
 
 export type AuthRequestLike = {
   headers?: AuthRequestHeaders | null;
   url?: string | null;
 };
 
-<<<<<<< HEAD
 // ─── Internal helpers ─────────────────────────────────────────
-=======
-// ──────────────────────────────────────────────────────────
-// Internal helpers
-// ──────────────────────────────────────────────────────────
->>>>>>> 1123bc181b (refactor: decompose auth.ts (3541 lines) into modular sub-modules)
 
 function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
   if (typeof request?.url !== "string" || request.url.trim().length === 0) return null;
@@ -73,17 +51,10 @@ function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
 
     // NOTE: query-string token fallbacks (`?token=`/`?key=`/`?apiKey=`/`?api_key=`)
     // were intentionally REMOVED. They are a broad credential-in-URL surface that
-<<<<<<< HEAD
     // leaks into access logs, Referer headers and proxy logs, and — because this
     // extractor also feeds management auth — would let `?token=<mgmt-key>`
     // authenticate management routes. The VS Code integration only needs the
     // path-scoped `/vscode/<token>/…` form above. (security review, #3300 follow-up)
-=======
-    // leaks into access logs, Referer headers and proxy logs, and -- because this
-    // extractor also feeds management auth -- would let `?token=<mgmt-key>`
-    // authenticate management routes. The VS Code integration only needs the
-    // path-scoped `/vscode/<token>/...` form above. (security review, #3300 follow-up)
->>>>>>> 1123bc181b (refactor: decompose auth.ts (3541 lines) into modular sub-modules)
   } catch {
     return null;
   }
@@ -91,13 +62,7 @@ function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
   return null;
 }
 
-<<<<<<< HEAD
 // ─── Exported functions ───────────────────────────────────────
-=======
-// ──────────────────────────────────────────────────────────
-// Public API
-// ──────────────────────────────────────────────────────────
->>>>>>> 1123bc181b (refactor: decompose auth.ts (3541 lines) into modular sub-modules)
 
 /**
  * Extract API key from request auth inputs.
@@ -105,35 +70,21 @@ function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
  * Honors explicit auth headers and (for client-facing routes only) a
  * path-scoped URL token:
  * - `Authorization: Bearer <key>` (OpenAI / OmniRoute / Codex CLI / Bearer clients)
-<<<<<<< HEAD
  * - `x-api-key: <key>` (Anthropic Messages API contract — Claude Code,
  *   `@anthropic-ai/sdk`, any SDK that sets `anthropic-version`) / `x-goog-api-key` (#7034)
  * - `/vscode/<key>/...` (path-scoped tokenized aliases — only when `allowUrl`)
-=======
- * - `x-api-key: <key>` (Anthropic Messages API contract -- Claude Code,
- *   `@anthropic-ai/sdk`, any SDK that sets `anthropic-version`) / `x-goog-api-key` (#7034)
- * - `/vscode/<key>/...` (path-scoped tokenized aliases -- only when `allowUrl`)
->>>>>>> 1123bc181b (refactor: decompose auth.ts (3541 lines) into modular sub-modules)
  *
  * When multiple inputs are present, explicit auth headers win.
  *
  * The `x-api-key` fallback only triggers when the request also carries an
-<<<<<<< HEAD
  * `anthropic-version` header — the documented signal that the caller is
-=======
- * `anthropic-version` header -- the documented signal that the caller is
->>>>>>> 1123bc181b (refactor: decompose auth.ts (3541 lines) into modular sub-modules)
  * speaking the Anthropic Messages API contract. Without this scoping,
  * non-Anthropic SDKs that happen to set `x-api-key` (or local-mode tools
  * with placeholder keys) would be treated as authenticated attempts and
  * rejected by per-route gates that compare against OmniRoute keys.
  *
  * `opts.allowUrl` (default `true`) gates the path-scoped URL token. Management
-<<<<<<< HEAD
  * auth MUST pass `allowUrl: false` — a credential in the URL must never
-=======
- * auth MUST pass `allowUrl: false` -- a credential in the URL must never
->>>>>>> 1123bc181b (refactor: decompose auth.ts (3541 lines) into modular sub-modules)
  * authenticate a management route (it leaks into logs/Referer and would widen
  * the management surface). See the #3300 security follow-up.
  */
@@ -183,11 +134,7 @@ export function extractApiKey(request: AuthRequestLike, opts?: { allowUrl?: bool
 export async function isValidApiKey(apiKey: string) {
   if (!apiKey) return false;
 
-<<<<<<< HEAD
   // Persistent env-var key — always valid regardless of DB state (#1350)
-=======
-  // Persistent env-var key -- always valid regardless of DB state (#1350)
->>>>>>> 1123bc181b (refactor: decompose auth.ts (3541 lines) into modular sub-modules)
   const envKey = process.env.OMNIROUTE_API_KEY || process.env.ROUTER_API_KEY;
   if (envKey && apiKey === envKey) return true;
 
