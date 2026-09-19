@@ -7,12 +7,9 @@
 import type { ComboLike } from "@omniroute/open-sse/services/combo/types.ts";
 import { resolveComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
-import {
-  buildManagedLeaseErrorResponse,
-  LeaseContextError,
-} from "../services/leaseContext";
+import { buildManagedLeaseErrorResponse, LeaseContextError } from "../../services/leaseContext";
 import { updateCombo } from "@/lib/db/combos";
-import * as log from "../utils/logger";
+import * as log from "../../utils/logger";
 
 /**
  * Determine whether a combo (or any nested combo-ref inside it) uses a

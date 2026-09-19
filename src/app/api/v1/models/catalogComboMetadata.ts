@@ -8,18 +8,15 @@ import { PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import {
   getRegistryModelThinkingEfforts,
   getRegistryThinkingEfforts,
-} from "@/omniroute/open-sse/config/providerRegistry";
-import { resolveNestedComboTargets } from "@/omniroute/open-sse/services/combo";
-import { getSourcedTokenLimit } from "@/omniroute/open-sse/services/contextManager";
+} from "@omniroute/open-sse/config/providerRegistry";
+import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
+import { getSourcedTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import { getCanonicalModelMetadata } from "@/lib/modelMetadataRegistry";
 import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import type { CatalogBuildContext } from "./catalogBuildTypes";
-import type {
-  ComboCatalogTarget,
-  ComboTargetCatalogMetadata,
-} from "./catalogHelpers";
+import type { ComboCatalogTarget, ComboTargetCatalogMetadata } from "./catalogHelpers";
 import {
   isPositiveFiniteNumber,
   parseJsonStringArray,
@@ -30,7 +27,7 @@ import {
   getConnectionScopedEffortTiers,
 } from "./catalogHelpers";
 
-type ComboMetadataPick = Pick<
+export type ComboMetadataPick = Pick<
   CatalogBuildContext,
   | "capabilityResolutionSnapshot"
   | "providerIdToAlias"
@@ -60,8 +57,7 @@ export function getComboTargetCatalogMetadata(
 
   const providerId = canonical.provider || targetModel.providerId;
   const modelId = canonical.model || targetModel.modelId;
-  const providerAlias =
-    ctx.providerIdToAlias[providerId] || PROVIDER_ID_TO_ALIAS[providerId];
+  const providerAlias = ctx.providerIdToAlias[providerId] || PROVIDER_ID_TO_ALIAS[providerId];
   const allProviderConnections = ctx.getConnectionsForProvider(
     providerId,
     providerAlias,
@@ -108,11 +104,7 @@ export function getComboTargetCatalogMetadata(
   const syncedInputModalities = parseJsonStringArray(synced?.modalities_input);
   const syncedOutputModalities = parseJsonStringArray(synced?.modalities_output);
 
-  const contextLength = getSourcedTokenLimit(
-    providerId,
-    modelId,
-    canonical.limits.contextWindow
-  );
+  const contextLength = getSourcedTokenLimit(providerId, modelId, canonical.limits.contextWindow);
   const maxInputTokens = isPositiveFiniteNumber(canonical.limits.maxInputTokens)
     ? canonical.limits.maxInputTokens
     : contextLength;
@@ -132,11 +124,8 @@ export function getComboTargetCatalogMetadata(
           )
         : undefined;
   const registryVision =
-    typeof registryModel?.supportsVision === "boolean"
-      ? registryModel.supportsVision
-      : undefined;
-  const specVision =
-    typeof spec?.supportsVision === "boolean" ? spec.supportsVision : undefined;
+    typeof registryModel?.supportsVision === "boolean" ? registryModel.supportsVision : undefined;
+  const specVision = typeof spec?.supportsVision === "boolean" ? spec.supportsVision : undefined;
   const knownVision = syncedVision ?? registryVision ?? specVision;
 
   const inputModalities =
@@ -220,12 +209,8 @@ export function buildComboCatalogMetadata(
   const contextLength =
     explicitContextLength ??
     minKnownNumber(knownMetadata.map((metadata) => metadata.contextLength));
-  const maxInputTokens = minKnownNumber(
-    knownMetadata.map((metadata) => metadata.maxInputTokens)
-  );
-  const maxOutputTokens = minKnownNumber(
-    knownMetadata.map((metadata) => metadata.maxOutputTokens)
-  );
+  const maxInputTokens = minKnownNumber(knownMetadata.map((metadata) => metadata.maxInputTokens));
+  const maxOutputTokens = minKnownNumber(knownMetadata.map((metadata) => metadata.maxOutputTokens));
 
   const inputModalities = intersectKnownStringArrays(
     knownMetadata.map((m) => (Array.isArray(m.inputModalities) ? m.inputModalities : []))
