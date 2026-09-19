@@ -66,6 +66,10 @@ import {
   bindCoreDeps as bindHealthSchedulerDeps,
   bindEnv as bindHealthSchedulerEnv,
 } from "./dbHealthScheduler";
+// Re-exported so call sites that pull DB health helpers off the core module keep working:
+// src/app/api/db/health/route.ts (GET/POST) and
+// open-sse/mcp-server/tools/advancedTools.ts (db-health tool) both destructure it from core.
+export { runManagedDbHealthCheck } from "./dbHealthScheduler";
 
 type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
