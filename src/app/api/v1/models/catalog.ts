@@ -11,10 +11,7 @@ import {
   getHiddenModelsByProvider,
 } from "@/lib/db/models";
 import { getAllActiveSyncedModels } from "@/lib/db/models/activeSyncedCatalog";
-import {
-  getCachedRawProviderConnections,
-  getCachedProviderNodes,
-} from "@/lib/db/readCache";
+import { getCachedRawProviderConnections, getCachedProviderNodes } from "@/lib/db/readCache";
 import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
@@ -38,8 +35,10 @@ import {
   normalizeBlockedProviderSet,
 } from "@/shared/utils/noAuthProviders";
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { extractApiKey } from "@/sse/services/auth";
-import type { ComboCatalogTarget } from "./catalogHelpers";
+import type { ComboCatalogTarget, ConnectionScopedReasoningCatalog } from "./catalogHelpers";
+import { isUnifiedChatSourceModelSelectable } from "./catalogModelPolicy";
 import {
   qualifyOpenRouterModelId,
   normalizeOpenRouterModalities,
@@ -53,18 +52,12 @@ import {
   buildAliasMaps,
   resolveCanonicalProviderId as resolveCanonicalProviderIdFromMaps,
 } from "./catalogProviderMaps";
-import {
-  getModelCatalogAuthRejection,
-  isCcDiscoveryModelCatalogClient,
-} from "./catalogRequest";
+import { getModelCatalogAuthRejection, isCcDiscoveryModelCatalogClient } from "./catalogRequest";
 import { incrementCcDiscoveryHitCount } from "@/lib/db/ccDiscoveryMetrics";
 import { decideHidePaid } from "./catalogPaidFilter";
 import { isModelExposureAllowed } from "@/shared/utils/modelExposureList";
 import { buildSyncedModelIdsByCanonicalProvider } from "./catalogSyncedCoverage";
-import {
-  buildComboCatalogMetadata,
-  type ComboMetadataPick,
-} from "./catalogComboMetadata";
+import { buildComboCatalogMetadata, type ComboMetadataPick } from "./catalogComboMetadata";
 import { synthesizeAutoCombos } from "./catalogAutoCombos";
 import { addStaticProviderModels } from "./catalogStaticModels";
 import { addSyncedModels } from "./catalogSyncedModels";
@@ -72,7 +65,6 @@ import { addSpecialtyModels } from "./catalogSpecialtyModels";
 import { addCustomModels } from "./catalogCustomModels";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
-
 
 // Public API of this module is preserved after the catalog helper extraction:
 // `isVisionModelId` (vision-detection-consistency.test.ts) and
