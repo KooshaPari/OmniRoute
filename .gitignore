@@ -296,3 +296,6 @@ docker-compose.yml.bak
 
 # check:install-upgrade work trees (~12 GB, disposable)
 /.install-upgrade/
+
+# Native build dirs (SwiftPM .build output) - symlink in macos-tray was tracked by accident
+native-clients/macos-tray/.build/
