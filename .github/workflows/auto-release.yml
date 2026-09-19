@@ -238,8 +238,10 @@ jobs:
         run: npm install -g git-cliff 2>/dev/null || brew install git-cliff 2>/dev/null || echo "::warning::git-cliff not available; release notes will be minimal"
       - name: Generate release notes
         id: cliff
+        env:
+          CLIFF_VERSION: ${{ needs.resolve.outputs.version }}
         run: |
-          VERSION="${{ needs.resolve.outputs.version }}"
+          VERSION="$CLIFF_VERSION"
           git-cliff --verbose --tag "$VERSION" --config cliff.toml > /tmp/CLIFF.md 2>&1 || echo "::warning::git-cliff failed; release notes will be minimal"
 
       - name: Create GitHub release
@@ -263,11 +265,12 @@ jobs:
             git push origin ":v$VERSION" 2>/dev/null || true
           fi
           BODY="$(cat /tmp/CLIFF.md 2>/dev/null || echo 'Auto-release via auto-release.yml')"
+          RELEASE_TARGET="${{ inputs.sha || github.sha }}"
           gh release create "v$VERSION" \
             --title "v$VERSION ($RESOLVED)" \
             --notes "$BODY" \
             --prerelease="$PRERELEASE" \
-            --target "${{ inputs.sha || github.sha }}"
+            --target "$RELEASE_TARGET"
 
   publish-npm:
     name: Publish npm (${{ needs.resolve.outputs.resolved }})
