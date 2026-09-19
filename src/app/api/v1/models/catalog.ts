@@ -397,7 +397,7 @@ async function buildUnifiedModelsResponseCore(
     }
 
     // Build set of active provider aliases
-    const activeAliases = new Set();
+    const activeAliases = new Set<string>();
     const connectionsByProvider = new Map<string, typeof connections>();
     const registerConnectionKey = (
       key: string | null | undefined,

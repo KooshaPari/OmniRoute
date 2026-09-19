@@ -26,7 +26,6 @@ type SyncedModelContext = {
   nodeIdToProviderType: Record<string, string>;
   activeAliases: Set<string>;
   blockedProviders: Set<string>;
-  hidePaid: boolean;
   includeAlias: boolean;
   includeCanonical: boolean;
   resolveCanonicalProviderId: (aliasOrProviderId: string, fallbackProviderId?: string) => string;
