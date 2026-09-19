@@ -696,7 +696,7 @@ procedures are in [`docs/architecture/QUALITY_GATES.md`](docs/architecture/QUALI
 - **Velocity phase (2026-08-30 → v4.0)**: every numeric baseline is loosened by 20% and
   `--require-tighten` is advisory (`quality-baseline.json` → `_policy`); the nightly
   `baseline-headroom` job tracks how much of the budget is left in the issue
-  "📈 Baseline headroom". See `docs/architecture/QUALITY_GATES.md` → "Velocity phase".
+  "Baseline headroom". See `docs/architecture/QUALITY_GATES.md` → "Velocity phase".
 
 **Allowlist policy (short form):** Fix the cause; use the allowlist only for pre-existing
 violations you cannot fix in the same PR. Add a comment with justification + issue number.
