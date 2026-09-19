@@ -659,3 +659,107 @@ export function getLatestCompressionAnalyticsRun(): LatestCompressionAnalyticsRu
     )
     .get() as LatestCompressionAnalyticsRun | undefined;
 }
+
+/**
+ * Replay-history row: the `compression_analytics` columns the replay route reads.
+ * Every field is a real column — the base set from migration 038, the rest added by
+ * migration 041 and `ensureCompressionAnalyticsColumns()` above.
+ */
+export type CompressionReplayRow = {
+  id: number;
+  timestamp: string;
+  combo_id: string | null;
+  compression_combo_id: string | null;
+  provider: string | null;
+  mode: string;
+  engine: string | null;
+  original_tokens: number;
+  compressed_tokens: number;
+  tokens_saved: number;
+  duration_ms: number | null;
+  request_id: string | null;
+  actual_total_tokens: number | null;
+  estimated_usd_saved: number | null;
+  receipt_source: string | null;
+  validation_fallback: number | null;
+};
+
+const COMPRESSION_REPLAY_COLUMNS = `id, timestamp, combo_id, compression_combo_id, provider, mode, engine,
+              original_tokens, compressed_tokens, tokens_saved, duration_ms, request_id,
+              actual_total_tokens, estimated_usd_saved, receipt_source, validation_fallback`;
+
+/**
+ * Recent `compression_analytics` rows for the replay-history endpoint.
+ *
+ * `provider` matches case-insensitively. `model` matches `request_id` by prefix,
+ * because request ids are written as `<model>::<correlation>` — so a `gpt-4o`
+ * filter must also surface `gpt-4o-mini` rows.
+ */
+export function getRecentCompressionAnalyticsRuns(opts: {
+  limit: number;
+  sinceIso: string;
+  provider?: string | null;
+  model?: string | null;
+}): CompressionReplayRow[] {
+  const db = getDbInstance();
+  ensureCompressionAnalyticsColumns();
+
+  const where: string[] = ["timestamp >= ?"];
+  const params: Array<string | number> = [opts.sinceIso];
+
+  if (opts.provider) {
+    where.push("LOWER(provider) = LOWER(?)");
+    params.push(opts.provider);
+  }
+  if (opts.model) {
+    where.push("request_id LIKE ?");
+    params.push(`${opts.model}%`);
+  }
+
+  return db
+    .prepare(
+      `SELECT ${COMPRESSION_REPLAY_COLUMNS}
+         FROM compression_analytics
+        WHERE ${where.join(" AND ")}
+        ORDER BY timestamp DESC, id DESC
+        LIMIT ?`
+    )
+    .all(...params, opts.limit) as CompressionReplayRow[];
+}
+
+/**
+ * Per-engine breakdown rows for a batch of request ids, grouped by request id.
+ * Null/undefined ids, and ids with no stored rows, are simply absent from the map.
+ * Rows keep write order (`id ASC`) so a replay shows engines in the order they ran.
+ */
+export function getCompressionEngineBreakdownForRequests(
+  requestIds: Array<string | null | undefined>
+): Map<string, CompressionEngineBreakdownRow[]> {
+  const out = new Map<string, CompressionEngineBreakdownRow[]>();
+  const ids = Array.from(
+    new Set(requestIds.filter((id): id is string => typeof id === "string" && id.length > 0))
+  );
+  if (!ids.length) return out;
+
+  const db = getDbInstance();
+  ensureCompressionEngineBreakdownTable();
+
+  const placeholders = ids.map(() => "?").join(", ");
+  const rows = db
+    .prepare(
+      `SELECT timestamp, request_id, engine, original_tokens, compressed_tokens, tokens_saved, duration_ms
+         FROM compression_engine_breakdown
+        WHERE request_id IN (${placeholders})
+        ORDER BY timestamp ASC, id ASC`
+    )
+    .all(...ids) as CompressionEngineBreakdownRow[];
+
+  for (const row of rows) {
+    const key = row.request_id;
+    if (!key) continue;
+    const bucket = out.get(key);
+    if (bucket) bucket.push(row);
+    else out.set(key, [row]);
+  }
+  return out;
+}

@@ -45,6 +45,7 @@ import type { CompressionReplayRow } from "@/lib/db/compressionAnalytics";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { ensureEngineBreakdown } from "@omniroute/open-sse/services/compression/engineBreakdown";
 import type { EngineBreakdownEntry } from "@omniroute/open-sse/services/compression/engineBreakdown";
+import type { CompressionMode } from "@omniroute/open-sse/services/compression/types";
 
 /** Max lookback the `windowMs` query param will accept (30 days). */
 const WINDOW_MS_MAX = 30 * 24 * 60 * 60 * 1000;
@@ -126,13 +127,25 @@ function loadBreakdownForRequests(
   for (const [requestId, rows] of raw.entries()) {
     out.set(
       requestId,
-      rows.map((r) => ({
-        engine: r.engine,
-        originalTokens: r.original_tokens,
-        compressedTokens: r.compressed_tokens,
-        tokensSaved: r.tokens_saved,
-        durationMs: r.duration_ms ?? undefined,
-      }))
+      rows.map((r) => {
+        const originalTokens = Number(r.original_tokens) || 0;
+        const compressedTokens = Number(r.compressed_tokens) || 0;
+        return {
+          engine: r.engine,
+          originalTokens,
+          compressedTokens,
+          // `EngineBreakdownEntry` requires both of these. A stored per-engine row carries
+          // the token counts but neither the derived percent nor a technique list, so
+          // derive the percent and leave the technique list empty.
+          savingsPercent:
+            originalTokens > 0
+              ? Math.round(((originalTokens - compressedTokens) / originalTokens) * 1000) / 10
+              : 0,
+          techniquesUsed: [],
+          tokensSaved: r.tokens_saved,
+          durationMs: r.duration_ms ?? undefined,
+        };
+      })
     );
   }
   return out;
@@ -179,7 +192,7 @@ function shapeRun(
         ? breakdown
         : ensureEngineBreakdown({
             engine: row.engine ?? undefined,
-            mode: row.mode,
+            mode: row.mode as CompressionMode,
             originalTokens,
             compressedTokens,
             savingsPercent,
