@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # User Guide
 
-🌐 **Languages:** 🇺🇸 [English](./USER_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | 🇦🇿 [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | 🇧🇩 [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | 🇬🇷 [Ελληνικά](../i18n/el/docs/guides/USER_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/guides/USER_GUIDE.md) | 🇪🇪 [Eesti](../i18n/et/docs/guides/USER_GUIDE.md) | 🇮🇷 [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | 🇮🇪 [Gaeilge](../i18n/ga/docs/guides/USER_GUIDE.md) | 🇮🇳 [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | 🇭🇷 [Hrvatski](../i18n/hr/docs/guides/USER_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | 🇱🇹 [Lietuvių](../i18n/lt/docs/guides/USER_GUIDE.md) | 🇱🇻 [Latviešu](../i18n/lv/docs/guides/USER_GUIDE.md) | 🇮🇳 [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | 🇲🇹 [Malti](../i18n/mt/docs/guides/USER_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | 🇸🇮 [Slovenščina](../i18n/sl/docs/guides/USER_GUIDE.md) | 🇷🇸 [Српски](../i18n/sr/docs/guides/USER_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | 🇰🇪 [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | 🇮🇳 [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | 🇮🇳 [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | 🇹🇷 [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | 🇵🇰 [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | 🇹🇼 [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
+**Languages:** [English](./USER_GUIDE.md) | [العربية](../i18n/ar/docs/guides/USER_GUIDE.md) | [Azərbaycan dili](../i18n/az/docs/guides/USER_GUIDE.md) | [Български](../i18n/bg/docs/guides/USER_GUIDE.md) | [বাংলা](../i18n/bn/docs/guides/USER_GUIDE.md) | [Čeština](../i18n/cs/docs/guides/USER_GUIDE.md) | [Dansk](../i18n/da/docs/guides/USER_GUIDE.md) | [Deutsch](../i18n/de/docs/guides/USER_GUIDE.md) | [Ελληνικά](../i18n/el/docs/guides/USER_GUIDE.md) | [Español](../i18n/es/docs/guides/USER_GUIDE.md) | [Eesti](../i18n/et/docs/guides/USER_GUIDE.md) | [فارسی](../i18n/fa/docs/guides/USER_GUIDE.md) | [Suomi](../i18n/fi/docs/guides/USER_GUIDE.md) | [Français](../i18n/fr/docs/guides/USER_GUIDE.md) | [Gaeilge](../i18n/ga/docs/guides/USER_GUIDE.md) | [ગુજરાતી](../i18n/gu/docs/guides/USER_GUIDE.md) | [עברית](../i18n/he/docs/guides/USER_GUIDE.md) | [हिन्दी](../i18n/hi/docs/guides/USER_GUIDE.md) | [Hrvatski](../i18n/hr/docs/guides/USER_GUIDE.md) | [Magyar](../i18n/hu/docs/guides/USER_GUIDE.md) | [Bahasa Indonesia](../i18n/id/docs/guides/USER_GUIDE.md) | [Italiano](../i18n/it/docs/guides/USER_GUIDE.md) | [日本語](../i18n/ja/docs/guides/USER_GUIDE.md) | [한국어](../i18n/ko/docs/guides/USER_GUIDE.md) | [Lietuvių](../i18n/lt/docs/guides/USER_GUIDE.md) | [Latviešu](../i18n/lv/docs/guides/USER_GUIDE.md) | [मराठी](../i18n/mr/docs/guides/USER_GUIDE.md) | [Bahasa Melayu](../i18n/ms/docs/guides/USER_GUIDE.md) | [Malti](../i18n/mt/docs/guides/USER_GUIDE.md) | [Nederlands](../i18n/nl/docs/guides/USER_GUIDE.md) | [Norsk](../i18n/no/docs/guides/USER_GUIDE.md) | [Filipino](../i18n/phi/docs/guides/USER_GUIDE.md) | [Polski](../i18n/pl/docs/guides/USER_GUIDE.md) | [Português (Portugal)](../i18n/pt/docs/guides/USER_GUIDE.md) | [Português (Brasil)](../i18n/pt-BR/docs/guides/USER_GUIDE.md) | [Română](../i18n/ro/docs/guides/USER_GUIDE.md) | [Русский](../i18n/ru/docs/guides/USER_GUIDE.md) | [Slovenčina](../i18n/sk/docs/guides/USER_GUIDE.md) | [Slovenščina](../i18n/sl/docs/guides/USER_GUIDE.md) | [Српски](../i18n/sr/docs/guides/USER_GUIDE.md) | [Svenska](../i18n/sv/docs/guides/USER_GUIDE.md) | [Kiswahili](../i18n/sw/docs/guides/USER_GUIDE.md) | [தமிழ்](../i18n/ta/docs/guides/USER_GUIDE.md) | [తెలుగు](../i18n/te/docs/guides/USER_GUIDE.md) | [ไทย](../i18n/th/docs/guides/USER_GUIDE.md) | [Türkçe](../i18n/tr/docs/guides/USER_GUIDE.md) | [Українська](../i18n/uk-UA/docs/guides/USER_GUIDE.md) | [اردو](../i18n/ur/docs/guides/USER_GUIDE.md) | [Tiếng Việt](../i18n/vi/docs/guides/USER_GUIDE.md) | [中文 (简体)](../i18n/zh-CN/docs/guides/USER_GUIDE.md) | [中文 (繁體)](../i18n/zh-TW/docs/guides/USER_GUIDE.md)
 
 Complete guide for configuring providers, creating combos, integrating CLI tools, and deploying OmniRoute.
 
@@ -33,33 +33,33 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 
 ---
 
-## 💰 Pricing at a Glance
+## Pricing at a Glance
 
-| Tier                | Provider          | Cost        | Quota Reset           | Best For               |
-| ------------------- | ----------------- | ----------- | --------------------- | ---------------------- |
-| **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly           | Already subscribed     |
-|                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly           | OpenAI users           |
-|                     | GitHub Copilot    | $10-19/mo   | Monthly               | GitHub users           |
-| **🔑 API KEY**      | DeepSeek          | Pay per use | None                  | Cheap reasoning        |
-|                     | Groq              | Pay per use | None                  | Ultra-fast inference   |
-|                     | xAI (Grok)        | Pay per use | None                  | Grok 4 reasoning       |
-|                     | Mistral           | Pay per use | None                  | EU-hosted models       |
-|                     | Perplexity        | Pay per use | None                  | Search-augmented       |
-|                     | Together AI       | Pay per use | None                  | Open-source models     |
-|                     | Fireworks AI      | Pay per use | None                  | Fast FLUX images       |
-|                     | Cerebras          | Pay per use | None                  | Wafer-scale speed      |
-|                     | Cohere            | Pay per use | None                  | Command R+ RAG         |
-|                     | NVIDIA NIM        | Pay per use | None                  | Enterprise models      |
-|                     | Baidu Qianfan     | Pay per use | None                  | ERNIE models           |
-| **💰 CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM            | Budget backup          |
-|                     | MiniMax M2.1      | $0.2/1M     | 5-hour rolling        | Cheapest option        |
-|                     | Kimi K2           | $9/mo flat  | 10M tokens/mo         | Predictable cost       |
-| **🆓 FREE**         | Qoder             | $0          | Provider limits apply | Verify current catalog |
-|                     | Kiro              | $0          | ~50 credits/mo        | Claude free            |
+| Tier              | Provider          | Cost        | Quota Reset           | Best For               |
+| ----------------- | ----------------- | ----------- | --------------------- | ---------------------- |
+| ** SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly           | Already subscribed     |
+|                   | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly           | OpenAI users           |
+|                   | GitHub Copilot    | $10-19/mo   | Monthly               | GitHub users           |
+| ** API KEY**      | DeepSeek          | Pay per use | None                  | Cheap reasoning        |
+|                   | Groq              | Pay per use | None                  | Ultra-fast inference   |
+|                   | xAI (Grok)        | Pay per use | None                  | Grok 4 reasoning       |
+|                   | Mistral           | Pay per use | None                  | EU-hosted models       |
+|                   | Perplexity        | Pay per use | None                  | Search-augmented       |
+|                   | Together AI       | Pay per use | None                  | Open-source models     |
+|                   | Fireworks AI      | Pay per use | None                  | Fast FLUX images       |
+|                   | Cerebras          | Pay per use | None                  | Wafer-scale speed      |
+|                   | Cohere            | Pay per use | None                  | Command R+ RAG         |
+|                   | NVIDIA NIM        | Pay per use | None                  | Enterprise models      |
+|                   | Baidu Qianfan     | Pay per use | None                  | ERNIE models           |
+| ** CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM            | Budget backup          |
+|                   | MiniMax M2.1      | $0.2/1M     | 5-hour rolling        | Cheapest option        |
+|                   | Kimi K2           | $9/mo flat  | 10M tokens/mo         | Predictable cost       |
+| **🆓 FREE**       | Qoder             | $0          | Provider limits apply | Verify current catalog |
+|                   | Kiro              | $0          | ~50 credits/mo        | Claude free            |
 
 ---
 
-## 🎯 Use Cases
+## Use Cases
 
 ### Case 1: "I have Claude Pro subscription"
 
@@ -120,11 +120,11 @@ Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## 📖 Provider Setup
+## Provider Setup
 
 To bulk-add API-key connections from a CSV or JSON file, use **Dashboard → Providers → Import from file**. Columns are positional (`provider,name,apiKey,baseUrl,priority`); `provider` must already exist as a managed provider or a compatible node. See [Import providers from a CSV or JSON file](../providers/CSV-IMPORT.md).
 
-### 🔐 Subscription Providers
+### Subscription Providers
 
 #### Claude Code (Pro/Max)
 
@@ -174,7 +174,7 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Cheap Providers
+### Cheap Providers
 
 #### GLM-4.7 (Daily reset, $0.6/1M)
 
@@ -205,7 +205,7 @@ Models:
 
 **Use:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, or another Qianfan OpenAI-compatible model ID.
 
-### 🆓 FREE Providers
+### FREE Providers
 
 No-auth free providers have a switch beside **No authentication required** on their provider page.
 Turning it off disables that provider, removes it from Providers configured/compact views, and
@@ -229,7 +229,7 @@ Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 
 ---
 
-## 🎨 Combos
+## Combos
 
 You can reorder combo cards directly in **Dashboard → Combos** by dragging the handle on each card. The order is stored in SQLite and restored on reload.
 
@@ -260,7 +260,7 @@ Cost: currently listed as $0; terms and availability may change
 
 ---
 
-## 🔧 CLI Integration
+## CLI Integration
 
 ### Cursor IDE
 
@@ -337,7 +337,7 @@ Model: cc/claude-opus-4-7
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### Global npm install (Recommended)
 
@@ -609,7 +609,7 @@ For the full environment variable reference, see the [README](../README.md).
 
 ---
 
-## 📊 Available Models
+## Available Models
 
 <details>
 <summary><b>View all available models</b></summary>
@@ -668,7 +668,7 @@ For the full environment variable reference, see the [README](../README.md).
 
 ---
 
-## 🧩 Advanced Features
+## Advanced Features
 
 ### Custom Models
 
@@ -879,27 +879,30 @@ Configure via **Dashboard → Settings → Resilience**.
 OmniRoute implements provider-level resilience with five components:
 
 1. **Request Queue & Pacing** — System-level request shaping:
-   - **Requests Per Minute (RPM)** — Maximum requests per minute per account
-   - **Min Time Between Requests** — Minimum gap in milliseconds between requests
-   - **Max Concurrent Requests** — Maximum simultaneous requests per account
+
+- **Requests Per Minute (RPM)** — Maximum requests per minute per account
+- **Min Time Between Requests** — Minimum gap in milliseconds between requests
+- **Max Concurrent Requests** — Maximum simultaneous requests per account
 
 2. **Connection Cooldown** — Per-auth-type configuration for a single connection after retryable failures:
-   - **Base Cooldown** — Default cooldown window for retryable upstream failures
-   - **Use Upstream Retry Hints** — Honors authoritative `Retry-After` or reset hints when provided
-   - **Max Backoff Steps** — Maximum exponential backoff level for repeated failures
+
+- **Base Cooldown** — Default cooldown window for retryable upstream failures
+- **Use Upstream Retry Hints** — Honors authoritative `Retry-After` or reset hints when provided
+- **Max Backoff Steps** — Maximum exponential backoff level for repeated failures
 
 3. **Provider Circuit Breaker** — Tracks end-to-end provider failures, marks a provider degraded at the configured warning threshold, and opens the breaker when the configured failure threshold is reached:
-   - **Degradation Threshold** — Consecutive provider failures before entering `DEGRADED`
-   - **Failure Threshold** — Consecutive provider failures before entering `OPEN`
-   - **Reset Timeout** — Time window before the provider is tested again
-   - **CLOSED** (Healthy) — Requests flow normally
-   - **DEGRADED** — Requests still flow while elevated failures are tracked
-   - **OPEN** — Provider is temporarily blocked after repeated failures
-   - **HALF_OPEN** — Testing if provider has recovered
 
-   Connection-scoped `429` rate limits stay in **Connection Cooldown** and do not count toward the provider breaker.
+- **Degradation Threshold** — Consecutive provider failures before entering `DEGRADED`
+- **Failure Threshold** — Consecutive provider failures before entering `OPEN`
+- **Reset Timeout** — Time window before the provider is tested again
+- **CLOSED** (Healthy) — Requests flow normally
+- **DEGRADED** — Requests still flow while elevated failures are tracked
+- **OPEN** — Provider is temporarily blocked after repeated failures
+- **HALF_OPEN** — Testing if provider has recovered
 
-   The provider breaker runtime state is shown on **Dashboard → Health** only.
+Connection-scoped `429` rate limits stay in **Connection Cooldown** and do not count toward the provider breaker.
+
+The provider breaker runtime state is shown on **Dashboard → Health** only.
 
 4. **Wait For Cooldown** — If every candidate connection is already cooling down, OmniRoute can wait for the earliest cooldown and retry the same client request automatically.
 
@@ -1084,7 +1087,7 @@ Access via **Dashboard → Health**. Real-time system health overview with 6 car
 
 ---
 
-## 🤖 Auto-Routing (Zero-config)
+## Auto-Routing (Zero-config)
 
 OmniRoute ships with a **score-driven auto-router** that picks the best model for each request across every connected provider — no combo to maintain. Just send the request with one of the `auto/*` prefixes and OmniRoute will assemble a virtual combo on the fly, scoring candidates on latency, cost, success rate, context fit, model fitness for the task, recent failures, quota, and circuit-breaker state.
 
@@ -1115,7 +1118,7 @@ The auto-router is fully described in [AUTO-COMBO.md](../routing/AUTO-COMBO.md) 
 
 ---
 
-## 🔌 MCP & A2A Integration
+## MCP & A2A Integration
 
 OmniRoute is both an **MCP server** (Model Context Protocol) and an **A2A server** (Agent-to-Agent JSON-RPC 2.0). Any MCP-compatible IDE or agent host can call OmniRoute tools directly — no extra wrapper required.
 
@@ -1150,7 +1153,7 @@ MCP currently defines 32 named scopes. Each Bearer key can be limited to specifi
 
 ---
 
-## 🧠 Skills System
+## Skills System
 
 OmniRoute exposes an extensible **skill framework** (`src/lib/skills/`) so agents and the A2A endpoint can run domain-specific routines (e.g. `code-review`, `summarize`, `extract-facts`, `web-research`).
 
@@ -1162,7 +1165,7 @@ Full reference: [SKILLS.md](../frameworks/SKILLS.md).
 
 ---
 
-## 💾 Memory System
+## Memory System
 
 OmniRoute persists **long-term conversational memory** with hybrid retrieval:
 
@@ -1175,7 +1178,7 @@ Manage memories in **Dashboard → Memory** (search, edit, export, purge). The H
 
 ---
 
-## 🔔 Webhooks
+## Webhooks
 
 Subscribe to OmniRoute events for real-time monitoring and automation.
 
@@ -1188,7 +1191,7 @@ Full schema in [WEBHOOKS.md](../frameworks/WEBHOOKS.md).
 
 ---
 
-## ☁️ Cloud Agents
+## Cloud Agents
 
 OmniRoute integrates with cloud coding agents (**OpenAI Codex Cloud**, **Devin**, **Jules**, **Antigravity**) so you can dispatch long-running tasks from the same dashboard that handles your local routing.
 
@@ -1200,7 +1203,7 @@ Full reference: [CLOUD_AGENT.md](../frameworks/CLOUD_AGENT.md).
 
 ---
 
-## 🛠️ Programmatic Management
+## Programmatic Management
 
 You can manage every OmniRoute resource (providers, combos, keys, settings) over HTTP using a **Bearer key with the `manage` scope**.
 
@@ -1233,7 +1236,7 @@ See [API_REFERENCE.md](../reference/API_REFERENCE.md) for the full endpoint cata
 
 ---
 
-## 💻 Internal CLI
+## Internal CLI
 
 OmniRoute ships an internal CLI (`omniroute …`) for setup, diagnostics, and runtime control. This is **separate from the "CLI Tools" page in the dashboard**, which configures third-party CLIs (Claude Code, Cursor, Codex, Cline, …) so they can talk to OmniRoute.
 
@@ -1264,7 +1267,7 @@ Tip: pair `omniroute doctor --json` with your monitoring tool to alert on unheal
 
 ---
 
-## 🖥️ Desktop Application (Tauri 2)
+## Desktop Application (Tauri 2)
 
 OmniRoute is available as a native desktop application for Windows, macOS, and Linux, built on Tauri 2 (Rust shell + system webview).
 
@@ -1304,4 +1307,4 @@ Output → `apps/desktop/src-tauri/target/release/bundle/` (`macos/OmniRoute.app
 | `OMNIROUTE_PORT`      | `20128` | Server port                      |
 | `OMNIROUTE_MEMORY_MB` | `512`   | Node.js heap limit (64–16384 MB) |
 
-📖 Full documentation: [`apps/desktop/README.md`](../../apps/desktop/README.md)
+Full documentation: [`apps/desktop/README.md`](../../apps/desktop/README.md)
