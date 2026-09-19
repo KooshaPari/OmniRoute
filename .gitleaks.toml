@@ -97,4 +97,10 @@
       # credential; the generic-api-key rule flags the long hyphenated string.
       '''omniroute-cheaperinference-sponsor-banner-dismissed-v\d+''',
       '''SunbreakWebUI1''',
+      # Rerank loopback test fixture (restored by upstream sync 6b14884af4,
+      # src/lib/memory/__tests__/rerank-loopback-auth-12745.test.ts:30). Synthetic
+      # const INTERNAL_KEY returned by the mocked pickApiKeyForInternalUse and
+      # asserted in the Authorization header; by construction a test-only value
+      # (name contains "test-key"), never a real credential. Found 2026-09-19.
+      '''sk-internal-test-key-\d+''',
     ]

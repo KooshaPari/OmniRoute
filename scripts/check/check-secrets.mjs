@@ -50,6 +50,14 @@ const BASELINE_PATH = path.join(ROOT, "config/quality/quality-baseline.json");
 //     unbounded); the current working tree is what ships.
 const SECRET_SCAN_DIRS = ["src", "open-sse", "bin", "scripts"];
 
+// Per-directory gitleaks timeout, in milliseconds. The original 90s budget was
+// calibrated when the scoped scans completed in ~10s. The 2026-09 upstream sync
+// (6b14884af4) restored ~8800 files and pushed the `src` scan to 138s, so every
+// gate run silently ETIMEDOUT and produced no value (infrastructure failure exits
+// 0 even under --ratchet — the ratchet never saw the tree). 300s gives ~2x headroom
+// over the measured 138s while still failing fast on a genuinely hung process.
+export const GITLEAKS_SCAN_TIMEOUT_MS = 300_000;
+
 // ---------------------------------------------------------------------------
 // Pure parsing function (exported for tests)
 // ---------------------------------------------------------------------------
@@ -255,7 +263,7 @@ function main() {
         cwd: ROOT,
         encoding: "utf8",
         maxBuffer: 32 * 1024 * 1024,
-        timeout: 90_000, // 90s por dir — o scan escopado completa em ~10s; folga ampla
+        timeout: GITLEAKS_SCAN_TIMEOUT_MS,
       });
     } catch (err) {
       // exit 1 com stdout = findings encontrados (comportamento esperado do gitleaks)
