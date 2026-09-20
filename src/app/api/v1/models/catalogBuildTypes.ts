@@ -7,10 +7,31 @@
  */
 import type { ModelCapabilityResolutionSnapshot } from "@/lib/modelCapabilityResolutionSnapshot";
 import type { SyncedAvailableModel } from "@/lib/db/models";
-import type {
-  ComboCatalogTarget,
-  ConnectionScopedReasoningCatalog,
-} from "./catalogHelpers";
+import type { RegistryModel } from "@omniroute/open-sse/config/providers/shared";
+import type { ComboCatalogTarget, ConnectionScopedReasoningCatalog } from "./catalogHelpers";
+
+/**
+ * Catalog-side view of a provider connection.
+ *
+ * The catalog reads a small, well-defined subset of connection fields (`id`,
+ * `provider`, `isActive`, `providerSpecificData` for exclusion checks). This
+ * supersets the un-exported `ConnectionLike` from
+ * `@/domain/connectionModelRules` (which only declares
+ * `providerSpecificData?`) so `hasEligibleConnectionForModel` accepts it
+ * structurally without needing the domain type to be exported.
+ *
+ * Extra fields on the runtime object (display name, provider nodes, custom
+ * headers, etc.) are intentionally NOT enumerated here to keep the structural
+ * surface auditable and stop the legacy
+ * `{ id: string; provider: string; [key: string]: unknown }` foot-gun from
+ * re-asserting itself every time someone refactors a leaf.
+ */
+export type CatalogConnection = {
+  id: string;
+  provider: string;
+  isActive?: boolean;
+  providerSpecificData?: unknown;
+};
 
 export type CatalogBuildContext = {
   /** Mutable models array — all loops push entries here. */
@@ -20,12 +41,7 @@ export type CatalogBuildContext = {
   /** Database settings (may be empty on error). */
   settings: Record<string, unknown>;
   /** Active (non-disabled) provider connections. */
-  connections: Array<{
-    id: string;
-    provider: string;
-    isActive?: boolean;
-    [key: string]: unknown;
-  }>;
+  connections: CatalogConnection[];
   /** Provider node list (compatible providers). */
   providerNodes: Array<{
     id: string;
@@ -80,10 +96,8 @@ export type CatalogBuildContext = {
     isFree?: boolean
   ) => boolean;
   shouldHideByExposure: (providerKey: string, modelId: string) => boolean;
-  getConnectionsForProvider: (
-    ...keys: Array<string | null | undefined>
-  ) => Array<{ id: string; [key: string]: unknown }>;
-  getRegistryModel: (providerId: string, modelId: string) => Record<string, unknown> | null;
+  getConnectionsForProvider: (...keys: Array<string | null | undefined>) => CatalogConnection[];
+  getRegistryModel: (providerId: string, modelId: string) => RegistryModel | null;
   prefixRoutesToProvider: (canonicalProviderId: string, providerId: string) => boolean;
 
   // -- Combo-related --

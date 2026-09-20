@@ -33,7 +33,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const sanitizedFilename = file.filename.replace(/[^\w.\-()\[\] ]/g, "_").slice(0, 255);
   const encodedFilename = encodeURIComponent(file.filename);
 
-  return new Response(content, {
+  // Same cast as the non-v1 sibling (src/app/api/files/[id]/content/route.ts:28).
+  return new Response(content as unknown as BodyInit, {
     headers: {
       ...CORS_HEADERS,
       "Content-Type": file.mimeType || "application/octet-stream",

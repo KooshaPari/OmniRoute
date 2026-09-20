@@ -151,12 +151,14 @@ function loadBreakdownForRequests(
   return out;
 }
 
-function shapeRun(
-  row: CompressionReplayRow,
-  breakdown: EngineBreakdownEntry[]
-): ReplayRunResponse {
+function shapeRun(row: CompressionReplayRow, breakdown: EngineBreakdownEntry[]): ReplayRunResponse {
   const originalTokens = Number(row.original_tokens) || 0;
   const compressedTokens = Number(row.compressed_tokens) || 0;
+  // `CompressionStats.timestamp` is epoch ms; the stored row carries an ISO string.
+  // Same conversion the sibling `seedLatestCompressionRunFromDb` uses.
+  const timestamp = Number.isFinite(Date.parse(row.timestamp))
+    ? Date.parse(row.timestamp)
+    : Date.now();
   const savingsPercent =
     originalTokens > 0
       ? Math.round(((originalTokens - compressedTokens) / originalTokens) * 1000) / 10
@@ -193,6 +195,7 @@ function shapeRun(
         : ensureEngineBreakdown({
             engine: row.engine ?? undefined,
             mode: row.mode as CompressionMode,
+            timestamp,
             originalTokens,
             compressedTokens,
             savingsPercent,

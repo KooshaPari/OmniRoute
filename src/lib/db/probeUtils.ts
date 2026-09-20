@@ -4,6 +4,10 @@
  * Transient probe errors (SQLITE_BUSY, ENOENT, SQLITE_PROTOCOL, SQLITE_IOERR)
  * should be retried with backoff instead of immediately renaming the DB away
  * and creating an empty one (data loss under concurrent load, #9541).
+ *
+ * Also houses error-classification helpers (isNativeSqliteLoadError,
+ * isSqliteDriverUnavailableError) and the safe-probe-close utility
+ * (closeProbeIfSafe) used by both the probe path and state-capture logic.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -42,6 +46,62 @@ export function isTransientProbeError(error: unknown): boolean {
   const { code, errcode } = error as { code?: unknown; errcode?: unknown };
   if (typeof code === "string" && /^SQLITE_(BUSY|PROTOCOL|IOERR)/.test(code)) return true;
   return typeof errcode === "number" && [5, 10, 15].includes(errcode & 0xff);
+}
+
+// ──────────────── Error Classification ────────────────
+
+function getErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== "object" || !("code" in error)) return undefined;
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "string" ? code : undefined;
+}
+
+export function isNativeSqliteLoadError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  const code = getErrorCode(error);
+  return (
+    message.includes("Module did not self-register") ||
+    message.includes("NODE_MODULE_VERSION") ||
+    message.includes("ERR_DLOPEN_FAILED") ||
+    // bun and similar runtimes that skip the postinstall script never download
+    // the prebuilt *.node binary, so `bindings()` fails with this message
+    // before any DLOPEN even happens (#2358).
+    message.includes("Could not locate the bindings file") ||
+    message.includes("Cannot find module 'better-sqlite3'") ||
+    code === "ERR_DLOPEN_FAILED" ||
+    code === "MODULE_NOT_FOUND"
+  );
+}
+
+export function isSqliteDriverUnavailableError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return (
+    message.includes("Nenhum driver SQLite disponível") ||
+    message.includes("Chame ensureDbInitialized() no startup") ||
+    message.includes("sql.js WASM ainda não foi pré-inicializado")
+  );
+}
+
+// ──────────────── Safe Probe Close ────────────────
+
+/**
+ * Closes a probe/throwaway connection obtained from `openSqliteDatabase()` —
+ * but ONLY when it is safe to do so. better-sqlite3/node:sqlite hand back an
+ * independent handle per open() call, so closing a probe never affects a
+ * later "real" connection to the same file. sql.js has no such notion: its
+ * fallback path (`getSqlJsAdapter()`) always returns the SAME module-global
+ * cached singleton for a given filePath, so closing "the probe" closes the
+ * ONLY connection that file will ever get until process restart — every
+ * subsequent query (including the "real" connection opened right after)
+ * throws sql.js's raw "Database closed" string (#7494). Skip the close for
+ * sql.js and let the same live adapter flow through untouched.
+ */
+export function closeProbeIfSafe(
+  adapter: { driver: string; open: boolean; close(): void } | null | undefined
+): void {
+  if (!adapter || adapter.driver === "sql.js") return;
+  if (adapter.open) adapter.close();
 }
 
 /**

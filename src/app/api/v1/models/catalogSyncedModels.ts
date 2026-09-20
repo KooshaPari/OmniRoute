@@ -155,11 +155,12 @@ export async function addSyncedModels(ctx: SyncedModelContext): Promise<void> {
 
         const existingAliasModel = models.find((model) => model.id === aliasId);
         if (existingAliasModel) {
-          const mergedCapabilities = mergeSyncedCapabilities(
-            existingAliasModel.capabilities,
-            sm,
-            syncedOwnedBy
-          );
+          const existingCaps =
+            typeof existingAliasModel.capabilities === "object" &&
+            existingAliasModel.capabilities !== null
+              ? (existingAliasModel.capabilities as Record<string, unknown>)
+              : undefined;
+          const mergedCapabilities = mergeSyncedCapabilities(existingCaps, sm, syncedOwnedBy);
           Object.assign(existingAliasModel, syncedFields);
           if (mergedCapabilities) existingAliasModel.capabilities = mergedCapabilities;
           continue;

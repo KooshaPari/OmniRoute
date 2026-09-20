@@ -4,5 +4,6 @@
     "noEmit": true,
     "incremental": false
   },
-  "include": ["src/app/api/**/*.ts", "src/app/api/**/*.tsx"]
+  "include": ["src/app/api/**/*.ts", "src/app/api/**/*.tsx"],
+  "exclude": ["src/app/api/providers/[id]/models/providerHandlers.disabled-by-tier1-cleanup/**"]
 }

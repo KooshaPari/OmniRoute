@@ -35,6 +35,7 @@ import {
   SYNCED_AVAILABLE_MODELS_MALFORMED,
 } from "@/lib/db/models";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
+import type { CatalogConnection } from "./catalogBuildTypes";
 import { yieldCatalogBuildTurn } from "./catalogBuildHelpers";
 import type { ComboCatalogTarget } from "./catalogHelpers";
 import type { ConnectionScopedReasoningCatalog } from "./catalogHelpers";
@@ -97,7 +98,7 @@ export async function createCatalogContext(
     !isModelExposureAllowed(aliasToProviderId[providerKey] || providerKey, modelId, settings);
 
   // Connections
-  let connections: any[] = [];
+  let connections: CatalogConnection[] = [];
   try {
     connections = (await getCachedRawProviderConnections()).map(createLazyConnectionView);
     connections = connections.filter((c: any) => c.isActive !== false);
@@ -179,8 +180,8 @@ export async function createCatalogContext(
 
   // Active aliases
   const activeAliases = new Set<string>();
-  const connectionsByProvider = new Map<string, any[]>();
-  const registerConnectionKey = (key: string | null | undefined, connection: any) => {
+  const connectionsByProvider = new Map<string, CatalogConnection[]>();
+  const registerConnectionKey = (key: string | null | undefined, connection: CatalogConnection) => {
     if (!key) return;
     const existing = connectionsByProvider.get(key) || [];
     existing.push(connection);
@@ -200,7 +201,7 @@ export async function createCatalogContext(
   }
 
   // Connections-for-provider cache
-  const connectionsForProviderCache = new Map<string, any[]>();
+  const connectionsForProviderCache = new Map<string, CatalogConnection[]>();
   const getConnectionsForProvider = (...keys: Array<string | null | undefined>) => {
     const cacheKey = keys
       .filter((k): k is string => Boolean(k))
@@ -209,7 +210,7 @@ export async function createCatalogContext(
     const cached = connectionsForProviderCache.get(cacheKey);
     if (cached) return cached;
     const seen = new Set<string>();
-    const collected: any[] = [];
+    const collected: CatalogConnection[] = [];
     for (const key of keys) {
       if (!key) continue;
       for (const connection of connectionsByProvider.get(key) || []) {
@@ -298,7 +299,7 @@ export async function createCatalogContext(
   };
 
   const boundBuildComboCatalogMetadata = (
-    combo: { context_length?: number },
+    combo: Parameters<typeof buildComboCatalogMetadata>[0],
     targets: ComboCatalogTarget[]
   ) => buildComboCatalogMetadata(combo, targets, comboMetadataCtx);
 
