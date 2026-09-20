@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { spawn, type ChildProcess } from "child_process";
 import path from "path";
 import fs from "fs";

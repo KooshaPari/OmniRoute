@@ -6,7 +6,7 @@
  * binary — present on every systemd host, no extra dependency.
  *
  * Everything is guarded: without a NOTIFY_SOCKET (plain terminal, Docker,
- * Electron, Windows) the notifier is a no-op and costs nothing. Set
+ * Windows) the notifier is a no-op and costs nothing. Set
  * OMNIROUTE_DISABLE_SD_NOTIFY=1 to force-disable even under systemd.
  *
  * A watchdog keep-alive interval lives in the main event loop of the process

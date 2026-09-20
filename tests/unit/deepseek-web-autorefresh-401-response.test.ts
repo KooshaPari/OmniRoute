@@ -1,9 +1,8 @@
+// oxlint-disable no-explicit-any
 import { describe, it, afterEach } from "node:test";
 import assert from "node:assert/strict";
 
-import {
-  DeepSeekWebWithAutoRefreshExecutor,
-} from "../../open-sse/executors/deepseek-web-with-auto-refresh.ts";
+import { DeepSeekWebWithAutoRefreshExecutor } from "../../open-sse/executors/deepseek-web-with-auto-refresh.ts";
 import { DeepSeekWebExecutor } from "../../open-sse/executors/deepseek-web.ts";
 
 // Regression: the base DeepSeekWebExecutor.execute() never throws — it converts
@@ -40,10 +39,10 @@ describe("DeepSeekWebWithAutoRefreshExecutor — 401 Response retry (regression)
       baseCalls++;
       if (baseCalls === 1) {
         return {
-          response: new Response(
-            JSON.stringify({ error: { message: "DeepSeek token expired" } }),
-            { status: 401, headers: { "Content-Type": "application/json" } }
-          ),
+          response: new Response(JSON.stringify({ error: { message: "DeepSeek token expired" } }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          }),
           url: "https://chat.deepseek.com/api/v0/chat/completion",
           headers: {},
           transformedBody: {},
@@ -69,7 +68,11 @@ describe("DeepSeekWebWithAutoRefreshExecutor — 401 Response retry (regression)
 
     assert.equal(refreshCalls, 1, "auto-refresh should fire exactly once on a 401 Response");
     assert.equal(baseCalls, 2, "base execute should run twice (initial 401 → refreshed retry)");
-    assert.equal(result.response.status, 200, "the retried request's success should reach the client");
+    assert.equal(
+      result.response.status,
+      200,
+      "the retried request's success should reach the client"
+    );
   });
 
   it("does not refresh/retry on a successful 200 Response", async () => {

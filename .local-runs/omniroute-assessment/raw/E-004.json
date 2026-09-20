@@ -1,0 +1,4 @@
+{
+  "scan": "directory_structure",
+  "layers": ["src/app (routes)", "src/services", "src/infrastructure"]
+}

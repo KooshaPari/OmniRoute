@@ -3,7 +3,7 @@
 /**
  * OmniRoute — Optional runtime pack manifest + integrity core.
  *
- * Stage 7 of the Electron efficiency roadmap (issue #10321): the heavy optional
+ * Stage 7 of the desktop efficiency roadmap (issue #10321): the heavy optional
  * ML / browser automation dependency closure is excluded from the packaged
  * desktop app and shipped as versioned, checksummed packs that install on first
  * use into `DATA_DIR/packs/<name>/node_modules`.
@@ -11,7 +11,7 @@
  * This module owns the *contract* shared by three consumers:
  *  - `scripts/build/optionalPackStaging.mjs` (build): checksums the staged
  *    closure, emits `optional-packs.index.json`, removes pack members from the
- *    Electron staging tree, optionally tars the packs for release assets.
+ *    standalone staging tree, optionally tars the packs for release assets.
  *  - `scripts/packs/optionalPackInstaller.mjs` (first use): installs/verifies/
  *    removes packs in DATA_DIR against the shipped index.
  *  - `bin/cli/commands/packs.mjs` (UX): `omniroute packs …`.

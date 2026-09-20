@@ -239,8 +239,6 @@ const eslintConfig = [
       "vscode-extension/**",
       "_references/**",
       "_mono_repo/**",
-      // Electron app
-      "electron/**",
       // Docs
       "docs/**",
       // Open-SSE compiled/bundled output
@@ -253,6 +251,15 @@ const eslintConfig = [
       "app.__qa_backup/**",
       // CLI package copy directory
       "clipr/**",
+      // Rust/Tauri build output (tauri-codegen assets are minified/embedded JS;
+      // eslint parsing them is noise — 1189 parse errors, 0 files tracked)
+      "apps/desktop/src-tauri/target/**",
+      // SvelteKit build output (untracked generated bundle)
+      "apps/web/.svelte-kit/**",
+      // VitePress/Vite dep pre-bundle cache (bundled node_modules copies, never
+      // source; 6 files were tracked from 1ebd7ea3f6 and linting them flagged
+      // react-hooks rules designed for source, not bundled deps)
+      "docs-site/.vitepress/cache/**",
     ],
   },
 ];

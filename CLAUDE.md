@@ -51,7 +51,7 @@ Commit those artifacts inside the `_tasks/` repo (`git -C _tasks …`), never in
 
 This project overrides the harness's default session scratchpad (`/tmp/claude-*/…`). Write
 temporary/working files — exports, generated zips, one-off intermediate outputs, anything you'd
-otherwise put in `/tmp` — to `/home/diegosouzapw/dev/proxys/OmniRoute/_artifacts/` instead.
+otherwise put in `/tmp` — to `_artifacts/` at the repo root instead.
 
 - `_artifacts/` is a root `_*` path: already gitignored (`AGENTS.md` → "Root `_*` paths"), lives
   on disk only, never tracked.
@@ -66,5 +66,5 @@ otherwise put in `/tmp` — to `/home/diegosouzapw/dev/proxys/OmniRoute/_artifac
 
 Before cutting a branch or opening a PR, run the base-green check (`AGENTS.md` → Git Workflow →
 "Base-green check"; project skills reference it as `.agents/skills/_shared/base-green.md`). A PR
-opened while the base tip is red must carry `⚠️ base-red inherited: #<issue>` in its body. To
+opened while the base tip is red must carry ` base-red inherited: #<issue>` in its body. To
 drain an accumulated red state (base tip + red PRs), use the `/sweep-reds` skill.

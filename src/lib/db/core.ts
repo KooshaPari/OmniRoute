@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * db/core.js — Database infrastructure: schema, singleton, utils, migration.
  *

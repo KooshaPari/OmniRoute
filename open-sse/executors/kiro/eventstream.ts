@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // Pure AWS EventStream binary framing for Kiro (ByteQueue, CRC32, frame parsing).
 // Extracted verbatim from kiro.ts. Self-contained (local JsonRecord, no host imports).
 

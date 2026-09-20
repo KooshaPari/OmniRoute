@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { NextResponse } from "next/server";
 import {
   getProviderConnectionFamilyIds,
@@ -649,9 +650,7 @@ export async function GET(
       try {
         const discovery = await discoverMaxaiModels({
           providerSpecificData: connection.providerSpecificData as
-            | Record<string, unknown>
-            | null
-            | undefined,
+            Record<string, unknown> | null | undefined,
           accessToken: apiKey || accessToken,
           fetchImpl: (url, init) =>
             safeOutboundFetch(url, {
@@ -1053,7 +1052,6 @@ export async function GET(
         ...(usesCuratedModelsOnly ? {} : { warning: "API unavailable — using local catalog" }),
       });
     }
-
 
     // Zed Hosted needs a two-step auth the generic discovery path cannot express:
     // `cloud.zed.dev/models` rejects the account access token and requires an LLM

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import {
   isDeepSeekReasoningModel,
   requiresReasoningReplay,

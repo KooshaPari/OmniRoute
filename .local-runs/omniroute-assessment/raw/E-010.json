@@ -1,0 +1,5 @@
+{
+  "scan": "filesystem",
+  "pattern": "benchmark|load.test|perf.test",
+  "result": "none found"
+}

@@ -488,13 +488,13 @@ Obsługuje:
 
 `open-sse/config/` to warstwa konfiguracji:
 
-| Plik                          | Przeznaczenie                      |
-| ----------------------------- | ---------------------------------- |
+| Plik                          | Przeznaczenie                            |
+| ----------------------------- | ---------------------------------------- |
 | `providerRegistry.ts`         | Wspólna konfiguracja rejestru providerów |
-| `providerModels.ts`           | Aliasy modeli, mapowanie formatów  |
-| `constants.ts`                | Timeouty, limity, kody statusu     |
-| `defaultThinkingSignature.ts` | Domyślna sygnatura thinking Claude |
-| `modelStrip.ts` (w services)  | Stripowanie pól per-provider       |
+| `providerModels.ts`           | Aliasy modeli, mapowanie formatów        |
+| `constants.ts`                | Timeouty, limity, kody statusu           |
+| `defaultThinkingSignature.ts` | Domyślna sygnatura thinking Claude       |
+| `modelStrip.ts` (w services)  | Stripowanie pól per-provider             |
 
 ### Schemat Provider Registry
 
@@ -531,11 +531,11 @@ Silnik routingu ma ścisłe budżety wydajności:
 
 ## Anti-patterns
 
-❌ **Synchroniczne wywołania DB w `combo.ts`** — pre-compute i cache
-❌ **Logika retry w handlerach** — używaj `retry()` z serwisu resilience
-❌ **Bezpośredni dostęp do konfiguracji providera** — używaj getterów `providerRegistry`
-❌ **Hardcoded łańcuchy fallback** — definiuj w `modelFamilyFallback.ts`
-❌ **Mutacje stanu między współbieżnymi żądaniami** — tylko kontekst scoped do żądania
+**Synchroniczne wywołania DB w `combo.ts`** — pre-compute i cache
+**Logika retry w handlerach** — używaj `retry()` z serwisu resilience
+**Bezpośredni dostęp do konfiguracji providera** — używaj getterów `providerRegistry`
+**Hardcoded łańcuchy fallback** — definiuj w `modelFamilyFallback.ts`
+**Mutacje stanu między współbieżnymi żądaniami** — tylko kontekst scoped do żądania
 
 ---
 

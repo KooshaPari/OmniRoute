@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * usage/github.ts — GitHub Copilot usage fetcher + quota/plan helpers.
  *

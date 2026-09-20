@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Minimal OmniRoute desktop capability set",
+  "description": "Minimal OmniRoute desktop capability set: core only. The webview reaches the OS through the nine pre-declared commands (runtime_*, window_*, open_external); no shell/process/opener permission is granted.",
   "windows": ["main"],
   "permissions": ["core:default"]
 }

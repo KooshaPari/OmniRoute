@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // Port of decolua/9router#1043 by toanalien <toanalien@gmail.com>
 // MiniMax T2A v2 returns hex-encoded audio in a JSON envelope guarded by `base_resp`.
 import test from "node:test";

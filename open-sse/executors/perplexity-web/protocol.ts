@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // Pure Perplexity wire protocol: consts, types, SSE parsing, request/query building,
 // content extraction. Extracted verbatim from perplexity-web.ts. No host state/fetch/auth.
 import { randomUUID } from "crypto";

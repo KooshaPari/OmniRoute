@@ -115,7 +115,7 @@ log.error({ message: sanitizeErrorMessage(err) || "Provider request failed" });
 
 ### 4. Forbidden patterns
 
-❌ **Never** put raw exception output in a Response body:
+**Never** put raw exception output in a Response body:
 
 ```ts
 // BAD: stack trace + file paths reach the client
@@ -124,16 +124,16 @@ return new Response(JSON.stringify({ error: { message: err.stack || err.message 
 });
 ```
 
-❌ **Never** roll your own first-line splitter:
+**Never** roll your own first-line splitter:
 
 ```ts
 // BAD: forgets to strip absolute paths, may drift from the canonical helper
 const safe = String(err).split("\n")[0];
 ```
 
-❌ **Never** sanitize in the route and forget the SSE path. Anything that writes to a stream goes through `writeStreamError` (or its underlying `buildErrorBody`).
+**Never** sanitize in the route and forget the SSE path. Anything that writes to a stream goes through `writeStreamError` (or its underlying `buildErrorBody`).
 
-❌ **Never** intentionally include `process.cwd()`, `__filename`, `__dirname`, or env-derived paths
+**Never** intentionally include `process.cwd()`, `__filename`, `__dirname`, or env-derived paths
 in error messages. The sanitizer covers absolute paths as defense in depth, but callers must not
 construct topology-bearing messages in the first place.
 

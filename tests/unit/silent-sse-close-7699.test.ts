@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Regression test for #7699 — silent SSE close on mid-stream upstream failure (/v1/messages).
  *

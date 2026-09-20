@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tests for ScoreTierRotator and connectionDensity factor.
  * Verifies that multi-connection providers surface in ranked candidates
@@ -57,8 +58,16 @@ describe("Connection Density Factor", () => {
   const baseCandidate = makeCandidate({ provider: "cerebras", model: "llama-70b" });
 
   it("multi-connection provider scores higher than single-connection at same quality", () => {
-    const multiConn = makeCandidate({ provider: "cerebras", model: "llama-70b", connectionPoolSize: 43 });
-    const singleConn = makeCandidate({ provider: "anthropic", model: "claude-sonnet", connectionPoolSize: 1 });
+    const multiConn = makeCandidate({
+      provider: "cerebras",
+      model: "llama-70b",
+      connectionPoolSize: 43,
+    });
+    const singleConn = makeCandidate({
+      provider: "anthropic",
+      model: "claude-sonnet",
+      connectionPoolSize: 1,
+    });
     const pool = [multiConn, singleConn];
 
     const multiFactors = calculateFactors(multiConn, pool, "coding", getTaskFitness);
@@ -175,31 +184,27 @@ describe("scorePool with connectionDensity", () => {
 });
 
 describe("Per-Connection Rotation", () => {
-  it(
-    "rotates across all 43 Cerebras connection IDs, not just one",
-    () => {
-      const cerebrasCandidates: ProviderCandidate[] = Array.from({ length: 43 }, (_, i) =>
-        makeCandidate({
-          provider: "cerebras",
-          model: "llama-3.1-70b",
-          connectionId: `cerebras-conn-${i + 1}`,
-        })
-      );
-      const config = makeConfig("smart");
+  it("rotates across all 43 Cerebras connection IDs, not just one", () => {
+    const cerebrasCandidates: ProviderCandidate[] = Array.from({ length: 43 }, (_, i) =>
+      makeCandidate({
+        provider: "cerebras",
+        model: "llama-3.1-70b",
+        connectionId: `cerebras-conn-${i + 1}`,
+      })
+    );
+    const config = makeConfig("smart");
 
-      const seenConnections = new Set<string>();
-      for (let i = 0; i < 200; i++) {
-        const result = selectProvider(config, cerebrasCandidates, "coding");
-        if (result.connectionId) seenConnections.add(result.connectionId);
-      }
-      expect(seenConnections.size).toBeGreaterThanOrEqual(10);
-    },
-    // 200 synchronous selectProvider() calls over a 43-connection pool are CPU-bound and can
-    // exceed 20s under the full Vitest worker load on the validation VPS, while the isolated
-    // file remains green. The assertion is unchanged; only the execution budget is widened.
-    // Refs #9985.
-    60000
-  );
+    const seenConnections = new Set<string>();
+    for (let i = 0; i < 200; i++) {
+      const result = selectProvider(config, cerebrasCandidates, "coding");
+      if (result.connectionId) seenConnections.add(result.connectionId);
+    }
+    expect(seenConnections.size).toBeGreaterThanOrEqual(10);
+  }, // 200 synchronous selectProvider() calls over a 43-connection pool are CPU-bound and can
+  // exceed 20s under the full Vitest worker load on the validation VPS, while the isolated
+  // file remains green. The assertion is unchanged; only the execution budget is widened.
+  // Refs #9985.
+  60000);
 
   it("different combos maintain independent round-robin state", () => {
     const candidates: ProviderCandidate[] = Array.from({ length: 5 }, (_, i) =>

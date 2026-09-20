@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 import net from "node:net";
@@ -10,8 +11,16 @@ import { createChatPipelineHarness } from "./_chatPipelineHarness.ts";
 //     provider-side count call (it used to run with no proxy context at all)
 
 const harness = await createChatPipelineHarness("proxy-context-passthrough");
-const { buildClaudeResponse, buildRequest, combosDb, handleChat, resetStorage, seedConnection, settingsDb, toPlainHeaders } =
-  harness;
+const {
+  buildClaudeResponse,
+  buildRequest,
+  combosDb,
+  handleChat,
+  resetStorage,
+  seedConnection,
+  settingsDb,
+  toPlainHeaders,
+} = harness;
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const { resolveProxyForRequest } = await import("../../open-sse/utils/proxyFetch.ts");
 const countTokensRoute = await import("../../src/app/api/v1/messages/count_tokens/route.ts");

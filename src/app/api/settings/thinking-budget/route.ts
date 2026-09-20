@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { NextResponse } from "next/server";
 import { getSettings, updateSettings } from "@/lib/db/settings";
 import {

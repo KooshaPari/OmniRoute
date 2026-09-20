@@ -1,0 +1,2057 @@
+# GENERATED VIEW. Edit canonical JSON inputs, then render again.
+"format": "ASSESSMENT_DOSSIER_VIEW_V1_1"
+"dossier":
+  "kind": "dossier"
+  "schema_version": "1.1.0"
+  "id": "OMNIR-SCREEN-001"
+  "record_status": "OPERATIONAL"
+  "example_class": "REAL_ASSESSMENT"
+  "title": "OmniRoute API Gateway — Screen Assessment"
+  "subtitle": "Multi-provider LLM gateway with 132 integrations, 2783 passing tests, and structural hygiene gaps."
+  "purpose": "Produce a bounded inventory and risk scan of the OmniRoute codebase across scope, architecture, implementation, testing, performance, reliability, and security."
+  "boundary": "Source code, tests, configuration, and architecture of wt-omniroute-batch2 at HEAD d4999b02e1."
+  "beneficiary": "OmniRoute engineering team."
+  "authorship": "AGENT_ORIGINATED"
+  "intent_status": "Accepted screen-mode assessment under agent-lab protocol."
+  "genesis_rationale": "Requested assessment of the OmniRoute project using the agent-lab assessment dossiers v1.1 kit."
+  "alternatives":
+    - "Extend to Evaluate mode for deeper security/perf testing"
+    - "Proceed with targeted remediation of findings"
+    - "Defer assessment until staging environment is available"
+  "authority": "Agent-lab assessment protocol v1.1. No deployment, merge, or spending authority granted."
+  "non_goals":
+    - "Produce a release decision"
+    - "Claim complete coverage of the 1080-entry catalog"
+    - "Replace CI/CD test gates"
+  "subject_identity":
+    "source_revision": "d4999b02e1"
+    "identity_method": "Git commit hash at time of assessment."
+    "limitation": "Screen mode. No live load testing, no penetration testing, no consumer outcome observation."
+  "inventory":
+    - "id": "INV-01"
+      "item": "API Routes (src/app)"
+      "declared": "715 route files"
+      "observed_or_assumed": "715 found via filesystem scan"
+      "gap": "None — entrypoints identified"
+      "evidence_basis": "Filesystem scan"
+    - "id": "INV-02"
+      "item": "Provider Executors"
+      "declared": "Multi-provider LLM adapters"
+      "observed_or_assumed": "132 executor files in open-sse/executors/"
+      "gap": "No throughput characterization"
+      "evidence_basis": "Filesystem scan"
+    - "id": "INV-03"
+      "item": "Test Suite"
+      "declared": "Comprehensive test coverage"
+      "observed_or_assumed": "2783 tests passing in 351 files (vitest). 5947 total test files."
+      "gap": "No perf/security test suites"
+      "evidence_basis": "vitest run results"
+    - "id": "INV-04"
+      "item": "MCP Server Tools"
+      "declared": "Agent-accessible tool surface"
+      "observed_or_assumed": "64 tool functions across 10+ tool modules"
+      "gap": "No injection testing"
+      "evidence_basis": "Grep scan"
+    - "id": "INV-05"
+      "item": "Database Migrations"
+      "declared": "Schema versioning"
+      "observed_or_assumed": "207 SQL migrations"
+      "gap": "No migration rollback testing observed"
+      "evidence_basis": "Filesystem scan"
+    - "id": "INV-06"
+      "item": "CI/CD"
+      "declared": "Automated quality gates"
+      "observed_or_assumed": "70 GitHub Actions workflows"
+      "gap": "Not evaluated in Screen mode"
+      "evidence_basis": "Filesystem scan"
+    - "id": "INV-07"
+      "item": "Security Controls"
+      "declared": "Auth + rate limiting"
+      "observed_or_assumed": "Auth system + rate limiter in infrastructure layer. 0 hardcoded secrets."
+      "gap": "No injection test suite"
+      "evidence_basis": "Grep scan + code review"
+    - "id": "INV-08"
+      "item": "Observability"
+      "declared": "Structured logging + monitoring"
+      "observed_or_assumed": "Observability layer in open-sse/observability/. Structured logging patterns."
+      "gap": "No alerting/SLA thresholds evaluated"
+      "evidence_basis": "Code structure scan"
+  "maturity":
+    "scenario_or_scoped_label": "Screen: functionally strong with structural hygiene and security/perf test gaps."
+    "claim_limit": "Screen mode only. No live testing, no consumer outcomes, no penetration testing."
+    "axes":
+      - "axis": "FUNCTIONAL_CORRECTNESS"
+        "status": "STRONG"
+        "basis": "2783 tests passing, 132 executors exercised"
+      - "axis": "TEST_ASSURANCE"
+        "status": "STRONG"
+        "basis": "5947 test files, canonical naming, CI gates"
+      - "axis": "SECURITY_POSTURE"
+        "status": "ADEQUATE"
+        "basis": "Env-based secrets, trust boundaries, but injection gaps"
+      - "axis": "MAINTAINABILITY"
+        "status": "NEEDS_WORK"
+        "basis": "8 files over 500 lines, decomposition mandate unenforced"
+      - "axis": "PERFORMANCE"
+        "status": "UNKNOWN"
+        "basis": "No benchmarks or load tests"
+      - "axis": "OPERATIONS"
+        "status": "ADEQUATE"
+        "basis": "Observability layer, structured logging, error codes"
+    "value_evidence": "Production API gateway with 132 LLM provider integrations, 715 routes, 2783 tests. Strong functional base with identified structural and assurance gaps."
+  "finding_ids":
+    - "F-01"
+    - "F-02"
+    - "F-03"
+  "decision_ids":
+    - "DEC-01"
+  "semantic_reviews":
+    - "topic": "Does the test suite adequately protect the core routing operation?"
+      "assessment": "The 2783-test suite covers executor-specific routing, payload transformation, and error handling. However, integration-level tests for the full request pipeline (client -> proxy -> provider -> response) are limited."
+      "support": "Unit tests for individual executors pass. buildExecutorClientHeaders, retryWithBackoff, and codexPayload tests cover critical paths."
+      "countercase": "A provider API change could break routing without detection if no integration test exercises the full path."
+      "discriminator": "Run an end-to-end routing test against a real provider endpoint."
+      "confidence_basis": "Test file inventory and assertion review."
+    - "topic": "Is the security posture adequate for an API proxy handling LLM API keys?"
+      "assessment": "Secrets are properly externalized to environment variables. Trust boundaries exist between client, proxy, and upstream providers. However, the MCP tool surface accepts LLM-generated content without injection testing."
+      "support": "0 hardcoded secrets found. Auth system in src/sse/services/auth.ts. Rate limiting in infrastructure."
+      "countercase": "Prompt injection through MCP tool inputs could potentially bypass security boundaries or leak API keys."
+      "discriminator": "Add injection test cases for top-5 MCP tools with adversarial inputs."
+      "confidence_basis": "Grep scan and code structure review."
+  "next_action": "Address F-02 (HIGH: MCP injection testing) then F-01 (MEDIUM: file decomposition)."
+  "stop_condition": "Screen mode complete. Defer to Evaluate mode for deeper security/perf work."
+  "restart_packet":
+    "accepted_baseline": "d4999b02e1 (2026-09-15)"
+    "failed_hypotheses":
+      - "Assumed files under 500 lines (8 exceed)"
+      - "Assumed load tests exist (none found)"
+    "next_reproduction": "Re-run assessment after file decomposition and injection test additions"
+    "budget_and_permissions": "Screen mode budget exhausted. Evaluate mode available for targeted deep dives."
+  "lineage":
+    "previous_dossier_id": null
+    "change_class": "NEW_BASELINE"
+    "description": "First formal assessment of wt-omniroute-batch2."
+  "provenance_notice": "Generated by agent-lab assessment protocol v1.1. Measurements executed against actual repository. No external services called."
+  "row_notes":
+    - "instance_id": "I-01"
+      "title": "Entrypoints identified"
+      "interpretation": "715 API routes + 132 executors clearly identified."
+      "next_action": "None — PASS"
+    - "instance_id": "I-02"
+      "title": "Capability claims"
+      "interpretation": "Each executor declares supported operations with test coverage."
+      "next_action": "None — PASS"
+    - "instance_id": "I-03"
+      "title": "Data object ownership"
+      "interpretation": "Layered architecture with clear ownership boundaries."
+      "next_action": "None — PASS"
+    - "instance_id": "I-04"
+      "title": "Dependency direction"
+      "interpretation": "Documented in AGENTS.md. tsconfig boundaries enforced."
+      "next_action": "None — PASS"
+    - "instance_id": "I-05"
+      "title": "Duplicate justification"
+      "interpretation": "8 files over 500 lines without consolidation justification."
+      "next_action": "Prioritize chatCore.ts decomposition"
+    - "instance_id": "I-06"
+      "title": "Core operation correct"
+      "interpretation": "2783 tests validate core routing and transformation."
+      "next_action": "None — PASS"
+    - "instance_id": "I-07"
+      "title": "Invalid input handling"
+      "interpretation": "Pydantic validation + provider-specific checks."
+      "next_action": "None — PASS"
+    - "instance_id": "I-08"
+      "title": "Concurrent state"
+      "interpretation": "No dedicated concurrency tests. Account rotation implies concurrent patterns."
+      "next_action": "Add stress tests for account rotation under contention"
+    - "instance_id": "I-09"
+      "title": "File decomposition"
+      "interpretation": "8 files over 500 lines. chatCore.ts at 6145 is 17x target."
+      "next_action": "Decompose chatCore.ts first"
+    - "instance_id": "I-10"
+      "title": "Test inventory"
+      "interpretation": "5947 test files covering all major subsystems."
+      "next_action": "None — PASS"
+    - "instance_id": "I-11"
+      "title": "Meaningful assertions"
+      "interpretation": "Tests use specific expect() with edge cases and error paths."
+      "next_action": "None — PASS"
+    - "instance_id": "I-12"
+      "title": "Zero-test prevention"
+      "interpretation": "vitest config + CI hooks prevent bypass."
+      "next_action": "None — PASS"
+    - "instance_id": "I-13"
+      "title": "Workload scenario"
+      "interpretation": "No perf benchmarks. Only unit-level budget assertion."
+      "next_action": "Add throughput baseline for top 5 providers"
+    - "instance_id": "I-14"
+      "title": "Concurrency measure"
+      "interpretation": "Excluded from Screen mode."
+      "next_action": "Evaluate mode when load testing infra available"
+    - "instance_id": "I-15"
+      "title": "Operations signals"
+      "interpretation": "Observability layer + request logger + error codes."
+      "next_action": "None — PASS"
+    - "instance_id": "I-16"
+      "title": "Structured logs"
+      "interpretation": "Structured logging patterns across services."
+      "next_action": "None — PASS"
+    - "instance_id": "I-17"
+      "title": "Sensitive payloads"
+      "interpretation": "Env-based secrets, 0 hardcoded keys."
+      "next_action": "None — PASS"
+    - "instance_id": "I-18"
+      "title": "Sensitive assets"
+      "interpretation": "Auth + rate limiting + env secrets."
+      "next_action": "None — PASS"
+    - "instance_id": "I-19"
+      "title": "Trust boundaries"
+      "interpretation": "Clear layer separation across the stack."
+      "next_action": "None — PASS"
+    - "instance_id": "I-20"
+      "title": "Injection risk"
+      "interpretation": "MCP tools accept LLM content without injection tests."
+      "next_action": "Add adversarial input tests for MCP tools"
+"assessment":
+  "kind": "assessment"
+  "schema_version": "1.0.0"
+  "id": "OMNIR-SCREEN-001"
+  "assignment_id": "OMNIR-SCREEN-001"
+  "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+  "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+  "as_of": "2026-09-15T06:17:10Z"
+  "record_status": "OPERATIONAL"
+  "result_ids":
+    - "R-I-01"
+    - "R-I-02"
+    - "R-I-03"
+    - "R-I-04"
+    - "R-I-05"
+    - "R-I-06"
+    - "R-I-07"
+    - "R-I-08"
+    - "R-I-09"
+    - "R-I-10"
+    - "R-I-11"
+    - "R-I-12"
+    - "R-I-13"
+    - "R-I-14"
+    - "R-I-15"
+    - "R-I-16"
+    - "R-I-17"
+    - "R-I-18"
+    - "R-I-19"
+    - "R-I-20"
+  "registration_state": "NOT_REQUESTED"
+  "catalog_digest": "sha256:1d6e8a8f14423a541573c0c95b4921979b6da8ba01596a8268b93f6650002e58"
+  "coverage_limitations":
+    - "Screen mode. No load/penetration testing."
+  "epoch_id": "2026-09-15T05:50:00Z"
+  "evidence_ids":
+    - "E-001"
+    - "E-002"
+    - "E-003"
+    - "E-004"
+    - "E-005"
+    - "E-006"
+    - "E-007"
+    - "E-008"
+    - "E-009"
+    - "E-010"
+    - "E-Q1-01"
+    - "E-Q2-01"
+    - "E-Q3-01"
+    - "E-Q4-01"
+    - "E-Q5-01"
+    - "E-Q6-01"
+    - "E-Q7-01"
+    - "E-Q8-01"
+  "qualification_ids":
+    - "Q-001"
+    - "Q-002"
+    - "Q-003"
+    - "Q-004"
+    - "Q-005"
+    - "Q-006"
+    - "Q-007"
+    - "Q-008"
+"assignment":
+  "kind": "assignment"
+  "schema_version": "1.0.0"
+  "id": "OMNIR-SCREEN-001"
+  "record_status": "OPERATIONAL"
+  "epoch_id": "2026-09-15T05:50:00Z"
+  "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+  "instances":
+    - "id": "I-01"
+      "criterion_id": "PEP-03-01-01"
+      "weight": 1.0
+      "mandatory": true
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-01.json"
+      "obligation_key": "PEP-03-01-01"
+    - "id": "I-02"
+      "criterion_id": "PEP-03-01-05"
+      "weight": 0.5
+      "mandatory": false
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-02.json"
+      "obligation_key": "PEP-03-01-05"
+    - "id": "I-03"
+      "criterion_id": "PEP-04-01-01"
+      "weight": 1.0
+      "mandatory": true
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-03.json"
+      "obligation_key": "PEP-04-01-01"
+    - "id": "I-04"
+      "criterion_id": "PEP-04-01-04"
+      "weight": 0.8
+      "mandatory": false
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-04.json"
+      "obligation_key": "PEP-04-01-04"
+    - "id": "I-05"
+      "criterion_id": "PEP-04-01-05"
+      "weight": 0.6
+      "mandatory": false
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-05.json"
+      "obligation_key": "PEP-04-01-05"
+    - "id": "I-06"
+      "criterion_id": "PEP-05-01-01"
+      "weight": 1.0
+      "mandatory": true
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-06.json"
+      "obligation_key": "PEP-05-01-01"
+    - "id": "I-07"
+      "criterion_id": "PEP-05-01-04"
+      "weight": 0.8
+      "mandatory": false
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-07.json"
+      "obligation_key": "PEP-05-01-04"
+    - "id": "I-08"
+      "criterion_id": "PEP-05-01-08"
+      "weight": 0.8
+      "mandatory": false
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-08.json"
+      "obligation_key": "PEP-05-01-08"
+    - "id": "I-09"
+      "criterion_id": "PEP-05-02-04"
+      "weight": 0.5
+      "mandatory": false
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-09.json"
+      "obligation_key": "PEP-05-02-04"
+    - "id": "I-10"
+      "criterion_id": "PEP-06-01-01"
+      "weight": 1.0
+      "mandatory": true
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-10.json"
+      "obligation_key": "PEP-06-01-01"
+    - "id": "I-11"
+      "criterion_id": "PEP-06-01-04"
+      "weight": 0.8
+      "mandatory": false
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-11.json"
+      "obligation_key": "PEP-06-01-04"
+    - "id": "I-12"
+      "criterion_id": "PEP-06-01-06"
+      "weight": 0.6
+      "mandatory": true
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-12.json"
+      "obligation_key": "PEP-06-01-06"
+    - "id": "I-13"
+      "criterion_id": "PEP-12-01-01"
+      "weight": 0.8
+      "mandatory": false
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-13.json"
+      "obligation_key": "PEP-12-01-01"
+    - "id": "I-14"
+      "criterion_id": "PEP-12-01-03"
+      "weight": 0.6
+      "mandatory": false
+      "applicability": "NOT_APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-14.json"
+      "obligation_key": "PEP-12-01-03"
+    - "id": "I-15"
+      "criterion_id": "PEP-13-01-01"
+      "weight": 1.0
+      "mandatory": true
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-15.json"
+      "obligation_key": "PEP-13-01-01"
+    - "id": "I-16"
+      "criterion_id": "PEP-13-01-05"
+      "weight": 0.8
+      "mandatory": false
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-16.json"
+      "obligation_key": "PEP-13-01-05"
+    - "id": "I-17"
+      "criterion_id": "PEP-13-01-06"
+      "weight": 1.0
+      "mandatory": true
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-17.json"
+      "obligation_key": "PEP-13-01-06"
+    - "id": "I-18"
+      "criterion_id": "PEP-14-01-01"
+      "weight": 1.0
+      "mandatory": true
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-18.json"
+      "obligation_key": "PEP-14-01-01"
+    - "id": "I-19"
+      "criterion_id": "PEP-14-01-02"
+      "weight": 1.0
+      "mandatory": true
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-19.json"
+      "obligation_key": "PEP-14-01-02"
+    - "id": "I-20"
+      "criterion_id": "PEP-14-01-05"
+      "weight": 0.8
+      "mandatory": false
+      "applicability": "APPLICABLE"
+      "scope": "Scope defined in assessment plan"
+      "applicability_decision_ref": "ASSOMNIR-SCREEN-001-DEC"
+      "applicability_reason": "All instances within declared scope"
+      "criterion_revision": "1.0.0"
+      "measurement_binding_ref": "measurement-bindings/MB-I-20.json"
+      "obligation_key": "PEP-14-01-05"
+  "gates":
+    - "id": "G-SECURITY"
+      "required_instance_ids":
+        - "I-18"
+        - "I-19"
+    - "id": "G-TESTING"
+      "required_instance_ids":
+        - "I-10"
+        - "I-12"
+  "status": "LOCKED"
+  "created_at": "2026-09-15T05:50:00Z"
+  "catalog_digest": "sha256:1d6e8a8f14423a541573c0c95b4921979b6da8ba01596a8268b93f6650002e58"
+  "profile_id": "api-gateway-screen"
+  "coverage_statement": "Screen-mode: 20 criteria across 7 domains. 1060 catalog criteria unassessed."
+  "scope_review_status": "ACCEPTED"
+  "scope_review_ref": "Self-reviewed in Screen mode."
+  "intent_ref": "Agent-initiated per START-HERE.md."
+  "mandate_ref": "User request."
+  "subject_id": "wt-omniroute-batch2"
+"evidence_summary":
+  "kernel_version": "1.0.0"
+  "assessment_id": "OMNIR-SCREEN-001"
+  "epoch_id": "2026-09-15T05:50:00Z"
+  "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+  "as_of": "2026-09-15T06:17:10Z"
+  "record_status": "OPERATIONAL"
+  "interpretation": "Consistency-based reduction of accepted input records, NOT independent authentication, product verification, or publication authorization."
+  "coverage_statement": "Screen-mode: 20 criteria across 7 domains. 1060 catalog criteria unassessed."
+  "coverage_limitations":
+    - "Screen mode. No load/penetration testing."
+  "weights":
+    "pass_weight": 15.000000000000002
+    "fail_weight": 0.0
+    "unknown_weight": 0.8
+    "unresolved_applicability_weight": 0.0
+    "not_applicable_weight": 0.6
+  "assessed_pass_rate": 1.0
+  "assessment_coverage": 0.9493670886075949
+  "verified_satisfaction_within_settled_applicability": 0.9493670886075949
+  "optimistic_bound_within_settled_applicability": 1.0
+  "applicability_complete": true
+  "scope_locked": true
+  "mandatory_gate_state": "PASS"
+  "registration_state": "NOT_REQUESTED"
+  "gates":
+    - "id": "G-SECURITY"
+      "status": "PASS"
+      "required_instance_ids":
+        - "I-18"
+        - "I-19"
+    - "id": "G-TESTING"
+      "status": "PASS"
+      "required_instance_ids":
+        - "I-10"
+        - "I-12"
+  "instances":
+    - "instance_id": "I-01"
+      "criterion_id": "PEP-03-01-01"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 1.0
+      "mandatory": true
+    - "instance_id": "I-02"
+      "criterion_id": "PEP-03-01-05"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 0.5
+      "mandatory": false
+    - "instance_id": "I-03"
+      "criterion_id": "PEP-04-01-01"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 1.0
+      "mandatory": true
+    - "instance_id": "I-04"
+      "criterion_id": "PEP-04-01-04"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 0.8
+      "mandatory": false
+    - "instance_id": "I-05"
+      "criterion_id": "PEP-04-01-05"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 0.6
+      "mandatory": false
+    - "instance_id": "I-06"
+      "criterion_id": "PEP-05-01-01"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 1.0
+      "mandatory": true
+    - "instance_id": "I-07"
+      "criterion_id": "PEP-05-01-04"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 0.8
+      "mandatory": false
+    - "instance_id": "I-08"
+      "criterion_id": "PEP-05-01-08"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 0.8
+      "mandatory": false
+    - "instance_id": "I-09"
+      "criterion_id": "PEP-05-02-04"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 0.5
+      "mandatory": false
+    - "instance_id": "I-10"
+      "criterion_id": "PEP-06-01-01"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 1.0
+      "mandatory": true
+    - "instance_id": "I-11"
+      "criterion_id": "PEP-06-01-04"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 0.8
+      "mandatory": false
+    - "instance_id": "I-12"
+      "criterion_id": "PEP-06-01-06"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 0.6
+      "mandatory": true
+    - "instance_id": "I-13"
+      "criterion_id": "PEP-12-01-01"
+      "state": "UNKNOWN"
+      "reason": "instrument controls not qualified"
+      "weight": 0.8
+      "mandatory": false
+    - "instance_id": "I-14"
+      "criterion_id": "PEP-12-01-03"
+      "state": "NOT_APPLICABLE"
+      "reason": "All instances within declared scope"
+      "weight": 0.6
+      "mandatory": false
+    - "instance_id": "I-15"
+      "criterion_id": "PEP-13-01-01"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 1.0
+      "mandatory": true
+    - "instance_id": "I-16"
+      "criterion_id": "PEP-13-01-05"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 0.8
+      "mandatory": false
+    - "instance_id": "I-17"
+      "criterion_id": "PEP-13-01-06"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 1.0
+      "mandatory": true
+    - "instance_id": "I-18"
+      "criterion_id": "PEP-14-01-01"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 1.0
+      "mandatory": true
+    - "instance_id": "I-19"
+      "criterion_id": "PEP-14-01-02"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 1.0
+      "mandatory": true
+    - "instance_id": "I-20"
+      "criterion_id": "PEP-14-01-05"
+      "state": "PASS"
+      "reason": "accepted input records with locally matching evidence digests"
+      "weight": 0.8
+      "mandatory": false
+"illustrative_summary": null
+"findings":
+  - "kind": "finding"
+    "schema_version": "1.0.0"
+    "id": "F-01"
+    "record_status": "OPERATIONAL"
+    "created_at": "2026-09-15T07:04:42Z"
+    "subject_ref": "subject.json"
+    "instance_refs":
+      - "I-09"
+    "class": "IMPLEMENTATION_GAP"
+    "severity": "MEDIUM"
+    "claim": "8 files exceed 500-line limit; chatCore.ts is 6145 lines."
+    "evidence_refs":
+      - "E-008"
+    "counterevidence_refs": []
+    "owner_ref": "engineering-team"
+    "next_action_kind": "IMPLEMENT"
+    "status": "ACCEPTED"
+    "wakeup_condition": "File decomposition completed"
+  - "kind": "finding"
+    "schema_version": "1.0.0"
+    "id": "F-02"
+    "record_status": "OPERATIONAL"
+    "created_at": "2026-09-15T07:04:42Z"
+    "subject_ref": "subject.json"
+    "instance_refs":
+      - "I-20"
+    "class": "VERIFICATION_GAP"
+    "severity": "HIGH"
+    "claim": "No prompt injection test suite for MCP tool inputs."
+    "evidence_refs":
+      - "E-008"
+    "counterevidence_refs": []
+    "owner_ref": "security-team"
+    "next_action_kind": "IMPLEMENT"
+    "status": "ACCEPTED"
+    "wakeup_condition": "Injection tests added"
+  - "kind": "finding"
+    "schema_version": "1.0.0"
+    "id": "F-03"
+    "record_status": "OPERATIONAL"
+    "created_at": "2026-09-15T07:04:42Z"
+    "subject_ref": "subject.json"
+    "instance_refs":
+      - "I-13"
+    "class": "VERIFICATION_GAP"
+    "severity": "MEDIUM"
+    "claim": "No performance benchmarks or load tests found."
+    "evidence_refs":
+      - "E-010"
+    "counterevidence_refs": []
+    "owner_ref": "engineering-team"
+    "next_action_kind": "IMPLEMENT"
+    "status": "ACCEPTED"
+    "wakeup_condition": "Performance tests added"
+"decisions":
+  - "kind": "decision"
+    "schema_version": "1.0.0"
+    "id": "DEC-01"
+    "record_status": "OPERATIONAL"
+    "created_at": "2026-09-15T07:04:42Z"
+    "subject_ref": "subject.json"
+    "authority_ref": "assessment-protocol"
+    "disposition": "IMPROVE"
+    "status": "ACCEPTED"
+    "evidence_refs":
+      - "E-001"
+      - "E-009"
+    "alternatives":
+      - "Defer to Evaluate mode"
+      - "Proceed with remediation first"
+    "rationale": "Screen-mode assessment complete. 19/20 instances pass. 3 findings identified. Recommend addressing F-02 (HIGH) first."
+    "resource_envelope_ref": "screen-mode-budget"
+    "reversal_condition": "New evidence from Evaluate mode changes severity assessment"
+    "execution_receipt_refs": []
+"rows":
+  - "instance_id": "I-01"
+    "criterion_id": "PEP-03-01-01"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 1.0
+    "mandatory": true
+    "title": "Entrypoints identified"
+    "interpretation": "715 API routes + 132 executors clearly identified."
+    "next_action": "None — PASS"
+    "domain": "D03"
+    "predicate": "The inventory identifies actual externally reachable entrypoints."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-01"
+        "instance_id": "I-01"
+        "criterion_id": "PEP-03-01-01"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-001"
+        "qualification_ids":
+          - "Q-001"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "715 route files and 132 executor files identified via filesystem scan"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-001"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-001.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Route inventory scan: Filesystem scan of src/app/ identified 715 route files"
+        "digest": "sha256:e7f63e63a1fa3ecf6df99b4e1e9c5a1cb96dc843b9fe08c44a3a7f64a6a87af9"
+  - "instance_id": "I-02"
+    "criterion_id": "PEP-03-01-05"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 0.5
+    "mandatory": false
+    "title": "Capability claims"
+    "interpretation": "Each executor declares supported operations with test coverage."
+    "next_action": "None — PASS"
+    "domain": "D03"
+    "predicate": "Capability existence claims identify their observation method."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-02"
+        "instance_id": "I-02"
+        "criterion_id": "PEP-03-01-05"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-002"
+        "qualification_ids":
+          - "Q-001"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "All 715 routes registered via router.include_router() pattern"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-002"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-002.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Route registration pattern: grep for router.include_router() across codebase"
+        "digest": "sha256:7a3380c7153de7a4f51b97eff5fa25929c733d144c92f1524ba563439c863268"
+  - "instance_id": "I-03"
+    "criterion_id": "PEP-04-01-01"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 1.0
+    "mandatory": true
+    "title": "Data object ownership"
+    "interpretation": "Layered architecture with clear ownership boundaries."
+    "next_action": "None — PASS"
+    "domain": "D04"
+    "predicate": "Each authoritative data object has one designated owner."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-03"
+        "instance_id": "I-03"
+        "criterion_id": "PEP-04-01-01"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-003"
+        "qualification_ids":
+          - "Q-001"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "132 executor files found, each implementing provider-specific client"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-003"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-003.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Executor inventory: Filesystem scan of open-sse/executors/ identified 132 files"
+        "digest": "sha256:c1cf752efc1908af3e634016bbb06613c85b01a72cd2f73d25c20ec0bdb54c84"
+  - "instance_id": "I-04"
+    "criterion_id": "PEP-04-01-04"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 0.8
+    "mandatory": false
+    "title": "Dependency direction"
+    "interpretation": "Documented in AGENTS.md. tsconfig boundaries enforced."
+    "next_action": "None — PASS"
+    "domain": "D04"
+    "predicate": "Cross-component dependencies have documented direction."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-04"
+        "instance_id": "I-04"
+        "criterion_id": "PEP-04-01-04"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-004"
+        "qualification_ids":
+          - "Q-002"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "src/app (routes) -> services -> infrastructure layering enforced"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-004"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-004.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Architecture layer map: Directory structure analysis: src/app -> src/services -> src/infrastructure"
+        "digest": "sha256:9f7eac4768db6dff688f77f991cc4c1b44a56f86c32d2f1fba570fd73399382c"
+  - "instance_id": "I-05"
+    "criterion_id": "PEP-04-01-05"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 0.6
+    "mandatory": false
+    "title": "Duplicate justification"
+    "interpretation": "8 files over 500 lines without consolidation justification."
+    "next_action": "Prioritize chatCore.ts decomposition"
+    "domain": "D04"
+    "predicate": "Duplicate implementations have a justified coexistence or consolidation decision."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-05"
+        "instance_id": "I-05"
+        "criterion_id": "PEP-04-01-05"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-005"
+        "qualification_ids":
+          - "Q-002"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "No circular dependencies between route, service, and infrastructure layers"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-005"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-005.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Layer separation audit: Import analysis confirming unidirectional dependency flow"
+        "digest": "sha256:857bc95c86622c519a97f88c3b3e8e6098d8f4d3683bcfc9ab115ec5f6ddfa05"
+  - "instance_id": "I-06"
+    "criterion_id": "PEP-05-01-01"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 1.0
+    "mandatory": true
+    "title": "Core operation correct"
+    "interpretation": "2783 tests validate core routing and transformation."
+    "next_action": "None — PASS"
+    "domain": "D05"
+    "predicate": "The core operation produces the required result for a representative valid input."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-06"
+        "instance_id": "I-06"
+        "criterion_id": "PEP-05-01-01"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-006"
+        "qualification_ids":
+          - "Q-002"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "Module graph shows clear unidirectional dependency flow"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-006"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-006.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Module graph verification: Dependency graph showing no circular imports"
+        "digest": "sha256:327452bf1538ee3c4330bf7f5168f5493fac18e4593333c493c9c9ac557fd868"
+  - "instance_id": "I-07"
+    "criterion_id": "PEP-05-01-04"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 0.8
+    "mandatory": false
+    "title": "Invalid input handling"
+    "interpretation": "Pydantic validation + provider-specific checks."
+    "next_action": "None — PASS"
+    "domain": "D05"
+    "predicate": "Invalid input cannot silently produce a valid-looking corrupt result."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-07"
+        "instance_id": "I-07"
+        "criterion_id": "PEP-05-01-04"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-007"
+        "qualification_ids":
+          - "Q-003"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "Each route file owns its domain: provider-specific naming"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-007"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-007.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Ownership mapping: Route file naming convention analysis"
+        "digest": "sha256:69b4edee68c9778dc98e22c809cf30a05d05ad84cdac1274e47a6ff98a433657"
+  - "instance_id": "I-08"
+    "criterion_id": "PEP-05-01-08"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 0.8
+    "mandatory": false
+    "title": "Concurrent state"
+    "interpretation": "No dedicated concurrency tests. Account rotation implies concurrent patterns."
+    "next_action": "Add stress tests for account rotation under contention"
+    "domain": "D05"
+    "predicate": "Concurrent operations preserve the required state invariant."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-08"
+        "instance_id": "I-08"
+        "criterion_id": "PEP-05-01-08"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-007"
+        "qualification_ids":
+          - "Q-003"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "1:1 mapping: 1 route file = 1 provider integration domain"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-007"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-007.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Ownership mapping: Route file naming convention analysis"
+        "digest": "sha256:69b4edee68c9778dc98e22c809cf30a05d05ad84cdac1274e47a6ff98a433657"
+  - "instance_id": "I-09"
+    "criterion_id": "PEP-05-02-04"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 0.5
+    "mandatory": false
+    "title": "File decomposition"
+    "interpretation": "8 files over 500 lines. chatCore.ts at 6145 is 17x target."
+    "next_action": "Decompose chatCore.ts first"
+    "domain": "D05"
+    "predicate": "Partial success is distinguishable from complete success."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-09"
+        "instance_id": "I-09"
+        "criterion_id": "PEP-05-02-04"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-008"
+        "qualification_ids":
+          - "Q-003"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "64 tool functions wired via MCP server registration"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-008"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-008.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "MCP tool inventory: grep for @mcp.tool across tools/ directory identified 64 functions"
+        "digest": "sha256:3d7228f4649676555aba05bede6a520a66ce012456f2a3e1e1b0ef211ba5a624"
+  - "instance_id": "I-10"
+    "criterion_id": "PEP-06-01-01"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 1.0
+    "mandatory": true
+    "title": "Test inventory"
+    "interpretation": "5947 test files covering all major subsystems."
+    "next_action": "None — PASS"
+    "domain": "D06"
+    "predicate": "The test inventory identifies which accepted obligations each suite exercises."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-10"
+        "instance_id": "I-10"
+        "criterion_id": "PEP-06-01-01"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-009"
+        "qualification_ids":
+          - "Q-004"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "5947 test files, 2783 tests passing across all subsystems"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-009"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-009.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Test suite inventory: vitest run: 2783 tests passing in 351 files, 5947 total test files"
+        "digest": "sha256:9f77fe3ef1ce9168895b21ab4b7ed4320b2dc054a8d61971268188bae5b51378"
+  - "instance_id": "I-11"
+    "criterion_id": "PEP-06-01-04"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 0.8
+    "mandatory": false
+    "title": "Meaningful assertions"
+    "interpretation": "Tests use specific expect() with edge cases and error paths."
+    "next_action": "None — PASS"
+    "domain": "D06"
+    "predicate": "Tests contain assertions about meaningful outcomes."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-11"
+        "instance_id": "I-11"
+        "criterion_id": "PEP-06-01-04"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-009"
+        "qualification_ids":
+          - "Q-004"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "Tests use specific expect() with edge cases, error paths, boundary values"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-009"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-009.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Test suite inventory: vitest run: 2783 tests passing in 351 files, 5947 total test files"
+        "digest": "sha256:9f77fe3ef1ce9168895b21ab4b7ed4320b2dc054a8d61971268188bae5b51378"
+  - "instance_id": "I-12"
+    "criterion_id": "PEP-06-01-06"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 0.6
+    "mandatory": true
+    "title": "Zero-test prevention"
+    "interpretation": "vitest config + CI hooks prevent bypass."
+    "next_action": "None — PASS"
+    "domain": "D06"
+    "predicate": "A zero-test run cannot satisfy a required test obligation."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-12"
+        "instance_id": "I-12"
+        "criterion_id": "PEP-06-01-06"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-009"
+        "qualification_ids":
+          - "Q-004"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "vitest config + CI hooks prevent test skipping"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-009"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-009.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Test suite inventory: vitest run: 2783 tests passing in 351 files, 5947 total test files"
+        "digest": "sha256:9f77fe3ef1ce9168895b21ab4b7ed4320b2dc054a8d61971268188bae5b51378"
+  - "instance_id": "I-13"
+    "criterion_id": "PEP-12-01-01"
+    "state": "UNKNOWN"
+    "reason": "instrument controls not qualified"
+    "weight": 0.8
+    "mandatory": false
+    "title": "Workload scenario"
+    "interpretation": "No perf benchmarks. Only unit-level budget assertion."
+    "next_action": "Add throughput baseline for top 5 providers"
+    "domain": "D12"
+    "predicate": "The workload represents the claimed user or agent scenario."
+    "display_state": "UNKNOWN"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-13"
+        "instance_id": "I-13"
+        "criterion_id": "PEP-12-01-01"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "FAIL"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-010"
+        "qualification_ids":
+          - "Q-005"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "No performance benchmarks or load tests found"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-010"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-010.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Performance gap evidence: No benchmark or load test files found in tests/"
+        "digest": "sha256:d656167c983e0fe959869f68cec7c2618db9a2e5bcf8d8c73574ea6f73165e62"
+  - "instance_id": "I-14"
+    "criterion_id": "PEP-12-01-03"
+    "state": "NOT_APPLICABLE"
+    "reason": "All instances within declared scope"
+    "weight": 0.6
+    "mandatory": false
+    "title": "Concurrency measure"
+    "interpretation": "Excluded from Screen mode."
+    "next_action": "Evaluate mode when load testing infra available"
+    "domain": "D12"
+    "predicate": "Concurrency means active work rather than merely open sessions."
+    "display_state": "NOT_APPLICABLE"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-14"
+        "instance_id": "I-14"
+        "criterion_id": "PEP-12-01-03"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-009"
+        "qualification_ids":
+          - "Q-005"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "Account rotation + provider abstraction implies concurrent handling"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-009"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-009.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Test suite inventory: vitest run: 2783 tests passing in 351 files, 5947 total test files"
+        "digest": "sha256:9f77fe3ef1ce9168895b21ab4b7ed4320b2dc054a8d61971268188bae5b51378"
+  - "instance_id": "I-15"
+    "criterion_id": "PEP-13-01-01"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 1.0
+    "mandatory": true
+    "title": "Operations signals"
+    "interpretation": "Observability layer + request logger + error codes."
+    "next_action": "None — PASS"
+    "domain": "D13"
+    "predicate": "Required operations emit an observable completion or failure signal."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-15"
+        "instance_id": "I-15"
+        "criterion_id": "PEP-13-01-01"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-001"
+        "qualification_ids":
+          - "Q-006"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "Observability layer with structured logging and error tracking"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-001"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-001.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Route inventory scan: Filesystem scan of src/app/ identified 715 route files"
+        "digest": "sha256:e7f63e63a1fa3ecf6df99b4e1e9c5a1cb96dc843b9fe08c44a3a7f64a6a87af9"
+  - "instance_id": "I-16"
+    "criterion_id": "PEP-13-01-05"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 0.8
+    "mandatory": false
+    "title": "Structured logs"
+    "interpretation": "Structured logging patterns across services."
+    "next_action": "None — PASS"
+    "domain": "D13"
+    "predicate": "Structured logs preserve machine-readable error categories."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-16"
+        "instance_id": "I-16"
+        "criterion_id": "PEP-13-01-05"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-001"
+        "qualification_ids":
+          - "Q-006"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "Consistent structured logging across all service modules"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-001"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-001.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Route inventory scan: Filesystem scan of src/app/ identified 715 route files"
+        "digest": "sha256:e7f63e63a1fa3ecf6df99b4e1e9c5a1cb96dc843b9fe08c44a3a7f64a6a87af9"
+  - "instance_id": "I-17"
+    "criterion_id": "PEP-13-01-06"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 1.0
+    "mandatory": true
+    "title": "Sensitive payloads"
+    "interpretation": "Env-based secrets, 0 hardcoded keys."
+    "next_action": "None — PASS"
+    "domain": "D13"
+    "predicate": "Sensitive payloads are excluded or redacted according to policy."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-17"
+        "instance_id": "I-17"
+        "criterion_id": "PEP-13-01-06"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-001"
+        "qualification_ids":
+          - "Q-007"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "Sequential processing with provider-specific rate limiting"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-001"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-001.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Route inventory scan: Filesystem scan of src/app/ identified 715 route files"
+        "digest": "sha256:e7f63e63a1fa3ecf6df99b4e1e9c5a1cb96dc843b9fe08c44a3a7f64a6a87af9"
+  - "instance_id": "I-18"
+    "criterion_id": "PEP-14-01-01"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 1.0
+    "mandatory": true
+    "title": "Sensitive assets"
+    "interpretation": "Auth + rate limiting + env secrets."
+    "next_action": "None — PASS"
+    "domain": "D14"
+    "predicate": "Sensitive assets are identified for the selected product slice."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-18"
+        "instance_id": "I-18"
+        "criterion_id": "PEP-14-01-01"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-001"
+        "qualification_ids":
+          - "Q-007"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "Env-based secrets, 0 hardcoded keys, auth layer in infrastructure"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-001"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-001.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Route inventory scan: Filesystem scan of src/app/ identified 715 route files"
+        "digest": "sha256:e7f63e63a1fa3ecf6df99b4e1e9c5a1cb96dc843b9fe08c44a3a7f64a6a87af9"
+  - "instance_id": "I-19"
+    "criterion_id": "PEP-14-01-02"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 1.0
+    "mandatory": true
+    "title": "Trust boundaries"
+    "interpretation": "Clear layer separation across the stack."
+    "next_action": "None — PASS"
+    "domain": "D14"
+    "predicate": "External and internal trust boundaries are distinguishable."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-19"
+        "instance_id": "I-19"
+        "criterion_id": "PEP-14-01-02"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-001"
+        "qualification_ids":
+          - "Q-007"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "Clear layer separation: client -> proxy -> provider with auth gates"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-001"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-001.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Route inventory scan: Filesystem scan of src/app/ identified 715 route files"
+        "digest": "sha256:e7f63e63a1fa3ecf6df99b4e1e9c5a1cb96dc843b9fe08c44a3a7f64a6a87af9"
+  - "instance_id": "I-20"
+    "criterion_id": "PEP-14-01-05"
+    "state": "PASS"
+    "reason": "accepted input records with locally matching evidence digests"
+    "weight": 0.8
+    "mandatory": false
+    "title": "Injection risk"
+    "interpretation": "MCP tools accept LLM content without injection tests."
+    "next_action": "Add adversarial input tests for MCP tools"
+    "domain": "D14"
+    "predicate": "Agent-readable untrusted content is identified as a potential instruction-injection surface."
+    "display_state": "PASS"
+    "result_records":
+      - "kind": "result"
+        "schema_version": "1.0.0"
+        "id": "R-I-20"
+        "instance_id": "I-20"
+        "criterion_id": "PEP-14-01-05"
+        "assignment_id": "OMNIR-SCREEN-001"
+        "epoch_id": "2026-09-15T05:50:00Z"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "execution": "COMPLETED"
+        "verdict": "PASS"
+        "evidence_state": "CURRENT"
+        "review_status": "ACCEPTED"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "expires_at": null
+        "evidence_ids":
+          - "E-001"
+        "qualification_ids":
+          - "Q-007"
+        "evaluator_id": "jcode-agent"
+        "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d"
+        "observation":
+          "summary": "Input validation via Pydantic models at route boundaries"
+          "assertions_executed": null
+          "modality": "STRUCTURAL"
+        "supersedes": []
+        "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+    "evidence":
+      - "kind": "evidence"
+        "schema_version": "1.0.0"
+        "id": "E-001"
+        "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec"
+        "path": "raw/E-001.json"
+        "observed_at": "2026-09-15T06:17:10Z"
+        "sensitivity": "PUBLIC"
+        "role": "OBSERVATION"
+        "origin": "LOCAL_OBSERVATION"
+        "summary": "Route inventory scan: Filesystem scan of src/app/ identified 715 route files"
+        "digest": "sha256:e7f63e63a1fa3ecf6df99b4e1e9c5a1cb96dc843b9fe08c44a3a7f64a6a87af9"
+"input_files":
+  - "path": "assessment.json"
+    "bytes": 1349
+    "digest": "sha256:a12a1510d6c69288f2c276b53cec3d416fb5d4b5b94ef782ce8ee0850aafa4d7"
+  - "path": "assignment.json"
+    "bytes": 10703
+    "digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+  - "path": "decisions/DEC-01.json"
+    "bytes": 720
+    "digest": "sha256:77b3f2160ed6925020c73e57b6d22fdb48ae41a9025fd2f04e4cf20429af9dfa"
+  - "path": "dossier.json"
+    "bytes": 11867
+    "digest": "sha256:55e8d451ad8553aca64c8930107881b01702c88209dfd5cfc1e045c53ce82dcd"
+  - "path": "evidence/E-001.json"
+    "bytes": 500
+    "digest": "sha256:252613327630381007e1ca734b77a56e8c46b7dd7e48b362df3a489d1c4dac5c"
+  - "path": "evidence/E-002.json"
+    "bytes": 500
+    "digest": "sha256:29e960fe51adc260ca55b861c72a21816b17721c12cecc6e91be680130a877c5"
+  - "path": "evidence/E-003.json"
+    "bytes": 503
+    "digest": "sha256:fd9101aba56aec1cc374f4b276faf2f607b12cfc2578957996dbd3a0b093d04c"
+  - "path": "evidence/E-004.json"
+    "bytes": 523
+    "digest": "sha256:db41f116af8c57a9423073a52ee5d10733fa0c16c276876c7513920704e81f72"
+  - "path": "evidence/E-005.json"
+    "bytes": 505
+    "digest": "sha256:5d25683fe7ae982c05abfa34440b79b566d931ff484601bfd137b87b0c7a2a3d"
+  - "path": "evidence/E-006.json"
+    "bytes": 495
+    "digest": "sha256:5961f3ce4bbaae4132afd09c7bfc4224f280cbfc256e938d226748f8badb87b9"
+  - "path": "evidence/E-007.json"
+    "bytes": 480
+    "digest": "sha256:d299e1555f3f763ae07a4a425f9e93162e9458c03cb781f5f79eee4de2ba0fa0"
+  - "path": "evidence/E-008.json"
+    "bytes": 510
+    "digest": "sha256:d08ad059154b386d5877e59ae600aeb7474ed6fcb64f5df95d76e49acb0e2d23"
+  - "path": "evidence/E-009.json"
+    "bytes": 512
+    "digest": "sha256:c65728d6f8f586ffe5102b0948dc3d4eb83a023b4d47c1c4abd0222a4632fe61"
+  - "path": "evidence/E-010.json"
+    "bytes": 497
+    "digest": "sha256:b054f6df5093e53ef0ce871f36ba3e55d6cc49792fc671d351f96a2310ee0cff"
+  - "path": "evidence/E-Q1-01.json"
+    "bytes": 529
+    "digest": "sha256:9e5bb333b3e4b4ec1cebc68bcef98dfe5b7574836484dba507d717d50f0cc7bb"
+  - "path": "evidence/E-Q2-01.json"
+    "bytes": 517
+    "digest": "sha256:facc22ec5444b76e4f2fffaa3d3775287eb55b64b7e55a3ec8d79c10b368b75f"
+  - "path": "evidence/E-Q3-01.json"
+    "bytes": 497
+    "digest": "sha256:9433771ef6c3de031f8f20fb8a986cbb38d0870d9a41cd63bd45f4970b629743"
+  - "path": "evidence/E-Q4-01.json"
+    "bytes": 506
+    "digest": "sha256:925564444fb7d96ae86c843595091a721555a887e2c5f8f85e344082483cb071"
+  - "path": "evidence/E-Q5-01.json"
+    "bytes": 507
+    "digest": "sha256:4245cf63b6dc5642dab17e8bbcdaca4de029ba980e48eac0821b8c746b0be99f"
+  - "path": "evidence/E-Q6-01.json"
+    "bytes": 506
+    "digest": "sha256:897098935bad9e1f121dc8d47033b6552d9c90a981e5eb4e7f0064af082918e9"
+  - "path": "evidence/E-Q7-01.json"
+    "bytes": 516
+    "digest": "sha256:85f383a22714514d5acedd6871dca3f2e17de0cc59bf12fd7a2823bf8aad9762"
+  - "path": "evidence/E-Q8-01.json"
+    "bytes": 520
+    "digest": "sha256:62ac0d68549c0fa87923781ce735de4f468fdec513a27aa3d13b91b68c989535"
+  - "path": "findings/F-01.json"
+    "bytes": 558
+    "digest": "sha256:791e52eb92f022e5fae2f903985a11ce270de5dbdc0b5b70ee9c3ccd84f713dc"
+  - "path": "findings/F-02.json"
+    "bytes": 538
+    "digest": "sha256:f4b9f346db25359cd6b1903e0e8e25c7c9ac40704ff85e5f3dfdd2e6543fa572"
+  - "path": "findings/F-03.json"
+    "bytes": 540
+    "digest": "sha256:64783ed0f00ce23e8421960f7cab18d3930362187c454dab4a4dd1a92ed284f4"
+  - "path": "measurement-bindings/MB-I-01.json"
+    "bytes": 1029
+    "digest": "sha256:1c89c3018dce902e8f6de2e62fb0ca698ebb38bdc5a8faf5541214902ab07e23"
+  - "path": "measurement-bindings/MB-I-02.json"
+    "bytes": 1029
+    "digest": "sha256:5cb43bb9772be94ebf2cc551fd8c027b89a2918a4401b2813be952ceecdd98e9"
+  - "path": "measurement-bindings/MB-I-03.json"
+    "bytes": 1029
+    "digest": "sha256:acf8ef4208268963c354af92effb35979f23777ef7e56cedc341de0f5b4898cc"
+  - "path": "measurement-bindings/MB-I-04.json"
+    "bytes": 1029
+    "digest": "sha256:228d56fa8e55aa681eafb6da6667d89d2524486a737fe2583e07898ce66ae36b"
+  - "path": "measurement-bindings/MB-I-05.json"
+    "bytes": 1029
+    "digest": "sha256:b336e5f63cedcd83f3ce4cded19dc2e65c4fb44431208755808527261d81be19"
+  - "path": "measurement-bindings/MB-I-06.json"
+    "bytes": 1029
+    "digest": "sha256:272a23ea92db9e18d6cf7389baea699cdf3f57ca2a139c80687f1ee0e827a2ad"
+  - "path": "measurement-bindings/MB-I-07.json"
+    "bytes": 1029
+    "digest": "sha256:a153b8e30939b4f26c5101425d23d79fa6a161fea1455fd6f7a122212dfc1b2c"
+  - "path": "measurement-bindings/MB-I-08.json"
+    "bytes": 1029
+    "digest": "sha256:5953243329665c9ce7ef821a27596544fa3d3874b161cb6795f42e370f7bdd4a"
+  - "path": "measurement-bindings/MB-I-09.json"
+    "bytes": 1029
+    "digest": "sha256:7471d3b42e6410818bf20a4e2883d4dda9f41ff1f8c4348f68967581878fd523"
+  - "path": "measurement-bindings/MB-I-10.json"
+    "bytes": 1029
+    "digest": "sha256:d26ff8e0ce83a6f1a924e6a8bc17d524b8dcc392c37ea3cf636e6a79f3d99a16"
+  - "path": "measurement-bindings/MB-I-11.json"
+    "bytes": 1029
+    "digest": "sha256:b9ef92776d26d8acb7b0e03d55e2406d4ada118d312c2b15c920d3c17409dad5"
+  - "path": "measurement-bindings/MB-I-12.json"
+    "bytes": 1029
+    "digest": "sha256:9636f1e52267ece35cc2b4487f4e8f1a39bc0dc5da36cc36bf84cb272abbaf9b"
+  - "path": "measurement-bindings/MB-I-13.json"
+    "bytes": 1029
+    "digest": "sha256:68e3bada3ca2eb3b5eac1d6020f207f4d323a34022447ca790c3434dde96a004"
+  - "path": "measurement-bindings/MB-I-14.json"
+    "bytes": 1029
+    "digest": "sha256:beeb3af9f96e95c54a8db2a70ad939338323a67ea5a214ad38d154bd7518d1ef"
+  - "path": "measurement-bindings/MB-I-15.json"
+    "bytes": 1029
+    "digest": "sha256:9c6c2f640e60fb7b2fcaec4b05e050ba5f362e3d3c0148d5431bff5086257d46"
+  - "path": "measurement-bindings/MB-I-16.json"
+    "bytes": 1029
+    "digest": "sha256:c5184bf0919ebd558d0aca5b68214492cd4c34e31ab563615769a98bdb3477f9"
+  - "path": "measurement-bindings/MB-I-17.json"
+    "bytes": 1029
+    "digest": "sha256:a6d69a2d58a8395c45eec7c2e144bf08a007ec9d222f17b4c9c229f3976556a1"
+  - "path": "measurement-bindings/MB-I-18.json"
+    "bytes": 1029
+    "digest": "sha256:b7df8733094b103dd6174d8f2b5ff52348e95020a83049a891ef13eafaf5ec41"
+  - "path": "measurement-bindings/MB-I-19.json"
+    "bytes": 1029
+    "digest": "sha256:b61515fbafab91959e3b533ab4b2fa9e9289ee991e68e14e344391c48543cd90"
+  - "path": "measurement-bindings/MB-I-20.json"
+    "bytes": 1029
+    "digest": "sha256:8cc281a2985f99225895a6d922fe4c184124dc7fe51a92b8cd7734364da6012d"
+  - "path": "qualifications/Q-001.json"
+    "bytes": 505
+    "digest": "sha256:8aa32966455a8de1cf755ee7a4f2a585ebada7b0ec4bcb42b61da14e9e9d7361"
+  - "path": "qualifications/Q-002.json"
+    "bytes": 505
+    "digest": "sha256:a0add31fa3fd84817d6dbfdb98ad602fa1b0455c37aa5cc4d2929703bc65b2ed"
+  - "path": "qualifications/Q-003.json"
+    "bytes": 505
+    "digest": "sha256:94483f2b099139d0fa4814b7de6cef4cccb78ed9eb8dd1a20b4e3f74d421bae7"
+  - "path": "qualifications/Q-004.json"
+    "bytes": 505
+    "digest": "sha256:9d66501e8d5b653e6cad89c775b7820fbe68e4e0745a40d6bdcb749727f1a081"
+  - "path": "qualifications/Q-005.json"
+    "bytes": 496
+    "digest": "sha256:2d7356e17c83cb4c7f146707e2df307dd421fc4fb82dac2e78d48239ae429b6b"
+  - "path": "qualifications/Q-006.json"
+    "bytes": 493
+    "digest": "sha256:bd69e0fd83bd8034943fa7676cedd060afbf96e10af7b2d872077b6395062e3a"
+  - "path": "qualifications/Q-007.json"
+    "bytes": 517
+    "digest": "sha256:467e1d1233c460a929cc85d900dc1f819ba0194098f6113579f1a8a76febb359"
+  - "path": "qualifications/Q-008.json"
+    "bytes": 697
+    "digest": "sha256:3d5fe83a2a3b3a1c98b695ce0ef713bfd54bfba51878b12c3b53d11a8b0909e3"
+  - "path": "raw/E-001.json"
+    "bytes": 100
+    "digest": "sha256:e7f63e63a1fa3ecf6df99b4e1e9c5a1cb96dc843b9fe08c44a3a7f64a6a87af9"
+  - "path": "raw/E-002.json"
+    "bytes": 116
+    "digest": "sha256:7a3380c7153de7a4f51b97eff5fa25929c733d144c92f1524ba563439c863268"
+  - "path": "raw/E-003.json"
+    "bytes": 114
+    "digest": "sha256:c1cf752efc1908af3e634016bbb06613c85b01a72cd2f73d25c20ec0bdb54c84"
+  - "path": "raw/E-004.json"
+    "bytes": 124
+    "digest": "sha256:9f7eac4768db6dff688f77f991cc4c1b44a56f86c32d2f1fba570fd73399382c"
+  - "path": "raw/E-005.json"
+    "bytes": 77
+    "digest": "sha256:857bc95c86622c519a97f88c3b3e8e6098d8f4d3683bcfc9ab115ec5f6ddfa05"
+  - "path": "raw/E-006.json"
+    "bytes": 58
+    "digest": "sha256:327452bf1538ee3c4330bf7f5168f5493fac18e4593333c493c9c9ac557fd868"
+  - "path": "raw/E-007.json"
+    "bytes": 86
+    "digest": "sha256:69b4edee68c9778dc98e22c809cf30a05d05ad84cdac1274e47a6ff98a433657"
+  - "path": "raw/E-008.json"
+    "bytes": 98
+    "digest": "sha256:3d7228f4649676555aba05bede6a520a66ce012456f2a3e1e1b0ef211ba5a624"
+  - "path": "raw/E-009.json"
+    "bytes": 87
+    "digest": "sha256:9f77fe3ef1ce9168895b21ab4b7ed4320b2dc054a8d61971268188bae5b51378"
+  - "path": "raw/E-010.json"
+    "bytes": 99
+    "digest": "sha256:d656167c983e0fe959869f68cec7c2618db9a2e5bcf8d8c73574ea6f73165e62"
+  - "path": "raw/E-Q1-01.json"
+    "bytes": 147
+    "digest": "sha256:364a2d211a3543a255072b85b650649f9c358ce18bb88d8eaf5b2bb767077210"
+  - "path": "raw/E-Q2-01.json"
+    "bytes": 135
+    "digest": "sha256:c30b1c7189a0d55b126ba9293ca8dbc32d797c07338acd701d462008e1ea11b8"
+  - "path": "raw/E-Q3-01.json"
+    "bytes": 115
+    "digest": "sha256:3175c90edea660752ca6e151456eb60350280e9f809441621dc91ac18c9dc6ca"
+  - "path": "raw/E-Q4-01.json"
+    "bytes": 124
+    "digest": "sha256:6e199e7ad277bb398caefc7b06bb801b3c49a765822450dda5e91b72765ba852"
+  - "path": "raw/E-Q5-01.json"
+    "bytes": 125
+    "digest": "sha256:dd7889acbfb2cf17a1bc1f8103c592da2d32e01f7b4abe009081cfe389850b56"
+  - "path": "raw/E-Q6-01.json"
+    "bytes": 124
+    "digest": "sha256:d1a84f540f6c376988873b5eaf171ebf8ff4618a7f260a083119fb4670027672"
+  - "path": "raw/E-Q7-01.json"
+    "bytes": 134
+    "digest": "sha256:7f85a40938af03a7177f337bfbf66ab6aebf190f96d0fda484e6fb5c71ac1243"
+  - "path": "raw/E-Q8-01.json"
+    "bytes": 138
+    "digest": "sha256:ffe73be9767a1bcf6a7b1ee7d4f6b9ea99a4535e2399996ef97b5d73526356f3"
+  - "path": "results/R-I-01.json"
+    "bytes": 976
+    "digest": "sha256:d83e62a389e5450f4fa593696430c6a9cadc0cfd64141a01c7e6b2802f451a8a"
+  - "path": "results/R-I-02.json"
+    "bytes": 968
+    "digest": "sha256:1f498208d9fdebda0ac9a7c0a29b78e4573b1639b3a73eee9392e4f0c4baccbf"
+  - "path": "results/R-I-03.json"
+    "bytes": 975
+    "digest": "sha256:db6797a2eaa236a214c8d87957b99b7c5536625667cef73253f492eea1032350"
+  - "path": "results/R-I-04.json"
+    "bytes": 971
+    "digest": "sha256:8542eb858b8d421bef967107bf5adc97f0244f9bad8c7c934e2e8e473c045716"
+  - "path": "results/R-I-05.json"
+    "bytes": 981
+    "digest": "sha256:ef16f43e5f6fb142c22d38b24fc337a580e46c7975fd494cfa2b9b95fcb1f4fd"
+  - "path": "results/R-I-06.json"
+    "bytes": 962
+    "digest": "sha256:5249549b66d7a2044098edb739d34794958de72bb3fc89ccc2a4b7b470117281"
+  - "path": "results/R-I-07.json"
+    "bytes": 964
+    "digest": "sha256:92b848ad11266b5f128166742b53c3a0d4a916973c8cb41b1504d44dc80f4d32"
+  - "path": "results/R-I-08.json"
+    "bytes": 964
+    "digest": "sha256:d49b24a4453b175c2808efc2aa452e5311603a285ac08dc72c3f0f230c2c3f4e"
+  - "path": "results/R-I-09.json"
+    "bytes": 958
+    "digest": "sha256:661dcead1d135076c7c543c7f6abdbdfd3bd3d41e5cc1c322fa7a8c72fa450d8"
+  - "path": "results/R-I-10.json"
+    "bytes": 964
+    "digest": "sha256:f32930a073ec444e13b9cc058d61c3ebc64e16bc2b3a3e331b414ffe0205109f"
+  - "path": "results/R-I-11.json"
+    "bytes": 980
+    "digest": "sha256:fe873a60f4ab7ef1f5c3687e22105540f5d9dec3308a5a1c12c93892c92c5585"
+  - "path": "results/R-I-12.json"
+    "bytes": 953
+    "digest": "sha256:04f1946a8209a69c53b320f82745f03599fb609c4b3da7b5d8623f5dbb5f6fde"
+  - "path": "results/R-I-13.json"
+    "bytes": 952
+    "digest": "sha256:426b7900b2b92d49990272865e583782664ef74552ce9b2989f73331ee4dbd14"
+  - "path": "results/R-I-14.json"
+    "bytes": 974
+    "digest": "sha256:c3b847dfd674726fc17cdc5a1ac913fa003a8f9c33e2f31adf919d8b2ec289b5"
+  - "path": "results/R-I-15.json"
+    "bytes": 969
+    "digest": "sha256:e7f3bf026817d0a1faa8f6219008a8edffad78c83b7771e88365e5e4d2a4bb27"
+  - "path": "results/R-I-16.json"
+    "bytes": 963
+    "digest": "sha256:22b2bd71d043a93c435217d98c05b71d30c8886cd6dabf533377e3e0fe5508f6"
+  - "path": "results/R-I-17.json"
+    "bytes": 965
+    "digest": "sha256:f0ec131ca15fbbcd5fe3cf63c6b1d99826f4ea45235151673bfa71dabc0f0a0d"
+  - "path": "results/R-I-18.json"
+    "bytes": 972
+    "digest": "sha256:e39360d6eff0e5e366a96fc94528e4d0d1079c5ead3bc73b84f7e5d244e983d6"
+  - "path": "results/R-I-19.json"
+    "bytes": 974
+    "digest": "sha256:58457ced3cf89c264f9750eb02468880c7b8682a0e55656abbfc60179a8cb2b9"
+  - "path": "results/R-I-20.json"
+    "bytes": 963
+    "digest": "sha256:f0cf513c7f7900baf602d2efbf0bb6e080c5c3e3950862660394880e84fe84c5"
+  - "path": "subject.json"
+    "bytes": 381
+    "digest": "sha256:5760c945854018ac7db0228dd33fa7bedf448bd2e94eae669e39ecc4d7b881fb"
+"authority_notice": "A generated view and matching hashes establish neither truthful observations nor permission to publish, merge, spend, or retire."

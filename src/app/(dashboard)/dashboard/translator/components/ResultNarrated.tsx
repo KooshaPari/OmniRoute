@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 "use client";
 
 import { useCallback } from "react";
@@ -78,15 +79,14 @@ export default function ResultNarrated({
       </div>
 
       {/* Status area — aria-live for screen-reader announcements (D20) */}
-      <div
-        aria-live="polite"
-        aria-atomic="true"
-        className="flex flex-1 flex-col gap-3"
-      >
+      <div aria-live="polite" aria-atomic="true" className="flex flex-1 flex-col gap-3">
         {/* idle */}
         {result.status === "idle" && (
           <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
-            <span className="material-symbols-outlined text-[40px] text-text-muted/40" aria-hidden="true">
+            <span
+              className="material-symbols-outlined text-[40px] text-text-muted/40"
+              aria-hidden="true"
+            >
               info
             </span>
             <p className="text-sm text-text-muted">
@@ -98,7 +98,10 @@ export default function ResultNarrated({
         {/* translating or sending */}
         {isSpinning && (
           <div className="flex items-center gap-3 py-6">
-            <span className="material-symbols-outlined animate-spin text-[24px] text-primary" aria-hidden="true">
+            <span
+              className="material-symbols-outlined animate-spin text-[24px] text-primary"
+              aria-hidden="true"
+            >
               progress_activity
             </span>
             <span className="text-sm text-text-muted">

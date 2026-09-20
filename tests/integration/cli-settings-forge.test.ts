@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Integration tests for /api/cli-tools/forge-settings
  * Plan 14 F3 — settings handler for ForgeCode (configType: "custom")

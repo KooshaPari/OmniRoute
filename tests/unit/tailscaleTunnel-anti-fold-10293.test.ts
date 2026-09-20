@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -40,7 +41,10 @@ test("#10293: tailscaleTunnel reads platform at runtime via os.platform(), never
   );
 
   // The runtime getter must exist and delegate to os.platform (the anti-fold call).
-  assert.match(source, /function getCurrentPlatform\(\):\s*NodeJS\.Platform\s*\{\s*return os\.platform\(\);?\s*\}/m);
+  assert.match(
+    source,
+    /function getCurrentPlatform\(\):\s*NodeJS\.Platform\s*\{\s*return os\.platform\(\);?\s*\}/m
+  );
 });
 
 test("#10293: Windows branches use runtime platform reads, so they survive any build machine", () => {
@@ -50,8 +54,15 @@ test("#10293: Windows branches use runtime platform reads, so they survive any b
   //  through os.platform()/getCurrentPlatform().
   const socketBranch = /getCurrentPlatform\(\) === "win32"[\s\S]{0,80}return args/.test(source);
   const whereBranch = /os\.platform\(\) === "win32" \? "where" : "which"/.test(source);
-  const windowsDefaultBranch = /getCurrentPlatform\(\) === "win32" && fs\.existsSync\(WINDOWS_TAILSCALE_BIN\)/.test(source);
-  assert.ok(socketBranch, "buildTailscaleArgs must not inject --socket on win32 (runtime platform read)");
+  const windowsDefaultBranch =
+    /getCurrentPlatform\(\) === "win32" && fs\.existsSync\(WINDOWS_TAILSCALE_BIN\)/.test(source);
+  assert.ok(
+    socketBranch,
+    "buildTailscaleArgs must not inject --socket on win32 (runtime platform read)"
+  );
   assert.ok(whereBranch, "resolvePathCommand must select 'where' when os.platform() === 'win32'");
-  assert.ok(windowsDefaultBranch, "resolveBinary must reach the Windows default binary fallback via runtime platform read");
+  assert.ok(
+    windowsDefaultBranch,
+    "resolveBinary must reach the Windows default binary fallback via runtime platform read"
+  );
 });

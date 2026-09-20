@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 import { describe, it, before, afterEach } from "node:test";
 import assert from "node:assert";
 import { createFile, getFile, listFiles, deleteFile } from "@/lib/db/files";

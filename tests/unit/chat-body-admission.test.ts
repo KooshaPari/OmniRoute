@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // #7846: atomic, actual-byte-bounded admission before chat parsing.
 import test from "node:test";
 import assert from "node:assert/strict";

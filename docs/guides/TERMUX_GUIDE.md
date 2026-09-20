@@ -6,7 +6,7 @@ lastUpdated: 2026-07-25
 
 # Termux Headless Setup
 
-OmniRoute can run as a headless server on Android through Termux. The Electron desktop app is not supported in Termux, but the web dashboard and OpenAI-compatible API work from the local browser or from other devices on the same network.
+OmniRoute can run as a headless server on Android through Termux. The Tauri 2 desktop app (`apps/desktop/`) is not supported in Termux, but the web dashboard and OpenAI-compatible API work from the local browser or from other devices on the same network.
 
 ## Prerequisites
 
@@ -120,7 +120,7 @@ omniroute
 
 ## Limitations
 
-- Electron does not run in Termux.
+- The Tauri 2 desktop app does not run in Termux.
 - There is no system tray or desktop integration.
 - This setup is server-only: use the browser dashboard.
 - Native dependencies may need local compilation.
@@ -131,7 +131,7 @@ omniroute
 
 ### Unsupported platform: android (every request returns HTTP 500)
 
-**Symptom:** `omniroute` / `omniroute serve` prints `✔ OmniRoute is running!`, but every dashboard or API request returns a bare `500 Internal Server Error`. `~/.omniroute/logs/application/app.log` stays empty, `APP_LOG_LEVEL=debug` prints nothing useful, and the response body is plain text (`Internal Server Error`) with no JSON detail.
+**Symptom:** `omniroute` / `omniroute serve` prints ` OmniRoute is running!`, but every dashboard or API request returns a bare `500 Internal Server Error`. `~/.omniroute/logs/application/app.log` stays empty, `APP_LOG_LEVEL=debug` prints nothing useful, and the response body is plain text (`Internal Server Error`) with no JSON detail.
 
 **Cause:** Some Termux/Node builds report `process.platform === "android"`. Next.js `getCacheDirectory()` does not handle that platform: it requires `~/.cache` (or a generic tmp dir) to _already_ exist, otherwise it fails while loading the instrumentation hook with:
 

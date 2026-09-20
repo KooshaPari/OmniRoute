@@ -53,7 +53,7 @@ your laptop                              remote OmniRoute (VPS)
 ```bash
 omniroute connect 192.168.0.15
 # Management password for http://192.168.0.15:20128: ********
-# ✔ Connected to http://192.168.0.15:20128 — context '192.168.0.15' (scope: admin)
+# Connected to http://192.168.0.15:20128 — context '192.168.0.15' (scope: admin)
 ```
 
 Przepływ z hasłem domyślnie wystawia token **admin** (masz hasło, więc
@@ -243,7 +243,7 @@ omniroute configure codex
 #   Providers: glm, kmc, ollamacloud, opencode-go, …
 #   Provider: glm
 #   Model id: glm/glm-5.2
-#   ✔ Wrote ~/.codex/glm52.config.toml
+#   Wrote ~/.codex/glm52.config.toml
 #   Use it:  codex --profile glm52
 
 # non-interactive
@@ -303,7 +303,7 @@ omniroute contexts current         # the active server, auth status, scope
 ```text
   | Name    | Base URL                  | Auth  | Scope | Description
 ● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
-  | default | http://localhost:20128    | ✗     |       |
+  | default | http://localhost:20128    | |       |
 ```
 
 **Przełączanie serwerów** — każde kolejne polecenie podąża za aktywnym kontekstem:

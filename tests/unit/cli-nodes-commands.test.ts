@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Command, Option } from "commander";
@@ -33,7 +34,9 @@ test("nodes add with --base-url correctly parses and sends baseUrl in body", asy
     if (opts?.body) {
       capturedBody = typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body;
     }
-    return Promise.resolve(makeResp({ id: "node-1", provider: "openai", baseUrl: "http://127.0.0.1:11434" }));
+    return Promise.resolve(
+      makeResp({ id: "node-1", provider: "openai", baseUrl: "http://127.0.0.1:11434" })
+    );
   }) as any;
 
   try {
@@ -51,7 +54,10 @@ test("nodes add with --base-url correctly parses and sends baseUrl in body", asy
     globalThis.fetch = origFetch;
   }
 
-  assert.ok(capturedUrl.endsWith("/api/provider-nodes"), `expected /api/provider-nodes, got ${capturedUrl}`);
+  assert.ok(
+    capturedUrl.endsWith("/api/provider-nodes"),
+    `expected /api/provider-nodes, got ${capturedUrl}`
+  );
   assert.equal(capturedBody?.provider, "ollama-local");
   assert.equal(capturedBody?.baseUrl, "http://127.0.0.1:11434");
 });
@@ -81,14 +87,7 @@ test("nodes add without endpoint or base-url exits with error even if OMNIROUTE_
   }) as any;
 
   try {
-    await program.parseAsync([
-      "node",
-      "omniroute",
-      "nodes",
-      "add",
-      "--provider",
-      "ollama-local",
-    ]);
+    await program.parseAsync(["node", "omniroute", "nodes", "add", "--provider", "ollama-local"]);
   } catch (err: any) {
     if (!err.message.startsWith("EXIT_")) throw err;
   } finally {
@@ -118,7 +117,9 @@ test("nodes add with --name matching subcommand name correctly parses --base-url
     if (opts?.body) {
       capturedBody = typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body;
     }
-    return Promise.resolve(makeResp({ id: "node-1", provider: "openai", baseUrl: "http://127.0.0.1:11434" }));
+    return Promise.resolve(
+      makeResp({ id: "node-1", provider: "openai", baseUrl: "http://127.0.0.1:11434" })
+    );
   }) as any;
 
   try {
@@ -179,7 +180,10 @@ test("nodes update with --base-url correctly parses and sends baseUrl in body wi
     globalThis.fetch = origFetch;
   }
 
-  assert.ok(capturedUrl.endsWith("/api/provider-nodes/node-1"), `expected /api/provider-nodes/node-1, got ${capturedUrl}`);
+  assert.ok(
+    capturedUrl.endsWith("/api/provider-nodes/node-1"),
+    `expected /api/provider-nodes/node-1, got ${capturedUrl}`
+  );
   assert.equal(capturedBody?.baseUrl, "http://127.0.0.1:11435");
 });
 
@@ -218,7 +222,10 @@ test("nodes validate with --base-url correctly parses and sends baseUrl in body"
     globalThis.fetch = origFetch;
   }
 
-  assert.ok(capturedUrl.endsWith("/api/provider-nodes/validate"), `expected /api/provider-nodes/validate, got ${capturedUrl}`);
+  assert.ok(
+    capturedUrl.endsWith("/api/provider-nodes/validate"),
+    `expected /api/provider-nodes/validate, got ${capturedUrl}`
+  );
   assert.equal(capturedBody?.baseUrl, "http://127.0.0.1:11434");
   assert.equal(capturedBody?.provider, "ollama-local");
 });

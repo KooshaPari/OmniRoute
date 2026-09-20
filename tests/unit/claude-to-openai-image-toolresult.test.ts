@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Tests for fix(translator): forward image tool_result blocks as image_url
  * instead of stringifying base64.
@@ -10,11 +11,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { claudeToOpenAIRequest } = await import(
-  "../../open-sse/translator/request/claude-to-openai.ts"
-);
+const { claudeToOpenAIRequest } =
+  await import("../../open-sse/translator/request/claude-to-openai.ts");
 
-const FAKE_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+const FAKE_BASE64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 const MEDIA_TYPE = "image/png";
 const EXPECTED_DATA_URI = `data:${MEDIA_TYPE};base64,${FAKE_BASE64}`;
 
@@ -80,9 +81,7 @@ test("image-only tool_result produces image_url in following user turn (not stri
   const userMsg = msgs.find((m) => m.role === "user");
   assert.ok(userMsg, "expected a following user message carrying the image");
 
-  const userContent: any[] = Array.isArray(userMsg.content)
-    ? userMsg.content
-    : [userMsg.content];
+  const userContent: any[] = Array.isArray(userMsg.content) ? userMsg.content : [userMsg.content];
 
   const imageUrlPart = userContent.find(
     (p: any) => p.type === "image_url" && p.image_url?.url === EXPECTED_DATA_URI
@@ -158,9 +157,7 @@ test("mixed text+image tool_result: text stays in tool message, image appears as
   const userMsg = msgs.find((m) => m.role === "user");
   assert.ok(userMsg, "expected a following user message carrying the image");
 
-  const userContent: any[] = Array.isArray(userMsg.content)
-    ? userMsg.content
-    : [userMsg.content];
+  const userContent: any[] = Array.isArray(userMsg.content) ? userMsg.content : [userMsg.content];
 
   const imageUrlPart = userContent.find(
     (p: any) => p.type === "image_url" && p.image_url?.url === EXPECTED_DATA_URI

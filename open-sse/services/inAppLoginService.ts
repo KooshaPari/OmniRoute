@@ -1,11 +1,12 @@
+// oxlint-disable no-explicit-any
 /**
  * InAppLoginService — Playwright-based web login for cookie providers
  *
  * Opens a Playwright browser context, navigates to the provider's login page,
  * and polls for target cookies/tokens after the user completes login.
  *
- * Used as the dashboard/web fallback path when Electron is not available.
- * For Electron-native login, see electron/loginManager.js.
+ * The dashboard/web login path for every install (web, CLI and the Tauri
+ * desktop shell all use this Playwright flow).
  *
  * Events:
  *   "status" — { providerId: string, status: string, message: string }
@@ -118,7 +119,7 @@ export class InAppLoginService extends EventEmitter {
     } catch {
       return {
         success: false,
-        error: "Playwright is not installed. Use Electron for native login.",
+        error: "Playwright is not installed. Install it to enable in-app login.",
       };
     }
 

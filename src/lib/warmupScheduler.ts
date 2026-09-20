@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { getProviderConnections } from "@/lib/db/providers";
 import { getSettings } from "@/lib/db/settings";
 import { resolveProxyForConnection } from "@/lib/db/settings";

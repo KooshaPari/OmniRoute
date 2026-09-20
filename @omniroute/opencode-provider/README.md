@@ -1,6 +1,6 @@
 # @omniroute/opencode-provider
 
-> ## ⚠️ Deprecated — use [`@omniroute/opencode-plugin`](https://www.npmjs.com/package/@omniroute/opencode-plugin) instead
+> ## Deprecated — use [`@omniroute/opencode-plugin`](https://www.npmjs.com/package/@omniroute/opencode-plugin) instead
 >
 > This package writes a **static** `provider.omniroute` block to `opencode.json` from a hardcoded default model list, so it **drifts behind your live OmniRoute catalog** — adding a model in OmniRoute won't show up in OpenCode until you re-run the generator, and OpenCode Desktop/Web only surfaces a subset of the static models.
 >
@@ -12,7 +12,7 @@
 > // opencode.json
 > {
 >   "$schema": "https://opencode.ai/config.json",
->   "plugin": ["@omniroute/opencode-plugin"]
+>   "plugin": ["@omniroute/opencode-plugin"],
 > }
 > ```
 >

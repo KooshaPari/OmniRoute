@@ -1,6 +1,6 @@
 # Security Policy (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [el](../el/SECURITY.md) · [es](../es/SECURITY.md) · [et](../et/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hr](../hr/SECURITY.md) · [hu](../hu/SECURITY.md) · [id](../id/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [lv](../lv/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [mt](../mt/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [tr](../tr/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-CN](../zh-CN/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -24,9 +24,9 @@ Má aimsíonn tú leochaileacht slándála i OmniRoute, cuir in iúl go freagrac
 
 | Leagan  | Stádas Tacaíochta |
 | ------- | ----------------- |
-| 3.8.x   | ✅ Gníomhach      |
-| 3.7.x   | ✅ Slándáil       |
-| < 3.7.0 | ❌ Gan tacaíocht  |
+| 3.8.x   | Gníomhach         |
+| 3.7.x   | Slándáil          |
+| < 3.7.0 | Gan tacaíocht     |
 
 ---
 
@@ -40,7 +40,7 @@ Iarratas → CORS → Líne (sainaithin → polasaithe → coinnigh)
        → Teorannóir rátaí → Briseadóir timthriall → Cúlamhais → Glasáil tsamhail → Soláthraí
 ```
 
-### 🔐 Fíordheimhniú agus Údarú
+### Fíordheimhniú agus Údarú
 
 | Gné                             | Impleadhú                                                                                                                                                         |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,7 +54,7 @@ Iarratas → CORS → Líne (sainaithin → polasaithe → coinnigh)
 | **MCP Scóip Bainistíochta**     | Rochtain iargúlta `/api/mcp/*` faoi mhaoirscéal eochracha API le scóip `manage`; fanann `/api/cli-tools/runtime/*` in lúb-dlúthshéansach. Féach ROUTE_GUARD_TIERS |
 | **Scóipanna MCP**               | 32 scóipmhíne (leabhar:sláinte, scríobh: combos, rith:completes, etc.) — féach `docs/frameworks/MCP-SERVER.md`                                                    |
 
-### 🛡️ Criptiú ag Stóráil
+### Criptiú ag Stóráil
 
 Tá gach sonra íogaire stóráilte i SQLite criptaithe le **AES-256-GCM** le díbhríú eochracha scrypt:
 
@@ -67,7 +67,7 @@ Tá gach sonra íogaire stóráilte i SQLite criptaithe le **AES-256-GCM** le d�
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Créatúr Cosanta
+### Créatúr Cosanta
 
 Tá **clárlann cosaintí** athluchtaithe te a sheachadann OmniRoute (`src/lib/guardrails/`) le 3 chosaintí ionsuite eagraithe de réir túsála:
 
@@ -79,7 +79,7 @@ Tá **clárlann cosaintí** athluchtaithe te a sheachadann OmniRoute (`src/lib/g
 
 Cláraíonn cosaintí saincheaptha trí `registerGuardrail(new MyGuardrail())`. Tá an tsamhail oscailte d'éifeachtaí (ní chuireann eisceachtaí cosc ar thráffic). Rogh-amach in aghaidh an iarratais tríd an ceanntinn `x-omniroute-disabled-guardrails`. → Féach [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Cosaint Ionsaí Achainí
+### Cosaint Ionsaí Achainí
 
 Mearshlua meicniseach iarracht ag braíodh patrúin ionsaí achainí iarratais LLM.
 **Ní toradh iomlán é scáileán ionsaí achainí** — is féidir dearbhú mícheart a dhéanamh (ciníos pearsanta/RPG mícheart) agus dearbhú dearfach a dhéanamh (leetspeak, spásáil, patrúin nach bhfuil i nGaeilge).
@@ -103,7 +103,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (polasaí ionsaí; "redact" dleatha
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (réamhshocraithe) | medium | low — cuirtear cosc ar dhligheadhanna atá agus os cionn an tsaghas seo sa mhód block
 ```
 
-### 🔒 Scriosadh PII
+### Scriosadh PII
 
 Braíodh uathoibríoch agus scriosadh roghnach eolas inaitheanta pearsanta:
 
@@ -121,7 +121,7 @@ PII_REDACTION_ENABLED=true   # athscríobh PII iarratais; neamhspleách ar INPUT
 PII_RESPONSE_SANITIZATION=true  # roghnach: scriosadh PII i freagraí soláthraithe ar ais do chliaint
 ```
 
-### 🌐 Slándáil Líonra
+### Slándáil Líonra
 
 | Gné                 | Cur síos                                                                                     |
 | ------------------- | -------------------------------------------------------------------------------------------- |
@@ -132,7 +132,7 @@ PII_RESPONSE_SANITIZATION=true  # roghnach: scriosadh PII i freagraí soláthrai
 | **Méarlorg TLS**    | Méarlorg TLS cosúil le brabhsálaí chun braiteadh bot a laghdú                                |
 | **Méarlorg CLI**    | Ordú ceanntinn/corp in aghaidh an tsoláthraithe chun comharthaí dúchasacha CLI a mheaitseáil |
 
-### 🔌 Seasmhacht agus Infhaighteacht
+### Seasmhacht agus Infhaighteacht
 
 | Gné                       | Cur síos                                                                                  |
 | ------------------------- | ----------------------------------------------------------------------------------------- |
@@ -141,7 +141,7 @@ PII_RESPONSE_SANITIZATION=true  # roghnach: scriosadh PII i freagraí soláthrai
 | **Cúlú Easpónantach**     | Ath-iarracht uathoibríoch le moilleanna méadaithe                                         |
 | **Dashboard Sláinte**     | Monatóireacht ar shláinte tsoláthraithe fíor-ama                                          |
 
-### 📋 Comhréireacht
+### Comhréireacht
 
 | Gné                | Cur síos                                                                 |
 | ------------------ | ------------------------------------------------------------------------ |
@@ -168,13 +168,13 @@ Diúltaíonn an freastalaí go gníomhach do luachanna lag aitheanta ar nós `ch
 
 ---
 
-## Slándáil Docker
+## Docker Security
 
-- Úsáid úsáideoir neamh-fhréamh i dtáirgeadh
-- Feistigh rúin mar imleabhair léite-amháin
-- Ná cóipeáil comhaid `.env` isteach in íomhánna Docker riamh
-- Úsáid `.dockerignore` chun comhaid íogaire a eisiamh
-- Socraigh `AUTH_COOKIE_SECURE=true` nuair atá tú taobh thiar de HTTPS
+- Use non-root user in production
+- Mount secrets as read-only volumes
+- Never copy `.env` files into Docker images
+- Use `.dockerignore` to exclude sensitive files
+- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
 
 ```bash
 docker run -d \
@@ -191,55 +191,71 @@ docker run -d \
 
 ---
 
-## Spleáchais
+## Dependencies
 
-- Rith `npm audit` go rialta (`npm run audit:deps` clúdaíonn main + electron)
-- Coinnigh spleáchais cothrom le dáta
-- Úsáideann an tionscadal `husky` + `lint-staged` le haghaidh seiceálacha réamh-choimisiúin (lint-staged + check-docs-sync + check:any-budget:t11)
-- Ritheann píblíne CI rialacha slándála ESLint ar gach brú (`no-eval`, `no-implied-eval`, `no-new-func` = earráid)
-- Bailíochtaítear tairisigh sholáthraithe ag lódáil mhodúil trí Zod (`src/shared/validation/schemas.ts`)
-- Leabharlanna slán-de-réir-chineáil a úsáidtear: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (gan riosca SQLi trí cheisteanna paraiméadraithe), `bcryptjs` (haisiú pasfhocal)
+- Run `npm audit` regularly (`npm run audit:deps` audits the root package)
+- Keep dependencies updated
+- The project uses `husky` + `lint-staged` for pre-commit checks (lint-staged + check-docs-sync + check:any-budget:t11)
+- CI pipeline runs ESLint security rules on every push (`no-eval`, `no-implied-eval`, `no-new-func` = error)
+- Provider constants validated at module load via Zod (`src/shared/validation/schemas.ts`)
+- Secure-by-default libraries used: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (no SQLi risk via parameterized queries), `bcryptjs` (password hashing)
 
-## Rialacha Slándála Crua
+## Hard Security Rules
 
-Tá na rialacha seo forfheidhmithe ag uirlisí agus athbhreithneoirí:
+These rules are enforced by tooling and reviewers:
 
-1. **Ná coimisiúnaigh rúin riamh** — tá `.env` gitignored; is é `.env.example` an teimpléad (gan litreacha, tráchtanna amháin — féach PUBLIC_CREDS.md thíos)
-2. **Ná húsáid `eval()`, `new Function()`, nó eval intuigthe riamh** — forfheidhmíonn ESLint
-3. **Ná seachain crúcaí Husky riamh** (`--no-verify`, `--no-gpg-sign`) gan ceadú sainráite oibreora
-4. **Ná scríobh SQL amh i mbealaí riamh** — téigh trí `src/lib/db/` i gcónaí (paraiméadraithe)
-5. **Bailíochtaigh ionchuir le Zod i gcónaí** — `src/shared/validation/schemas.ts`
-6. **Sláintigh ceanntásca iartheachtacha i gcónaí** — liosta diúltaithe in `src/shared/constants/upstreamHeaders.ts`
-7. **Criptigh dintiúir ag an gcuid eile** — AES-256-GCM trí `src/lib/db/encryption.ts`
-8. **Aitheantóirí OAuth poiblí iartheachtacha trí `resolvePublicCred()`** — ná leabaigh litreacha `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` in fhoinse riamh. Féach [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
-9. **Freagraí earráide trí `buildErrorBody()` / `sanitizeErrorMessage()`** — ná cuir `err.stack` / `err.message` amh i gcomhlachtaí freagra HTTP / SSE / executor / MCP riamh. Féach [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
-10. **Luachanna runtime `exec()` / `spawn()` trí rogha `env`** — ná hionchuir cosáin sheachtracha nó luachanna neamhiontaofa i scripteanna a chuirtear trí shlaod riamh. Tagairt: `src/mitm/cert/install.ts::updateNssDatabases`.
-11. **Bí i bhfabhar leabharlanna slán-de-réir-chineáil** — féach [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Sroich dóibh sula ndéanann tú do chuid féin.
+1. **Never commit secrets** — `.env` is gitignored; `.env.example` is the template (no literals, comments only — see PUBLIC_CREDS.md below)
+2. **Never use `eval()`, `new Function()`, or implied eval** — ESLint enforces
+3. **Never bypass Husky hooks** (`--no-verify`, `--no-gpg-sign`) without explicit operator approval
+4. **Never write raw SQL in routes** — always go through `src/lib/db/` (parameterized)
+5. **Always validate inputs with Zod** — `src/shared/validation/schemas.ts`
+6. **Always sanitize upstream headers** — denylist in `src/shared/constants/upstreamHeaders.ts`
+7. **Encrypt credentials at rest** — AES-256-GCM via `src/lib/db/encryption.ts`
+8. **Public upstream OAuth identifiers via `resolvePublicCred()`** — never embed `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` literals in source. See [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Error responses through `buildErrorBody()` / `sanitizeErrorMessage()`** — never put raw `err.stack` / `err.message` in HTTP / SSE / executor / MCP response bodies. See [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **`exec()` / `spawn()` runtime values via the `env` option** — never string-interpolate external paths or untrusted values into shell-passed scripts. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Prefer secure-by-default libraries** — see [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Reach for them before rolling your own.
 
-## Torthaí scanta slabhra soláthair (Socket.dev / Snyk / cosúil leis sin)
+## Supply-chain scanner findings (Socket.dev / Snyk / similar)
 
-Baineann an tsoithse npm `omniroute` foilsithe le tógáil Next.js `output: "standalone"`, a chiallaíonn go dtéann gach láimhseálaí bealaigh — lena n-áirítear gnéithe pribhléid a bhfuil doicimhéadú déanta orthu (MITM, iompórtáil Zed, Cloud Sync, forimeallaigh seirbhíse insínte) — i bpíosaí móideim `next/server/*.js`. Déanann scanóirí slabhra soláthair heuristics cumascú ar na píosaí sin i gcoinne comharthaímharcanna malware go minic.
+The published `omniroute` npm artifact bundles the Next.js `output: "standalone"`
+build, which means every route handler — including documented privileged
+features (MITM, Zed import, Cloud Sync, embedded service supervisor) — ends
+up in `.next/server/*.js` minified chunks. Heuristic supply-chain scanners
+frequently pattern-match those chunks against malware signatures.
 
-Maidir le gach catagóir torthaí, coinnimid dearbhú cothabhála do gach tortha:
+The scanner configuration we use lives at [`socket.yml`](socket.yml) in the
+repo root (Socket.dev GitHub App format v2 — see
+<https://docs.socket.dev/docs/socket-yml>). It explicitly excludes
+non-shipped directories (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, etc.) so the scanner only reports on code paths that
+actually reach published users — the scan itself is driven by the Socket
+GitHub App reading that file, not by a workflow in this repository.
+
+For each finding category we maintain a per-finding maintainer attestation:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  léarscáil in aghaidh an tortha: comhad foinse ↔ crochadh san áireamh ↔ iompar ← cur i bhfeidhm i v3.8.6.
-- Bloic `SECURITY-AUDITOR-NOTE:` i bhfochód ag gach feidhmmharc san áireamh ag dul ar ais go dtí an doiciméad céanna.
+  per-finding map: source file ↔ flagged chunk ↔ behaviour ↔ mitigation
+  applied in v3.8.6.
+- In-source `SECURITY-AUDITOR-NOTE:` blocks at each flagged function point
+  back to the same document.
 
-Maidir le húsáideoirí nach féidir leo an foláireamh a mhaolú ina n-iarratas: tóg le
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Athraíonn sin ceithre mhódúl íogair le stubs a sheolann HTTP 503 `feature-disabled` ag am rith, ionas go bhfuil na cosáin pribhléide fhisiciúil as láthair ón bhfardal.
-Féach [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-don oideas foilseacháin.
+For users whose pipeline cannot relax the alert: build with
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. That replaces the four
+sensitive modules with stubs that return HTTP 503 `feature-disabled` at
+runtime, so the privileged code paths are physically absent from the bundle.
+See [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+for the publishing recipe.
 
-## Téacsanna tagartha
+## References
 
-- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — píobráin údarúcháin
-- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — creat rabhcháin
-- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — loga iniúchta agus coinneáil
-- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **riachtanach** patrún do dhintiúir upstream poiblí
-- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **riachtanach** patrún d'fhreagairtí earráide
-- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — dearbhú cothabhála do thorthaí scanner slabhra soláthair
-- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — briseoir chiorcaid + fuarú + díghlasáil
-- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — greanmharcáil TLS (fógra dlí/éiteas)
-- [`CLAUDE.md`](CLAUDE.md) — rialacha crua do shaorálaithe AI
-- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — leabharlanna slán de réir réamhshocraithe curtha le chéile
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — authorization pipeline
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — guardrails framework
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — audit log and retention
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **mandatory** pattern for public upstream credentials
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **mandatory** pattern for error responses
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — maintainer attestation for supply-chain scanner findings
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (legal/ethical notice)
+- [`CLAUDE.md`](CLAUDE.md) — hard rules for AI agents
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — curated secure-by-default libraries

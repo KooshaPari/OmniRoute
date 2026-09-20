@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { runEval } from "../../../open-sse/services/compression/eval/runner.ts";
@@ -5,8 +6,20 @@ import { CONTROL_PAIR } from "../../../open-sse/services/compression/eval/judge.
 import type { EvalCase, ModelClient } from "../../../open-sse/services/compression/eval/types.ts";
 
 const corpus: EvalCase[] = [
-  { id: "p1", kind: "prose", context: "the sky is blue", question: "what color is the sky?", gold: "blue" },
-  { id: "c1", kind: "code", context: "function f(){return 7}", question: "what does f return?", gold: "7" },
+  {
+    id: "p1",
+    kind: "prose",
+    context: "the sky is blue",
+    question: "what color is the sky?",
+    gold: "blue",
+  },
+  {
+    id: "c1",
+    kind: "code",
+    context: "function f(){return 7}",
+    question: "what does f return?",
+    gold: "7",
+  },
 ];
 
 /** Stub that answers questions, judges fidelity, grades gold — keyed off prompt content. */
@@ -23,7 +36,8 @@ function smartStub(opts: { answerModel: string; judgeModel: string }): ModelClie
         return { text: "VERDICT: SAME", usdCost: 0.01 };
       }
       // Gold grader: always CORRECT for this stub.
-      if (/grader|correct\|incorrect/i.test(sys)) return { text: "VERDICT: CORRECT", usdCost: 0.01 };
+      if (/grader|correct\|incorrect/i.test(sys))
+        return { text: "VERDICT: CORRECT", usdCost: 0.01 };
       // Answer generation.
       return { text: "blue and seven", usdCost: 0.01 };
     },
@@ -43,7 +57,11 @@ const baseOpts = {
 
 describe("eval runner", () => {
   it("aborts when the judge fails self-test (no scores emitted)", async () => {
-    const broken: ModelClient = { async complete() { return { text: "VERDICT: SAME" }; } };
+    const broken: ModelClient = {
+      async complete() {
+        return { text: "VERDICT: SAME" };
+      },
+    };
     const r = await runEval({ ...baseOpts, corpus, client: broken });
     assert.equal(r.aborted, true);
     assert.match(r.abortReason ?? "", /self-test/i);
@@ -51,7 +69,11 @@ describe("eval runner", () => {
   });
 
   it("produces an aggregated report with a passing judge", async () => {
-    const r = await runEval({ ...baseOpts, corpus, client: smartStub({ answerModel: "answer-model", judgeModel: "judge-model" }) });
+    const r = await runEval({
+      ...baseOpts,
+      corpus,
+      client: smartStub({ answerModel: "answer-model", judgeModel: "judge-model" }),
+    });
     assert.equal(r.aborted, false);
     assert.ok(r.report);
     assert.equal(r.report!.overall.casesScored, 2);
@@ -64,7 +86,8 @@ describe("eval runner", () => {
     const flaky: ModelClient = {
       async complete(model, messages) {
         const user = messages.find((m) => m.role === "user")?.content ?? "";
-        if (model === "judge-model" && user.includes(CONTROL_PAIR.degraded)) return { text: "VERDICT: MATERIALLY_DIFFERS" };
+        if (model === "judge-model" && user.includes(CONTROL_PAIR.degraded))
+          return { text: "VERDICT: MATERIALLY_DIFFERS" };
         if (model === "judge-model") return { text: "VERDICT: SAME" };
         n += 1;
         if (n === 2) throw new Error("upstream 500"); // fail the 2nd answer call
@@ -88,7 +111,12 @@ describe("eval runner", () => {
   });
 
   it("--sample N limits the cases scored", async () => {
-    const r = await runEval({ ...baseOpts, sample: 1, corpus, client: smartStub({ answerModel: "answer-model", judgeModel: "judge-model" }) });
+    const r = await runEval({
+      ...baseOpts,
+      sample: 1,
+      corpus,
+      client: smartStub({ answerModel: "answer-model", judgeModel: "judge-model" }),
+    });
     assert.equal(r.report!.overall.casesScored + r.report!.overall.casesErrored, 1);
   });
 });

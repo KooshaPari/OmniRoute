@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * tests/integration/combo-live/auto.live.test.ts
  *
@@ -101,8 +102,7 @@ const PROVIDER_DEFAULT_MODELS: Record<string, string> = {
 
 async function isHealthy(conn: LiveConnection): Promise<boolean> {
   if (!h.LIVE_ENABLED) return false;
-  const model =
-    conn.model ?? PROVIDER_DEFAULT_MODELS[conn.provider] ?? `${conn.provider}/default`;
+  const model = conn.model ?? PROVIDER_DEFAULT_MODELS[conn.provider] ?? `${conn.provider}/default`;
   const directModel = `${conn.provider}/${model}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), WARMUP_TIMEOUT_MS);
@@ -180,83 +180,87 @@ after(async () => {
 // Test 1: auto — resolves the virtual pool to a real provider
 // ---------------------------------------------------------------------------
 
-test("live auto — resolves the virtual pool to a real provider and returns a valid completion", {
-  skip: !h.LIVE_ENABLED && "RUN_COMBO_LIVE!=1",
-}, async () => {
-  if (!h.LIVE_ENABLED) return;
+test(
+  "live auto — resolves the virtual pool to a real provider and returns a valid completion",
+  {
+    skip: !h.LIVE_ENABLED && "RUN_COMBO_LIVE!=1",
+  },
+  async () => {
+    if (!h.LIVE_ENABLED) return;
 
-  // Confirm at least 1 healthy connection exists — the auto virtual pool needs
-  // active DB connections to build its candidate list. The snapshot already has
-  // many active connections so this warmup call both confirms network access and
-  // ensures the pool will not be empty at resolution time.
-  const healthy = await pickConfirmedHealthy(1);
-  if (healthy.length < 1) {
-    console.log(
-      "[auto skip] No confirmed-healthy connections found — virtual auto pool " +
-      "cannot resolve without at least one reachable provider. Skipping."
+    // Confirm at least 1 healthy connection exists — the auto virtual pool needs
+    // active DB connections to build its candidate list. The snapshot already has
+    // many active connections so this warmup call both confirms network access and
+    // ensures the pool will not be empty at resolution time.
+    const healthy = await pickConfirmedHealthy(1);
+    if (healthy.length < 1) {
+      console.log(
+        "[auto skip] No confirmed-healthy connections found — virtual auto pool " +
+          "cannot resolve without at least one reachable provider. Skipping."
+      );
+      return;
+    }
+
+    const nonce = uniqueNonce("auto");
+    const response = await (h as any).handleChat(
+      (h as any).buildRequest({
+        body: (h as any).liveBody("auto", {
+          messages: [{ role: "user", content: `ping ${nonce}` }],
+        }),
+      })
     );
-    return;
+
+    assert.equal(
+      response.status,
+      200,
+      `Expected HTTP 200 from auto pool, got ${response.status}. ` +
+        `Auto virtual pool may have no eligible candidates or all returned errors.`
+    );
+
+    const text = await (h as any).readCompletionText(response);
+    assert.ok(
+      text.length > 0,
+      "Expected non-empty completion text from auto pool — pool resolved but " +
+        "returned an empty response body."
+    );
+
+    // Read the `model` field from the response body to confirm the auto pool
+    // resolved to a real model, not an error placeholder or empty string.
+    // This is the primary non-trivial assertion: a pure status-200 check could
+    // pass even if the response body is an error JSON. Checking the model field
+    // ties the pass to an actual provider serving a real completion.
+    const json = await response.clone().json();
+    const modelField: string | undefined = json?.model;
+
+    console.log(
+      `[auto] resolved to model="${modelField ?? "(absent)"}" | ` +
+        `text (first 80): "${text.slice(0, 80)}"`
+    );
+
+    assert.ok(
+      looksLikeRealModel(modelField),
+      `Expected response body 'model' field to be a real known model name, ` +
+        `got "${modelField ?? "(absent)"}". ` +
+        `Auto pool must resolve to a real provider, not return an error/empty body.`
+    );
+
+    // Secondary: try the served-provider helpers for additional signal.
+    const headerProvider = (h as any).servedProvider(response);
+    const bodyProvider = await (h as any).servedProviderFromBody(response);
+
+    if (headerProvider !== undefined) {
+      console.log(`[auto EVIDENCE via header] served provider="${headerProvider}"`);
+    }
+    if (bodyProvider !== undefined) {
+      console.log(`[auto EVIDENCE via body prefix] served provider="${bodyProvider}"`);
+    }
+
+    console.log(
+      `[auto PASS] virtual pool → model="${modelField}" | ` +
+        `header=${headerProvider ?? "absent"} | body=${bodyProvider ?? "absent"}`
+    );
   }
-
-  const nonce = uniqueNonce("auto");
-  const response = await (h as any).handleChat(
-    (h as any).buildRequest({
-      body: (h as any).liveBody("auto", {
-        messages: [{ role: "user", content: `ping ${nonce}` }],
-      }),
-    })
-  );
-
-  assert.equal(
-    response.status,
-    200,
-    `Expected HTTP 200 from auto pool, got ${response.status}. ` +
-    `Auto virtual pool may have no eligible candidates or all returned errors.`
-  );
-
-  const text = await (h as any).readCompletionText(response);
-  assert.ok(
-    text.length > 0,
-    "Expected non-empty completion text from auto pool — pool resolved but " +
-    "returned an empty response body."
-  );
-
-  // Read the `model` field from the response body to confirm the auto pool
-  // resolved to a real model, not an error placeholder or empty string.
-  // This is the primary non-trivial assertion: a pure status-200 check could
-  // pass even if the response body is an error JSON. Checking the model field
-  // ties the pass to an actual provider serving a real completion.
-  const json = await response.clone().json();
-  const modelField: string | undefined = json?.model;
-
-  console.log(
-    `[auto] resolved to model="${modelField ?? "(absent)"}" | ` +
-    `text (first 80): "${text.slice(0, 80)}"`
-  );
-
-  assert.ok(
-    looksLikeRealModel(modelField),
-    `Expected response body 'model' field to be a real known model name, ` +
-    `got "${modelField ?? "(absent)"}". ` +
-    `Auto pool must resolve to a real provider, not return an error/empty body.`
-  );
-
-  // Secondary: try the served-provider helpers for additional signal.
-  const headerProvider = (h as any).servedProvider(response);
-  const bodyProvider = await (h as any).servedProviderFromBody(response);
-
-  if (headerProvider !== undefined) {
-    console.log(`[auto EVIDENCE via header] served provider="${headerProvider}"`);
-  }
-  if (bodyProvider !== undefined) {
-    console.log(`[auto EVIDENCE via body prefix] served provider="${bodyProvider}"`);
-  }
-
-  console.log(
-    `[auto PASS] virtual pool → model="${modelField}" | ` +
-    `header=${headerProvider ?? "absent"} | body=${bodyProvider ?? "absent"}`
-  );
-});
+);
 
 // ---------------------------------------------------------------------------
 // Test 2: auto/fast — a variant pool resolves and responds
@@ -271,108 +275,112 @@ test("live auto — resolves the virtual pool to a real provider and returns a v
 // that are warmup-confirmed healthy, making it the safest variant to smoke-test.
 const SMOKE_VARIANT: (typeof VALID_VARIANTS)[number] = "fast";
 
-test(`live auto/${SMOKE_VARIANT} — a variant pool resolves and returns a valid completion`, {
-  skip: !h.LIVE_ENABLED && "RUN_COMBO_LIVE!=1",
-}, async () => {
-  if (!h.LIVE_ENABLED) return;
+test(
+  `live auto/${SMOKE_VARIANT} — a variant pool resolves and returns a valid completion`,
+  {
+    skip: !h.LIVE_ENABLED && "RUN_COMBO_LIVE!=1",
+  },
+  async () => {
+    if (!h.LIVE_ENABLED) return;
 
-  // Confirm SMOKE_VARIANT is a valid variant (defensive — autoPrefix.ts owns the list).
-  assert.ok(
-    VALID_VARIANTS.includes(SMOKE_VARIANT),
-    `SMOKE_VARIANT "${SMOKE_VARIANT}" is not in VALID_VARIANTS: [${VALID_VARIANTS.join(", ")}]`
-  );
-
-  // Warmup: ensure at least 1 healthy connection exists.
-  // The "fast" pool preferentially selects groq/cerebras/gemini; a healthy
-  // general candidate is sufficient to prove the variant can resolve.
-  const healthy = await pickConfirmedHealthy(1);
-  if (healthy.length < 1) {
-    console.log(
-      `[auto/${SMOKE_VARIANT} skip] No confirmed-healthy connections — ` +
-      `variant pool cannot resolve without at least one reachable provider. Skipping.`
+    // Confirm SMOKE_VARIANT is a valid variant (defensive — autoPrefix.ts owns the list).
+    assert.ok(
+      VALID_VARIANTS.includes(SMOKE_VARIANT),
+      `SMOKE_VARIANT "${SMOKE_VARIANT}" is not in VALID_VARIANTS: [${VALID_VARIANTS.join(", ")}]`
     );
-    return;
-  }
 
-  const nonce = uniqueNonce(`auto-${SMOKE_VARIANT}`);
-  const variantModel = `auto/${SMOKE_VARIANT}`;
-
-  const response = await (h as any).handleChat(
-    (h as any).buildRequest({
-      body: (h as any).liveBody(variantModel, {
-        messages: [{ role: "user", content: `ping ${nonce}` }],
-      }),
-    })
-  );
-
-  // A 400 with "unknown variant" or "invalid auto" means the variant is not
-  // recognized by the pipeline — that would be a bug. A 400 with "no eligible
-  // providers" / "empty pool" means the variant resolved but found no candidates
-  // with the available connections — that's a skip condition, not a failure.
-  if (response.status === 400) {
-    let errMsg = "";
-    try {
-      const errJson = await response.clone().json();
-      errMsg = errJson?.error?.message ?? errJson?.message ?? JSON.stringify(errJson);
-    } catch {
-      errMsg = "(unparseable body)";
-    }
-
-    const isUnknownVariant =
-      errMsg.toLowerCase().includes("unknown variant") ||
-      errMsg.toLowerCase().includes("invalid auto") ||
-      errMsg.toLowerCase().includes("not an auto");
-
-    if (isUnknownVariant) {
-      // This is a real failure: the variant should be recognized.
-      assert.fail(
-        `auto/${SMOKE_VARIANT} returned 400 "unknown variant" — ` +
-        `SMOKE_VARIANT is in VALID_VARIANTS but the pipeline rejected it. Error: ${errMsg}`
+    // Warmup: ensure at least 1 healthy connection exists.
+    // The "fast" pool preferentially selects groq/cerebras/gemini; a healthy
+    // general candidate is sufficient to prove the variant can resolve.
+    const healthy = await pickConfirmedHealthy(1);
+    if (healthy.length < 1) {
+      console.log(
+        `[auto/${SMOKE_VARIANT} skip] No confirmed-healthy connections — ` +
+          `variant pool cannot resolve without at least one reachable provider. Skipping.`
       );
+      return;
     }
 
-    // 400 for another reason (e.g. pool is empty / no eligible candidates):
-    // skip with a clear reason rather than failing.
-    console.log(
-      `[auto/${SMOKE_VARIANT} skip] Got HTTP 400 (non-unknown-variant): "${errMsg}". ` +
-      `Variant pool could not resolve with available connections — honest skip.`
+    const nonce = uniqueNonce(`auto-${SMOKE_VARIANT}`);
+    const variantModel = `auto/${SMOKE_VARIANT}`;
+
+    const response = await (h as any).handleChat(
+      (h as any).buildRequest({
+        body: (h as any).liveBody(variantModel, {
+          messages: [{ role: "user", content: `ping ${nonce}` }],
+        }),
+      })
     );
-    return;
+
+    // A 400 with "unknown variant" or "invalid auto" means the variant is not
+    // recognized by the pipeline — that would be a bug. A 400 with "no eligible
+    // providers" / "empty pool" means the variant resolved but found no candidates
+    // with the available connections — that's a skip condition, not a failure.
+    if (response.status === 400) {
+      let errMsg = "";
+      try {
+        const errJson = await response.clone().json();
+        errMsg = errJson?.error?.message ?? errJson?.message ?? JSON.stringify(errJson);
+      } catch {
+        errMsg = "(unparseable body)";
+      }
+
+      const isUnknownVariant =
+        errMsg.toLowerCase().includes("unknown variant") ||
+        errMsg.toLowerCase().includes("invalid auto") ||
+        errMsg.toLowerCase().includes("not an auto");
+
+      if (isUnknownVariant) {
+        // This is a real failure: the variant should be recognized.
+        assert.fail(
+          `auto/${SMOKE_VARIANT} returned 400 "unknown variant" — ` +
+            `SMOKE_VARIANT is in VALID_VARIANTS but the pipeline rejected it. Error: ${errMsg}`
+        );
+      }
+
+      // 400 for another reason (e.g. pool is empty / no eligible candidates):
+      // skip with a clear reason rather than failing.
+      console.log(
+        `[auto/${SMOKE_VARIANT} skip] Got HTTP 400 (non-unknown-variant): "${errMsg}". ` +
+          `Variant pool could not resolve with available connections — honest skip.`
+      );
+      return;
+    }
+
+    assert.equal(
+      response.status,
+      200,
+      `Expected HTTP 200 from auto/${SMOKE_VARIANT} pool, got ${response.status}`
+    );
+
+    const text = await (h as any).readCompletionText(response);
+    assert.ok(
+      text.length > 0,
+      `Expected non-empty completion from auto/${SMOKE_VARIANT} pool — ` +
+        `pool resolved but returned an empty response body.`
+    );
+
+    const json = await response.clone().json();
+    const modelField: string | undefined = json?.model;
+
+    console.log(
+      `[auto/${SMOKE_VARIANT}] resolved to model="${modelField ?? "(absent)"}" | ` +
+        `text (first 80): "${text.slice(0, 80)}"`
+    );
+
+    assert.ok(
+      looksLikeRealModel(modelField),
+      `Expected response body 'model' field to be a real known model, ` +
+        `got "${modelField ?? "(absent)"}". ` +
+        `auto/${SMOKE_VARIANT} must resolve to a real provider, not an error body.`
+    );
+
+    const headerProvider = (h as any).servedProvider(response);
+    const bodyProvider = await (h as any).servedProviderFromBody(response);
+
+    console.log(
+      `[auto/${SMOKE_VARIANT} PASS] model="${modelField}" | ` +
+        `header=${headerProvider ?? "absent"} | body=${bodyProvider ?? "absent"}`
+    );
   }
-
-  assert.equal(
-    response.status,
-    200,
-    `Expected HTTP 200 from auto/${SMOKE_VARIANT} pool, got ${response.status}`
-  );
-
-  const text = await (h as any).readCompletionText(response);
-  assert.ok(
-    text.length > 0,
-    `Expected non-empty completion from auto/${SMOKE_VARIANT} pool — ` +
-    `pool resolved but returned an empty response body.`
-  );
-
-  const json = await response.clone().json();
-  const modelField: string | undefined = json?.model;
-
-  console.log(
-    `[auto/${SMOKE_VARIANT}] resolved to model="${modelField ?? "(absent)"}" | ` +
-    `text (first 80): "${text.slice(0, 80)}"`
-  );
-
-  assert.ok(
-    looksLikeRealModel(modelField),
-    `Expected response body 'model' field to be a real known model, ` +
-    `got "${modelField ?? "(absent)"}". ` +
-    `auto/${SMOKE_VARIANT} must resolve to a real provider, not an error body.`
-  );
-
-  const headerProvider = (h as any).servedProvider(response);
-  const bodyProvider = await (h as any).servedProviderFromBody(response);
-
-  console.log(
-    `[auto/${SMOKE_VARIANT} PASS] model="${modelField}" | ` +
-    `header=${headerProvider ?? "absent"} | body=${bodyProvider ?? "absent"}`
-  );
-});
+);

@@ -61,7 +61,7 @@ efemeryczny klucz API, który utworzył, nawet przy awarii (blok `finally` w `sc
 
 Całe wyjście trafia do `homolog-report/` (gitignored):
 
-- `summary.md` — ta sama tabela wypisywana na stdout, jeden wiersz na warstwę (✅/❌ + szczegóły).
+- `summary.md` — ta sama tabela wypisywana na stdout, jeden wiersz na warstwę (/ + szczegóły).
 - `homolog-ctrf.json` — ujednolicony raport CTRF (scalenie wyników API/SSE, provider-smoke oraz
   UI) — to artefakt do dołączenia do check-listy release STOP #2.
 - `httpyac-junit.xml`, `api-ctrf.json`, `providers-ctrf.json`, `ui-ctrf.json` — surowe/pośrednie

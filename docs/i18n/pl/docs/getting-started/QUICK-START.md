@@ -109,7 +109,7 @@ To wszystko! Twoje IDE korzysta teraz z OmniRoute z automatycznym wyborem provid
 ```
 
 3. W panelu czatu Continue.dev wybierz `OmniRoute - Auto` — żądania będą szły do OmniRoute.
-4. (Opcjonalnie) Ćwiczenie dla czytelnika — niech Twoje IDE uzupełni `config.yaml` o pozostałe gotowe konfiguracje 😊
+4. (Opcjonalnie) Ćwiczenie dla czytelnika — niech Twoje IDE uzupełni `config.yaml` o pozostałe gotowe konfiguracje
 
 ### Przykład CLI: Codex CLI
 

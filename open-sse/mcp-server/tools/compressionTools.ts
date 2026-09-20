@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * OmniRoute MCP Compression Tools — Manage and monitor prompt compression.
  *

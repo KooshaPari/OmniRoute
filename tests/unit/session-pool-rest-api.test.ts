@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Session Pool REST API — Unit Tests (PR7 of issue #3368)
  *
@@ -9,14 +10,16 @@ import assert from "node:assert/strict";
 import type { WebSessionPoolHealthDeps } from "../../open-sse/services/webSessionPoolHealth.ts";
 import { getWebSessionPoolHealth } from "../../open-sse/services/webSessionPoolHealth.ts";
 
-function createMockDeps(overrides: {
-  providers?: string[];
-  stats?: Record<string, any>;
-  sessionDetails?: Record<string, any[]>;
-  breakerCooldown?: Record<string, boolean>;
-  breakerRemaining?: Record<string, number | null>;
-  breakerStates?: Record<string, any>;
-} = {}): WebSessionPoolHealthDeps {
+function createMockDeps(
+  overrides: {
+    providers?: string[];
+    stats?: Record<string, any>;
+    sessionDetails?: Record<string, any[]>;
+    breakerCooldown?: Record<string, boolean>;
+    breakerRemaining?: Record<string, number | null>;
+    breakerStates?: Record<string, any>;
+  } = {}
+): WebSessionPoolHealthDeps {
   const providers = overrides.providers ?? [];
   const stats = overrides.stats ?? {};
   const sessionDetails = overrides.sessionDetails ?? {};

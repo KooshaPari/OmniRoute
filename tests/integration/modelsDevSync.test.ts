@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Integration tests for models.dev sync: live fetch → DB save → retrieve → resolution order.
  *

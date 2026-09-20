@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 //
 // Issue #9557 UI regression: the Model Overrides dashboard tab must render and

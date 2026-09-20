@@ -27,7 +27,7 @@ export function selectImpacted({ changed, map }) {
       out.add(f);
       continue;
     }
-    // Impact map only indexes imports under src/ + open-sse/. electron/ and bin/
+    // Impact map only indexes imports under src/ + open-sse/. apps/desktop/ (Tauri 2) and bin/
     // are not unit-mapped; treating them as unmapped used to force __RUN_ALL__ and
     // a full unit suite for pure CLI/desktop PRs. Package/smoke jobs cover those.
     const isSource = f.startsWith("src/") || f.startsWith("open-sse/");

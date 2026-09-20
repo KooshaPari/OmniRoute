@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 export type FieldCategory = "content" | "reasoning" | "toolArgs" | "partialJson";
 
 const CATEGORY_MAP: Record<string, FieldCategory> = {

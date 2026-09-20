@@ -319,7 +319,6 @@ const nextConfig = {
       "**/.slim/**",
       "**/packages/**",
       "**/.tmp/**",
-      "**/electron/**",
       "**/docs/**",
     ],
   },
@@ -553,7 +552,12 @@ const nextConfig = {
       { source: "/docs/docker-guide", destination: "/docs/guides/docker-guide", permanent: true },
       {
         source: "/docs/electron-guide",
-        destination: "/docs/guides/electron-guide",
+        destination: "/docs/guides/desktop-guide",
+        permanent: true,
+      },
+      {
+        source: "/docs/guides/electron-guide",
+        destination: "/docs/guides/desktop-guide",
         permanent: true,
       },
       { source: "/docs/features", destination: "/docs/guides/features", permanent: true },

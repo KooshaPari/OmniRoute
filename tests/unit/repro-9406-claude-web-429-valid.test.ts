@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // Issue #9406 — claude-web connection test treats 429 as healthy.
 //
 // Bug 1: validateClaudeWebProvider returns valid:true for 429, so
@@ -22,7 +23,10 @@ const EXECUTOR_PATH = "../../open-sse/executors/claude-web.ts";
 
 /** Calls __setTlsFetchOverrideForTesting with the given mock, resets on finish. */
 async function withTlsMock<T>(
-  mock: (url: string, options: Record<string, unknown>) => Promise<{
+  mock: (
+    url: string,
+    options: Record<string, unknown>
+  ) => Promise<{
     status: number;
     headers: Headers;
     text: string | null;

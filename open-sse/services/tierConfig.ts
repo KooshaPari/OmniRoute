@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tier configuration schema with Zod validation and sensible defaults.
  *

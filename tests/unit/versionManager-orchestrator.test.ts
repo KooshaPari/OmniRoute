@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
 

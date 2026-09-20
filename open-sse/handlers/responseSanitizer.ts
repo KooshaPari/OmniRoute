@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import {
   copyOpenAICompatibleReasoningFields,
   getReadableReasoningValue,
@@ -1095,7 +1096,10 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
 
   // Fast-path: check if any mutations would actually be needed
   // Most passthrough chunks (content deltas) need no sanitization
-  const needsIdNormalization = parsedRecord.id !== undefined && parsedRecord.id !== null && typeof parsedRecord.id !== "string";
+  const needsIdNormalization =
+    parsedRecord.id !== undefined &&
+    parsedRecord.id !== null &&
+    typeof parsedRecord.id !== "string";
   const hasChoices = Array.isArray(parsedRecord.choices) && parsedRecord.choices.length > 0;
   const hasUsage = parsedRecord.usage !== undefined;
   const hasSystemFingerprint = parsedRecord.system_fingerprint !== undefined;

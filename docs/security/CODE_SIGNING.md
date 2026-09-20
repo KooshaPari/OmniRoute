@@ -7,7 +7,7 @@ lastUpdated: 2026-07-18
 
 # Code Signing for OmniRoute Desktop
 
-> How to sign and notarize the Electron desktop app for macOS and Windows.
+> How to sign and notarize the Tauri 2 desktop app (`apps/desktop/`) for macOS and Windows.
 
 ## macOS
 
@@ -30,10 +30,12 @@ brew install rcodesign
 ### Build signed app
 
 ```bash
-cd electron
-CSC_LINK=file:///path/to/cert.p12 \
-CSC_KEY_PASSWORD=your-password \
-npm run build
+cd apps/desktop/src-tauri
+
+# Supply the Apple Developer ID certificate to the Tauri bundler through the
+# standard Apple signing environment, e.g. APPLE_CERTIFICATE,
+# APPLE_CERTIFICATE_PASSWORD and APPLE_SIGNING_IDENTITY.
+cargo tauri build
 ```
 
 ### Notarize
@@ -72,10 +74,8 @@ export AZURE_TENANT_ID=xxx
 ### Build signed app
 
 ```powershell
-$env:CSC_LINK = "file:///path/to/cert.p12"
-$env:CSC_KEY_PASSWORD = "your-password"
-cd electron
-npm run build
+cd apps/desktop/src-tauri
+cargo tauri build
 ```
 
 ## Verification

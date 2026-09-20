@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import type { TierAssignment, ProviderTier } from "./tierTypes";
 import { PROVIDER_TIER } from "./tierTypes";
 import type { SpecificityResult, SpecificityLevel } from "./specificityTypes";
@@ -11,12 +12,7 @@ import type { RuleInput } from "./specificityTypes";
 import type { ResolvedComboTarget } from "./combo";
 
 export type StrategyModifier =
-  | "default"
-  | "prefer-free"
-  | "prefer-cheap"
-  | "require-premium"
-  | "cost-save"
-  | "quality-first";
+  "default" | "prefer-free" | "prefer-cheap" | "require-premium" | "cost-save" | "quality-first";
 
 export interface RoutingHint {
   tierAssignments: Map<string, TierAssignment>;

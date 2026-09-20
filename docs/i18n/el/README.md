@@ -1,6 +1,6 @@
 # README (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../README.md) · 🇸🇦 [ar](../ar/README.md) · 🇦🇿 [az](../az/README.md) · 🇧🇬 [bg](../bg/README.md) · 🇧🇩 [bn](../bn/README.md) · 🇨🇿 [cs](../cs/README.md) · 🇩🇰 [da](../da/README.md) · 🇩🇪 [de](../de/README.md) · 🇪🇸 [es](../es/README.md) · 🇪🇪 [et](../et/README.md) · 🇮🇷 [fa](../fa/README.md) · 🇫🇮 [fi](../fi/README.md) · 🇫🇷 [fr](../fr/README.md) · 🇮🇪 [ga](../ga/README.md) · 🇮🇳 [gu](../gu/README.md) · 🇮🇱 [he](../he/README.md) · 🇮🇳 [hi](../hi/README.md) · 🇭🇷 [hr](../hr/README.md) · 🇭🇺 [hu](../hu/README.md) · 🇮🇩 [id](../id/README.md) · 🇮🇹 [it](../it/README.md) · 🇯🇵 [ja](../ja/README.md) · 🇰🇷 [ko](../ko/README.md) · 🇱🇹 [lt](../lt/README.md) · 🇱🇻 [lv](../lv/README.md) · 🇮🇳 [mr](../mr/README.md) · 🇲🇾 [ms](../ms/README.md) · 🇲🇹 [mt](../mt/README.md) · 🇳🇱 [nl](../nl/README.md) · 🇳🇴 [no](../no/README.md) · 🇵🇭 [phi](../phi/README.md) · 🇵🇱 [pl](../pl/README.md) · 🇵🇹 [pt](../pt/README.md) · 🇧🇷 [pt-BR](../pt-BR/README.md) · 🇷🇴 [ro](../ro/README.md) · 🇷🇺 [ru](../ru/README.md) · 🇸🇰 [sk](../sk/README.md) · 🇸🇮 [sl](../sl/README.md) · 🇷🇸 [sr](../sr/README.md) · 🇸🇪 [sv](../sv/README.md) · 🇰🇪 [sw](../sw/README.md) · 🇮🇳 [ta](../ta/README.md) · 🇮🇳 [te](../te/README.md) · 🇹🇭 [th](../th/README.md) · 🇹🇷 [tr](../tr/README.md) · 🇺🇦 [uk-UA](../uk-UA/README.md) · 🇵🇰 [ur](../ur/README.md) · 🇻🇳 [vi](../vi/README.md) · 🇨🇳 [zh-CN](../zh-CN/README.md) · 🇹🇼 [zh-TW](../zh-TW/README.md)
+**Languages:** [English](../../../README.md) · [ar](../ar/README.md) · [az](../az/README.md) · [bg](../bg/README.md) · [bn](../bn/README.md) · [cs](../cs/README.md) · [da](../da/README.md) · [de](../de/README.md) · [es](../es/README.md) · [et](../et/README.md) · [fa](../fa/README.md) · [fi](../fi/README.md) · [fr](../fr/README.md) · [ga](../ga/README.md) · [gu](../gu/README.md) · [he](../he/README.md) · [hi](../hi/README.md) · [hr](../hr/README.md) · [hu](../hu/README.md) · [id](../id/README.md) · [it](../it/README.md) · [ja](../ja/README.md) · [ko](../ko/README.md) · [lt](../lt/README.md) · [lv](../lv/README.md) · [mr](../mr/README.md) · [ms](../ms/README.md) · [mt](../mt/README.md) · [nl](../nl/README.md) · [no](../no/README.md) · [phi](../phi/README.md) · [pl](../pl/README.md) · [pt](../pt/README.md) · [pt-BR](../pt-BR/README.md) · [ro](../ro/README.md) · [ru](../ru/README.md) · [sk](../sk/README.md) · [sl](../sl/README.md) · [sr](../sr/README.md) · [sv](../sv/README.md) · [sw](../sw/README.md) · [ta](../ta/README.md) · [te](../te/README.md) · [th](../th/README.md) · [tr](../tr/README.md) · [uk-UA](../uk-UA/README.md) · [ur](../ur/README.md) · [vi](../vi/README.md) · [zh-CN](../zh-CN/README.md) · [zh-TW](../zh-TW/README.md)
 
 ---
 
@@ -11,7 +11,7 @@
 <br/>
 <br/>
 
-# 🚀 OmniRoute — Η Δωρεάν Πύλη AI
+# OmniRoute — Η Δωρεάν Πύλη AI
 
 <img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Never stop coding. Every AI tool → 355 providers — 150+ free — through one endpoint. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini with auto-fallback. RTK + Caveman stacked compression saves 15–95% tokens (~89% avg) — never hit limits. 355 AI providers · 150+ free tiers · ~1.51B free tokens/mo · 19 routing strategies · $0 to start."/>
 
@@ -19,7 +19,7 @@
 
 <div align="center">
 
-## 💰 ~1,51 δισ. Δωρεάν Tokens / Μήνα
+## ~1,51 δισ. Δωρεάν Tokens / Μήνα
 
 </div>
 
@@ -46,9 +46,9 @@
 [![Star History Rank](https://api.star-history.com/badge?repo=diegosouzapw/OmniRoute&theme=dark)](https://www.star-history.com/diegosouzapw/omniroute)
 [![olud.ai](https://olud.ai/badge.php?tool=diegosouzapw-omniroute)](https://olud.ai/project/diegosouzapw-omniroute.html)
 
-### 💬 Γίνετε μέλος της κοινότητας
+### Γίνετε μέλος της κοινότητας
 
-**👋 Ακολουθήστε τον συντηρητή — λάβετε πρώτοι νέους παρόχους, εκδόσεις & συμβουλές:**
+** Ακολουθήστε τον συντηρητή — λάβετε πρώτοι νέους παρόχους, εκδόσεις & συμβουλές:**
 
 [![Follow Diego on LinkedIn](https://img.shields.io/badge/Follow_Diego_on-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/diegosouzapw/)
 [![Follow @diegosouzapw on GitHub](https://img.shields.io/github/followers/diegosouzapw?style=for-the-badge&logo=github&logoColor=white&label=Follow%20on%20GitHub&color=181717)](https://github.com/diegosouzapw)
@@ -59,22 +59,22 @@
 [![WhatsApp Brasil](https://img.shields.io/badge/WhatsApp_Brasil-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4)
 [![Website](https://img.shields.io/badge/Website-omniroute.online-blue?logo=google-chrome&logoColor=white)](https://omniroute.online)
 
-**Ερωτήσεις, συμβουλές για παρόχους, οδικός χάρτης & υποστήριξη → [Discord](https://discord.gg/U47eFqAXCn) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [🌍 Global](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4) / [🇧🇷 Brasil](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4) / [Portal](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)**
+**Ερωτήσεις, συμβουλές για παρόχους, οδικός χάρτης & υποστήριξη → [Discord](https://discord.gg/U47eFqAXCn) · [Telegram](https://t.me/omnirouteOficial) · WhatsApp [ Global](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4) / [ Brasil](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4) / [Portal](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)**
 
 <br/>
 
-## 📈 Η Πύλη Συνεχίζει να Μεγαλώνει
+## Η Πύλη Συνεχίζει να Μεγαλώνει
 
 <div align="center">
 
-|                                           | v3.8.49 |        **v3.8.50**        |       `v3.8.51+`       |
-| ----------------------------------------- | :-----: | :-----------------------: | :--------------------: |
-| 🌐 Πάροχοι                                |   290   |          **352**          | περισσότεροι στην ουρά |
-| 🧠 Μοναδικά IDs μοντέλων chat             |  1185   |         **1312**          |           —            |
-| 🖼️ Γέφυρα Τρόπων                          |    —    | 🆕 vision + audio + video |           —            |
-| 📡 Δωρεάν κατάλογος Radar                 |    —    |         🆕 opt-in         |           —            |
-| ⚖️ Χρονοπρογραμματισμός με επίγνωση ορίων |    —    |      🆕 Quota-Share       |           —            |
-| 📊 Τηλεμετρία ορίων                       |    —    |        🆕 ζωντανά         |           —            |
+|                                        | v3.8.49 |      **v3.8.50**       |       `v3.8.51+`       |
+| -------------------------------------- | :-----: | :--------------------: | :--------------------: |
+| Πάροχοι                                |   290   |        **352**         | περισσότεροι στην ουρά |
+| Μοναδικά IDs μοντέλων chat             |  1185   |        **1312**        |           —            |
+| Γέφυρα Τρόπων                          |    —    | vision + audio + video |           —            |
+| Δωρεάν κατάλογος Radar                 |    —    |         opt-in         |           —            |
+| Χρονοπρογραμματισμός με επίγνωση ορίων |    —    |      Quota-Share       |           —            |
+| Τηλεμετρία ορίων                       |    —    |        ζωντανά         |           —            |
 
 **→ [Οδικός Χάρτης](ROADMAP.md) — στον δρόμο προς `v3.9.0 LTS`**
 
@@ -82,64 +82,64 @@
 
 <br/>
 
-## 🧩 Διαθέσιμο
+## Διαθέσιμο
 
 [![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
 ![NPM Monthly](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
 [![Docker Hub](https://img.shields.io/docker/v/diegosouzapw/omniroute?label=Docker%20Hub&logo=docker&color=2496ED)](https://hub.docker.com/r/diegosouzapw/omniroute)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 ![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
-![Electron Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
+![Desktop Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=desktop%20downloads&logo=desktop&color=47848F)
 
 <table>
   <tr>
-    <td align="right"><b>🚀 Έναρξη</b></td>
-    <td align="center"><a href="#-quick-start">🚀 Γρήγορη Εκκίνηση</a></td>
-    <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Εγκατάσταση</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Μηδενική διαμόρφωση</a></td>
+    <td align="right"><b> Έναρξη</b></td>
+    <td align="center"><a href="#-quick-start"> Γρήγορη Εκκίνηση</a></td>
+    <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch"> Εγκατάσταση</a></td>
+    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config"> Μηδενική διαμόρφωση</a></td>
   </tr>
   <tr>
-    <td align="right"><b>💡 Μάθε</b></td>
-    <td align="center"><a href="#-the-promise">💥 Η Υπόσχεση</a></td>
-    <td align="center"><a href="#-why-omniroute">🤔 Γιατί OmniRoute</a></td>
-    <td align="center"><a href="#-what-sets-omniroute-apart">🏆 Τι το Ξεχωρίζει</a></td>
+    <td align="right"><b> Μάθε</b></td>
+    <td align="center"><a href="#-the-promise"> Η Υπόσχεση</a></td>
+    <td align="center"><a href="#-why-omniroute"> Γιατί OmniRoute</a></td>
+    <td align="center"><a href="#-what-sets-omniroute-apart"> Τι το Ξεχωρίζει</a></td>
   </tr>
   <tr>
-    <td align="right"><b>⚙️ Λειτουργίες</b></td>
-    <td align="center"><a href="#-combos--the-flagship">🎯 Combos</a></td>
-    <td align="center"><a href="#-352-ai-providers--154-catalog-marked-free">🌐 Πάροχοι</a></td>
-    <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
+    <td align="right"><b> Λειτουργίες</b></td>
+    <td align="center"><a href="#-combos--the-flagship"> Combos</a></td>
+    <td align="center"><a href="#-352-ai-providers--154-catalog-marked-free"> Πάροχοι</a></td>
+    <td align="center"><a href="#-full-cli--a2a--mcp"> CLI &amp; MCP</a></td>
   </tr>
   <tr>
     <td align="right"></td>
-    <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically">🗜️ Συμπίεση</a></td>
-    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere">🖥️ Πού Τρέχει</a></td>
-    <td align="center"><a href="#-private--local-first">🔒 Ιδιωτικό</a></td>
+    <td align="center"><a href="#%EF%B8%8F-save-1595-tokens--automatically"> Συμπίεση</a></td>
+    <td align="center"><a href="#%EF%B8%8F-where-omniroute-runs--anywhere"> Πού Τρέχει</a></td>
+    <td align="center"><a href="#-private--local-first"> Ιδιωτικό</a></td>
   </tr>
   <tr>
-    <td align="right"><b>👀 Δες το</b></td>
-    <td align="center"><a href="#-omniroute-in-action">🎬 Σε Δράση</a></td>
-    <td align="center"><a href="#-whats-new">✨ Τι Νέο Υπάρχει</a></td>
-    <td align="center"><a href="#-compatible-clis--coding-agents">🤖 Συμβατά CLIs</a></td>
+    <td align="right"><b> Δες το</b></td>
+    <td align="center"><a href="#-omniroute-in-action"> Σε Δράση</a></td>
+    <td align="center"><a href="#-whats-new"> Τι Νέο Υπάρχει</a></td>
+    <td align="center"><a href="#-compatible-clis--coding-agents"> Συμβατά CLIs</a></td>
   </tr>
   <tr>
-    <td align="right"><b>💚 Υποστήριξη</b></td>
-    <td align="center"><a href="#-support-omniroute">💚 Υποστήριξη / Δωρεά</a></td>
-    <td align="center"><a href="#-community--help">💬 Κοινότητα</a></td>
-    <td align="center"><a href="#-sponsors">💖 Χορηγοί</a></td>
+    <td align="right"><b> Υποστήριξη</b></td>
+    <td align="center"><a href="#-support-omniroute"> Υποστήριξη / Δωρεά</a></td>
+    <td align="center"><a href="#-community--help"> Κοινότητα</a></td>
+    <td align="center"><a href="#-sponsors"> Χορηγοί</a></td>
   </tr>
   <tr>
-    <td align="right"><b>📦 Έργο</b></td>
-    <td align="center"><a href="#%EF%B8%8F-tech-stack">🛠️ Τεχνολογικό Σύνολο</a></td>
-    <td align="center"><a href="#-documentation">📖 Τεκμηρίωση</a></td>
-    <td align="center"><a href="#-600-contributors">👥 Συνεισφέροντες</a></td>
+    <td align="right"><b> Έργο</b></td>
+    <td align="center"><a href="#%EF%B8%8F-tech-stack"> Τεχνολογικό Σύνολο</a></td>
+    <td align="center"><a href="#-documentation"> Τεκμηρίωση</a></td>
+    <td align="center"><a href="#-600-contributors"> Συνεισφέροντες</a></td>
   </tr>
 </table>
 
 </div>
 
 <div align="center">
-  <b>🌐 Σε 42 γλώσσες</b>
+  <b> Σε 42 γλώσσες</b>
   <br/><br/>
   <a href="README.md"><img src="docs/assets/flags/us.svg" width="30" alt="English (en)" title="English (en)"></a>
   <a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="30" alt="Português — Brasil (pt-BR)" title="Português — Brasil (pt-BR)"></a>
@@ -190,7 +190,7 @@
 
 <div align="center">
 
-## 🆓 Λειτουργεί αμέσως μετά την εγκατάσταση — χωρίς κλειδιά, χωρίς ρύθμιση
+## Λειτουργεί αμέσως μετά την εγκατάσταση — χωρίς κλειδιά, χωρίς ρύθμιση
 
 </div>
 
@@ -205,13 +205,13 @@ curl http://localhost:20128/v1/chat/completions \
 
 <sub>Προτιμάς συγκεκριμένο δωρεάν backend; Κάλεσε το `oc/…` (OpenCode Free) απευθείας. Μετά προχώρησε στο `auto` και άσε το OmniRoute να επιλέξει.</sub>
 
-<sub>📦 Σενάρια quickstart για αντιγραφή-επικόλληση για **Python, Node.js, PHP και cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub> Σενάρια quickstart για αντιγραφή-επικόλληση για **Python, Node.js, PHP και cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 Η Υπόσχεση
+# Η Υπόσχεση
 
 </div>
 
@@ -222,7 +222,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-# 🤔 Γιατί OmniRoute;
+# Γιατί OmniRoute;
 
 </div>
 
@@ -238,7 +238,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤝 Υποστηρίζεται από τους Φίλους μας στο Open Source
+## Υποστηρίζεται από τους Φίλους μας στο Open Source
 
 </div>
 
@@ -289,9 +289,9 @@ curl http://localhost:20128/v1/chat/completions \
 <br/>
 
 <details open>
-<summary><sub><b>🎟️ Προσφορές Συνεργατών</b> — δωρεάν κουπόνια εγγραφής από παρόχους που δεν μας χορηγούν (κάντε κλικ για ανάπτυξη)</sub></summary>
+<summary><sub><b> Προσφορές Συνεργατών</b> — δωρεάν κουπόνια εγγραφής από παρόχους που δεν μας χορηγούν (κάντε κλικ για ανάπτυξη)</sub></summary>
 
-<sub><i>Αυτή η ενότητα αφορά μόνο κωδικούς παραπομπής/κουπόνια. Οι χορηγούμενες συνεργασίες βρίσκονται στην ενότητα <b>🤝 Υποστηρίζεται από τους Φίλους μας στο Open Source</b> παραπάνω. Το OmniRoute δεν έχει χορηγία ή συνεργασία με τους παρόχους που αναφέρονται εδώ — αυτά είναι δημόσια κουπόνια που μπορεί να χρησιμοποιήσει ο καθένας.</i></sub>
+<sub><i>Αυτή η ενότητα αφορά μόνο κωδικούς παραπομπής/κουπόνια. Οι χορηγούμενες συνεργασίες βρίσκονται στην ενότητα <b> Υποστηρίζεται από τους Φίλους μας στο Open Source</b> παραπάνω. Το OmniRoute δεν έχει χορηγία ή συνεργασία με τους παρόχους που αναφέρονται εδώ — αυτά είναι δημόσια κουπόνια που μπορεί να χρησιμοποιήσει ο καθένας.</i></sub>
 
 <table>
   <tr>
@@ -304,7 +304,7 @@ curl http://localhost:20128/v1/chat/completions \
     <td>
       <sub><b><a href="https://agentrouter.org/register?aff=70LM">AgentRouter</a></b> — εγγραφή συνεργάτη · <b>$100 δωρεάν credits</b> κατά την εγγραφή (δωρεάν διακομιστής, αναμένετε υψηλότερη καθυστέρηση — κατάλληλο για δοκιμές, όχι για παραγωγή). Πρωτοβάθμια υποστήριξη στο OmniRoute από την <b>v3.8.50</b>: Chat Completions, η μορφή wire συμβατή με Anthropic και η διαδρομή συμβατή με OpenAI. Τα διαθέσιμα μοντέλα περιλαμβάνουν <code>claude-opus-4-8</code>, <code>claude-opus-5</code>, <code>gpt-5.6-sol</code> και άλλα. <b><a href="https://agentrouter.org/register?aff=70LM">Πάρτε τα $100 σας →</a></b></sub>
       <br/><br/>
-      <sub>⚠️ <i>Σύνδεσμος συνεργάτη — το OmniRoute δεν έχει χορηγία ή συνεργασία με αυτόν τον πάροχο.</i></sub>
+      <sub> <i>Σύνδεσμος συνεργάτη — το OmniRoute δεν έχει χορηγία ή συνεργασία με αυτόν τον πάροχο.</i></sub>
     </td>
   </tr>
 </table>
@@ -317,33 +317,33 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🎯 Combos — Η Ναυαρχίδα
+## Combos — Η Ναυαρχίδα
 
 </div>
 
 <img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="Και οι 19 στρατηγικές δρομολόγησης combo σε κίνηση — ένα πλακίδιο ανά στρατηγική: priority, fill-first, weighted, round-robin, p2c, least-used, random, strict-random, cost-optimized, headroom, reset-window, reset-aware, context-relay, context-optimized, cache-optimized, lkgp, auto, fusion, pipeline. Δείτε τον παραπάνω πίνακα για το τι κάνει η καθεμία."/>
 
-> Ένα **combo** είναι μια αλυσίδα μοντέλων στην οποία το OmniRoute δρομολογεί **αυτόματα**. Αν εξαντληθεί η ποσόστωση, αποτύχει ένας πάροχος ή εκτιναχθεί το κόστος, το combo μπορεί να μεταβεί στο επόμενο υγιές μοντέλο που πληροί τις προϋποθέσεις. 🛡️
+> Ένα **combo** είναι μια αλυσίδα μοντέλων στην οποία το OmniRoute δρομολογεί **αυτόματα**. Αν εξαντληθεί η ποσόστωση, αποτύχει ένας πάροχος ή εκτιναχθεί το κόστος, το combo μπορεί να μεταβεί στο επόμενο υγιές μοντέλο που πληροί τις προϋποθέσεις.
 
-### ⚡ Μηδενική ρύθμιση — απλώς χρησιμοποιήστε το `auto`
+### Μηδενική ρύθμιση — απλώς χρησιμοποιήστε το `auto`
 
 Δεν χρειάζεται να δημιουργήσετε combo. Ορίστε το μοντέλο σας σε `auto` (ή μια παραλλαγή) και το OmniRoute δημιουργεί ένα εικονικό combo από τους συνδεδεμένους παρόχους σας, βαθμολογημένο σε πραγματικό χρόνο:
 
 <table>
   <tr><th align="left">ID Μοντέλου</th><th align="left">Τι βελτιστοποιεί</th></tr>
-  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Ισορροπημένη προεπιλογή (LKGP — παραμένει στον τελευταίο καλό πάροχό σας)</td></tr>
-  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 Βάρη με προτεραιότητα στην ποιότητα για παραγωγή κώδικα</td></tr>
-  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Χαμηλότερη λανθάνουσα κατάσταση πρώτα</td></tr>
-  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Φθηνότερο ανά token πρώτα</td></tr>
-  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Μεγαλύτερη ποσόστωση / περιθώριο ορίου ρυθμού πρώτα</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Προτεραιότητα στην ποιότητα + 10% εξερεύνηση για ανακάλυψη καλύτερων μοντέλων</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 Ρητή παραμονή στον τελευταίο γνωστό-καλό-πάροχο</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 Βάρη έγχυσης σφαλμάτων για δοκιμές ανθεκτικότητας (chaos engineering)</td></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left"> Ισορροπημένη προεπιλογή (LKGP — παραμένει στον τελευταίο καλό πάροχό σας)</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left"> Βάρη με προτεραιότητα στην ποιότητα για παραγωγή κώδικα</td></tr>
+  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left"> Χαμηλότερη λανθάνουσα κατάσταση πρώτα</td></tr>
+  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left"> Φθηνότερο ανά token πρώτα</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left"> Μεγαλύτερη ποσόστωση / περιθώριο ορίου ρυθμού πρώτα</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left"> Προτεραιότητα στην ποιότητα + 10% εξερεύνηση για ανακάλυψη καλύτερων μοντέλων</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left"> Ρητή παραμονή στον τελευταίο γνωστό-καλό-πάροχο</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left"> Βάρη έγχυσης σφαλμάτων για δοκιμές ανθεκτικότητας (chaos engineering)</td></tr>
 </table>
 
 ##
 
-### 🔀 Ή φτιάξτε το δικό σας — 19 στρατηγικές δρομολόγησης
+### Ή φτιάξτε το δικό σας — 19 στρατηγικές δρομολόγησης
 
 Και οι **19** στρατηγικές — συνδυάστε τις ελεύθερα ανά βήμα combo:
 
@@ -356,7 +356,7 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>Διατεταγμένη λίστα με πρώτο στόχο — εξαντλεί τον καθένα πριν προχωρήσει στον επόμενο 🥇</td>
+    <td>Διατεταγμένη λίστα με πρώτο στόχο — εξαντλεί τον καθένα πριν προχωρήσει στον επόμενο </td>
   </tr>
   <tr>
     <td align="center">2</td>
@@ -391,12 +391,12 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>Τυχαία επιλογή χωρίς αποεπανάληψη 🎲</td>
+    <td>Τυχαία επιλογή χωρίς αποεπανάληψη </td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>Ελαχιστοποίηση $ ανά αίτημα από τιμοκατάλογο σε πραγματικό χρόνο 💸</td>
+    <td>Ελαχιστοποίηση $ ανά αίτημα από τιμοκατάλογο σε πραγματικό χρόνο </td>
   </tr>
   <tr>
     <td align="center">10</td>
@@ -411,12 +411,12 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>Κατάταξη με βάση τον χρόνο επαναφοράς ποσόστωσης — πρώτα τα σύντομα παράθυρα 📊</td>
+    <td>Κατάταξη με βάση τον χρόνο επαναφοράς ποσόστωσης — πρώτα τα σύντομα παράθυρα </td>
   </tr>
   <tr>
     <td align="center">13</td>
     <td nowrap><code>context-relay</code></td>
-    <td>Μεταβίβαση πλαισίου μεταξύ στόχων για μακρές συνομιλίες 🧠</td>
+    <td>Μεταβίβαση πλαισίου μεταξύ στόχων για μακρές συνομιλίες </td>
   </tr>
   <tr>
     <td align="center">14</td>
@@ -426,7 +426,7 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>Καρφιτσώνει κάθε επαναχρησιμοποιήσιμο πρόθεμα προτροπής στον ίδιο λογαριασμό — μέγιστες επιτυχίες προσωρινής αποθήκευσης προτροπής 🎯</td>
+    <td>Καρφιτσώνει κάθε επαναχρησιμοποιήσιμο πρόθεμα προτροπής στον ίδιο λογαριασμό — μέγιστες επιτυχίες προσωρινής αποθήκευσης προτροπής </td>
   </tr>
   <tr>
     <td align="center">16</td>
@@ -436,17 +436,17 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>Ζωντανή βαθμολόγηση 16 παραγόντων σε κάθε σύνδεση 🤖</td>
+    <td>Ζωντανή βαθμολόγηση 16 παραγόντων σε κάθε σύνδεση </td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>Εκπομπή σε ομάδα μοντέλων + ένας κριτής συνθέτει μία απάντηση 🧬</td>
+    <td>Εκπομπή σε ομάδα μοντέλων + ένας κριτής συνθέτει μία απάντηση </td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>Αλυσίδα βημάτων — η έξοδος κάθε στόχου τροφοδοτεί τον επόμενο 🔗</td>
+    <td>Αλυσίδα βημάτων — η έξοδος κάθε στόχου τροφοδοτεί τον επόμενο </td>
   </tr>
 </table>
 
@@ -454,41 +454,41 @@ curl http://localhost:20128/v1/chat/completions \
 
 ##
 
-### 🧱 Η ανθεκτικότητα είναι ενσωματωμένη (3 ανεξάρτητα επίπεδα)
+### Η ανθεκτικότητα είναι ενσωματωμένη (3 ανεξάρτητα επίπεδα)
 
 <img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="Ανθεκτικότητα OmniRoute — 3 ανεξάρτητα επίπεδα αυτο-επούλωσης, το κατάλληλο επίπεδο για κάθε τύπο αποτυχίας. Επίπεδο 1 διακόπτης κυκλώματος παρόχου (ολόκληρος ο πάροχος): ενεργοποιείται μόνο για 408/5xx, κατώφλια OAuth 8× / κλειδί-API 12× / τοπικό 2×, επαναφορά 60s/30s/15s σε δοκιμαστική κατάσταση HALF-OPEN, ανάκτηση με τεμπελιά· ενώ είναι ΑΝΟΙΧΤΟΣ το combo δρομολογεί στον επόμενο πάροχο. Επίπεδο 2 ψύξη σύνδεσης (ένα κλειδί/λογαριασμός): βάση 5s OAuth / 3s κλειδί-API, εκθετική υπαναχώρηση ×2 με προστασία αντι-thundering-herd, το 429 τιμά το Retry-After, η επιτυχία καθαρίζει όλη την κατάσταση σφάλματος· ένα κλειδί που ψύχεται παραλείπεται ενώ τα αδελφά κλειδιά συνεχίζουν να εξυπηρετούν. Επίπεδο 3 αποκλεισμός μοντέλου (ένα μοντέλο): 429 ανά μοντέλο, τοπικό 404 ή αρνήσεις λειτουργίας κλειδώνουν μόνο αυτό το μοντέλο — ποτέ ολόκληρη τη σύνδεση. Τερματικές καταστάσεις (αποκλεισμός, λήξη, εξάντληση πιστώσεων) αφορούν τον χειριστή, όχι ψύξεις."/>
 
-<sub>📖 [Μηχανή Auto-Combo](docs/routing/AUTO-COMBO.md) · [Οδηγός Ανθεκτικότητας](docs/architecture/RESILIENCE_GUIDE.md)</sub>
+<sub> [Μηχανή Auto-Combo](docs/routing/AUTO-COMBO.md) · [Οδηγός Ανθεκτικότητας](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
 <br/>
 
 <div align="center">
 
-## 🏆 Τι Ξεχωρίζει το OmniRoute
+## Τι Ξεχωρίζει το OmniRoute
 
 </div>
 
 <img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Τι ξεχωρίζει το OmniRoute — μια χρονολογημένη στιγμιότυπο λειτουργιών σε σχέση με τα 9router, OpenRouter, CLIProxyAPI και LiteLLM σε 13 δυνατότητες. OmniRoute: 355 πάροχοι, 150+ ενσωματωμένα δωρεάν επίπεδα, 19 στρατηγικές δρομολόγησης, συμπίεση token 12 μηχανών, ενσωματωμένος διακομιστής MCP με 110 εργαλεία, πρωτόκολλο πράκτορα A2A, μόνιμη μνήμη, μηχανισμοί ασφαλείας, πράκτορες cloud, απόκρυψη TLS fingerprint, Desktop/Termux/PWA και 42 τοπικές ρυθμίσεις UI i18n. Το OmniRoute διαθέτει άδεια MIT και μπορεί να φιλοξενηθεί αυτόνομα. Οι δυνατότητες και οι αριθμοί των ανταγωνιστών ενδέχεται να αλλάξουν· δείτε τη συνδεδεμένη μεθοδολογία."/>
 
-<sub>📊 Πλήρης μεθοδολογία &amp; λεπτομέρειες ανά λειτουργία σε σχέση με τα 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub> Πλήρης μεθοδολογία &amp; λεπτομέρειες ανά λειτουργία σε σχέση με τα 9router, OpenRouter, CLIProxyAPI &amp; LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
-## 💚 Υποστήριξη του OmniRoute
+## Υποστήριξη του OmniRoute
 
 Το OmniRoute διαθέτει άδεια MIT και συντηρείται δημόσια. Αν σας εξοικονομεί χρόνο ή χρήμα, δείτε πώς μπορείτε να το διατηρήσετε ανεξάρτητο — επιλέξτε ό,τι σας ταιριάζει. Η χορηγία δεν επηρεάζει ποτέ την προτεραιότητα δρομολόγησης· αγοράζει ορατότητα, όχι κατάταξη.
 
 <table>
   <tr><td nowrap>⭐ <b>Δώστε αστέρι στο αποθετήριο</b></td><td>Δωρεάν — βοηθά πραγματικά στην ορατότητα</td><td><a href="https://github.com/diegosouzapw/OmniRoute">Αστέρι στο OmniRoute</a></td></tr>
-  <tr><td nowrap>🐙 <b>GitHub Sponsors</b></td><td>Εφάπαξ ή μηνιαία · χωρίς χρέωση πλατφόρμας</td><td><a href="https://github.com/sponsors/diegosouzapw">github.com/sponsors/diegosouzapw</a></td></tr>
-  <tr><td nowrap>☕ <b>Ko-fi</b></td><td>Γρήγορη εφάπαξ συνεισφορά, χωρίς εγγραφή για τον δωρητή</td><td><a href="https://ko-fi.com/diegosouzapw">ko-fi.com/diegosouzapw</a></td></tr>
-  <tr><td nowrap>🧋 <b>Buy Me a Coffee</b></td><td>Μικρή, ανεπίσημη χειρονομία</td><td><a href="https://www.buymeacoffee.com/diegosouzapw">buymeacoffee.com/diegosouzapw</a></td></tr>
-  <tr><td nowrap>🖐 <b>Liberapay</b></td><td>Επαναλαμβανόμενη · μη κερδοσκοπική · ανοιχτού κώδικα</td><td><a href="https://liberapay.com/diegosouzapw">liberapay.com/diegosouzapw</a></td></tr>
-  <tr><td nowrap>🇧🇷 <b>PIX</b> (Βραζιλία)</td><td>Άμεσα, χωρίς χρεώσεις</td><td>κλειδί &amp; QR παρακάτω</td></tr>
+  <tr><td nowrap> <b>GitHub Sponsors</b></td><td>Εφάπαξ ή μηνιαία · χωρίς χρέωση πλατφόρμας</td><td><a href="https://github.com/sponsors/diegosouzapw">github.com/sponsors/diegosouzapw</a></td></tr>
+  <tr><td nowrap> <b>Ko-fi</b></td><td>Γρήγορη εφάπαξ συνεισφορά, χωρίς εγγραφή για τον δωρητή</td><td><a href="https://ko-fi.com/diegosouzapw">ko-fi.com/diegosouzapw</a></td></tr>
+  <tr><td nowrap> <b>Buy Me a Coffee</b></td><td>Μικρή, ανεπίσημη χειρονομία</td><td><a href="https://www.buymeacoffee.com/diegosouzapw">buymeacoffee.com/diegosouzapw</a></td></tr>
+  <tr><td nowrap> <b>Liberapay</b></td><td>Επαναλαμβανόμενη · μη κερδοσκοπική · ανοιχτού κώδικα</td><td><a href="https://liberapay.com/diegosouzapw">liberapay.com/diegosouzapw</a></td></tr>
+  <tr><td nowrap> <b>PIX</b> (Βραζιλία)</td><td>Άμεσα, χωρίς χρεώσεις</td><td>κλειδί &amp; QR παρακάτω</td></tr>
   <tr><td nowrap>₿ <b>Κρυπτονόμισμα</b></td><td>BTC · ETH · USDT-TRC20 · USDC-Solana</td><td>διευθύνσεις παρακάτω</td></tr>
 </table>
 
-**🇧🇷 PIX** — άμεσα, χωρίς χρεώσεις (Βραζιλία)
+** PIX** — άμεσα, χωρίς χρεώσεις (Βραζιλία)
 
 <img src="docs/assets/pix-qr.png" width="140" align="right" alt="OmniRoute PIX QR code"/>
 
@@ -512,17 +512,17 @@ Pix copia-e-cola:
   <tr><td nowrap><b>$ USDC</b></td><td nowrap>Solana</td><td><code>2emNNZzVVWQc3FQ2wk9M6qXUQmW8AKdjjL174fXR28Tu</code></td></tr>
 </table>
 
-<sub>⚠️ Αποστέλλετε κάθε νόμισμα μόνο στο δίκτυο που αναγράφεται — η αποστολή σε λάθος δίκτυο μπορεί να οδηγήσει σε απώλεια των κεφαλαίων.</sub>
+<sub> Αποστέλλετε κάθε νόμισμα μόνο στο δίκτυο που αναγράφεται — η αποστολή σε λάθος δίκτυο μπορεί να οδηγήσει σε απώλεια των κεφαλαίων.</sub>
 
 </details>
 
-🐛 Βρήκατε ένα σφάλμα ή έχετε σχόλια; Ανοίξτε μια [Συζήτηση](https://github.com/diegosouzapw/OmniRoute/discussions).
+Βρήκατε ένα σφάλμα ή έχετε σχόλια; Ανοίξτε μια [Συζήτηση](https://github.com/diegosouzapw/OmniRoute/discussions).
 
 <br/>
 
 <p><strong>Σημειώσεις προγραμματιστή:</strong> Το έργο ενδέχεται να δημιουργήσει ένα τοπικό αρχείο <code>.env</code> κατά την εκτέλεση npm install/postinstall για την ευκολία των προγραμματιστών. Αυτό το αρχείο αγνοείται σκόπιμα μέσω του <code>.gitignore</code> (δείτε <code>.gitignore</code>) και δεν πρέπει ποτέ να υποβληθεί — αν υποβληθεί κατά λάθος, αντικαταστήστε τυχόν εκτεθειμένα μυστικά και αφαιρέστε το αρχείο από το ιστορικό. Δείτε <a href="docs/DEVELOPER-ENVIRONMENT.md">docs/DEVELOPER-ENVIRONMENT.md</a> για οδηγίες σχετικά με τη διαχείριση τοπικών αρχείων περιβάλλοντος και μυστικών.</p>
 
-## 📡 OmniRoute Radar
+## OmniRoute Radar
 
 Η κύρια δωρεάν επικεφαλίδα παραμένει **~1,51 δισ. token/μήνα** από τον τεκμηριωμένο,
 κατάλογο με αφαίρεση διπλοτύπων παρόχων που αναφέρεται παραπάνω. Προσωρινές πιστώσεις εγγραφής παρόχου μπορούν ξεχωριστά να ανεβάσουν τον πρώτο
@@ -541,39 +541,39 @@ Pix copia-e-cola:
 
 <div align="center">
 
-## ✨ Τι Νέο Υπάρχει
+## Τι Νέο Υπάρχει
 
 </div>
 
 > Πρόσφατες κορυφαίες αλλαγές από την **v3.8.20 → v3.8.50**. Πλήρες ιστορικό στο [`CHANGELOG.md`](CHANGELOG.md).
 
-- **🎛️ OmniConductor** — εισερχόμενη ανάθεση A2A στον στόλο agent σας, δεξιότητες Conductor στο Agent Card, και πίνακας dashboard με φωνητική συνομιλία push-to-talk Faro. → [A2A Server](docs/frameworks/A2A-SERVER.md)
-- **🛂 Προσαρμοστική αποδοχή & προστασία από υπερφόρτωση** — τα βαριά αιτήματα chat μπαίνουν σε ουρά αντί να λαμβάνουν 503, με ατομικές κυλιόμενες εκμισθώσεις RPM ανά σύνδεση. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ Κανονική ταξινόμηση `/v1/models`** — ένα συνεχόμενο μπλοκ ομαδοποιημένο ανά πάροχο για κάθε πάροχο (οι συνδυασμοί καρφιτσωμένοι πρώτα), σταθερό σε κάθε πηγή καταλόγου. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🗜️ Ενίσχυση συμπίεσης** — inflation guard ενεργό εξ ορισμού, Caveman packs για DE / FR / JA + Κινεζικά (wényán), φίλτρα RTK για Gradle & .NET. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 Ειλικρινής σταθερό κόστος** — οι πάροχοι συνδρομής / προγράμματος κωδικοποίησης εμφανίζουν **$0** στην ανάλυση κόστους· ο προϋπολογισμός, η ποσόστωση και η δρομολόγηση συνεχίζουν να εκτιμούν. → [API Reference](docs/reference/API_REFERENCE.md)
-- **⚖️ Δρομολόγηση Quota-Share** — διανέμει δίκαια την ποσόστωση ενός κοινού λογαριασμού σε κλειδιά pool, με διατήρηση εργασίας ώστε αδρανείς κατανομές να δανείζονται. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 Εγκατάσταση CLI/agent με μία εντολή** — 13 καταχωρημένες εντολές `setup-*`· το `omniroute run` εκκινεί 7 CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI)· το `omniroute configure` υποστηρίζει 10 στόχους με διαδραστικό επιλογέα παρόχου+μοντέλου και αγαπημένα ανά πλαίσιο. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ Απομακρυσμένη λειτουργία** — οδηγήστε ένα απομακρυσμένο OmniRoute με διακριτικά εμβέλειας (`connect` / `contexts` / `tokens`) + έναν βοηθό `antigravity` OAuth για εγκαταστάσεις VPS. → [Remote Mode](docs/guides/REMOTE-MODE.md)
-- **🧭 Εξυπνότερη αυτόματη δρομολόγηση** — συνδυασμοί `auto/<category>:<tier>`, **Fusion** (πίνακας μοντέλων + κριτής), δρομολόγηση ανά εργασία, παρακάμψεις μοντέλου / λειτουργίας / USD-budget ανά αίτημα. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Συμπίεση με δυνατότητα προσθήκης** — 12 συνδυαστικές μηχανές + Compression Studios: LLMLingua-2, Ultra δύο επιπέδων, omniglyph, πύλη πιστότητας ανά βήμα, GCF v3.2, επεξεργαστής με αναδιάταξη drag. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ Διαφανής αποκρυπτογράφηση MITM (TPROXY)** — καταγράφει CLI που αγνοούν μεταβλητές περιβάλλοντος proxy, με CA ανά SNI + εγκαταστάτη αποθήκης εμπιστοσύνης. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 Τηλεμετρία κόστους παντού** — κεφαλίδες κόστους/χρήσης `X-OmniRoute-*` σε κάθε endpoint, κεφαλίδα εξοικονόμησης cache-HIT, ποσοστώσεις δαπάνης USD ανά κλειδί. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🧠 Μνήμη υπό τον έλεγχό σας** — ανενεργή εξ ορισμού, προαιρετική κβαντοποίηση διανύσματος int8 + τυποποιημένη φθορά, `x-omniroute-no-memory` ανά αίτημα. → [Memory](docs/frameworks/MEMORY.md)
-- **🛡️ Ασφάλεια** — φύλακας έγχυσης prompt σε κάθε διαδρομή LLM (σουίτα red-team), προαιρετική ασπίδα απόκρυψης διαπιστευτηρίων (αποκρύπτει διαρρεόντα κλειδιά API/μυστικά και στις δύο κατευθύνσεις), δωρεάν αναζήτηση web DuckDuckGo ως έσχατη λύση, και προαιρετική πύλη σύνδεσης OIDC για το dashboard (η σύνδεση με κωδικό πρόσβασης παραμένει πάντα διαθέσιμη). → [Guardrails](docs/security/GUARDRAILS.md)
-- **🖼️ Νέα endpoint** — `/v1/ocr` (Mistral OCR) και `/v1/audio/translations` (τύπου Whisper) συμπληρώνουν την επιφάνεια πολυμέσων. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🎨 Δημιουργία εικόνας / βίντεο / ήχου** — ένα API για πολυμέσα: xAI Grok Imagine & Novita AI βίντεο, ComfyUI, Magnific, Adobe Firefly, Segmind, και πάροχοι ομιλίας όπως ElevenLabs. → [API Reference](docs/reference/API_REFERENCE.md)
-- **🌍 Ανάπτυξη & λειτουργίες** — `basePath` αντίστροφου proxy, αυτόματη ανίχνευση γλώσσας browser, παρακολούθηση συσκευής ανά κλειδί, εμπιστοσύνη MITM χωρίς root, τοπικοποίηση zh-TW. → [Environment](docs/reference/ENVIRONMENT.md)
-- **🤝 Περισσότεροι πάροχοι & agents** — cloud agents (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) με σύνδεση μέσω browser + OAuth, κάρτα πρώτης κατηγορίας Ollama, Claude Opus 5 & Sonnet 5, επίσημη συνεργασία Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… και ανανεωμένος **κατάλογος 352 παρόχων**. → [Providers](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 Διαφάνεια δρομολόγησης** — κάθε απόκριση φέρει κεφαλίδα `X-OmniRoute-Decision` που ονομάζει τη στρατηγική/πάροχο/καθυστέρηση που την εξυπηρέτησε, νέα στρατηγική συνδυασμού `cache-optimized` + παράγοντας `cacheAffinity` Auto-Combo που δρομολογεί επαναλαμβανόμενα αιτήματα πίσω στη σύνδεση που κατέχει το αποθηκευμένο πρόθεμα, και ένα endpoint μόνο-ανάγνωσης `/v1/auto-combo/{channel}/candidates` που εκθέτει το ζωντανό pool υποψηφίων ενός καναλιού `auto/*`. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **⚡ Τοπική απόδοση & υποδομή** — τοπικό Redis με ένα κλικ, αναπτυκτήρες relay Cloudflare Workers / Deno Deploy, Bifrost & Mux ως εποπτευόμενες ενσωματωμένες υπηρεσίες. → [Embedded Services](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 Επίσης στο πακέτο** — πλαίσιο plugin + marketplace, πλαίσια δεξιοτήτων Omni/Agent/GitHub, ενοποίηση αποθήκης Obsidian (22 εργαλεία MCP), API Batch & Files συμβατά με OpenAI, σημασιολογική cache αποκρίσεων, gamification με πίνακες κατάταξης, ανακάλυψη agent ACP (15 ενσωματωμένοι agents), προγραμματισμένη εξαγωγή αρχείων καταγραφής στο BigQuery, έγχυση σφαλμάτων `auto/chaos`, γέφυρα bot Telegram, ενδοεφαρμογικός διαχειριστής εκδόσεων και κατατάξεις δωρεάν παρόχων LMArena-ELO. → [Docs](docs/README.md)
+- ** OmniConductor** — εισερχόμενη ανάθεση A2A στον στόλο agent σας, δεξιότητες Conductor στο Agent Card, και πίνακας dashboard με φωνητική συνομιλία push-to-talk Faro. → [A2A Server](docs/frameworks/A2A-SERVER.md)
+- ** Προσαρμοστική αποδοχή & προστασία από υπερφόρτωση** — τα βαριά αιτήματα chat μπαίνουν σε ουρά αντί να λαμβάνουν 503, με ατομικές κυλιόμενες εκμισθώσεις RPM ανά σύνδεση. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
+- ** Κανονική ταξινόμηση `/v1/models`** — ένα συνεχόμενο μπλοκ ομαδοποιημένο ανά πάροχο για κάθε πάροχο (οι συνδυασμοί καρφιτσωμένοι πρώτα), σταθερό σε κάθε πηγή καταλόγου. → [API Reference](docs/reference/API_REFERENCE.md)
+- ** Ενίσχυση συμπίεσης** — inflation guard ενεργό εξ ορισμού, Caveman packs για DE / FR / JA + Κινεζικά (wényán), φίλτρα RTK για Gradle & .NET. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- ** Ειλικρινής σταθερό κόστος** — οι πάροχοι συνδρομής / προγράμματος κωδικοποίησης εμφανίζουν **$0** στην ανάλυση κόστους· ο προϋπολογισμός, η ποσόστωση και η δρομολόγηση συνεχίζουν να εκτιμούν. → [API Reference](docs/reference/API_REFERENCE.md)
+- ** Δρομολόγηση Quota-Share** — διανέμει δίκαια την ποσόστωση ενός κοινού λογαριασμού σε κλειδιά pool, με διατήρηση εργασίας ώστε αδρανείς κατανομές να δανείζονται. → [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)
+- ** Εγκατάσταση CLI/agent με μία εντολή** — 13 καταχωρημένες εντολές `setup-*`· το `omniroute run` εκκινεί 7 CLI (Claude Code, Codex, Aider, Goose, OpenCode, Qwen Code, Gemini CLI)· το `omniroute configure` υποστηρίζει 10 στόχους με διαδραστικό επιλογέα παρόχου+μοντέλου και αγαπημένα ανά πλαίσιο. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
+- ** Απομακρυσμένη λειτουργία** — οδηγήστε ένα απομακρυσμένο OmniRoute με διακριτικά εμβέλειας (`connect` / `contexts` / `tokens`) + έναν βοηθό `antigravity` OAuth για εγκαταστάσεις VPS. → [Remote Mode](docs/guides/REMOTE-MODE.md)
+- ** Εξυπνότερη αυτόματη δρομολόγηση** — συνδυασμοί `auto/<category>:<tier>`, **Fusion** (πίνακας μοντέλων + κριτής), δρομολόγηση ανά εργασία, παρακάμψεις μοντέλου / λειτουργίας / USD-budget ανά αίτημα. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- ** Συμπίεση με δυνατότητα προσθήκης** — 12 συνδυαστικές μηχανές + Compression Studios: LLMLingua-2, Ultra δύο επιπέδων, omniglyph, πύλη πιστότητας ανά βήμα, GCF v3.2, επεξεργαστής με αναδιάταξη drag. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- ** Διαφανής αποκρυπτογράφηση MITM (TPROXY)** — καταγράφει CLI που αγνοούν μεταβλητές περιβάλλοντος proxy, με CA ανά SNI + εγκαταστάτη αποθήκης εμπιστοσύνης. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- ** Τηλεμετρία κόστους παντού** — κεφαλίδες κόστους/χρήσης `X-OmniRoute-*` σε κάθε endpoint, κεφαλίδα εξοικονόμησης cache-HIT, ποσοστώσεις δαπάνης USD ανά κλειδί. → [API Reference](docs/reference/API_REFERENCE.md)
+- ** Μνήμη υπό τον έλεγχό σας** — ανενεργή εξ ορισμού, προαιρετική κβαντοποίηση διανύσματος int8 + τυποποιημένη φθορά, `x-omniroute-no-memory` ανά αίτημα. → [Memory](docs/frameworks/MEMORY.md)
+- ** Ασφάλεια** — φύλακας έγχυσης prompt σε κάθε διαδρομή LLM (σουίτα red-team), προαιρετική ασπίδα απόκρυψης διαπιστευτηρίων (αποκρύπτει διαρρεόντα κλειδιά API/μυστικά και στις δύο κατευθύνσεις), δωρεάν αναζήτηση web DuckDuckGo ως έσχατη λύση, και προαιρετική πύλη σύνδεσης OIDC για το dashboard (η σύνδεση με κωδικό πρόσβασης παραμένει πάντα διαθέσιμη). → [Guardrails](docs/security/GUARDRAILS.md)
+- ** Νέα endpoint** — `/v1/ocr` (Mistral OCR) και `/v1/audio/translations` (τύπου Whisper) συμπληρώνουν την επιφάνεια πολυμέσων. → [API Reference](docs/reference/API_REFERENCE.md)
+- ** Δημιουργία εικόνας / βίντεο / ήχου** — ένα API για πολυμέσα: xAI Grok Imagine & Novita AI βίντεο, ComfyUI, Magnific, Adobe Firefly, Segmind, και πάροχοι ομιλίας όπως ElevenLabs. → [API Reference](docs/reference/API_REFERENCE.md)
+- ** Ανάπτυξη & λειτουργίες** — `basePath` αντίστροφου proxy, αυτόματη ανίχνευση γλώσσας browser, παρακολούθηση συσκευής ανά κλειδί, εμπιστοσύνη MITM χωρίς root, τοπικοποίηση zh-TW. → [Environment](docs/reference/ENVIRONMENT.md)
+- ** Περισσότεροι πάροχοι & agents** — cloud agents (Codex Cloud, Cursor, Devin, Jules), Grok Build (xAI) με σύνδεση μέσω browser + OAuth, κάρτα πρώτης κατηγορίας Ollama, Claude Opus 5 & Sonnet 5, επίσημη συνεργασία Kimi (Code/Web/Moonshot), Zed, Requesty, SenseNova, Yuanbao, Agnes AI… και ανανεωμένος **κατάλογος 352 παρόχων**. → [Providers](docs/reference/PROVIDER_REFERENCE.md)
+- ** Διαφάνεια δρομολόγησης** — κάθε απόκριση φέρει κεφαλίδα `X-OmniRoute-Decision` που ονομάζει τη στρατηγική/πάροχο/καθυστέρηση που την εξυπηρέτησε, νέα στρατηγική συνδυασμού `cache-optimized` + παράγοντας `cacheAffinity` Auto-Combo που δρομολογεί επαναλαμβανόμενα αιτήματα πίσω στη σύνδεση που κατέχει το αποθηκευμένο πρόθεμα, και ένα endpoint μόνο-ανάγνωσης `/v1/auto-combo/{channel}/candidates` που εκθέτει το ζωντανό pool υποψηφίων ενός καναλιού `auto/*`. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- ** Τοπική απόδοση & υποδομή** — τοπικό Redis με ένα κλικ, αναπτυκτήρες relay Cloudflare Workers / Deno Deploy, Bifrost & Mux ως εποπτευόμενες ενσωματωμένες υπηρεσίες. → [Embedded Services](docs/frameworks/EMBEDDED-SERVICES.md)
+- ** Επίσης στο πακέτο** — πλαίσιο plugin + marketplace, πλαίσια δεξιοτήτων Omni/Agent/GitHub, ενοποίηση αποθήκης Obsidian (22 εργαλεία MCP), API Batch & Files συμβατά με OpenAI, σημασιολογική cache αποκρίσεων, gamification με πίνακες κατάταξης, ανακάλυψη agent ACP (15 ενσωματωμένοι agents), προγραμματισμένη εξαγωγή αρχείων καταγραφής στο BigQuery, έγχυση σφαλμάτων `auto/chaos`, γέφυρα bot Telegram, ενδοεφαρμογικός διαχειριστής εκδόσεων και κατατάξεις δωρεάν παρόχων LMArena-ELO. → [Docs](docs/README.md)
 
 <br/>
 
 <div align="center">
 
-## 🤖 Συμβατά CLIs & Κωδικοί Πράκτορες
+## Συμβατά CLIs & Κωδικοί Πράκτορες
 
 > Μία ρύθμιση — `http://localhost:20128/v1` — και **κάθε** AI IDE ή CLI τρέχει με δωρεάν και χαμηλού κόστους μοντέλα.
 
@@ -618,7 +618,7 @@ Pix copia-e-cola:
 <b>＋ λειτουργεί επίσης με</b> · Kiro · Command Code · Antigravity · Windsurf · AMP · <b>οποιοδήποτε εργαλείο συμβατό με OpenAI</b>
 </div>
 
-<sub>📖 Ρύθμιση ανά εργαλείο για όλα τα 36 εργαλεία (26 CLI Code + 10 CLI Agents) → [`docs/reference/CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md) · 🧩 Πρόσθετο OpenCode → [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider)</sub>
+<sub> Ρύθμιση ανά εργαλείο για όλα τα 36 εργαλεία (26 CLI Code + 10 CLI Agents) → [`docs/reference/CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md) · Πρόσθετο OpenCode → [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider)</sub>
 
 </div>
 
@@ -648,7 +648,7 @@ omniroute configure codex          # επίσης: claude opencode qwen aider go
 
 <div align="center">
 
-## 🌐 352 Πάροχοι AI — 152 Σημασμένοι ως Δωρεάν στον Κατάλογο
+## 352 Πάροχοι AI — 152 Σημασμένοι ως Δωρεάν στον Κατάλογο
 
 </div>
 
@@ -656,7 +656,7 @@ omniroute configure codex          # επίσης: claude opencode qwen aider go
 
 <div align="center">
 
-### 🏢 Κάθε μεγάλο εργαστήριο — μέσω ενός endpoint
+### Κάθε μεγάλο εργαστήριο — μέσω ενός endpoint
 
 <table>
   <tr>
@@ -685,11 +685,11 @@ omniroute configure codex          # επίσης: claude opencode qwen aider go
   </tr>
 </table>
 
-<sub>…και 330+ ακόμα — κάθε εικονίδιο φορτώνεται ζωντανά από τον κατάλογο παρόχων του πίνακα ελέγχου. 📖 [Αναφορά Παρόχων](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…και 330+ ακόμα — κάθε εικονίδιο φορτώνεται ζωντανά από τον κατάλογο παρόχων του πίνακα ελέγχου. [Αναφορά Παρόχων](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
-### 🆓 Δωρεάν για Πάντα — $0, χωρίς κάρτα
+### Δωρεάν για Πάντα — $0, χωρίς κάρτα
 
 <table>
   <tr>
@@ -710,14 +710,14 @@ omniroute configure codex          # επίσης: claude opencode qwen aider go
   </tr>
 </table>
 
-📖 Πλήρης αναγνώσιμος από μηχανή κατάλογος → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
+Πλήρης αναγνώσιμος από μηχανή κατάλογος → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
 
 <br/>
 </div>
 
 <div align="center">
 
-## 🖥️ Πού Τρέχει το OmniRoute — Παντού
+## Πού Τρέχει το OmniRoute — Παντού
 
 </div>
 
@@ -725,24 +725,24 @@ omniroute configure codex          # επίσης: claude opencode qwen aider go
 
 <table>
   <tr><th align="left">Πλατφόρμα</th><th align="left">Εγκατάσταση</th><th align="left">Χαρακτηριστικά</th></tr>
-  <tr><td align="left" nowrap>📦 <b>npm (global)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Μία εντολή, οποιοδήποτε ΛΣ</td></tr>
-  <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Πολλαπλές αρχιτεκτονικές <b>AMD64 + ARM64</b></td></tr>
-  <tr><td align="left" nowrap>🖥️ <b>Desktop (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Εγγενές παράθυρο + system tray — <b>Windows / macOS / Linux</b></td></tr>
-  <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>native <code>arm64</code></td><td align="left">Raspberry Pi, διακομιστές ARM, Apple Silicon</td></tr>
-  <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Τρέχει <b>στο τηλέφωνό σου</b>, 24/7, χωρίς root</td></tr>
-  <tr><td align="left" nowrap>📲 <b>PWA</b></td><td align="left" nowrap>"Προσθήκη στην Αρχική Οθόνη"</td><td align="left">Πλήρης οθόνη, offline, εγκαταστάσιμο από το πρόγραμμα περιήγησης</td></tr>
-  <tr><td align="left" nowrap>🧩 <b>OpenCode plugin</b></td><td align="left" nowrap><code>@omniroute/opencode-provider</code></td><td align="left">Εγγενής ενσωμάτωση OpenCode</td></tr>
-  <tr><td align="left" nowrap>🤖 <b>VS Code Copilot Chat</b></td><td align="left" nowrap>εγκατάσταση επέκτασης <b>OmniCopilot</b></td><td align="left">Κάθε μοντέλο OmniRoute στο εγγενές πρόγραμμα επιλογής Copilot Chat — stable &amp; Insiders</td></tr>
-  <tr><td align="left" nowrap>🛠️ <b>Από τον πηγαίο κώδικα</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Τροποποίησέ το, συνεισέφερε</td></tr>
+  <tr><td align="left" nowrap> <b>npm (global)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">Μία εντολή, οποιοδήποτε ΛΣ</td></tr>
+  <tr><td align="left" nowrap> <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Πολλαπλές αρχιτεκτονικές <b>AMD64 + ARM64</b></td></tr>
+  <tr><td align="left" nowrap> <b>Desktop (Tauri 2)</b></td><td align="left" nowrap><code>cargo tauri build</code></td><td align="left">Εγγενές παράθυρο + system tray — <b>Windows / macOS / Linux</b></td></tr>
+  <tr><td align="left" nowrap> <b>ARM</b></td><td align="left" nowrap>native <code>arm64</code></td><td align="left">Raspberry Pi, διακομιστές ARM, Apple Silicon</td></tr>
+  <tr><td align="left" nowrap> <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Τρέχει <b>στο τηλέφωνό σου</b>, 24/7, χωρίς root</td></tr>
+  <tr><td align="left" nowrap> <b>PWA</b></td><td align="left" nowrap>"Προσθήκη στην Αρχική Οθόνη"</td><td align="left">Πλήρης οθόνη, offline, εγκαταστάσιμο από το πρόγραμμα περιήγησης</td></tr>
+  <tr><td align="left" nowrap> <b>OpenCode plugin</b></td><td align="left" nowrap><code>@omniroute/opencode-provider</code></td><td align="left">Εγγενής ενσωμάτωση OpenCode</td></tr>
+  <tr><td align="left" nowrap> <b>VS Code Copilot Chat</b></td><td align="left" nowrap>εγκατάσταση επέκτασης <b>OmniCopilot</b></td><td align="left">Κάθε μοντέλο OmniRoute στο εγγενές πρόγραμμα επιλογής Copilot Chat — stable &amp; Insiders</td></tr>
+  <tr><td align="left" nowrap> <b>Από τον πηγαίο κώδικα</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Τροποποίησέ το, συνεισέφερε</td></tr>
 </table>
 
-<sub>📖 [Οδηγός Docker](docs/guides/DOCKER_GUIDE.md) · [Desktop](electron/README.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
+<sub> [Οδηγός Docker](docs/guides/DOCKER_GUIDE.md) · [Desktop](docs/guides/DESKTOP_GUIDE.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
 <br/>
 
 <div align="center">
 
-### 🧩 Νέο: OmniRoute μέσα στο εγγενές Copilot Chat του VS Code
+### Νέο: OmniRoute μέσα στο εγγενές Copilot Chat του VS Code
 
 </div>
 
@@ -756,39 +756,39 @@ omniroute configure codex          # επίσης: claude opencode qwen aider go
 
 <table>
   <tr><th align="left">Κατάστημα</th><th align="left">Σύνδεσμος</th><th align="left">Λειτουργεί με</th></tr>
-  <tr><td align="left" nowrap>🧩 <b>VS Code Marketplace</b></td><td align="left"><a href="https://marketplace.visualstudio.com/items?itemName=diegosouzapw.omnicopilot">Εγκατάσταση →</a></td><td align="left">VS Code — stable &amp; Insiders</td></tr>
-  <tr><td align="left" nowrap>🔓 <b>Open VSX Registry</b></td><td align="left"><a href="https://open-vsx.org/extension/diegosouzapw/omnicopilot">Εγκατάσταση →</a></td><td align="left">Cursor, Windsurf, VSCodium, Theia, code-server, Gitpod, Antigravity, Kiro…</td></tr>
+  <tr><td align="left" nowrap> <b>VS Code Marketplace</b></td><td align="left"><a href="https://marketplace.visualstudio.com/items?itemName=diegosouzapw.omnicopilot">Εγκατάσταση →</a></td><td align="left">VS Code — stable &amp; Insiders</td></tr>
+  <tr><td align="left" nowrap> <b>Open VSX Registry</b></td><td align="left"><a href="https://open-vsx.org/extension/diegosouzapw/omnicopilot">Εγκατάσταση →</a></td><td align="left">Cursor, Windsurf, VSCodium, Theia, code-server, Gitpod, Antigravity, Kiro…</td></tr>
 </table>
 
 Μέσα από τον επεξεργαστή: άνοιξε την προβολή **Extensions**, αναζήτησε **"OmniRoute"**, κάνε κλικ στο **Install**
 — λειτουργεί με τον ίδιο τρόπο και στα δύο καταστήματα. Ο πηγαίος κώδικας, τα ζητήματα και το εγχειρίδιο δημοσίευσης βρίσκονται στο
 [diegosouzapw/OmniCopilot](https://github.com/diegosouzapw/OmniCopilot).
 
-<sub>📖 [Οδηγός VS Code Copilot Chat](docs/guides/VSCODE-COPILOT.md) — ρύθμιση, τι εμφανίζει το πρόγραμμα επιλογής, dashboard σε καρτέλα, αντιμετώπιση προβλημάτων</sub>
+<sub> [Οδηγός VS Code Copilot Chat](docs/guides/VSCODE-COPILOT.md) — ρύθμιση, τι εμφανίζει το πρόγραμμα επιλογής, dashboard σε καρτέλα, αντιμετώπιση προβλημάτων</sub>
 
 <br/>
 
 <div align="center">
 
-## 🔒 Ιδιωτικό & Τοπικά-Πρώτα
+## Ιδιωτικό & Τοπικά-Πρώτα
 
 </div>
 
 <img src="./docs/diagrams/privacy-local.svg" width="100%" alt="Ιδιωτικό και τοπικά-πρώτα — η πύλη και το επίπεδο ελέγχου του OmniRoute εκτελούνται στο μηχάνημά σας. Τα prompts αποστέλλονται στον upstream πάροχο που επιλέγεται για κάθε αίτημα· το OmniRoute δεν προσθέτει κανένα hosted hop επεξεργασίας prompt και η τηλεμετρία είναι απενεργοποιημένη από προεπιλογή. Τα διαπιστευτήρια κρυπτογραφούνται σε κατάσταση ηρεμίας με AES-256-GCM· οι έλεγχοι περιλαμβάνουν περιορισμό εμβέλειας API-key, φιλτράρισμα IP, όρια ρυθμού, προστασία από έγχυση prompt, καθαρισμό upstream-header, προαιρετική απόκρυψη PII, εξυγιασμένα σφάλματα και τοπικό ίχνος ελέγχου SQLite. Το OmniRoute διαθέτει άδεια MIT και είναι αυτο-φιλοξενούμενο."/>
 
-<sub>📖 [Εξουσιοδότηση](docs/architecture/AUTHZ_GUIDE.md) · [Προστατευτικά Μέτρα](docs/security/GUARDRAILS.md) · [Συμμόρφωση](docs/security/COMPLIANCE.md)</sub>
+<sub> [Εξουσιοδότηση](docs/architecture/AUTHZ_GUIDE.md) · [Προστατευτικά Μέτρα](docs/security/GUARDRAILS.md) · [Συμμόρφωση](docs/security/COMPLIANCE.md)</sub>
 
 <br/>
 
 <div align="center">
 
-## 🔌 Πλήρης CLI + A2A & MCP
+## Πλήρης CLI + A2A & MCP
 
 </div>
 
 > Πέρα από τον διακομιστή, το OmniRoute είναι ένα **πλήρες πιλοτήριο γραμμής εντολών** με **80+ εντολές**, καθώς και ανοιχτά πρωτόκολλα πράκτορα ώστε ένας πράκτορας AI να μπορεί να το οδηγεί **από μόνος του**.
 
-### ⌨️ Ένα πραγματικό CLI (όχι απλώς `start`)
+### ⌨ Ένα πραγματικό CLI (όχι απλώς `start`)
 
 ```bash
 omniroute               # εκκίνηση πύλης + dashboard (port 20128)
@@ -797,7 +797,7 @@ omniroute setup         # οδηγός πρώτης εκτέλεσης
 omniroute doctor        # διάγνωση παρόχων, ports, εγγενών εξαρτήσεων
 ```
 
-### 🛰️ Απομακρυσμένη λειτουργία — εκτελέστε το CLI εδώ, το OmniRoute σε VPS
+### Απομακρυσμένη λειτουργία — εκτελέστε το CLI εδώ, το OmniRoute σε VPS
 
 Το OmniRoute σε διακομιστή; Οδηγήστε το από το laptop σας με το **ίδιο CLI**. Συνδεθείτε μία φορά
 με ένα scoped access token· κάθε εντολή απευθύνεται στη συνέχεια στο απομακρυσμένο.
@@ -811,7 +811,7 @@ omniroute contexts use default            # ← επιστροφή στον το
 ```
 
 Τα tokens έχουν εμβέλεια `read` / `write` / `admin`· οι διαδρομές εκκίνησης διεργασιών παραμένουν μόνο loopback.
-<sub>📖 [Απομακρυσμένη Λειτουργία](docs/guides/REMOTE-MODE.md)</sub>
+<sub> [Απομακρυσμένη Λειτουργία](docs/guides/REMOTE-MODE.md)</sub>
 
 <div align="left">
 
@@ -819,19 +819,19 @@ omniroute contexts use default            # ← επιστροφή στον το
 
 </div>
 
-### 🤝 Συνδέστε έναν πράκτορα — και ελέγχει το ίδιο το OmniRoute
+### Συνδέστε έναν πράκτορα — και ελέγχει το ίδιο το OmniRoute
 
 Εκθέστε το OmniRoute μέσω **MCP**, **A2A**, **REST API**, **webhooks** ή **απομακρυσμένου CLI** — οποιοσδήποτε ικανός πράκτορας (ή ο δικός σας κώδικας) αποκτά τα κλειδιά ολόκληρης της πύλης: δρομολόγηση, πάροχοι, combos, cache, συμπίεση, μνήμη — αυτόνομα. Τα HTTP endpoints παρακάτω εξυπηρετούνται στο `http://localhost:20128`.
 
 <table>
   <tr><th align="left">Διεπαφή</th><th align="left">Endpoint / εντολή</th><th align="left">Χρήση για</th></tr>
-  <tr><td align="left" nowrap>🧰 <b>MCP (stdio)</b></td><td align="left" nowrap><code>omniroute --mcp</code></td><td align="left">Σύνδεση με Claude Desktop, Cursor, οποιονδήποτε MCP client</td></tr>
-  <tr><td align="left" nowrap>🌊 <b>MCP (HTTP)</b></td><td align="left" nowrap><code>/api/mcp/stream</code></td><td align="left">Απομακρυσμένο MCP — <b>110 εργαλεία</b>, 33 εμβέλειες (εφαρμογή προαιρετική), πλήρες ίχνος ελέγχου</td></tr>
-  <tr><td align="left" nowrap>📡 <b>MCP (SSE)</b></td><td align="left" nowrap><code>/api/mcp/sse</code></td><td align="left">Μεταφορά MCP ροής</td></tr>
-  <tr><td align="left" nowrap>🤝 <b>A2A</b></td><td align="left" nowrap><code>/.well-known/agent.json</code></td><td align="left">Πράκτορας-προς-πράκτορα, <b>JSON-RPC 2.0</b> + SSE, 6 δεξιότητες</td></tr>
-  <tr><td align="left" nowrap>🌐 <b>REST API</b></td><td align="left" nowrap><code>/v1/*</code></td><td align="left">Συμβατό με OpenAI — chat, embeddings, εικόνες, ήχος, OCR</td></tr>
-  <tr><td align="left" nowrap>🔔 <b>Webhooks</b></td><td align="left" nowrap><code>/api/webhooks</code></td><td align="left">Αποστολή συμβάντων αιτημάτων / ορίου σε Slack, Discord, Telegram ή οποιοδήποτε URL</td></tr>
-  <tr><td align="left" nowrap>🛰️ <b>Απομακρυσμένο CLI</b></td><td align="left" nowrap><code>omniroute connect <host></code></td><td align="left">Οδήγηση απομακρυσμένης εγκατάστασης με scoped access tokens</td></tr>
+  <tr><td align="left" nowrap> <b>MCP (stdio)</b></td><td align="left" nowrap><code>omniroute --mcp</code></td><td align="left">Σύνδεση με Claude Desktop, Cursor, οποιονδήποτε MCP client</td></tr>
+  <tr><td align="left" nowrap> <b>MCP (HTTP)</b></td><td align="left" nowrap><code>/api/mcp/stream</code></td><td align="left">Απομακρυσμένο MCP — <b>110 εργαλεία</b>, 33 εμβέλειες (εφαρμογή προαιρετική), πλήρες ίχνος ελέγχου</td></tr>
+  <tr><td align="left" nowrap> <b>MCP (SSE)</b></td><td align="left" nowrap><code>/api/mcp/sse</code></td><td align="left">Μεταφορά MCP ροής</td></tr>
+  <tr><td align="left" nowrap> <b>A2A</b></td><td align="left" nowrap><code>/.well-known/agent.json</code></td><td align="left">Πράκτορας-προς-πράκτορα, <b>JSON-RPC 2.0</b> + SSE, 6 δεξιότητες</td></tr>
+  <tr><td align="left" nowrap> <b>REST API</b></td><td align="left" nowrap><code>/v1/*</code></td><td align="left">Συμβατό με OpenAI — chat, embeddings, εικόνες, ήχος, OCR</td></tr>
+  <tr><td align="left" nowrap> <b>Webhooks</b></td><td align="left" nowrap><code>/api/webhooks</code></td><td align="left">Αποστολή συμβάντων αιτημάτων / ορίου σε Slack, Discord, Telegram ή οποιοδήποτε URL</td></tr>
+  <tr><td align="left" nowrap> <b>Απομακρυσμένο CLI</b></td><td align="left" nowrap><code>omniroute connect <host></code></td><td align="left">Οδήγηση απομακρυσμένης εγκατάστασης με scoped access tokens</td></tr>
 </table>
 
 ```bash
@@ -839,17 +839,17 @@ omniroute contexts use default            # ← επιστροφή στον το
 claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp/stream
 ```
 
-<sub>📖 [MCP Server](docs/frameworks/MCP-SERVER.md) · [A2A Server](docs/frameworks/A2A-SERVER.md) · [Πρωτόκολλα Πράκτορα](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)</sub>
+<sub> [MCP Server](docs/frameworks/MCP-SERVER.md) · [A2A Server](docs/frameworks/A2A-SERVER.md) · [Πρωτόκολλα Πράκτορα](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md)</sub>
 
 <br/>
 
 <div align="center">
 
-## 🗜️ Εξοικονόμηση 15–95% Tokens — Αυτόματα
+## Εξοικονόμηση 15–95% Tokens — Αυτόματα
 
 </div>
 
-### 📖 Πώς λειτουργεί — pipeline, αρχιτεκτονική & μαθηματικά εξοικονόμησης
+### Πώς λειτουργεί — pipeline, αρχιτεκτονική & μαθηματικά εξοικονόμησης
 
 <img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="Pipeline συμπίεσης OmniRoute: ένα ενδεικτικό αίτημα πελάτη 10.000 token διέρχεται από 12 συνθέσιμες μηχανές — Session-Dedup, CCR, Lite, RTK, Responses Tool Output, Headroom, Relevance, Caveman, Aggressive, LLMLingua-2, Ultra και OmniGlyph — και μπορεί να φτάσει στον πάροχο με περίπου 1.080 token στο τεκμηριωμένο παράδειγμα στοίβαξης. Το δομημένο περιεχόμενο προστατεύεται από guards διατήρησης και πύλες πιστότητας ανά βήμα· οι ρητές lossy ή πειραματικές λειτουργίες μπορεί να μετασχηματίσουν επιλέξιμο περιεχόμενο."/>
 
@@ -865,7 +865,7 @@ range    = 78.4 – 94.6%
 
 > **Γιατί να χρησιμοποιείς πολλά token όταν λίγα αρκούν;** Κάθε αίτημα διέρχεται από το pipeline συμπίεσης του OmniRoute **διαφανώς** — χωρίς αλλαγές στον πελάτη. Είναι πλέον μια **στοίβα από 12 συνθέσιμες μηχανές** που εκτελούνται με σειρά και συνδυάζονται ανά routing combo — βασιζόμενες σε ιδέες από τα [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 90K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua) και [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
 
-### 🧱 Η στοίβα 12 μηχανών
+### Η στοίβα 12 μηχανών
 
 Οι μηχανές εκτελούνται με σειρά pipeline· κάθε μία μπορεί να ενεργοποιηθεί/απενεργοποιηθεί ανεξάρτητα και να ρυθμιστεί ανά combo:
 
@@ -889,12 +889,12 @@ range    = 78.4 – 94.6%
 
 <table>
   <tr><th align="left">Λειτουργία</th><th align="left">Εξοικονόμηση</th><th align="left">Κατάλληλο για</th></tr>
-  <tr><td align="left" nowrap>🪶 <b>Lite</b></td><td align="left" nowrap>~15%</td><td align="left">Πάντα ενεργή ασφαλής προεπιλογή</td></tr>
-  <tr><td align="left" nowrap>🪨 <b>Standard (Caveman)</b></td><td align="left" nowrap>~30%</td><td align="left">Καθημερινό coding</td></tr>
-  <tr><td align="left" nowrap>⚡ <b>Aggressive</b></td><td align="left" nowrap>~50%</td><td align="left">Μεγάλες συνεδρίες με πολλά εργαλεία</td></tr>
-  <tr><td align="left" nowrap>🔥 <b>Ultra</b></td><td align="left" nowrap>~75%</td><td align="left">Μέγιστη εξοικονόμηση</td></tr>
-  <tr><td align="left" nowrap>🧰 <b>RTK</b></td><td align="left" nowrap>60–90%</td><td align="left">Έξοδος shell/test/build/git</td></tr>
-  <tr><td align="left" nowrap>🔗 <b>Stacked (RTK → Caveman)</b></td><td align="left" nowrap><b>78–95%</b></td><td align="left">Μικτά prompts + αρχεία καταγραφής εργαλείων</td></tr>
+  <tr><td align="left" nowrap> <b>Lite</b></td><td align="left" nowrap>~15%</td><td align="left">Πάντα ενεργή ασφαλής προεπιλογή</td></tr>
+  <tr><td align="left" nowrap> <b>Standard (Caveman)</b></td><td align="left" nowrap>~30%</td><td align="left">Καθημερινό coding</td></tr>
+  <tr><td align="left" nowrap> <b>Aggressive</b></td><td align="left" nowrap>~50%</td><td align="left">Μεγάλες συνεδρίες με πολλά εργαλεία</td></tr>
+  <tr><td align="left" nowrap> <b>Ultra</b></td><td align="left" nowrap>~75%</td><td align="left">Μέγιστη εξοικονόμηση</td></tr>
+  <tr><td align="left" nowrap> <b>RTK</b></td><td align="left" nowrap>60–90%</td><td align="left">Έξοδος shell/test/build/git</td></tr>
+  <tr><td align="left" nowrap> <b>Stacked (RTK → Caveman)</b></td><td align="left" nowrap><b>78–95%</b></td><td align="left">Μικτά prompts + αρχεία καταγραφής εργαλείων</td></tr>
 </table>
 
 **Πραγματικό παράδειγμα — Λειτουργία Standard:**
@@ -903,7 +903,7 @@ range    = 78.4 – 94.6%
 >
 > **Μετά (19 token):** _"New object ref each render. Inline object prop = new ref = re-render. Wrap in useMemo."_
 >
-> **Ίδια απάντηση. 72% λιγότερα token. Μηδενική απώλεια ακρίβειας.** ✅
+> **Ίδια απάντηση. 72% λιγότερα token. Μηδενική απώλεια ακρίβειας.**
 
 **Παράδειγμα PT-BR — Λειτουργία [Troglodita](https://github.com/leninejunior/troglodita):**
 
@@ -911,32 +911,32 @@ range    = 78.4 – 94.6%
 >
 > **Depois (12 token):** _"Re-render: ref nova cada ciclo (objeto inline recriado). Usar `useMemo`."_
 >
-> **Mesma resposta. ~70% menos tokens. Precisão técnica intacta.** ✅
+> **Mesma resposta. ~70% menos tokens. Precisão técnica intacta.**
 
 <br/>
 
-### 🎚️ Πέρα από τις μηχανές — στυλ εξόδου, το προσαρμοστικό ρυθμιστικό & έλεγχος ανά αίτημα
+### Πέρα από τις μηχανές — στυλ εξόδου, το προσαρμοστικό ρυθμιστικό & έλεγχος ανά αίτημα
 
 Οι 12 μηχανές παραπάνω συρρικνώνουν αυτό που εισέρχεται. Τρία ακόμη επίπεδα διαμορφώνουν το **πώς**, το **πότε** και αυτό που **εξέρχεται**:
 
-- **🪄 Στυλ Εξόδου** _(καθοδήγηση άξονα εξόδου)_ — εισάγουν ντετερμινιστικές, cache-safe οδηγίες διαμόρφωσης απόκρισης· συνδυάσιμα, το καθένα σε ένταση `lite` / `full` / `ultra`. Η προσθήκη ενός στυλ είναι μία γραμμή στο μητρώο:
+- ** Στυλ Εξόδου** _(καθοδήγηση άξονα εξόδου)_ — εισάγουν ντετερμινιστικές, cache-safe οδηγίες διαμόρφωσης απόκρισης· συνδυάσιμα, το καθένα σε ένταση `lite` / `full` / `ultra`. Η προσθήκη ενός στυλ είναι μία γραμμή στο μητρώο:
   - **Terse prose** — αφαίρεση γεμιστικών / άρθρων / επιφυλάξεων· διατήρηση τεχνικής ουσίας ακριβώς.
   - **Less code** — "lazy senior dev" YAGNI: ελάχιστη λειτουργική αλλαγή, χωρίς ζητούμενη σκαλωσιά.
   - **Ponytail (lazy senior dev)** — ανέβαση στη σκάλα YAGNI, διόρθωση της ρίζας του προβλήματος, ελάχιστο λειτουργικό diff.
   - **I have ADHD (action-first)** — η επόμενη ενέργεια πρώτη, βήματα αριθμημένα, ένα συγκεκριμένο επόμενο βήμα, χωρίς εισαγωγή.
   - **Terse CJK (文言)** — εξαιρετικά σύντομο ύφος κλασικών κινεζικών (με προϋπόθεση locale `zh`).
-- **🎯 Προσαρμοστικός προϋπολογισμός πλαισίου** _(το ρυθμιστικό)_ — αντί για ένα on/off κατώφλι token, κλιμακώνει τις φθηνότερες, πιο lossless μηχανές μόνο όσο χρειάζεται για να **χωρέσει στο παράθυρο πλαισίου του μοντέλου**. Πολιτική: `reserve-output` (προεπιλογή, model-aware) · `percentage` · `absolute`. Λειτουργία: `floor` (εγγύηση χωρητικότητας) · `replace-autotrigger` (η ρητή επιλογή σου κερδίζει) · `off` (παλαιό κατώφλι).
-- **🎛️ Πού αποφασίζεται η συμπίεση** _(προτεραιότητα, υψηλή → χαμηλή)_ — header `x-omniroute-compression` ανά αίτημα › παράκαμψη routing-combo › ενεργό επώνυμο προφίλ › adaptive / auto-trigger › προεπιλογή πίνακα › off. Το εφαρμοζόμενο πλάνο επιστρέφει στο header απόκρισης `X-OmniRoute-Compression: <mode>; source=<source>`.
+- ** Προσαρμοστικός προϋπολογισμός πλαισίου** _(το ρυθμιστικό)_ — αντί για ένα on/off κατώφλι token, κλιμακώνει τις φθηνότερες, πιο lossless μηχανές μόνο όσο χρειάζεται για να **χωρέσει στο παράθυρο πλαισίου του μοντέλου**. Πολιτική: `reserve-output` (προεπιλογή, model-aware) · `percentage` · `absolute`. Λειτουργία: `floor` (εγγύηση χωρητικότητας) · `replace-autotrigger` (η ρητή επιλογή σου κερδίζει) · `off` (παλαιό κατώφλι).
+- ** Πού αποφασίζεται η συμπίεση** _(προτεραιότητα, υψηλή → χαμηλή)_ — header `x-omniroute-compression` ανά αίτημα › παράκαμψη routing-combo › ενεργό επώνυμο προφίλ › adaptive / auto-trigger › προεπιλογή πίνακα › off. Το εφαρμοζόμενο πλάνο επιστρέφει στο header απόκρισης `X-OmniRoute-Compression: <mode>; source=<source>`.
 
 Αυτόματη ενεργοποίηση βάσει κατωφλίου token, ενεργοποίηση του προσαρμοστικού ρυθμιστικού, καρφίτσωμα επώνυμου προφίλ, ορισμός εφάπαξ ανά αίτημα ή ανάθεση pipeline ανά routing combo — όποιο ταιριάζει στο φόρτο εργασίας. Ένα opt-in offline **eval harness** (`npm run eval:compression`) βαθμολογεί πιστότητα έναντι εξοικονόμησης σε καρφιτσωμένο corpus πριν προωθήσεις μια αλλαγή.
 
-📖 [`COMPRESSION_GUIDE.md`](docs/compression/COMPRESSION_GUIDE.md) · [`RTK_COMPRESSION.md`](docs/compression/RTK_COMPRESSION.md) · [`COMPRESSION_ENGINES.md`](docs/compression/COMPRESSION_ENGINES.md)
+[`COMPRESSION_GUIDE.md`](docs/compression/COMPRESSION_GUIDE.md) · [`RTK_COMPRESSION.md`](docs/compression/RTK_COMPRESSION.md) · [`COMPRESSION_ENGINES.md`](docs/compression/COMPRESSION_ENGINES.md)
 
 <br/>
 
 <div align="center">
 
-# ⚡ Γρήγορη Εκκίνηση
+# Γρήγορη Εκκίνηση
 
 </div>
 
@@ -947,7 +947,7 @@ npm install -g omniroute
 omniroute
 ```
 
-> 💡 Βλέπεις `npm warn ERESOLVE` ή προειδοποιήσεις peer-dep; [Είναι αβλαβείς](docs/guides/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated).
+> Βλέπεις `npm warn ERESOLVE` ή προειδοποιήσεις peer-dep; [Είναι αβλαβείς](docs/guides/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated).
 
 Πίνακας εργαλείων στο `http://localhost:20128` · API στο `http://localhost:20128/v1`.
 
@@ -969,7 +969,7 @@ Model:    auto            (έξυπνο routing μηδενικής ρύθμισ�
 curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
 ```
 
-Θα δεις τα συνδεδεμένα μοντέλα σου καταχωρισμένα. 🎉 Αυτό είναι όλο — ξεκίνα να γράφεις κώδικα και το OmniRoute δρομολογεί αυτόματα & κάνει fallback για σένα.
+Θα δεις τα συνδεδεμένα μοντέλα σου καταχωρισμένα. Αυτό είναι όλο — ξεκίνα να γράφεις κώδικα και το OmniRoute δρομολογεί αυτόματα & κάνει fallback για σένα.
 
 Αν ο πελάτης σου δεν μπορεί να στείλει custom headers, το OmniRoute εκθέτει επίσης tokenized ψευδώνυμα συμβατότητας:
 
@@ -986,9 +986,9 @@ Ollama tags:      http://localhost:20128/vscode/YOUR_KEY/api/tags
 
 <br/>
 
-## 📦 Περισσότερες μέθοδοι εγκατάστασης — Docker, πηγαίος κώδικας, pnpm, Arch
+## Περισσότερες μέθοδοι εγκατάστασης — Docker, πηγαίος κώδικας, pnpm, Arch
 
-**🐳 Docker**
+** Docker**
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -1017,7 +1017,7 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 > **δεν υποστηρίζονται για παραγωγή**. Δείτε
 > [Docker Release Channels](docs/guides/DOCKER_GUIDE.md#release-channels).
 
-**🥟 Bun**
+** Bun**
 
 Το τυπικό `bun install` και η καθολική εγκατάσταση (`bun install -g omniroute`) υποστηρίζονται μέσω ανίχνευσης χρόνου εκτέλεσης Bun:
 
@@ -1031,26 +1031,26 @@ bun install
 bun run dev
 ```
 
-**🛠️ Από πηγαίο κώδικα**
+** Από πηγαίο κώδικα**
 
 ```bash
 cp .env.example .env && npm install
 PORT=20128 npm run dev
 ```
 
-**📦 pnpm**
+** pnpm**
 
 ```bash
 pnpm add -g omniroute@latest --allow-build=better-sqlite3 --allow-build=@swc/core && omniroute
 ```
 
-**🐧 Arch Linux (AUR)**
+** Arch Linux (AUR)**
 
 ```bash
 yay -S omniroute-bin && systemctl --user enable --now omniroute.service
 ```
 
-**🔧 Nix (Flake)**
+** Nix (Flake)**
 
 ```bash
 # Χρήση Nix flakes
@@ -1061,9 +1061,9 @@ npm run dev
 devbox run npm run dev
 ```
 
-📖 [Docker Guide](docs/guides/DOCKER_GUIDE.md) — Προφίλ Compose, Caddy HTTPS, tunnels Cloudflare.
+[Docker Guide](docs/guides/DOCKER_GUIDE.md) — Προφίλ Compose, Caddy HTTPS, tunnels Cloudflare.
 
-**🦭 Podman**
+** Podman**
 
 ```bash
 # 1. Προετοιμασία του καταλόγου δεδομένων με bind-mount
@@ -1080,10 +1080,10 @@ podman compose --profile base up -d --build
 Σε macOS ή Windows, το Podman χρησιμοποιεί απομακρυσμένο Podman Machine: παραλείψτε το `podman unshare` και
 ακολουθήστε την [οδηγία καταλόγου δεδομένων ανά τοπολογία](contrib/podman/README.md#data-directory-permissions-by-topology).
 
-📖 [Podman Guide](contrib/podman/README.md) — Builds Compose, Podman Machine και
+[Podman Guide](contrib/podman/README.md) — Builds Compose, Podman Machine και
 ρύθμιση Linux/systemd Quadlet.
 
-**⚡ Ταχύτερη / ελαφρύτερη εγκατάσταση (παράλειψη native build)**
+** Ταχύτερη / ελαφρύτερη εγκατάσταση (παράλειψη native build)**
 
 Η native μηχανή SQLite (`better-sqlite3`) είναι **προαιρετική** εξάρτηση, οπότε μια καθολική
 εγκατάσταση δεν εμποδίζεται ποτέ από μεταγλώττιση πηγαίου κώδικα: χρησιμοποιεί προκατασκευασμένο δυαδικό αρχείο όταν ταιριάζει με
@@ -1105,11 +1105,11 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
 
 <div align="center">
 
-# 🎬 Το OmniRoute σε Δράση
+# Το OmniRoute σε Δράση
 
 </div>
 
-## 📹 Οδηγοί Βίντεο
+## Οδηγοί Βίντεο
 
 <div align="center">
 
@@ -1121,35 +1121,35 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
       <a href="https://www.instagram.com/reel/Da8ZthUPK98/">
         <img src="https://placehold.co/320x180/111827/FFFFFF?text=Instagram+Reel+%7C+nick_saraev&font=montserrat&bold=true" alt="Instagram Reel" width="300"/>
       </a><br/>
-      <b>🎬 #1 — Instagram</b><br/>
+      <b> #1 — Instagram</b><br/>
       <sub>nick_saraev — 3.042.474 προβολές</sub>
     </td>
     <td align="center" width="320">
       <a href="https://www.instagram.com/reel/DaSs65mMrHk/">
         <img src="https://placehold.co/320x180/111827/FFFFFF?text=Instagram+Reel+%7C+theopenstack&font=montserrat&bold=true" alt="Instagram Reel — theopenstack" width="300"/>
       </a><br/>
-      <b>🎬 #2 — Instagram</b><br/>
+      <b> #2 — Instagram</b><br/>
       <sub>theopenstack — 692.419 προβολές</sub>
     </td>
     <td align="center" width="320">
       <a href="https://www.tiktok.com/@milesreevesai/video/7667980059189366019">
         <img src="https://placehold.co/320x180/111827/FFFFFF?text=TikTok+%7C+milesreevesai&font=montserrat&bold=true" alt="TikTok — milesreevesai" width="300"/>
       </a><br/>
-      <b>🎬 #3 — TikTok</b><br/>
+      <b> #3 — TikTok</b><br/>
       <sub>milesreevesai — 620.400 προβολές</sub>
     </td>
     <td align="center" width="320">
       <a href="https://www.youtube.com/watch?v=QucgvbO5gsM">
         <img src="https://img.youtube.com/vi/QucgvbO5gsM/maxresdefault.jpg" alt="YouTube — Vaibhav Sisinty" width="300"/>
       </a><br/>
-      <b>🎬 #4 — YouTube</b><br/>
+      <b> #4 — YouTube</b><br/>
       <sub>Vaibhav Sisinty — 391.109 προβολές</sub>
     </td>
     <td align="center" width="320">
       <a href="https://www.instagram.com/reel/DbIt9AjK7-U/">
         <img src="https://placehold.co/320x180/111827/FFFFFF?text=Instagram+Reel+%7C+buildwithai.club&font=montserrat&bold=true" alt="Instagram Reel — buildwithai.club" width="300"/>
       </a><br/>
-      <b>🎬 #5 — Instagram</b><br/>
+      <b> #5 — Instagram</b><br/>
       <sub>buildwithai.club — 347.652 προβολές</sub>
     </td>
   </tr>
@@ -1169,30 +1169,30 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
 
 Κανονικές μετρικές στις 2026-08-24: **1.029 μοναδικά βίντεο** · **11.132.922 γνωστές προβολές** (`v > 0`) · **639 κανάλια/προφίλ ανά δίκτυο**. Ο ακατέργαστος πίνακας περιέχει 1.070 γραμμές· 41 διπλότυπα του Instagram κανονικοποιήθηκαν βάσει κανονικής URL, διατηρώντας τον μεγαλύτερο αριθμό ανά βίντεο.
 
-> 🎬 **Φτιάξατε βίντεο για το OmniRoute;** Ανοίξτε ένα [issue](https://github.com/diegosouzapw/OmniRoute/issues/new) ή μια [συζήτηση](https://github.com/diegosouzapw/OmniRoute/discussions) με τον σύνδεσμο — θα το προβάλουμε εδώ.
+> **Φτιάξατε βίντεο για το OmniRoute;** Ανοίξτε ένα [issue](https://github.com/diegosouzapw/OmniRoute/issues/new) ή μια [συζήτηση](https://github.com/diegosouzapw/OmniRoute/discussions) με τον σύνδεσμο — θα το προβάλουμε εδώ.
 
 <br/>
 
 <div align="center">
 
-# 📧 Κοινότητα & Βοήθεια
+# Κοινότητα & Βοήθεια
 
 > Όλα σε ένα μέρος — ακολουθήστε τον συντηρητή, συνομιλήστε με την κοινότητα ή ανοίξτε ένα issue.
 
-| Κανάλι                                               | Πού / πώς                                                                                                                           |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 💼 **LinkedIn** — ακολουθήστε τον συντηρητή          | [linkedin.com/in/diegosouzapw](https://www.linkedin.com/in/diegosouzapw/)                                                           |
-| 🐙 **GitHub** — ακολουθήστε για εκδόσεις & συμβουλές | [@diegosouzapw](https://github.com/diegosouzapw)                                                                                    |
-| 💬 **Discord**                                       | [discord.gg/U47eFqAXCn](https://discord.gg/U47eFqAXCn)                                                                              |
-| ✈️ **Telegram**                                      | [t.me/omnirouteOficial](https://t.me/omnirouteOficial)                                                                              |
-| 🟢 **WhatsApp — 🌍 Παγκόσμιο**                       | [εγγραφή στην ομάδα](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4)                                               |
-| 🟢 **WhatsApp — 🇧🇷 Βραζιλία**                        | [εγγραφή στην ομάδα](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4)                                               |
-| 🌍 **Ιστότοπος**                                     | [omniroute.online](https://omniroute.online)                                                                                        |
-| 🌍 **🌍StHub OmniRoute Community (δωρεάν)**          | [portal sthub](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)                               |
-| 📦 **Πηγαίος κώδικας**                               | [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)                                                      |
-| 🐛 **Αναφορά σφάλματος**                             | [ανοίξτε ένα issue](https://github.com/diegosouzapw/OmniRoute/issues) — επισυνάψτε την έξοδο του `npm run system-info`              |
-| 🤝 **Συνεισφορά**                                    | [CONTRIBUTING.md](CONTRIBUTING.md) · [Μοντέλο Διακλάδωσης & Έκδοσης](docs/ops/BRANCHING_MODEL.md) · επιλέξτε ένα `good first issue` |
-| 💚 **Υποστήριξη του έργου**                          | [Τρόποι υποστήριξης ↑](#-support-omniroute) · [GitHub Sponsors](https://github.com/sponsors/diegosouzapw)                           |
+| Κανάλι                                            | Πού / πώς                                                                                                                           |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **LinkedIn** — ακολουθήστε τον συντηρητή          | [linkedin.com/in/diegosouzapw](https://www.linkedin.com/in/diegosouzapw/)                                                           |
+| **GitHub** — ακολουθήστε για εκδόσεις & συμβουλές | [@diegosouzapw](https://github.com/diegosouzapw)                                                                                    |
+| **Discord**                                       | [discord.gg/U47eFqAXCn](https://discord.gg/U47eFqAXCn)                                                                              |
+| **Telegram**                                      | [t.me/omnirouteOficial](https://t.me/omnirouteOficial)                                                                              |
+| **WhatsApp — Παγκόσμιο**                          | [εγγραφή στην ομάδα](https://chat.whatsapp.com/FvuCbrpZmQ6I85n2vW5QIC?s=cl&p=a&mlu=4)                                               |
+| **WhatsApp — Βραζιλία**                           | [εγγραφή στην ομάδα](https://chat.whatsapp.com/KWgatljAjmbELQory59Oti?s=cl&p=a&mlu=4)                                               |
+| **Ιστότοπος**                                     | [omniroute.online](https://omniroute.online)                                                                                        |
+| **StHub OmniRoute Community (δωρεάν)**            | [portal sthub](https://portal.sthub.com.br/communities/groups/st-hub/channels/Omniroute-World-8kRjmK)                               |
+| **Πηγαίος κώδικας**                               | [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)                                                      |
+| **Αναφορά σφάλματος**                             | [ανοίξτε ένα issue](https://github.com/diegosouzapw/OmniRoute/issues) — επισυνάψτε την έξοδο του `npm run system-info`              |
+| **Συνεισφορά**                                    | [CONTRIBUTING.md](CONTRIBUTING.md) · [Μοντέλο Διακλάδωσης & Έκδοσης](docs/ops/BRANCHING_MODEL.md) · επιλέξτε ένα `good first issue` |
+| **Υποστήριξη του έργου**                          | [Τρόποι υποστήριξης ↑](#-support-omniroute) · [GitHub Sponsors](https://github.com/sponsors/diegosouzapw)                           |
 
 </div>
 
@@ -1201,7 +1201,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
 <br/>
 <div align="center">
 
-## 🛠️ Τεχνολογική Στοίβα
+## Τεχνολογική Στοίβα
 
 </div>
 
@@ -1221,7 +1221,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
   <tr><td nowrap><b>Ανθεκτικότητα</b></td><td>Διακόπτης κυκλώματος, εκθετική αναμονή, αντι-thundering-herd, αυτόματη αυτο-επιδιόρθωση combo</td></tr>
   <tr><td nowrap><b>Καταγραφή</b></td><td>pino — δομημένα JSON αρχεία καταγραφής με πλαίσιο αιτήματος</td></tr>
   <tr><td nowrap><b>Δοκιμές</b></td><td>Node.js test runner + Vitest — <b>39.000+ στατικές δηλώσεις δοκιμών</b> σε 5.100+ παρακολουθούμενα αρχεία δοκιμών (μονάδας, ενσωμάτωσης, E2E, ασφάλειας, οικοσυστήματος)</td></tr>
-  <tr><td nowrap><b>Πλατφόρμες</b></td><td>Επιτραπέζιος (Electron) · Android (Termux) · PWA (οποιοδήποτε πρόγραμμα περιήγησης)</td></tr>
+  <tr><td nowrap><b>Πλατφόρμες</b></td><td>Επιτραπέζιος (Tauri 2) · Android (Termux) · PWA (οποιοδήποτε πρόγραμμα περιήγησης)</td></tr>
   <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — αυτόματη δημοσίευση npm + Docker Hub κατά την κυκλοφορία</td></tr>
   <tr><td nowrap><b>Σύνδεσμοι</b></td><td><a href="https://omniroute.online">Ιστότοπος</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
@@ -1230,11 +1230,11 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
 
 <br/>
 
-## 📖 Τεκμηρίωση
+## Τεκμηρίωση
 
 </div>
 
-### 📘 Ξεκινώντας
+### Ξεκινώντας
 
 <table>
   <tr><th align="left">Έγγραφο</th><th align="left">Περιγραφή</th></tr>
@@ -1246,7 +1246,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
   <tr><td nowrap><b><a href="README.md#-quick-start">Γρήγορη Εκκίνηση</a></b></td><td>Εγκατάσταση σε 3 βήματα → σύνδεση → διαμόρφωση</td></tr>
 </table>
 
-### 🔧 Λειτουργίες & Ανάπτυξη
+### Λειτουργίες & Ανάπτυξη
 
 <table>
   <tr><th align="left">Έγγραφο</th><th align="left">Περιγραφή</th></tr>
@@ -1260,7 +1260,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
   <tr><td nowrap><b><a href="docs/reference/ENVIRONMENT.md">Διαμόρφωση Περιβάλλοντος</a></b></td><td>Πλήρεις μεταβλητές <code>.env</code> και αναφορές</td></tr>
 </table>
 
-### 🧠 Χαρακτηριστικά & Αρχιτεκτονική
+### Χαρακτηριστικά & Αρχιτεκτονική
 
 <table>
   <tr><th align="left">Έγγραφο</th><th align="left">Περιγραφή</th></tr>
@@ -1278,7 +1278,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
   <tr><td nowrap><b><a href="docs/architecture/CODEBASE_DOCUMENTATION.md">Τεκμηρίωση Κώδικα</a></b></td><td>Φιλική για αρχάριους περιήγηση στον κώδικα</td></tr>
 </table>
 
-### 🤖 Πρωτόκολλα & APIs
+### Πρωτόκολλα & APIs
 
 <table>
   <tr><th align="left">Έγγραφο</th><th align="left">Περιγραφή</th></tr>
@@ -1290,7 +1290,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
   <tr><td nowrap><b><a href="docs/frameworks/A2A-SERVER.md">Οδηγός Διακομιστή A2A</a></b></td><td>Κάρτα πράκτορα A2A, εργασίες, δεξιότητες και ροή</td></tr>
 </table>
 
-### 📋 Έργο & Ποιότητα
+### Έργο & Ποιότητα
 
 <table>
   <tr><th align="left">Έγγραφο</th><th align="left">Περιγραφή</th></tr>
@@ -1349,42 +1349,42 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
         <img src="https://github.com/backryun.png" width="40" style="border-radius:50%" alt="backryun"/><br/>
         <b>backryun</b>
       </a><br/>
-      <sub>🥇 220 commits που αποδίδονται στο GitHub</sub>
+      <sub> 220 commits που αποδίδονται στο GitHub</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/oyi77">
         <img src="https://github.com/oyi77.png" width="40" style="border-radius:50%" alt="Paijo"/><br/>
         <b>Paijo</b>
       </a><br/>
-      <sub>🥈 219 commits που αποδίδονται στο GitHub</sub>
+      <sub> 219 commits που αποδίδονται στο GitHub</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/rdself">
         <img src="https://github.com/rdself.png" width="40" style="border-radius:50%" alt="Randi"/><br/>
         <b>Randi</b>
       </a><br/>
-      <sub>🥉 108 commits που αποδίδονται στο GitHub</sub>
+      <sub> 108 commits που αποδίδονται στο GitHub</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/RaviTharuma">
         <img src="https://github.com/RaviTharuma.png" width="40" style="border-radius:50%" alt="Ravi Tharuma"/><br/>
         <b>Ravi Tharuma</b>
       </a><br/>
-      <sub>🏅 81 commits που αποδίδονται στο GitHub</sub>
+      <sub> 81 commits που αποδίδονται στο GitHub</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/christopher-s">
         <img src="https://github.com/christopher-s.png" width="40" style="border-radius:50%" alt="Chris"/><br/>
         <b>Chris</b>
       </a><br/>
-      <sub>🏅 70 commits που αποδίδονται στο GitHub</sub>
+      <sub> 70 commits που αποδίδονται στο GitHub</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/hartmark">
         <img src="https://github.com/hartmark.png" width="40" style="border-radius:50%" alt="Markus Hartung"/><br/>
         <b>Markus Hartung</b>
       </a><br/>
-      <sub>🏅 69 commits που αποδίδονται στο GitHub · ισοβαθμία #6</sub>
+      <sub> 69 commits που αποδίδονται στο GitHub · ισοβαθμία #6</sub>
     </td>
   </tr>
   <tr>
@@ -1393,288 +1393,52 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
         <img src="https://github.com/maxmad64bis.png" width="40" style="border-radius:50%" alt="Dizzle"/><br/>
         <b>Dizzle</b>
       </a><br/>
-      <sub>🏅 69 commits που αποδίδονται στο GitHub · ισοβαθμία #6</sub>
+      <sub> 69 commits που αποδίδονται στο GitHub · ισοβαθμία #6</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/JxnLexn">
         <img src="https://github.com/JxnLexn.png" width="40" style="border-radius:50%" alt="Jan Leon"/><br/>
         <b>Jan Leon</b>
       </a><br/>
-      <sub>🏅 64 commits που αποδίδονται στο GitHub</sub>
+      <sub> 64 commits που αποδίδονται στο GitHub</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/zen0bit">
         <img src="https://github.com/zen0bit.png" width="40" style="border-radius:50%" alt="zenobit"/><br/>
         <b>zenobit</b>
       </a><br/>
-      <sub>🏅 62 commits που αποδίδονται στο GitHub</sub>
+      <sub> 62 commits που αποδίδονται στο GitHub</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/HouMinXi">
         <img src="https://github.com/HouMinXi.png" width="40" style="border-radius:50%" alt="Bob.Hou"/><br/>
         <b>Bob.Hou</b>
       </a><br/>
-      <sub>🏅 51 commits που αποδίδονται στο GitHub · ισοβαθμία #10</sub>
+      <sub> 51 commits που αποδίδονται στο GitHub · ισοβαθμία #10</sub>
     </td>
     <td align="center" width="160">
       <a href="https://github.com/xz-dev">
         <img src="https://github.com/xz-dev.png" width="40" style="border-radius:50%" alt="Xiangzhe"/><br/>
         <b>Xiangzhe</b>
       </a><br/>
-      <sub>🏅 51 commits που αποδίδονται στο GitHub · ισοβαθμία #10</sub>
+      <sub> 51 commits που αποδίδονται στο GitHub · ισοβαθμία #10</sub>
     </td>
   </tr>
 </table>
 
 <sub>Επανελέγχθηκε στις 2026-08-24 06:14:31 UTC: commits που αποδίδονται στο GitHub όπως αναφέρονται από το Contributors API του αποθετηρίου για τον προεπιλεγμένο κλάδο <code>release/v3.8.50</code>. Το API επέστρεψε 525 ταυτότητες (415 χρήστες, 2 bots, 108 ανώνυμοι)· αυτός ο πίνακας εξαιρεί τον συντηρητή, τα bots και τις ανώνυμες ταυτότητες και διατηρεί ισοβαθμίες στον ανταγωνισμό. Διαφέρει τόσο από την κατάταξη συγχωνευμένων PRs παραπάνω όσο και από την απογραφή μεταδεδομένων Git 639 ατόμων παρακάτω.</sub>
 
-> 🙏 Τα χαρακτηριστικά, οι διορθώσεις σφαλμάτων και οι βελτιώσεις υποδομής αυτών των συνεισφερόντων αποτελούν **βασικό μέρος** αυτού που κάνει το OmniRoute αξιόπιστο και πλούσιο σε χαρακτηριστικά. Κάθε pull request, κάθε περίπτωση δοκιμής και κάθε αρχείο μετάφρασης i18n έχει σημασία. Ο ανοιχτός κώδικας χτίζεται από ανθρώπους σαν αυτούς.
+> Τα χαρακτηριστικά, οι διορθώσεις σφαλμάτων και οι βελτιώσεις υποδομής αυτών των συνεισφερόντων αποτελούν **βασικό μέρος** αυτού που κάνει το OmniRoute αξιόπιστο και πλούσιο σε χαρακτηριστικά. Κάθε pull request, κάθε περίπτωση δοκιμής και κάθε αρχείο μετάφρασης i18n έχει σημασία. Ο ανοιχτός κώδικας χτίζεται από ανθρώπους σαν αυτούς.
 
 </div>
 
 ---
 
-<br/>
-
-## 💖 Χορηγοί
-
 <div align="center">
 
-Ένα ολόθερμο ευχαριστώ στους ανθρώπους που χρηματοδοτούν το OmniRoute από την τσέπη τους — κάθε συνεισφορά κρατά το έργο δωρεάν, ανεξάρτητο και σε κίνηση.
-
-<table>
-  <tr>
-    <td align="center" width="180">
-      <a href="https://github.com/drewbitt">
-        <img src="https://github.com/drewbitt.png?size=140" width="72" style="border-radius:50%" alt="Andrew"/><br/>
-        <b>Andrew</b>
-      </a><br/>
-      <sub>💛 Ενεργός μηνιαίος χορηγός</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/psylligent">
-        <img src="https://github.com/psylligent.png?size=140" width="72" style="border-radius:50%" alt="Vlad I"/><br/>
-        <b>Vlad I</b>
-      </a><br/>
-      <sub>💛 Ενεργός μηνιαίος χορηγός</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/pacocartones">
-        <img src="https://github.com/pacocartones.png?size=140" width="72" style="border-radius:50%" alt="Paco Cartones"/><br/>
-        <b>Paco Cartones</b>
-      </a><br/>
-      <sub>💛 Ενεργός εφάπαξ χορηγός</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/igormorais123">
-        <img src="https://github.com/igormorais123.png?size=140" width="72" style="border-radius:50%" alt="Professor Igor Morais Vasconcelos"/><br/>
-        <b>Καθ. Igor Morais</b>
-      </a><br/>
-      <sub>💛 Παλαιός εφάπαξ υποστηρικτής</sub>
-    </td>
-    <td align="center" width="180">
-      <a href="https://github.com/longtao77">
-        <img src="https://github.com/longtao77.png?size=140" width="72" style="border-radius:50%" alt="longtao"/><br/>
-        <b>longtao</b>
-      </a><br/>
-      <sub>💛 Παλαιός εφάπαξ υποστηρικτής</sub>
-    </td>
-  </tr>
-</table>
-
-<sub>… και άλλοι που προτιμούν να παραμείνουν ανώνυμοι 💛</sub>
-
-<sub>Δημόσιοι χορηγοί GitHub επαναληπτικά ελεγμένοι στις 2026-08-24. Η κατάσταση <code>activeOnly</code> του GitHub καθορίζει τις ετικέτες ενεργών παραπάνω· οι προηγουμένως αποκαλυφθέντες δημόσιοι εφάπαξ υποστηρικτές εξακολουθούν να ευχαριστούνται, και οι ιδιωτικοί χορηγοί παραμένουν ανώνυμοι.</sub>
-
-<b><a href="https://github.com/sponsors/diegosouzapw">💖 Γίνε χορηγός →</a></b> — κάθε δολάριο κρατά το OmniRoute δωρεάν και ανεξάρτητο.
-
-</div>
-
-<br/>
-
-<div align="center">
-
-## 👥 600+ Συνεισφέροντες
-
-</div>
-
-[![Contributors](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=639&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
-
-<sub>Ελεγμένο στις 2026-08-24 στη δεσμευμένη βάση <code>ac02c5b42f</code> και επανελεγμένο στο ενεργό άκρο <code>release/v3.8.50</code> <code>dafb4ae808</code>: <b>639 κανονικοποιημένες ανθρώπινες Git ταυτότητες</b> — 407 εμφανίζονται ως συγγραφείς commit (συμπεριλαμβανομένου του συντηρητή) και 232 μόνο σε ρητά <code>Co-authored-by</code> trailers. Η απογραφή κανονικοποιεί τα noreply handles του GitHub, εξαιρεί 26 ταυτότητες bot/agent/υπηρεσίας/placeholder, και δεν συγχωνεύει κοινές διευθύνσεις email μόνο και μόνο επειδή τα εμφανιζόμενα ονόματά τους ταιριάζουν.</sub>
-
-### Πώς να Συνεισφέρεις
-
-1. Κάνε fork το αποθετήριο
-2. Διακλαδώσου από το **ενεργό** άκρο `release/vX.Y.Z` (όχι από το `main`) — δες [Branching & Release Model](docs/ops/BRANCHING_MODEL.md)
-3. Δημιούργησε τον κλάδο της λειτουργίας σου (`git checkout -b feat/amazing-feature`)
-4. Κάνε commit τις αλλαγές σου (`git commit -m 'feat: add amazing feature'`)
-5. Κάνε push στον κλάδο (`git push origin feat/amazing-feature`)
-6. Άνοιξε ένα Pull Request με **base = εκείνον τον κλάδο `release/vX.Y.Z`**
-
-Δες το [CONTRIBUTING.md](CONTRIBUTING.md) για λεπτομερείς οδηγίες.
-
-### Κυκλοφορία Νέας Έκδοσης
-
-```bash
-# Δημιούργησε μια έκδοση — το npm publish γίνεται αυτόματα
-VERSION=x.y.z
-gh release create "v${VERSION}" --title "v${VERSION}" --generate-notes
-```
-
-<br/>
-
-<div align="center">
-
-## 📊 Αστέρια
-
-<a href="https://www.star-history.com/?repos=diegosouzapw%2FOmniRoute&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&theme=dark&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
-   <img alt="Γράφημα Ιστορικού Αστεριών" src="https://api.star-history.com/chart?repos=diegosouzapw/OmniRoute&type=date&legend=top-left&sealed_token=XP_ycEjv7s31p1edvhsMOXry51OWYsUjDRWjflSG7jQKRpO9hPGg7i_EHvwhI6QtrARTMH-YGjJhi8sumRYflEJD0DPlH_MMHjizhBYCX8fbHFrHEiNvVA" />
- </picture>
-</a>
-
-<br/>
-
-<div align="center">
-
-## 🌍 StarMapper
-
-<a href="https://starmapper.bruniaux.com/diegosouzapw/omniroute">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute?theme=light" />
-    <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
-  </picture>
-</a>
-</div>
-
-<br/>
-
-<div align="center">
-
-## 🙏 Ευχαριστίες
-
-</div>
-
-Το OmniRoute στηρίζεται σε γίγαντες. Ξεκίνησε ως fork του **[9router](https://github.com/decolua/9router)** και ως μεταφορά σε TypeScript του έργου Go **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — και από εκεί, κάθε υποσύστημα παρακάτω εμπνεύστηκε από ένα έργο ανοιχτού κώδικα που έφτασε εκεί πρώτο. Καθένα διαμόρφωσε ένα συγκεκριμένο κομμάτι του OmniRoute. Αυτό είναι το ευχαριστώ μας σε όλους τους. 🙏
-
-> ⭐ Οι αριθμοί αστεριών επαληθεύτηκαν από το REST API του GitHub στις 24 Αυγούστου 2026 — πηγαίνετε να δώσετε αστέρι σε αυτά τα έργα. Οι αριθμοί είναι ακριβές χρονολογημένο στιγμιότυπο και θα αλλάξουν φυσικά.
-
-### 🧬 系譜 & πύλη
-
-<table>
-  <tr><th align="left">Έργο</th><th align="center">⭐</th><th align="left">Πώς ενέπνευσε το OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/decolua/9router">9router</a></b></td><td align="center">26.161</td><td>Το αρχικό έργο πάνω στο οποίο βασίζεται αυτό το fork — επεκτάθηκε εδώ με πολυτροπικά APIs και πλήρη επανεγγραφή σε TypeScript.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/router-for-me/CLIProxyAPI">CLIProxyAPI</a></b></td><td align="center">48.497</td><td>Η υλοποίηση σε Go που ενέπνευσε αυτή τη μεταφορά σε JavaScript / TypeScript.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/BerriAI/litellm">LiteLLM</a></b></td><td align="center">57.100</td><td>Η πύλη AI της οποίας το δημόσιο σύνολο δεδομένων τιμολόγησης τροφοδοτεί τον συγχρονισμό παρακολούθησης κόστους και της οποίας το μοντέλο κανονικοποίησης παρόχων ενημέρωσε τη δρομολόγησή μας.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/miuuyy/codex-chatgpt-web">codex-chatgpt-web</a></b></td><td align="center">1.410</td><td>Πηγαίος κώδικας MIT προσαρμοσμένος στη vendored γέφυρα ChatGPT Web → Codex Responses, συμπεριλαμβανομένων προσαρμογέων browser-session, response-framing, χρήσης και web-search.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Alishahryar1/free-claude-code">free-claude-code</a></b></td><td align="center">48.112</td><td>Μοτίβα που μεταφέρθηκαν στην ανάκτηση ροής, ψευδώνυμα χωρίς-σκέψη, εναλλακτική αναζήτηση web, όρια κυλιόμενου παραθύρου, απόκρυψη καταγραφών και ενισχυμένες ροές εκκίνησης.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/standardagents/composer-api">composer-api</a></b></td><td align="center">322</td><td>Μοτίβα επιλογής εργαλείων, περιορισμού εξόδου και δέσμευσης εργαλείων του Cursor Composer προσαρμοσμένα στον εγγενή εκτελεστή Cursor.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ndycode/codex-multi-auth">codex-multi-auth</a></b></td><td align="center">457</td><td>Μοτίβα νέας σύνδεσης και εναλλαγής refresh-token μεταφερμένα στην επαναπιστοποίηση Codex OAuth.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ex-machina-co/opencode-anthropic-auth">opencode-anthropic-auth</a></b></td><td align="center">510</td><td>Προεπιλογές μετασχηματισμού συμβατές με Claude Code και συμπεριφορά billing-header γενικευμένη στη γέφυρα βάσει διαμόρφωσης του OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/520mmxx/grok2api-merged">grok2api-merged</a></b></td><td align="center">2</td><td>Οι αντιστοιχίσεις μοντέλων Grok, ο γεννήτορας Statsig τύπου fake-TypeError, οι προεπιλογές αιτήματος και συσκευής, και ο επεξεργαστής απόκρισης NDJSON προσαρμόστηκαν ουσιαστικά στον εκτελεστή Grok Web του OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/TQZHR/grok2api">TQZHR/grok2api</a></b></td><td align="center">705</td><td>Η κύρια μεταβατική πηγή κώδικα πίσω από το grok2api-merged· οι υλοποιήσεις μοντέλου, κεφαλίδας, payload, Statsig και επεξεργαστή διατηρούνται στη γενεαλογία Grok Web.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/chenyme/grok2api">chenyme/grok2api</a></b></td><td align="center">7.520</td><td>Η υποκείμενη πηγή MIT για τις προεπιλογές payload και συσκευής Grok, τον γεννήτορα Statsig και τον επεξεργαστή <code>result.response</code> που μεταφέρθηκε μέσω TQZHR και grok2api-merged.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/miuzhaii/grok2api-pro">grok2api-pro</a></b></td><td align="center">27</td><td>Μια μεταβατική πηγή που αναφέρεται από το grok2api-merged για το επίπεδο proxy-pool· το OmniRoute διατηρεί αυτή την ειδοποίηση γενεαλογίας αλλά δεν ισχυρίζεται μεταφορά proxy-pool στον περιορισμένο εκτελεστή Grok Web.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/CNFlyCat/GrokProxy">GrokProxy</a></b></td><td align="center">50</td><td>Ο proxy Grok με πιστοποίηση cookie και το μοτίβο ροής <code>result.response.token</code> ενημέρωσαν τη μεταφορά Grok Web του OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lianying1716/GrokBridge">GrokBridge</a></b></td><td align="center">5</td><td>Η αρχική υλοποίηση Grok Web συμβουλεύτηκε τον σχεδιασμό HTTP/browser upstream· η άμεση HTTP διαδρομή της προέρχεται από το GrokProxy, οπότε δεν διεκδικείται ανεξάρτητη μεταφορά κώδικα.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/imjustprism/grok-web-api">grok-web-api</a></b></td><td align="center">14</td><td>Τα σχήματα `ChatOptions` και envelope απόκρισης σε Rust ενημέρωσαν τους τύπους αιτήματος Grok και απόκρισης ροής σε TypeScript του OmniRoute.</td></tr>
-</table>
-
-### 🗜️ Συμπίεση περιεχομένου & διακριτικών — μηχανές
-
-<table>
-  <tr><th align="left">Έργο</th><th align="center">⭐</th><th align="left">Πώς ενέπνευσε το OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/JuliusBrussee/caveman">Caveman</a></b></td><td align="center">100.538</td><td>Το viral έργο "γιατί να χρησιμοποιείς πολλά διακριτικά όταν λίγα κάνουν τη δουλειά" — η φιλοσοφία caveman-speak τροφοδοτεί την τυπική λειτουργία συμπίεσης και 30+ κανόνες πλήρωσης/συμπύκνωσης.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/rtk-ai/rtk">RTK – Rust Token Killer</a></b></td><td align="center">77.185</td><td>Συμπίεση εξόδου εντολών υψηλής απόδοσης — ενέπνευσε τη μηχανή RTK, το DSL φίλτρου JSON, την ανάκτηση ακατέργαστης εξόδου και τη στοιβαγμένη αγωγό RTK → Caveman.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/headroomlabs-ai/headroom">headroom</a></b></td><td align="center">67.310</td><td>Αναστρέψιμη συμπίεση περιεχομένου (SmartCrusher) — ενέπνευσε τη μηχανή <code>headroom</code> και το μοτίβο ανάκτησης-δείκτη <code>ccr</code>.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/microsoft/LLMLingua">LLMLingua</a></b></td><td align="center">6.598</td><td>Έρευνα συμπίεσης prompt (LLMLingua / LLMLingua-2) — ενέπνευσε τη μηχανή <code>llmlingua</code> που είναι ασύγχρονη, ασφαλής για κώδικα και ανθεκτική σε αποτυχίες.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/atjsh/llmlingua-2-js">llmlingua-2-js</a></b></td><td align="center">31</td><td>Η μεταφορά JS/ONNX (MobileBERT / XLM-RoBERTa) που χρησιμοποιείται ως backend worker-thread για τη μηχανή LLMLingua μας.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/leninejunior/troglodita">Troglodita</a></b></td><td align="center">40</td><td>Συμπίεση διακριτικών PT-BR — τροφοδοτεί το γλωσσικό πακέτο pt-BR: μείωση πλεονασμού και αφαίρεση γεμιστικών λέξεων βελτιστοποιημένη για τη βραζιλιάνικη-πορτογαλική γραμματική.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/DietrichGebert/ponytail">ponytail</a></b></td><td align="center">108.957</td><td>Η viral δεξιότητα YAGNI-coding του "τεμπέλη senior dev" — ενέπνευσε το Στυλ Εξόδου <b>less-code</b>: καθοδήγηση ελάχιστης-λειτουργικής-αλλαγής που μειώνει τον _παραγόμενο_ κώδικα (ο αδελφός στον άξονα εξόδου της πεζολογίας χωρίς περιττές λέξεις του Caveman).</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ayghri/i-have-adhd">i-have-adhd</a></b></td><td align="center">23.526</td><td>Το στυλ απόκρισης που δίνει προτεραιότητα στη δράση και είναι φιλικό προς το ADHD προσαρμόστηκε στο συνοπτικό στυλ εξόδου του OmniRoute σε πέντε γλώσσες.</td></tr>
-</table>
-
-### 🧩 Συμπαγείς μορφές, έρευνα διακριτικών & εργαλεία με επίγνωση κώδικα
-
-<table>
-  <tr><th align="left">Έργο</th><th align="center">⭐</th><th align="left">Πώς ενέπνευσε το OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/toon-format/toon">TOON</a></b></td><td align="center">25.233</td><td>Token-Oriented Object Notation — το στηλοθετικό μοντέλο κεφαλίδα-συν-γραμμές διαμόρφωσε το στάδιο πινακοποιημένης συμπύκνωσής μας.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/blackwell-systems/gcf">GCF – Graph Compact Format</a></b></td><td align="center">41</td><td>Η συμπαγής μορφή γράφου και ο σχεδιασμός γενικού προφίλ ενημέρωσαν την πινακοποιημένη συμπύκνωση και τη μορφή codec Headroom του OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/blackwell-systems/gcf-typescript">gcf-typescript</a></b></td><td align="center">4</td><td>Η υλοποίηση MIT TypeScript που ενσωματώθηκε και επεκτάθηκε άμεσα ως codec γενικού προφίλ Headroom.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ooples/token-optimizer-mcp">token-optimizer-mcp</a></b></td><td align="center">494</td><td>Κρυφή μνήμη Brotli/SQLite + context-delta ανά συνεδρία — ενέπνευσε τη μηχανή <code>session-dedup</code> μας.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Mibayy/token-savior">token-savior</a></b></td><td align="center">1.122</td><td>Συμπύκνωση εξόδου Bash + προφίλ MCP — ενέπνευσε την πειθαρχία διακοπής συμπίεσης και τη μείωση manifest εργαλείων MCP.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/ppgranger/token-saver">token-saver</a></b></td><td align="center">138</td><td>Συμπίεση εξόδου με επίγνωση περιεχομένου, ανά τύπο αρχείου, με διακοπή λόγω αποτυχίας — επικύρωσε την αποστολή ανά τύπο και την παράλειψη ελάχιστου κέρδους.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/alexgreensh/token-optimizer">token-optimizer</a></b></td><td align="center">1.951</td><td>"Βρες τα φαντάσματα διακριτικά" — το μοτίβο offload + ανακτήσιμης-λαβής ενημέρωσε τη σκέψη μας για offload CCR.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/Shweta-Mishra-ai/tokenmizer">TokenMizer</a></b></td><td align="center">28</td><td>Ένα σχέδιο session-graph + διαγραμμάτωση γραμμών μεταξύ σειρών που ενημέρωσε τον σχεδιασμό session-dedup μας.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/jessefreitas/OmniCompress">OmniCompress</a></b></td><td align="center">3</td><td>Στηλοθετικό JSON σε Rust + ανάκτηση με αναφορά περιεχομένου + διαγραμμάτωση μεταξύ μηνυμάτων — επικύρωσε τον σχεδιασμό μηχανής <code>headroom</code>/<code>ccr</code>/<code>session-dedup</code> και την αναλλοίωτη "η συμπιεσμένη μορφή είναι ανεξάρτητη θέσης" σταθερής κρυφής μνήμης.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/atlassian-labs/mcp-compressor">mcp-compressor</a></b></td><td align="center">113</td><td>Συμπίεση σχήματος/περιγραφής εργαλείων MCP — ενημέρωσε τη μείωση πληθυκότητας manifest εργαλείων MCP μας.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/pdavis68/RepoMapper">RepoMapper</a></b></td><td align="center">197</td><td>Κατάταξη χάρτη αποθετηρίου στυλ Aider — ενημέρωσε τη διερεύνηση χάρτη αποθετηρίου / κατάταξης ανάκτησης.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/mrsimpson/quiet-shell-mcp">quiet-shell-mcp</a></b></td><td align="center">4</td><td>Δηλωτική μείωση εξόδου shell μέσω MCP — επικύρωσε τη δηλωτική συμπύκνωση εξόδου bash.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/dsherret/ts-morph">ts-morph</a></b></td><td align="center">6.162</td><td>Εργαλειοθήκη TypeScript Compiler API — ενέπνευσε την αφαίρεση σχολίων βάσει αναλυτή που διατηρεί string, template και regex literals.</td></tr>
-</table>
-
-### 🧠 Μνήμη & RAG
-
-<table>
-  <tr><th align="left">Έργο</th><th align="center">⭐</th><th align="left">Πώς ενέπνευσε το OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/mem0ai/mem0">Mem0</a></b></td><td align="center">63.902</td><td>Καθολικό επίπεδο μνήμης — το μοντέλο proxy-ως-όριο-εγγραφής/ανάγνωσης διαμόρφωσε την αρχιτεκτονική μνήμης μας.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/letta-ai/letta">Letta (MemGPT)</a></b></td><td align="center">24.382</td><td>Πράκτορες με κατάσταση και διαβαθμισμένη μνήμη — ενέπνευσε το διαβαθμισμένο μοντέλο Ελέγχου και Ανάκτησης Περιεχομένου (CCR).</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/onestardao/WFGY">WFGY</a></b></td><td align="center">1.781</td><td>Η ταξινομία ProblemMap 16 επαναλαμβανόμενων τρόπων αποτυχίας RAG/LLM — το κοινό λεξιλόγιο στον οδηγό αντιμετώπισης προβλημάτων μας.</td></tr>
-</table>
-
-### 🛰️ Επιθεώρηση κίνησης, MITM & διαφανής proxy
-
-<table>
-  <tr><th align="left">Έργο</th><th align="center">⭐</th><th align="left">Πώς ενέπνευσε το OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/chouzz/llm-interceptor">llm-interceptor</a></b></td><td align="center">66</td><td>Η υποκλοπή/ανάλυση MITM κίνησης βοηθού κωδικοποίησης ↔ LLM ενημέρωσε τις πρώιμες απαιτήσεις Επιθεωρητή Κίνησης. Τέσσερις προηγουμένως παράγωγες ενότητες — συγχώνευση SSE, κανονικοποίηση συνομιλίας, απόκρυψη μυστικών και εξυγίανση κεφαλίδων — έχουν αντικατασταθεί από ανεξάρτητες υλοποιήσεις καθαρού δωματίου βάσει δημόσιων προτύπων πρωτοκόλλου. Οι δύο επιφάνειες host-passthrough (<code>passthrough.ts</code> και <code>_internal/bypass.cjs</code>) παραμένουν εσωτερικές υλοποιήσεις OmniRoute που ταξινομούνται ανεξάρτητα· δεν επανεγράφηκαν ως μέρος αυτής της αντικατάστασης.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/InterceptSuite/ProxyBridge">ProxyBridge</a></b></td><td align="center">5.995</td><td>Διαφανής δρομολόγηση proxy ανά διεργασία — ενέπνευσε την ασφαλή ως προς καταρρεύσεις διακοπή MITM, τα χρονικά όρια αδράνειας socket, την απόδοση διεργασίας <code>/proc</code> και τη σύλληψη TPROXY.</td></tr>
-</table>
-
-### 📚 Δεδομένα μοντέλων, παρατηρησιμότητα & UI
-
-<table>
-  <tr><th align="left">Έργο</th><th align="center">⭐</th><th align="left">Πώς ενέπνευσε το OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/anomalyco/models.dev">models.dev</a></b></td><td align="center">6.555</td><td>Ανοιχτή βάση δεδομένων προδιαγραφών, τιμολόγησης και δυνατοτήτων μοντέλων AI — συγχρονίζεται εγγενώς στον κατάλογο μοντέλων μας.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/xyflow/xyflow">React Flow / xyflow</a></b></td><td align="center">38.108</td><td>Η βιβλιοθήκη γράφου βάσει κόμβων που τροφοδοτεί το Στούντιο Συμπίεσης και το Στούντιο Combo/Δρομολόγησης σε πραγματικό χρόνο.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/langchain-ai/langgraph">LangGraph</a></b></td><td align="center">40.314</td><td>Η οπτικοποίηση ζωντανού γράφου ροής εργασίας του LangGraph Studio ενέπνευσε την προβολή καταρράκτη σε πραγματικό χρόνο των Στούντιο μας.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/langfuse/langfuse">Langfuse</a></b></td><td align="center">33.592</td><td>Το μοντέλο παρατηρησιμότητας trace → span → generation διαμόρφωσε τον καταρράκτη Στούντιο Συμπίεσης.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/kiali/kiali">Kiali</a></b></td><td align="center">3.631</td><td>Παρατηρησιμότητα πλέγματος υπηρεσιών Istio — ενέπνευσε τα σήματα circuit-breaker και τα οπτικά ακμών σφαλμάτων στο Στούντιο Δρομολόγησης/Combo.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lobehub/lobe-icons">lobe-icons</a></b></td><td align="center">2.428</td><td>Λογότυπα AI/LLM που αποδίδουν τα εικονίδια παρόχων σε ολόκληρο τον πίνακα ελέγχου μας.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lipis/flag-icons">flag-icons</a></b></td><td align="center">12.354</td><td>Παρέχει τις σημαίες SVG με άδεια MIT που χρησιμοποιεί ο επιλογέας γλώσσας README.</td></tr>
-</table>
-
-### 🛡️ Ασφάλεια
-
-<table>
-  <tr><th align="left">Έργο</th><th align="center">⭐</th><th align="left">Πώς ενέπνευσε το OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/tldrsec/awesome-secure-defaults">awesome-secure-defaults</a></b></td><td align="center">721</td><td>Μια επιμελημένη λίστα βιβλιοθηκών ασφαλών εξ ορισμού που καθοδηγεί τις επιλογές ασφαλείας μας (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink).</td></tr>
-</table>
-
-### 🧭 Συμπληρωματικά εργαλεία
-
-<table>
-  <tr><th align="left">Έργο</th><th align="center">⭐</th><th align="left">Πώς ενέπνευσε το OmniRoute</th></tr>
-  <tr><td nowrap><b><a href="https://github.com/BlockRunAI/ClawRouter">ClawRouter</a></b></td><td align="center">6.564</td><td>Ενέπνευσε την αποπλεονασμάτωση αιτημάτων, εναλλακτική μηδενικού κόστους έκτακτης ανάγκης, τις αρθρωτές στρατηγικές Auto-Combo και την πολύγλωσση ταξινόμηση προθέσεων.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/lbjlaq/Antigravity-Manager">Antigravity-Manager</a></b></td><td align="center">30.652</td><td>Η αντιστοίχιση μοντέλων με επίγνωση λογαριασμού, η επικύρωση διαδρομής εκτελέσιμου και η συμπεριφορά ετικέτας πλάνου ενημέρωσαν το runtime Antigravity του OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/jlcodes99/vscode-antigravity-cockpit">vscode-antigravity-cockpit</a></b></td><td align="center">4.817</td><td>Η συμπαγής μορφή αντίστροφης μέτρησης επαναφοράς ποσόστωσης ενέπνευσε την αντίστοιχη εμφάνιση ορίου παρόχου στο OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/iOfficeAI/AionUi">AionUi</a></b></td><td align="center">32.230</td><td>Οι ενσωματώσεις ACP ενέπνευσαν την αυτόματη ανίχνευση εγκατεστημένων πρακτόρων CLI του OmniRoute.</td></tr>
-  <tr><td nowrap><b><a href="https://github.com/steipete/CodexBar">CodexBar</a></b></td><td align="center">20.507</td><td>Εντόπισε την επιφάνεια ποσόστωσης Grok Build· το OmniRoute επαλήθευσε και διόρθωσε στη συνέχεια ανεξάρτητα τη ζωντανή μορφή wire.</td></tr>
-</table>
-
-## 📄 Άδεια Χρήσης
-
-Άδεια MIT - δείτε το [LICENSE](LICENSE) για λεπτομέρειες.
-
----
-
-<div align="center">
-
-**[⬆ Πίσω στην κορυφή](#-omniroute)** · Φτιαγμένο με ❤️ για την κοινότητα ανοιχτού κώδικα AI.
+**[⬆ Back to top](#-omniroute)** · Built with for the open-source AI community.
 
 <sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
-<!-- Οι Συζητήσεις GitHub είναι ενεργοποιημένες για ερωτήσεις και απαντήσεις της κοινότητας -->
+<!-- GitHub Discussions enabled for community Q&A -->

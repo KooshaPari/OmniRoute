@@ -475,7 +475,7 @@ still accepts v1 snapshots; because the old builder used `false` as an absence p
 normalized to unknown while v1 `true` remains factual. Unknown schema versions fail closed and the
 last valid cache remains available. Every v2 model with a non-null context/capability must carry a
 credential-free HTTPS `metadataEvidenceUrls[]`; otherwise schema validation fails and the cache is
-not replaced. The catalog table renders all three states as `✓`, `✕`, and `?`.
+not replaced. The catalog table renders all three states as `, `, and `?`.
 
 ### Guided combos and MCP access
 

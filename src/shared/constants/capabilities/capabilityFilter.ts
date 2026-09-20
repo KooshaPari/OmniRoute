@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Layer A capability filter — shared, provider-agnostic module.
  *

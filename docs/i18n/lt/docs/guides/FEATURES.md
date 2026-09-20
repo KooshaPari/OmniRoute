@@ -1,6 +1,6 @@
 # FEATURES (Lietuvių)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+**Languages:** [English](../../../../guides/FEATURES.md) · [ar](../../../ar/docs/guides/FEATURES.md) · [az](../../../az/docs/guides/FEATURES.md) · [bg](../../../bg/docs/guides/FEATURES.md) · [bn](../../../bn/docs/guides/FEATURES.md) · [cs](../../../cs/docs/guides/FEATURES.md) · [da](../../../da/docs/guides/FEATURES.md) · [de](../../../de/docs/guides/FEATURES.md) · [el](../../../el/docs/guides/FEATURES.md) · [es](../../../es/docs/guides/FEATURES.md) · [et](../../../et/docs/guides/FEATURES.md) · [fa](../../../fa/docs/guides/FEATURES.md) · [fi](../../../fi/docs/guides/FEATURES.md) · [fr](../../../fr/docs/guides/FEATURES.md) · [ga](../../../ga/docs/guides/FEATURES.md) · [gu](../../../gu/docs/guides/FEATURES.md) · [he](../../../he/docs/guides/FEATURES.md) · [hi](../../../hi/docs/guides/FEATURES.md) · [hr](../../../hr/docs/guides/FEATURES.md) · [hu](../../../hu/docs/guides/FEATURES.md) · [id](../../../id/docs/guides/FEATURES.md) · [it](../../../it/docs/guides/FEATURES.md) · [ja](../../../ja/docs/guides/FEATURES.md) · [ko](../../../ko/docs/guides/FEATURES.md) · [lv](../../../lv/docs/guides/FEATURES.md) · [mr](../../../mr/docs/guides/FEATURES.md) · [ms](../../../ms/docs/guides/FEATURES.md) · [mt](../../../mt/docs/guides/FEATURES.md) · [nl](../../../nl/docs/guides/FEATURES.md) · [no](../../../no/docs/guides/FEATURES.md) · [phi](../../../phi/docs/guides/FEATURES.md) · [pl](../../../pl/docs/guides/FEATURES.md) · [pt](../../../pt/docs/guides/FEATURES.md) · [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · [ro](../../../ro/docs/guides/FEATURES.md) · [ru](../../../ru/docs/guides/FEATURES.md) · [sk](../../../sk/docs/guides/FEATURES.md) · [sl](../../../sl/docs/guides/FEATURES.md) · [sr](../../../sr/docs/guides/FEATURES.md) · [sv](../../../sv/docs/guides/FEATURES.md) · [sw](../../../sw/docs/guides/FEATURES.md) · [ta](../../../ta/docs/guides/FEATURES.md) · [te](../../../te/docs/guides/FEATURES.md) · [th](../../../th/docs/guides/FEATURES.md) · [tr](../../../tr/docs/guides/FEATURES.md) · [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · [ur](../../../ur/docs/guides/FEATURES.md) · [vi](../../../vi/docs/guides/FEATURES.md) · [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
 
 ---
 
@@ -11,337 +11,327 @@ version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# OmniRoute — valdymo skydelio funkcijų galerija
+## v3.8.0 Highlights
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth flows, deeper resilience, and a much richer CLI experience. Headline features below — full details further in the document and in linked specs.
 
-Vaizdinis visų OmniRoute valdymo skydelio skilčių vadovas.
+- **Auto Combo / Zero-config auto-routing** — use prefixes `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Backed by a 16-factor scoring engine and 6 curated **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
+- **Command Code provider** (#2199) — first-class registration with model catalog and quota tracking
+- **Z.AI provider** — new free-tier provider with quota labels
+- **KIE media expansion** — extended catalog including video generation models
+- **Devin authentication** — Desktop imports an existing Devin API key; the CLI uses local `devin auth login` credentials
+- **8 new free providers** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- **Manifest-aware tier routing W1–W4** — provider manifests drive weighted tier selection
+- **Cursor full OpenAI parity** — tool calls, streaming, session management end-to-end
+- **Cursor Pro plan usage** — quota & cycle data surfaced in the provider-limits dashboard
+- **Service tier breakdown / Codex fast tier analytics** — per-tier consumption visibility
+- **Per-session sticky routing** — Codex sessions pin to the same account between turns
+- **Inworld TTS enhancements** — voice catalogs, streaming, and latency improvements
+- **Kiro headless auth** — login via local `kiro-cli` SQLite store, no browser required
+- **DeepSeek quota and limit monitoring** — daily/monthly usage exposed via dashboard
+- **Reset-aware routing strategy** — combos now prefer accounts whose quota window resets soonest
+- **`fallbackDelayMs`** and **dynamic tool limit detection** — finer fallback timing + per-provider tool-count limits
+- **Background mode degradation (Responses API)** — falls back to synchronous mode with a structured warning when an upstream lacks background polling
+- **Per-provider 429 classification** + `useUpstream429BreakerHints` toggle — finer breaker behavior using upstream rate-limit hints
+- **Model cooldowns dashboard** — observe per-model lockouts and manually re-enable from the UI
+- **MITM dynamic Linux cert detection** — works across Debian/Ubuntu, Fedora/RHEL, Arch, and other distros
+- **CLI enhancement suite** — 20+ commands including `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- **Qdrant embedding model discovery** — automatic vector-store model probe
+- **API Keys / Bearer keys with `manage` scope** — perform admin operations programmatically via API
+- **Combo target health analytics** + **structured combo builder** — per-target health & UI builder for assembling `(provider, model, connection)` steps
+- **GitLab Duo OAuth provider** — login with GitLab credentials
+- **Reasoning Replay Cache** — hybrid in-memory + SQLite persistence of reasoning traces
 
-> 📅 **Paskutinį kartą atnaujinta:** 2026-06-28 — **v3.8.40**
-
----
-
-## ✨ Svarbiausi v3.8.0 pakeitimai
-
-Perėjimo iš v3.7.x į v3.8.0 cikle pridėtas automatinis maršruto parinkimas be konfigūracijos, nauji paslaugų teikėjai, OAuth procesai, didesnis atsparumas ir gerokai funkcionalesnė CLI naudojimo patirtis. Toliau pateikiamos pagrindinės funkcijos, o visa išsami informacija pateikta tolesnėse dokumento dalyse ir susietose specifikacijose.
-
-- 🤖 **Auto Combo / automatinis maršruto parinkimas be konfigūracijos** — naudokite prefiksus `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Veikimą užtikrina 16 veiksnių vertinimo variklis ir 6 kruopščiai parengti **režimų paketai** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
-- 🆕 **Command Code paslaugų teikėjas** (#2199) — visavertė registracija su modelių katalogu ir kvotų stebėjimu
-- 🆕 **Z.AI paslaugų teikėjas** — naujas nemokamo plano paslaugų teikėjas su kvotų žymomis
-- 🎬 **KIE medijos išplėtimas** — išplėstas katalogas, apimantis ir vaizdo įrašų generavimo modelius
-- 🔐 **Devin autentifikavimas** — darbalaukio programa importuoja esamą Devin API raktą, o CLI naudoja vietinius `devin auth login` prisijungimo duomenis
-- 🆓 **8 nauji nemokami paslaugų teikėjai** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
-- 🎯 **Į manifestus atsižvelgiantis W1–W4 pakopų maršruto parinkimas** — paslaugų teikėjų manifestai valdo svertinį pakopos pasirinkimą
-- 🎨 **Visiškas Cursor suderinamumas su OpenAI** — įrankių iškvietimai, srautinis perdavimas ir seansų valdymas nuo pradžios iki pabaigos
-- 📊 **Cursor Pro plano naudojimas** — kvotos ir ciklo duomenys rodomi paslaugų teikėjų apribojimų valdymo skydelyje
-- ⚡ **Paslaugų pakopų išklotinė / Codex sparčiosios pakopos analizė** — kiekvienos pakopos suvartojimo matomumas
-- 📌 **Pastovus maršruto parinkimas kiekvienam seansui** — tarp užklausų Codex seansai išlaiko tą pačią paskyrą
-- 🔊 **Inworld TTS patobulinimai** — balsų katalogai, srautinis perdavimas ir delsos patobulinimai
-- 🔑 **Kiro autentifikavimas be grafinės sąsajos** — prisijungimas per vietinę `kiro-cli` SQLite saugyklą, naršyklė nereikalinga
-- 📉 **DeepSeek kvotų ir apribojimų stebėjimas** — dienos ir mėnesio naudojimas rodomas valdymo skydelyje
-- 🔄 **Į atkūrimą atsižvelgianti maršruto parinkimo strategija** — deriniai dabar teikia pirmenybę paskyroms, kurių kvotos laikotarpis bus atkurtas greičiausiai
-- ⏱️ **`fallbackDelayMs`** ir **dinaminis įrankių limito aptikimas** — tikslesnis atsarginio varianto įjungimo laikas ir kiekvienam paslaugų teikėjui taikomi įrankių skaičiaus apribojimai
-- 🔧 **Foninio režimo supaprastinimas (Responses API)** — jei pirminė paslauga nepalaiko foninės apklausos, pereinama į sinchroninį režimą ir pateikiamas struktūrizuotas įspėjimas
-- 🚦 **Kiekvienam paslaugų teikėjui pritaikyta 429 klasifikacija** ir `useUpstream429BreakerHints` jungiklis — tikslesnis grandinės išjungiklio veikimas naudojant pirminės paslaugos užklausų dažnio ribojimo užuominas
-- 🩺 **Modelių atvėsimo laikotarpių valdymo skydelis** — stebėkite kiekvieno modelio blokavimus ir rankiniu būdu vėl juos įjunkite naudotojo sąsajoje
-- 🔒 **Dinaminis MITM Linux sertifikatų aptikimas** — veikia Debian/Ubuntu, Fedora/RHEL, Arch ir kituose platinamuosiuose paketuose
-- 💻 **CLI patobulinimų rinkinys** — daugiau nei 20 komandų, įskaitant `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
-- 🔍 **Qdrant įterpinių modelio aptikimas** — automatinis vektorių saugyklos modelio tikrinimas
-- 🔑 **API raktai / „Bearer“ raktai su `manage` aprėptimi** — administravimo operacijas programiškai atlikite per API
-- 🏥 **Derinių tikslų būklės analizė** ir **struktūrizuotas derinių kūrimo įrankis** — kiekvieno tikslo būklė ir naudotojo sąsajos kūrimo priemonė `(provider, model, connection)` veiksmams sudaryti
-- 🤝 **GitLab Duo OAuth paslaugų teikėjas** — prisijungimas naudojant GitLab prisijungimo duomenis
-- 🧠 **Samprotavimo pakartojimo podėlis** — hibridinis samprotavimo sekų išsaugojimas atmintyje ir SQLite
-
-📚 **Susiję dokumentai:** [Įgūdžių sistema](../frameworks/SKILLS.md) · [Atminties sistema](../frameworks/MEMORY.md) · [Debesijos agentai](../frameworks/CLOUD_AGENT.md) · [Žiniatinklio atgaliniai iškvietimai](../frameworks/WEBHOOKS.md) · [Samprotavimo pakartojimo podėlis](../routing/REASONING_REPLAY.md)
+**Related docs:** [Skills Framework](../frameworks/SKILLS.md) · [Memory System](../frameworks/MEMORY.md) · [Cloud Agents](../frameworks/CLOUD_AGENT.md) · [Webhooks](../frameworks/WEBHOOKS.md) · [Reasoning Replay Cache](../routing/REASONING_REPLAY.md)
 
 ---
 
-## 🔌 Teikėjai
+## Providers
 
-Valdykite ryšius su DI teikėjais: OAuth teikėjus (Claude Code, Codex), API rakto teikėjus (Groq, DeepSeek, OpenRouter) ir nemokamus teikėjus (Qoder, Kiro). Kiro paskyrose stebimas kreditų likutis — likę kreditai, bendras limitas ir atnaujinimo data matomi skiltyje Valdymo skydas → Naudojimas.
+Manage AI provider connections: OAuth providers (Claude Code, Codex), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
 
-OpenRouter ryšiams išplėstiniuose nustatymuose galima išsaugoti kiekvienam ryšiui skirtą `preset`. Kai jis nustatytas, OmniRoute siunčia jį kaip aukščiausio lygio OpenRouter užklausos lauką, pavyzdžiui, `"preset": "email-copywriter"`, nebent kliento užklausoje jau pateiktas nuosavas `preset`.
+OpenRouter connections can store a per-connection `preset` in Advanced Settings. When set, OmniRoute sends it as the OpenRouter top-level request field, for example `"preset": "email-copywriter"`, unless the client request already supplied its own `preset`.
 
-![Teikėjų valdymo skydas](../screenshots/01-providers.png)
-
----
-
-## 🎨 Deriniai
-
-Kurkite modelių maršruto parinkimo derinius naudodami 19 viešų strategijų: priority, weighted, round-robin, context-relay, fill-first, p2c (dviejų pasirinkimų principas), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (paskutinis žinomas geras teikėjas), context-optimized, cache-optimized, **fusion** (lygiagrečiai išsiunčia užklausą modelių grupei, tada pasitelkia vertintoją vienam atsakymui susintetinti) ir **pipeline**. Kiekvienas derinys sujungia kelis modelius su automatiniu atsarginiu perjungimu, taip pat turi greituosius šablonus ir parengties patikras.
-
-Naujausi derinių patobulinimai:
-
-- **Struktūrizuota derinių kūrimo priemonė** — kiekvieną veiksmą kurkite pasirinkdami teikėją, modelį ir konkrečią paskyrą / ryšį
-- **Pakartotinio teikėjų naudojimo palaikymas** — tame pačiame derinyje tą patį teikėją naudokite kelis kartus, jei `(provider, model, connection)` trejetas yra unikalus
-- **Derinio paskirties būklė** — analizės ir būklės rodiniuose dabar atskiriamos konkrečios derinio paskirtys / veiksmai, užuot viską sujungus į modelių eilutes
-- **Sudėtinė pakopų tvarka** — `defaultTier -> fallbackTier` dabar turi įtakos aukščiausio lygio derinio veiksmų vykdymo ir atsarginio perjungimo tvarkai vykdymo metu
-- **Sistemos raginimų šablonai** — derinio `system_message` serverio pusėje palaiko
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` ir `{{FINGERPRINT}}`
-  vietaženklius, kurie prieš pat išsiunčiant išskleidžiami pagal faktiškai parinktą paskirtį.
-  Leidžiami tik į leidžiamųjų sąrašą įtraukti vietaženkliai, jie nėra rekursyvūs; nežinomi vietaženkliai paliekami nepakeisti; tuščios reikšmės
-  išskleidžiamos į tuščią tekstą; kliento sistemos raginimai niekada neperrašomi. `{{FINGERPRINT}}`
-  nustatomas tik kontroliniais identifikatoriais pagrįstiems nemokamiems teikėjams, turintiems prisegtą arba
-  automatiškai keičiamą kontrolinį identifikatorių — kitais atvejais jis išskleidžiamas į tuščią tekstą (pvz.,
-  ryšiams su vienu kontroliniu identifikatoriumi, ne fp teikėjams). Išskleidimas taikomas
-  standartiniam išsiuntimo ciklui, round-robin ir prisegtiems konteksto talpyklos seansams;
-  fusion, chaos, pipeline ir įdėtojo vykdymo strategijos vietaženklių
-  kol kas neišskleidžia.
-
-![Derinių valdymo skydas](../screenshots/02-combos.png)
+![Providers Dashboard](../screenshots/01-providers.png)
 
 ---
 
-## 📊 Analizė
+## Combos
 
-Išsami naudojimo analizė, apimanti prieigos raktų suvartojimą, išlaidų įverčius, veiklos šilumos žemėlapius, savaitinio pasiskirstymo diagramas ir kiekvieno teikėjo duomenų išklotines.
+Create model routing combos with 19 public strategies: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (fan out to a panel of models in parallel, then synthesize one answer via a judge), and **pipeline**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
 
-![Analizės valdymo skydas](../screenshots/03-analytics.png)
+Recent combo improvements:
 
----
+- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
+- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
+- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
+- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+- **System prompt templates** — combo `system_message` supports server-side
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` and `{{FINGERPRINT}}`
+  placeholders, expanded from the actually-routed target right before dispatch.
+  Allowlisted and non-recursive; unknown placeholders stay literal; empty values
+  expand to empty; client system prompts are never rewritten. `{{FINGERPRINT}}`
+  resolves only for fingerprint-based free providers with a pinned or
+  auto-rotated fingerprint — it expands to empty elsewhere (e.g.
+  single-fingerprint connections, non-fp providers). Expansion covers the
+  standard dispatch loop, round-robin, and pinned context-cache sessions;
+  fusion, chaos, pipeline and nested-execute strategies do not expand
+  placeholders yet.
 
-## 🏥 Sistemos būklė
-
-Stebėjimas realiuoju laiku: veikimo trukmė, atmintis, versija, delsos procentiliai (p50/p95/p99), talpyklos statistika, teikėjų grandinės pertraukiklių būsenos, aktyvūs seansai su kvotų stebėjimu ir derinių paskirčių būklė.
-
-![Būklės valdymo skydas](../screenshots/04-health.png)
-
----
-
-## 🔧 Vertėjo bandomoji aplinka
-
-Keturi API vertimų derinimo režimai: **Bandomoji aplinka** (formatų keitiklis), **Pokalbių testavimo įrankis** (tiesioginės užklausos), **Testavimo stendas** (paketiniai testai) ir **Tiesioginis stebėjimas** (srautas realiuoju laiku).
-
-![Vertėjo bandomoji aplinka](../screenshots/05-translator.png)
-
----
-
-## 🎮 Modelių bandomoji aplinka _(v2.0.9+)_
-
-Išbandykite bet kurį modelį tiesiogiai valdymo skydelyje. Pasirinkite teikėją, modelį ir galinį tašką, kurkite užklausas naudodami Monaco Editor, gaukite atsakymų srautą realiuoju laiku, nutraukite jį vykdymo metu ir peržiūrėkite laiko metrikas.
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 
-## 🎨 Temos _(v2.0.5+)_
+## Analytics
 
-Tinkinamos viso valdymo skydelio spalvų temos. Pasirinkite iš 7 iš anksto nustatytų spalvų (koralinės, mėlynos, raudonos, žalios, violetinės, oranžinės, žydros) arba sukurkite pasirinktinę temą nurodydami bet kurią šešioliktainę spalvą. Palaikomi šviesus, tamsus ir sistemos režimai.
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
 
----
-
-## ⚙️ Nustatymai
-
-Išsamus nustatymų skydelis su **7 kortelėmis**:
-
-- **Bendrieji** — Sistemos saugykla, atsarginių kopijų valdymas (duomenų bazės eksportavimas / importavimas)
-- **Išvaizda** — Temos parinkiklis (tamsi / šviesi / sistemos), iš anksto nustatytos spalvų temos ir pasirinktinės spalvos, būklės žurnalo matomumas, šoninės juostos elementų ir grupių skirtukų matomumo valdikliai, galinių taškų tunelių matomumo valdikliai
-- **DI** — DI asistento funkcijos, numatytieji maršruto parinkimo šablonai (automatiniai deriniai `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), samprotavimo atkūrimo podėlis ir įgūdžių / atminties perjungikliai
-- **Sauga** — API galinių taškų apsauga, pasirinktinių teikėjų blokavimas, IP filtravimas, seanso informacija
-- **Maršruto parinkimas** — Modelių alternatyvūs vardai, foninių užduočių režimo suprastinimas, deklaracijomis grindžiamas lygių maršruto parinkimas (W1–W4), `fallbackDelayMs`, kiekvienam seansui fiksuojamas maršruto parinkimas
-- **Atsparumas** — Užklausų dažnio apribojimų išlaikymas, grandinės pertraukiklio derinimas, automatinis užblokuotų paskyrų išjungimas, teikėjų galiojimo stebėjimas, **Context Relay** perdavimo slenkstis ir suvestinės modelio konfigūracija, kiekvieno teikėjo 429 klasifikacija ir `useUpstream429BreakerHints` perjungiklis, modelių atvėsimo laikotarpiai
-- **Išplėstiniai** — Konfigūracijos perrašymai, konfigūracijos audito seka, atsarginio režimo suprastinimas, Responses API foninio režimo suprastinimas
-
-![Nustatymų valdymo skydelis](../screenshots/06-settings.png)
+![Analytics Dashboard](../screenshots/03-analytics.png)
 
 ---
 
-## 🔧 CLI įrankiai
+## System Health
 
-AI programavimo įrankių konfigūravimas vienu spustelėjimu: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor ir Factory Droid. Galimybės apima automatinį konfigūracijos pritaikymą / nustatymą iš naujo, ryšio profilius ir modelių susiejimą.
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
 
-![CLI įrankių valdymo skydelis](../screenshots/07-cli-tools.png)
-
----
-
-## 🤖 CLI agentai _(v2.0.11+)_
-
-CLI agentų paieškos ir valdymo skydelis. Jame rodomas 16 integruotų agentų tinklelis (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) su šiomis galimybėmis:
-
-- **Diegimo būsena** — Įdiegtas / nerastas ir versijos aptikimas
-- **Protokolų ženkleliai** — stdio, HTTP ir kt.
-- **Pasirinktiniai agentai** — Užregistruokite bet kurį CLI įrankį naudodami formą (pavadinimas, dvejetainis failas, versijos komanda, paleidimo argumentai)
-- **CLI skaitmeninio atspaudo atitikties nustatymas** — Kiekvienam teikėjui skirtas perjungiklis, leidžiantis atkartoti vietinių CLI užklausų parašus, taip sumažinant užblokavimo riziką ir išsaugant tarpinio serverio IP
-- **Vietinis Devin autentifikavimas** — Devin CLI naudoja `devin auth login`; naršyklės OAuth procesas nereikalingas
+![Health Dashboard](../screenshots/04-health.png)
 
 ---
 
-## 🔗 Konteksto perdavimas _(v3.5.5+)_
+## Translator Playground
 
-Kombinuota strategija, išsauganti sesijos tęstinumą, kai paskyra pakeičiama pokalbio viduryje. Prieš išnaudojant aktyvios paskyros limitą, „OmniRoute“ fone sugeneruoja struktūrizuotą perdavimo santrauką. Kai kita užklausa nukreipiama į kitą paskyrą, santrauka įterpiama kaip sistemos pranešimas, kad naujoji paskyra galėtų tęsti darbą turėdama visą kontekstą.
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
 
-Konfigūruojama derinio arba visuotiniais nustatymais:
-
-- **Perdavimo slenkstis** — Kvotos panaudojimo procentas, kurį pasiekus pradedama generuoti santrauka (numatytoji reikšmė – 85 %)
-- **Didžiausias santraukai naudojamų pranešimų skaičius** — Kiek naujausios istorijos sutraukti
-- **Santraukos modelis** — Pasirinktinis modelis, naudojamas perdavimo santraukai generuoti
-
-Šiuo metu palaikomas „Codex“ paskyrų keitimas. Žr. [konteksto perdavimo dokumentaciją](../architecture/ARCHITECTURE.md).
+![Translator Playground](../screenshots/05-translator.png)
 
 ---
 
-## 🗜️ Užklausų glaudinimas _(v3.7.9+)_
+## Model Playground _(v2.0.9+)_
 
-Skiltyje „Kontekstas ir podėlis“ dabar yra atskiri „Caveman“, RTK ir glaudinimo derinių puslapiai:
-
-- **Caveman** — kalbai pritaikyti taisyklių rinkiniai, peržiūra, išvesties režimo valdikliai ir analizė
-- **RTK** — komandas atpažįstantis glaudinimas, skirtas apvalkalo, git, testų, komponavimo, paketų, „Docker“, infrastruktūros, JSON ir dėklo sekimo išvesčiai
-- **Glaudinimo deriniai** — įvardyti vykdymo procesai, pvz., `rtk -> caveman`, priskirti maršruto parinkimo deriniams; kai taikomi abu varikliai, numatytoji sudėtinė formulė leidžia sutaupyti vidutiniškai `~89%`, o tinkamo konteksto sutaupymas siekia `78-95%`
-- **Neapdorotos išvesties atkūrimas** — pasirinktinės nuasmenintos RTK neapdorotos išvesties nuorodos, skirtos suglaudinimo trikčių diagnostikai
-
-Žr. [glaudinimo vadovą](../compression/COMPRESSION_GUIDE.md), [RTK glaudinimą](../compression/RTK_COMPRESSION.md) ir
-[glaudinimo variklius](../compression/COMPRESSION_ENGINES.md).
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
 
 ---
 
-## 🛡️ Tarpinio serverio apsaugos stiprinimas _(v3.5.5+)_
+## Themes _(v2.0.5+)_
 
-Visapusiškas tarpinio serverio konfigūracijos taikymo užtikrinimas visame užklausų apdorojimo procese:
-
-- **Prieigos rakto būklės patikra** — Foninis OAuth atnaujinimas dabar kiekvienam ryšiui nustato tarpinio serverio konfigūraciją, todėl išvengiama trikčių aplinkose, kuriose būtinas tarpinis serveris
-- **API rakto tikrinimas** — Teikėjo rakto tikrinimas (`POST /api/providers/validate`) vykdomas per `runWithProxyContext`, atsižvelgiant į teikėjo lygmens ir visuotinius tarpinio serverio nustatymus
-- **undici dispečerio pataisa** — Tarpinio serverio dispečeriai vietoje integruoto „Node“ fetch naudoja pačios undici fetch realizaciją, todėl pašalinamos `invalid onRequestStart method` klaidos naudojant Node.js 22
-- **Node.js versijos aptikimas** — Prisijungimo puslapis iš anksto aptinka nesuderinamas Node.js versijas (24+) ir parodo įspėjamąją juostą su nurodymais naudoti Node 22 LTS
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
 
 ---
 
-## 📧 El. pašto privatumo maskavimas _(v3.5.6+)_
+## Settings
 
-Pagal numatytuosius nustatymus OAuth paskyrų el. pašto adresai yra maskuojami (pvz., `di*****@g****.com`), kad jais nebūtų netyčia pasidalyta skelbiant ekrano kopijas ar įrašant demonstracijas. Norėdami visų teikėjų, derinių, žurnalų, kvotų ir bandymų aplinkos ekranuose rodyti arba maskuoti visus paskyrų el. pašto adresus, pasirinkite „Nustatymai“ → „Išvaizda“ → „Paskyrų el. pašto adresų matomumas“.
+Comprehensive settings panel with **7 tabs**:
 
----
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item and group separator visibility controls, Endpoint tunnel visibility controls
+- **AI** — AI assistant features, default routing presets (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), reasoning replay cache, and skill/memory toggles
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation, manifest-aware tier routing (W1–W4), `fallbackDelayMs`, per-session sticky routing
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration, per-provider 429 classification & `useUpstream429BreakerHints` toggle, model cooldowns
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode, background mode degradation for Responses API
 
-## 👁️ Modelių matomumo perjungiklis _(v3.5.6+)_
-
-Teikėjo puslapio modelių sąraše dabar yra:
-
-- **Paieškos ir filtravimo realiuoju laiku juosta** — Greitai raskite konkrečius modelius
-- **Kiekvieno modelio matomumo perjungiklis** (👁 piktograma) — Paslėpti modeliai rodomi papilkinti ir neįtraukiami į `/v1/models` katalogą
-- **Aktyvių modelių skaičiaus ženklelis** (`N/M aktyvūs`) — Leidžia iš karto matyti, kiek modelių įjungta, palyginti su bendru jų skaičiumi
-
----
-
-## 🔧 OAuth aplinkos taisymas _(v3.6.1+)_
-
-Vieno spustelėjimo veiksmas „Taisyti aplinką“, skirtas OAuth teikėjams, atkuriantis trūkstamus aplinkos kintamuosius ir pataisantis sugadintą autentifikavimo būseną. Pasiekiamas per `Valdymo skydas → Teikėjai → [OAuth teikėjas] → Taisyti aplinką`. Automatiškai aptinka ir pataiso:
-
-- Trūkstamus OAuth kliento prisijungimo duomenis
-- Sugadintus aplinkos failo įrašus
-- Atsarginės kopijos kelio išvalymą
+![Settings Dashboard](../screenshots/06-settings.png)
 
 ---
 
-## 🗑️ Pašalinimas / visiškas pašalinimas _(v3.6.2+)_
+## CLI Tools
 
-Švaraus pašalinimo scenarijai visiems diegimo būdams:
+One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
 
-| Komanda                  | Veiksmas                                                                                       |
-| ------------------------ | ---------------------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Pašalina sistemos programą, bet **išsaugo jūsų DB ir konfigūracijas** kataloge `~/.omniroute`. |
-| `npm run uninstall:full` | Pašalina programą IR visam laikui **ištrina visas konfigūracijas, raktus ir duomenų bazes**.   |
+![CLI Tools Dashboard](../screenshots/07-cli-tools.png)
 
 ---
 
-## 🖼️ Medija _(v2.0.3+)_
+## CLI Agents _(v2.0.11+)_
 
-Generuokite vaizdus, vaizdo įrašus ir muziką iš valdymo skydelio. Palaikomi OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open ir MusicGen.
+Dashboard for discovering and managing CLI agents. Shows a grid of 16 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
----
-
-## 📝 Užklausų žurnalai
-
-Užklausų registravimas realiuoju laiku su filtravimu pagal teikėją, modelį, paskyrą ir API raktą. Rodomi būsenos kodai, žetonų naudojimas, delsa ir išsami atsakymo informacija.
-
-![Naudojimo žurnalai](../screenshots/08-usage.png)
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+- **Local Devin authentication** — Devin CLI uses `devin auth login`; no browser OAuth flow is required
 
 ---
 
-## 🌐 API galinis taškas
+## Context Relay _(v3.5.5+)_
 
-Jūsų bendras API galinis taškas su galimybių apžvalga: pokalbių užbaigimai, Responses API, įterpiniai, vaizdų generavimas, pakartotinis reitingavimas, garso transkribavimas, teksto vertimas kalba, moderavimas ir užregistruoti API raktai. Nuotolinei prieigai galima naudoti Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel ir debesijos tarpinio serverio palaikymą.
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
 
-![Galinio taško valdymo skydas](../screenshots/09-endpoint.png)
+Configurable via combo-level or global settings:
 
----
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
 
-## 🔑 API raktų valdymas
-
-Kurkite API raktus, nustatykite jų taikymo sritį ir juos atšaukite. Kiekvieną raktą galima apriboti konkrečiais modeliais ar teikėjais, suteikiant visišką arba tik skaitymo prieigą. Vaizdinis raktų valdymas su naudojimo stebėjimu.
-
----
-
-## 📋 Audito žurnalas
-
-Administracinių veiksmų stebėjimas su filtravimu pagal veiksmo tipą, vykdytoją, objektą, IP adresą ir laiko žymą. Visa saugos įvykių istorija.
+Currently supports Codex account rotation. See [Context Relay documentation](../architecture/ARCHITECTURE.md).
 
 ---
 
-## 🖥️ Darbalaukio programa
+## Prompt Compression _(v3.7.9+)_
 
-Savoji Electron darbalaukio programa, skirta Windows, macOS ir Linux. Paleiskite OmniRoute kaip atskirą programą su integracija į sistemos dėklą, veikimu neprisijungus, automatiniu naujinimu ir diegimu vienu spustelėjimu.
+Context & Cache now exposes dedicated pages for Caveman, RTK, and Compression Combos:
 
-Pagrindinės funkcijos:
+- **Caveman** — language-aware rule packs, preview, output-mode controls, and analytics
+- **RTK** — command-aware compression for shell, git, test, build, package, Docker, infra, JSON, and stack-trace output
+- **Compression Combos** — named pipelines such as `rtk -> caveman` assigned to routing combos; the default stacked math reaches `~89%` average and `78-95%` eligible-context savings when both engines apply
+- **Raw-output recovery** — optional redacted RTK raw-output pointers for debugging compressed failures
 
-- Serverio parengties tikrinimas (šaltojo paleidimo metu nerodomas tuščias ekranas)
-- Sistemos dėklas su prievadų valdymu
-- Turinio saugos politika
-- Vieno egzemplioriaus užraktas
-- Automatinis naujinimas paleidus iš naujo
-- Nuo platformos priklausanti naudotojo sąsaja (macOS „šviesoforo“ mygtukai, Windows/Linux numatytoji antraštės juosta)
-- Sustiprintas Electron versijos paketų kūrimas — prieš kuriant paketą aptinkamas ir atmetamas atskiro paketo simbolinėmis nuorodomis susietas `node_modules`, taip išvengiant vykdymo aplinkos priklausomybės nuo komponavimo įrenginio (v2.5.5+)
-- **Sklandus išjungimas** — Electron `before-quit` tinkamai išjungia Next.js, neleisdamas užrakinti SQLite WAL duomenų bazės (v3.6.2+)
-
-📖 Išsamią dokumentaciją žr. [`electron/README.md`](../../electron/README.md).
+See [Compression Guide](../compression/COMPRESSION_GUIDE.md), [RTK Compression](../compression/RTK_COMPRESSION.md), and
+[Compression Engines](../compression/COMPRESSION_ENGINES.md).
 
 ---
 
-## 🌐 V1 WebSocket tiltas _(v3.6.6+)_
+## Proxy Hardening _(v3.5.5+)_
 
-Dabar OmniRoute palaiko **su OpenAI suderinamus WebSocket klientus** per `/v1/ws` naujovinimo galinį tašką. Pasirinktinis `scripts/dev/v1-ws-bridge.mjs` serveris apgaubia Next.js ir naujovina WS ryšius į visiškai dvikrypčio srautinio perdavimo seansus. Autentifikavimui naudojamas tas pats API raktas arba seanso slapukas kaip ir HTTP užklausoms.
+Comprehensive proxy configuration enforcement across the entire request pipeline:
 
-Pagrindinės veikimo ypatybės:
-
-- Prieš užmezgant ryšį WS naujovinimą patvirtina `src/lib/ws/handshake.ts`
-- Uždarius seansą arba įvykus pirminio serverio klaidai, srautai tvarkingai nutraukiami
-- Vienu metu veikia kartu su esamu HTTP+SSE srautinio perdavimo keliu
-
----
-
-## 🔑 Sinchronizavimo prieigos raktai ir konfigūracijos paketas _(v3.6.6+)_
-
-Prieiga iš kelių įrenginių ir išoriniams operatoriams dabar galima naudojant **ribotos aprėpties sinchronizavimo prieigos raktus**:
-
-- **`POST /api/sync/tokens`** — Išduoda naują sinchronizavimo prieigos raktą (ribotos aprėpties, su pasirenkamu galiojimo laiku)
-- **`DELETE /api/sync/tokens/:id`** — Atšaukia prieigos raktą
-- **`GET /api/sync/bundle`** — Atsisiunčia versijuotą visų neskelbtinų nuostatų JSON momentinę kopiją su `ETag` raktu (slaptažodžiai paslėpti)
-
-Konfigūracijos paketą sukuria `src/lib/sync/bundle.ts`. Klientai lygina `ETag` atsako antraštę, kad aptiktų pakeitimus iš naujo neatsisiųsdami viso turinio.
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
 
 ---
 
-## 🧠 GLM mąstymo išankstinė parinktis _(v3.6.6+)_
+## Email Privacy Masking _(v3.5.6+)_
 
-**GLM Thinking (`glmt`)** dabar yra registruotas visavertis teikėjas: daugiausia 65 536 išvesties prieigos raktų, 24 576 mąstymo biudžetas, numatytasis 900 s skirtasis laikas, su Claude suderinamas API formatas ir su GLM šeima bendrinamas naudojimo sinchronizavimas.
-
-v3.6.6 taip pat pristatytas **hibridinis prieigos raktų skaičiavimas**: kai su Claude suderinamas teikėjas pateikia `/messages/count_tokens`, prieš dideles užklausas OmniRoute jį iškviečia, o nepavykus sklandžiai pereina prie apytikslio skaičiavimo.
+OAuth account emails are masked by default (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. Use Settings → Appearance → Account email visibility to reveal or mask full account emails globally across providers, combos, logs, quota, and playground screens.
 
 ---
 
-## 🛡️ Saugios siunčiamosios užklausos ir SSRF apsauga _(v3.6.6+)_
+## Model Visibility Toggle _(v3.5.6+)_
 
-Visos teikėjų tikrinimo ir modelių aptikimo užklausos dabar vykdomos per dviejų sluoksnių siunčiamųjų užklausų apsaugą:
+The provider page model list now includes:
 
-1. **URL apsauga** (`src/shared/network/outboundUrlGuard.ts`) — Blokuoja privačius, atgalinio ryšio ir vietinio ryšio IP diapazonus prieš atveriant lizdą.
-2. **Saugios užklausos apvalkalas** (`src/shared/network/safeOutboundFetch.ts`) — Taiko URL apsaugą, suvienodina skirtuosius laikus ir, įvykus laikinosioms klaidoms, pakartoja užklausas naudodamas eksponentinį delsos didinimą.
-
-Apsaugos pažeidimai pateikiami kaip HTTP 422 (`URL_GUARD_BLOCKED`) ir per `providerAudit.ts` įrašomi į atitikties audito žurnalą.
-
----
-
-## 🔄 Į atvėsimo laikotarpį atsižvelgiantys pakartotiniai bandymai _(v3.6.6+)_
-
-Pokalbių užklausos dabar **automatiškai kartojamos**, kai pirminis teikėjas grąžina konkrečiam modeliui taikomą atvėsimo laikotarpį. Konfigūruojama naudojant `REQUEST_RETRY` (numatytoji reikšmė: 2) ir `MAX_RETRY_INTERVAL_SEC` (numatytoji reikšmė: 30 s). Patobulintas dažnio ribojimo antraščių apdorojimas: palaikomos `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens` ir `Retry-After` — kiekvieno modelio atvėsimo būsena matoma atsparumo valdymo skydelyje.
+- **Real-time search/filter bar** — Quickly find specific models
+- **Per-model visibility toggle** ( icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
+- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
 
 ---
 
-## 📋 Atitikties auditas v2 _(v3.6.6+)_
+## OAuth Env Repair _(v3.6.1+)_
 
-Audito žurnalas papildytas žymekliu pagrįstu puslapių skaidymu, išsamesniu užklausų kontekstu (užklausos ID, naudotojo agentas, IP), struktūriniais autentifikavimo įvykiais, teikėjų CRUD įvykiais su pakeitimų skirtumų kontekstu ir SSRF užblokuotų tikrinimų registravimu. Naujus įvykius generuoja `src/lib/compliance/providerAudit.ts`.
+One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
+
+- Missing OAuth client credentials
+- Corrupted env file entries
+- Backup path sanitization
+
+---
+
+## Uninstall / Full Uninstall _(v3.6.2+)_
+
+Clean removal scripts for all installation methods:
+
+| Command                  | Action                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+
+---
+
+## Media _(v2.0.3+)_
+
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
+
+## Request Logs
+
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](../screenshots/08-usage.png)
+
+---
+
+## API Endpoint
+
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel, and cloud proxy support are available for remote access.
+
+![Endpoint Dashboard](../screenshots/09-endpoint.png)
+
+---
+
+## API Key Management
+
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
+
+## Audit Log
+
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
+
+## Desktop Application
+
+Native Tauri 2 desktop app (Rust shell + system webview, `apps/desktop/`) for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+
+Key features:
+
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Tauri 2 build packaging — hardened standalone bundle validation detects symlinked `node_modules` and rejects it before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+- **Graceful shutdown** — Tauri lifecycle hooks shut down the API server cleanly, preventing SQLite WAL database locks (v3.6.2+)
+
+See [`apps/desktop/README.md`](../../apps/desktop/README.md) for full documentation.
+
+---
+
+## V1 WebSocket Bridge _(v3.6.6+)_
+
+OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/dev/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+
+Key behaviours:
+
+- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
+- Streams terminated cleanly on session close or upstream error
+- Works alongside the existing HTTP+SSE streaming path simultaneously
+
+---
+
+## Sync Tokens & Config Bundle _(v3.6.6+)_
+
+Multi-device and external operator access is now possible via **scoped sync tokens**:
+
+- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
+- **`DELETE /api/sync/tokens/:id`** — Revoke a token
+- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
+
+The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+
+---
+
+## GLM Thinking Preset _(v3.6.6+)_
+
+**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+
+**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+
+---
+
+## Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
+
+All provider validation and model discovery calls now go through a two-layer outbound guard:
+
+1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
+2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
+
+Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+
+---
+
+## Cooldown-Aware Retries _(v3.6.6+)_
+
+Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+
+---
+
+## Compliance Audit v2 _(v3.6.6+)_
+
+The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.

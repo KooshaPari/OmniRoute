@@ -134,7 +134,7 @@ export function getCorsStatus(): CorsStatus {
  * pass `relaxForTokenAuth = false` and stay exactly fail-closed). When the
  * explicit allowlist (`CORS_ALLOW_ALL` / `CORS_ALLOWED_ORIGINS` / runtime
  * settings) does not match, the caller's `Origin` is echoed back (with
- * `Vary: Origin`) so browser/Electron renderers can read the response, or `*`
+ * `Vary: Origin`) so browser renderers can read the response, or `*`
  * is returned when there is no `Origin` header. This is NEVER paired with
  * `Access-Control-Allow-Credentials` (these routes are not cookie-authed), so
  * the echo/wildcard stays safe.
@@ -156,7 +156,7 @@ function requestCarriesTokenOrPreflight(request: Request): boolean {
   ) {
     return true;
   }
-  // A dashboard session cookie is a credential too (#5242 browser/Electron
+  // A dashboard session cookie is a credential too (#5242 browser
   // clients). auth_token is HttpOnly + SameSite, so a cross-site attacker page
   // cannot get it auto-attached — only a truly credential-less request (the
   // GHSA-7px7 anonymous case on a keyless install) falls through to fail-closed.
@@ -178,7 +178,7 @@ export function applyCorsHeaders(
     // breaks — an anonymous cross-origin page would be echoed its own Origin and
     // could read the response. Only relax for a request that actually carries a
     // credential, plus CORS preflights (OPTIONS never carries the header — the
-    // real request that follows is re-checked), so authenticated browser/Electron
+    // real request that follows is re-checked), so authenticated browser
     // clients (#5242) keep working while credential-less cross-origin reads do not.
     allowed = requestOrigin && requestOrigin.length > 0 ? requestOrigin : "*";
   }

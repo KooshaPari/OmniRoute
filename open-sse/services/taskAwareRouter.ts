@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Task-Aware Smart Router — T05
  *

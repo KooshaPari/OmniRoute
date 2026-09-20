@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // #9045 — Export database times out on large DBs (280MB) because the route
 // buffered the entire backup file into memory (fs.readFileSync + new Response(buffer)).
 // The fix streams the backup file as a ReadableStream response body, keeping peak
@@ -15,10 +16,7 @@ test("response body is a ReadableStream (not a Buffer) — structural check (#90
   );
 
   // The fix uses createReadStream / ReadableStream for streaming the backup file
-  assert.ok(
-    source.includes("createReadStream"),
-    "route must use createReadStream for streaming"
-  );
+  assert.ok(source.includes("createReadStream"), "route must use createReadStream for streaming");
   assert.ok(
     source.includes("ReadableStream"),
     "route must use ReadableStream for the response body"
@@ -64,10 +62,7 @@ test("temp file cleanup on stream completion, error, and abort (#9045)", () => {
   // The fix must clean up the temp dir on stream completion and client abort
   // (#12579: the temp path moved from a single unlink-able file to an
   // fs.mkdtempSync-created directory, so cleanup now recursively removes it)
-  assert.ok(
-    source.includes("cleanup"),
-    "route must have a cleanup function for temp file removal"
-  );
+  assert.ok(source.includes("cleanup"), "route must have a cleanup function for temp file removal");
   assert.ok(
     source.includes("rm(") || source.includes("unlink("),
     "route must remove the temp file/dir during cleanup"

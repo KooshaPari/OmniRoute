@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { solveDeepSeekPowAsync } from "../lib/deepseek-pow.ts";
 import { type OpenAIToolCall } from "../translator/webTools.ts";

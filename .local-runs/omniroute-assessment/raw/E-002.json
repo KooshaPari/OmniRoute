@@ -1,0 +1,6 @@
+{
+  "scan": "grep",
+  "pattern": "router.include_router",
+  "count": 715,
+  "detail": "route registrations found"
+}

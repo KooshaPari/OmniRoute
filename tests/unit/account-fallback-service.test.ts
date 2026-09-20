@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -2024,7 +2025,7 @@ test("checkFallbackError: compatible node empty wallet without billing-suspend p
     "You have insufficient balance, please recharge your account",
     0,
     null,
-    MOONSHOT_COMPAT,
+    MOONSHOT_COMPAT
   );
   assert.equal(result.creditsExhausted, true);
   assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
@@ -2038,11 +2039,22 @@ test("isDailyQuotaExhausted detects organization TPD rate limit", () => {
 
 test("checkFallbackError: TPD with node clock uses that instant, not host midnight", () => {
   const now = Date.parse("2026-09-02T07:30:00Z");
-  const result = checkFallbackError(429, MOONSHOT_TPD, 0, null, MOONSHOT_COMPAT, null, null, null, null, {
-    timezone: "Asia/Shanghai",
-    hour: 0,
-    nowMs: now,
-  });
+  const result = checkFallbackError(
+    429,
+    MOONSHOT_TPD,
+    0,
+    null,
+    MOONSHOT_COMPAT,
+    null,
+    null,
+    null,
+    null,
+    {
+      timezone: "Asia/Shanghai",
+      hour: 0,
+      nowMs: now,
+    }
+  );
   assert.equal(result.dailyQuotaExhausted, true);
   assert.equal(result.cooldownMs, Date.parse("2026-09-02T16:00:00Z") - now);
   assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);

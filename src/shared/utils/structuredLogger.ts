@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Structured Logger — FASE-05 Code Quality
  *

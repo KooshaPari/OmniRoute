@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # OmniRoute — 在虚拟机上通过 Cloudflare 部署指南
 
-🌐 **Languages:** 🇺🇸 [English](../../../../ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇦🇿 [az](../../../az/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../../da/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../../de/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇬🇷 [el](../../../el/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../../es/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇪🇪 [et](../../../et/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../../he/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../../id/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../../it/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../../no/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../../te/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../../th/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/ops/VM_DEPLOYMENT_GUIDE.md)
+**Languages:** [English](../../../../ops/VM_DEPLOYMENT_GUIDE.md) · [ar](../../../ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [az](../../../az/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [bg](../../../bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [bn](../../../bn/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [cs](../../../cs/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [da](../../../da/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [de](../../../de/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [el](../../../el/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [es](../../../es/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [et](../../../et/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [fa](../../../fa/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [fi](../../../fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [fr](../../../fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [ga](../../../ga/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [gu](../../../gu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [he](../../../he/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [hi](../../../hi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [hr](../../../hr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [hu](../../../hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [id](../../../id/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [it](../../../it/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [ja](../../../ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [ko](../../../ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [lt](../../../lt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [lv](../../../lv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [mr](../../../mr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [ms](../../../ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [mt](../../../mt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [nl](../../../nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [no](../../../no/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [phi](../../../phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [pl](../../../pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [pt](../../../pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [pt-BR](../../../pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [ro](../../../ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [ru](../../../ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [sk](../../../sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [sl](../../../sl/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [sr](../../../sr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [sv](../../../sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [sw](../../../sw/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [ta](../../../ta/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [te](../../../te/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [th](../../../th/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [tr](../../../tr/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [uk-UA](../../../uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [ur](../../../ur/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [vi](../../../vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) · [zh-TW](../../../zh-TW/docs/ops/VM_DEPLOYMENT_GUIDE.md)
 
 在虚拟机 (VPS) 上安装并配置 OmniRoute 并通过 Cloudflare 管理域名的完整指南。
 
@@ -130,7 +130,7 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️ **重要**：请生成唯一的密钥！对每个密钥使用 `openssl rand -hex 32`。
+> **重要**：请生成唯一的密钥！对每个密钥使用 `openssl rand -hex 32`。
 
 ### 2.3 启动容器
 
@@ -264,9 +264,9 @@ nginx -t && systemctl reload nginx
 
 在 Cloudflare 控制台 → DNS：
 
-| 类型 | 名称   | 内容                        | 代理      |
-| ---- | ------ | --------------------------- | --------- |
-| A    | `llms` | `203.0.113.10`（虚拟机 IP） | ✅ 已代理 |
+| 类型 | 名称   | 内容                        | 代理   |
+| ---- | ------ | --------------------------- | ------ |
+| A    | `llms` | `203.0.113.10`（虚拟机 IP） | 已代理 |
 
 ### 4.2 配置 SSL
 
@@ -276,9 +276,9 @@ nginx -t && systemctl reload nginx
 
 在 **SSL/TLS → 边缘证书** 下：
 
-- 始终使用 HTTPS：✅ 开启
+- 始终使用 HTTPS： 开启
 - 最低 TLS 版本：TLS 1.2
-- 自动 HTTPS 重写：✅ 开启
+- 自动 HTTPS 重写： 开启
 
 ### 4.3 测试
 

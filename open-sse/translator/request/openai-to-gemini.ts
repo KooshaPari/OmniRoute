@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { ANTIGRAVITY_DEFAULT_SYSTEM } from "../../config/constants.ts";

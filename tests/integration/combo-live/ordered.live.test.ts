@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 /**
  * tests/integration/combo-live/ordered.live.test.ts
  *
@@ -56,20 +57,21 @@ async function isHealthy(conn: LiveConnection): Promise<boolean> {
   if (!h.LIVE_ENABLED) return false;
   const model =
     conn.model ??
-    ({
-      "claude": "claude-3-5-haiku-20241022",
-      "glm": "glm-4-flash",
-      "minimax": "minimax-text-01",
+    {
+      claude: "claude-3-5-haiku-20241022",
+      glm: "glm-4-flash",
+      minimax: "minimax-text-01",
       "kimi-coding-apikey": "moonshot-v1-8k",
       "ollama-cloud": "llama3.2:3b",
       "opencode-go": "gpt-4o-mini",
-      "gemini": "gemini-2.0-flash-lite",
-      "deepseek": "deepseek-chat",
-      "groq": "llama-3.1-8b-instant",
-      "cerebras": "llama-3.1-8b",
-      "openrouter": "openai/gpt-4o-mini",
-      "together": "meta-llama/Llama-3-8b-chat-hf",
-    }[conn.provider] ?? `${conn.provider}/default`);
+      gemini: "gemini-2.0-flash-lite",
+      deepseek: "deepseek-chat",
+      groq: "llama-3.1-8b-instant",
+      cerebras: "llama-3.1-8b",
+      openrouter: "openai/gpt-4o-mini",
+      together: "meta-llama/Llama-3-8b-chat-hf",
+    }[conn.provider] ??
+    `${conn.provider}/default`;
 
   const directModel = `${conn.provider}/${model}`;
   const controller = new AbortController();
@@ -101,7 +103,15 @@ async function isHealthy(conn: LiveConnection): Promise<boolean> {
 async function pickConfirmedHealthy(n: number): Promise<LiveConnection[]> {
   if (!h.LIVE_ENABLED) return [];
   const conns = await h.listLiveConnections();
-  const PREFERRED_ORDER = ["groq", "cerebras", "opencode-go", "deepseek", "gemini", "together", "openrouter"];
+  const PREFERRED_ORDER = [
+    "groq",
+    "cerebras",
+    "opencode-go",
+    "deepseek",
+    "gemini",
+    "together",
+    "openrouter",
+  ];
   const sorted = [...conns].sort((a, b) => {
     const ai = PREFERRED_ORDER.indexOf(a.provider);
     const bi = PREFERRED_ORDER.indexOf(b.provider);
@@ -155,48 +165,52 @@ after(async () => {
 // Test 1: priority — first healthy provider returns a valid completion
 // ---------------------------------------------------------------------------
 
-test("live priority — first healthy provider returns a valid completion", {
-  skip: !h.LIVE_ENABLED && "RUN_COMBO_LIVE!=1",
-}, async () => {
-  if (!h.LIVE_ENABLED) return;
+test(
+  "live priority — first healthy provider returns a valid completion",
+  {
+    skip: !h.LIVE_ENABLED && "RUN_COMBO_LIVE!=1",
+  },
+  async () => {
+    if (!h.LIVE_ENABLED) return;
 
-  const picked = await pickConfirmedHealthy(2);
-  if (picked.length < 2) {
-    // Not enough confirmed-healthy connections — skip gracefully
-    return;
-  }
+    const picked = await pickConfirmedHealthy(2);
+    if (picked.length < 2) {
+      // Not enough confirmed-healthy connections — skip gracefully
+      return;
+    }
 
-  const [a, b] = picked;
-  const comboName = `__live-smoke-priority-${Date.now()}__`;
+    const [a, b] = picked;
+    const comboName = `__live-smoke-priority-${Date.now()}__`;
 
-  // Create a priority combo pinned to the two real connections
-  const combo = await h.combosDb.createCombo({
-    name: comboName,
-    strategy: "priority",
-    models: [h.comboModelFor(a), h.comboModelFor(b)],
-    config: { maxRetries: 0, retryDelayMs: 0 },
-  });
+    // Create a priority combo pinned to the two real connections
+    const combo = await h.combosDb.createCombo({
+      name: comboName,
+      strategy: "priority",
+      models: [h.comboModelFor(a), h.comboModelFor(b)],
+      config: { maxRetries: 0, retryDelayMs: 0 },
+    });
 
-  try {
-    const response = await h.handleChat(
-      h.buildRequest({
-        body: h.liveBody(comboName, {
-          messages: [{ role: "user", content: `ping ${uniqueNonce("priority")}` }],
-        }),
-      })
-    );
+    try {
+      const response = await h.handleChat(
+        h.buildRequest({
+          body: h.liveBody(comboName, {
+            messages: [{ role: "user", content: `ping ${uniqueNonce("priority")}` }],
+          }),
+        })
+      );
 
-    assert.equal(response.status, 200, `Expected HTTP 200, got ${response.status}`);
+      assert.equal(response.status, 200, `Expected HTTP 200, got ${response.status}`);
 
-    const text = await h.readCompletionText(response);
-    assert.ok(text.length > 0, "Expected non-empty completion text from priority combo");
-  } finally {
-    // Clean up — delete the throwaway combo
-    if (typeof combo?.id === "string") {
-      await h.combosDb.deleteCombo(combo.id as string);
+      const text = await h.readCompletionText(response);
+      assert.ok(text.length > 0, "Expected non-empty completion text from priority combo");
+    } finally {
+      // Clean up — delete the throwaway combo
+      if (typeof combo?.id === "string") {
+        await h.combosDb.deleteCombo(combo.id as string);
+      }
     }
   }
-});
+);
 
 // ---------------------------------------------------------------------------
 // Test 2: failover — broken primary falls over to a healthy provider
@@ -207,131 +221,142 @@ test("live priority — first healthy provider returns a valid completion", {
 // We assert the serving provider is the HEALTHY one, not glm.
 // ---------------------------------------------------------------------------
 
-test("live failover — broken primary falls over to healthy provider", {
-  skip: !h.LIVE_ENABLED && "RUN_COMBO_LIVE!=1",
-}, async () => {
-  if (!h.LIVE_ENABLED) return;
+test(
+  "live failover — broken primary falls over to healthy provider",
+  {
+    skip: !h.LIVE_ENABLED && "RUN_COMBO_LIVE!=1",
+  },
+  async () => {
+    if (!h.LIVE_ENABLED) return;
 
-  // Import providersDb — safe since the DB was already initialized by the harness
-  const pDb = await import("../../../src/lib/db/providers.ts");
+    // Import providersDb — safe since the DB was already initialized by the harness
+    const pDb = await import("../../../src/lib/db/providers.ts");
 
-  const picked = await pickConfirmedHealthy(1);
-  if (picked.length < 1) {
-    // Not enough healthy connections — skip gracefully
-    return;
-  }
+    const picked = await pickConfirmedHealthy(1);
+    if (picked.length < 1) {
+      // Not enough healthy connections — skip gracefully
+      return;
+    }
 
-  const [healthy] = picked;
-  const brokenConnName = `__live-smoke-broken-${Date.now()}__`;
-  let brokenConnId: string | undefined;
-  const comboName = `__live-smoke-failover-${Date.now()}__`;
-
-  try {
-    // Create a broken connection with an invalid API key against glm.
-    // glm is chosen because it's a provider that will return a 4xx fast
-    // (invalid key = immediate auth failure, no long timeout).
-    const brokenConn = await pDb.createProviderConnection({
-      provider: "glm",
-      authType: "apikey",
-      name: brokenConnName,
-      apiKey: "sk-INVALID-forced-failover",
-      isActive: true,
-      testStatus: "active",
-    });
-
-    brokenConnId = typeof brokenConn?.id === "string" ? (brokenConn.id as string) : undefined;
-    assert.ok(brokenConnId, "Expected createProviderConnection to return a connection with an id");
-
-    // Build the broken model entry manually (not via listLiveConnections since it
-    // was just inserted and may not be in the in-scope filter yet)
-    const brokenEntry: ComboModelEntry = {
-      id: "live-glm-broken",
-      kind: "model",
-      providerId: "glm",
-      model: "glm-4-flash",
-      connectionId: brokenConnId,
-    };
-
-    // Build the combo: broken first (priority=0), healthy second (priority=1).
-    // This forces the pipeline to attempt glm first, fail, and fall over to healthy.
-    const combo = await h.combosDb.createCombo({
-      name: comboName,
-      strategy: "priority",
-      models: [brokenEntry, h.comboModelFor(healthy)],
-      config: { maxRetries: 0, retryDelayMs: 0 },
-    });
+    const [healthy] = picked;
+    const brokenConnName = `__live-smoke-broken-${Date.now()}__`;
+    let brokenConnId: string | undefined;
+    const comboName = `__live-smoke-failover-${Date.now()}__`;
 
     try {
-      const response = await h.handleChat(
-        h.buildRequest({
-          body: h.liveBody(comboName, {
-            messages: [{ role: "user", content: `ping ${uniqueNonce("failover")}` }],
-          }),
-        })
+      // Create a broken connection with an invalid API key against glm.
+      // glm is chosen because it's a provider that will return a 4xx fast
+      // (invalid key = immediate auth failure, no long timeout).
+      const brokenConn = await pDb.createProviderConnection({
+        provider: "glm",
+        authType: "apikey",
+        name: brokenConnName,
+        apiKey: "sk-INVALID-forced-failover",
+        isActive: true,
+        testStatus: "active",
+      });
+
+      brokenConnId = typeof brokenConn?.id === "string" ? (brokenConn.id as string) : undefined;
+      assert.ok(
+        brokenConnId,
+        "Expected createProviderConnection to return a connection with an id"
       );
 
-      // The combo must recover via fallback and return 200.
-      assert.equal(response.status, 200, `Expected HTTP 200 after failover, got ${response.status}`);
+      // Build the broken model entry manually (not via listLiveConnections since it
+      // was just inserted and may not be in the in-scope filter yet)
+      const brokenEntry: ComboModelEntry = {
+        id: "live-glm-broken",
+        kind: "model",
+        providerId: "glm",
+        model: "glm-4-flash",
+        connectionId: brokenConnId,
+      };
 
-      const text = await h.readCompletionText(response);
-      assert.ok(text.length > 0, "Expected non-empty completion text after failover");
+      // Build the combo: broken first (priority=0), healthy second (priority=1).
+      // This forces the pipeline to attempt glm first, fail, and fall over to healthy.
+      const combo = await h.combosDb.createCombo({
+        name: comboName,
+        strategy: "priority",
+        models: [brokenEntry, h.comboModelFor(healthy)],
+        config: { maxRetries: 0, retryDelayMs: 0 },
+      });
 
-      // PRIMARY ASSERTION: The broken glm connection must NEVER be the one that served 200.
-      // The X-OmniRoute-Selected-Connection-Id header is set on error/fallback paths — it
-      // identifies the LAST connection that handled the response (i.e. the fallback winner).
-      const servedConn = h.servedProvider(response);
-      if (servedConn !== undefined) {
-        // If the header is present, it MUST be the healthy provider, not glm.
-        assert.notEqual(
-          servedConn,
-          "glm",
-          `Broken glm must never serve a 200 — but got served by "glm". ` +
-          `Failover to "${healthy.provider}" did not occur.`
+      try {
+        const response = await h.handleChat(
+          h.buildRequest({
+            body: h.liveBody(comboName, {
+              messages: [{ role: "user", content: `ping ${uniqueNonce("failover")}` }],
+            }),
+          })
         );
+
+        // The combo must recover via fallback and return 200.
         assert.equal(
-          servedConn,
-          healthy.provider,
-          `Expected failover to serve from healthy provider "${healthy.provider}", got "${servedConn}"`
+          response.status,
+          200,
+          `Expected HTTP 200 after failover, got ${response.status}`
         );
-      }
 
-      // SECONDARY ASSERTION: try body signal when header is absent (clean 200 on first attempt
-      // of the fallback target returns without the header on some code paths).
-      // If the response body model field contains a known provider prefix, confirm it is
-      // not glm.
-      const bodyProvider = await h.servedProviderFromBody(response);
-      if (bodyProvider !== undefined) {
-        assert.notEqual(
-          bodyProvider,
-          "glm",
-          `Body model field indicates glm served the response — broken primary must not succeed`
-        );
-      }
+        const text = await h.readCompletionText(response);
+        assert.ok(text.length > 0, "Expected non-empty completion text after failover");
 
-      // Confirm at least one signal was available to assert the healthy provider served.
-      // If both are undefined we can't prove the fallback but we can confirm glm didn't win.
-      // The 200 + non-empty text is the minimum authoritative pass signal.
-      if (servedConn === undefined && bodyProvider === undefined) {
-        // No per-provider signal — assert purely on outcome: 200 + non-empty means SOME
-        // healthy provider served. Acceptable: both assertions above already fired for
-        // the case where signals are present.
-        assert.ok(
-          text.length > 0,
-          "Fallback pass: got 200 + non-empty text even though per-provider signal was absent"
-        );
+        // PRIMARY ASSERTION: The broken glm connection must NEVER be the one that served 200.
+        // The X-OmniRoute-Selected-Connection-Id header is set on error/fallback paths — it
+        // identifies the LAST connection that handled the response (i.e. the fallback winner).
+        const servedConn = h.servedProvider(response);
+        if (servedConn !== undefined) {
+          // If the header is present, it MUST be the healthy provider, not glm.
+          assert.notEqual(
+            servedConn,
+            "glm",
+            `Broken glm must never serve a 200 — but got served by "glm". ` +
+              `Failover to "${healthy.provider}" did not occur.`
+          );
+          assert.equal(
+            servedConn,
+            healthy.provider,
+            `Expected failover to serve from healthy provider "${healthy.provider}", got "${servedConn}"`
+          );
+        }
+
+        // SECONDARY ASSERTION: try body signal when header is absent (clean 200 on first attempt
+        // of the fallback target returns without the header on some code paths).
+        // If the response body model field contains a known provider prefix, confirm it is
+        // not glm.
+        const bodyProvider = await h.servedProviderFromBody(response);
+        if (bodyProvider !== undefined) {
+          assert.notEqual(
+            bodyProvider,
+            "glm",
+            `Body model field indicates glm served the response — broken primary must not succeed`
+          );
+        }
+
+        // Confirm at least one signal was available to assert the healthy provider served.
+        // If both are undefined we can't prove the fallback but we can confirm glm didn't win.
+        // The 200 + non-empty text is the minimum authoritative pass signal.
+        if (servedConn === undefined && bodyProvider === undefined) {
+          // No per-provider signal — assert purely on outcome: 200 + non-empty means SOME
+          // healthy provider served. Acceptable: both assertions above already fired for
+          // the case where signals are present.
+          assert.ok(
+            text.length > 0,
+            "Fallback pass: got 200 + non-empty text even though per-provider signal was absent"
+          );
+        }
+      } finally {
+        if (typeof combo?.id === "string") {
+          await h.combosDb.deleteCombo(combo.id as string);
+        }
       }
     } finally {
-      if (typeof combo?.id === "string") {
-        await h.combosDb.deleteCombo(combo.id as string);
+      // Always clean up the broken connection
+      if (brokenConnId) {
+        await pDb.deleteProviderConnection(brokenConnId);
       }
     }
-  } finally {
-    // Always clean up the broken connection
-    if (brokenConnId) {
-      await pDb.deleteProviderConnection(brokenConnId);
-    }
   }
-});
+);
 
 // ---------------------------------------------------------------------------
 // Test 3: round-robin — spreads across ≥2 real providers
@@ -345,114 +370,122 @@ test("live failover — broken primary falls over to healthy provider", {
 //  - Skip (not fail) when fewer than 2 providers are confirmed healthy at runtime.
 // ---------------------------------------------------------------------------
 
-test("live round-robin — spreads across ≥2 real providers over 6 calls", {
-  skip: !h.LIVE_ENABLED && "RUN_COMBO_LIVE!=1",
-}, async () => {
-  if (!h.LIVE_ENABLED) return;
+test(
+  "live round-robin — spreads across ≥2 real providers over 6 calls",
+  {
+    skip: !h.LIVE_ENABLED && "RUN_COMBO_LIVE!=1",
+  },
+  async () => {
+    if (!h.LIVE_ENABLED) return;
 
-  const picked = await pickConfirmedHealthy(3);
-  if (picked.length < 2) {
-    // Fewer than 2 providers confirmed healthy at runtime — skip with reason.
-    // This is an honest skip, not a trivial pass. The strategy cannot be proven
-    // with only 1 provider.
-    console.log(
-      `[round-robin skip] Only ${picked.length} provider(s) confirmed healthy ` +
-      `at runtime — need ≥2 to prove round-robin spread. Skipping.`
-    );
-    return;
-  }
-
-  // Use up to 3, but at least 2 (already confirmed healthy via warmup calls)
-  const targets = picked.slice(0, Math.min(3, picked.length));
-  const comboName = `__live-smoke-rr-${Date.now()}__`;
-
-  // Deduplicate by provider to ensure we measure provider diversity
-  const seen = new Set<string>();
-  const uniqueTargets = targets.filter((t) => {
-    if (seen.has(t.provider)) return false;
-    seen.add(t.provider);
-    return true;
-  });
-
-  if (uniqueTargets.length < 2) {
-    // All healthy connections are from the same provider — skip gracefully
-    console.log(
-      `[round-robin skip] All ${uniqueTargets.length} healthy connection(s) map to the ` +
-      `same provider — cannot prove provider spread. Skipping.`
-    );
-    return;
-  }
-
-  const combo = await h.combosDb.createCombo({
-    name: comboName,
-    strategy: "round-robin",
-    models: uniqueTargets.map((c) => h.comboModelFor(c)),
-    // stickyRoundRobinLimit:1 → rotate on every request
-    config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
-  });
-
-  try {
-    const N = 6;
-    const modelFields: (string | undefined)[] = [];
-
-    for (let i = 0; i < N; i++) {
-      // Unique nonce per call — belt-and-suspenders against any caching.
-      const response = await h.handleChat(
-        h.buildRequest({
-          body: h.liveBody(comboName, {
-            messages: [{ role: "user", content: `ping ${uniqueNonce("rr")} call=${i}` }],
-          }),
-        })
+    const picked = await pickConfirmedHealthy(3);
+    if (picked.length < 2) {
+      // Fewer than 2 providers confirmed healthy at runtime — skip with reason.
+      // This is an honest skip, not a trivial pass. The strategy cannot be proven
+      // with only 1 provider.
+      console.log(
+        `[round-robin skip] Only ${picked.length} provider(s) confirmed healthy ` +
+          `at runtime — need ≥2 to prove round-robin spread. Skipping.`
       );
-      assert.equal(response.status, 200, `Call ${i + 1}: expected HTTP 200, got ${response.status}`);
-
-      const text = await h.readCompletionText(response);
-      assert.ok(text.length > 0, `Call ${i + 1}: expected non-empty completion text`);
-
-      // Collect the raw model field from the response body to track routing.
-      // Different providers return different model strings, so distinct model
-      // fields imply distinct providers were served.
-      const modelField = await readResponseModel(response);
-      modelFields.push(modelField);
+      return;
     }
 
-    // Count distinct non-undefined model strings across all 6 calls
-    const distinctModels = new Set(modelFields.filter((m): m is string => m !== undefined));
+    // Use up to 3, but at least 2 (already confirmed healthy via warmup calls)
+    const targets = picked.slice(0, Math.min(3, picked.length));
+    const comboName = `__live-smoke-rr-${Date.now()}__`;
 
-    console.log(
-      `[round-robin] ${N} calls → model fields: [${modelFields.join(", ")}] ` +
-      `→ ${distinctModels.size} distinct: [${[...distinctModels].join(", ")}]`
-    );
+    // Deduplicate by provider to ensure we measure provider diversity
+    const seen = new Set<string>();
+    const uniqueTargets = targets.filter((t) => {
+      if (seen.has(t.provider)) return false;
+      seen.add(t.provider);
+      return true;
+    });
 
-    if (distinctModels.size >= 2) {
-      // Happy path: round-robin spread confirmed via response model field.
-      assert.ok(
-        distinctModels.size >= 2,
-        `Expected ≥2 distinct model strings across ${N} calls, got ${distinctModels.size}: ` +
-        `${[...distinctModels].join(", ")}`
+    if (uniqueTargets.length < 2) {
+      // All healthy connections are from the same provider — skip gracefully
+      console.log(
+        `[round-robin skip] All ${uniqueTargets.length} healthy connection(s) map to the ` +
+          `same provider — cannot prove provider spread. Skipping.`
       );
-    } else {
-      // All response model fields are undefined or identical. Two causes:
-      //  (a) Provider echoes a generic/unidentifiable model name.
-      //  (b) Round-robin actually didn't rotate (bug or all responses from one provider).
-      //
-      // We cannot distinguish (a) from (b) from body signals alone. We DO know:
-      //  - All 6 calls returned 200 + non-empty text (asserted above).
-      //  - Both providers passed a warmup health check before the combo was built.
-      //  - Cache was disabled at harness init + cleared in beforeEach.
-      //  - Each call used a unique prompt (nonce), so cache hits are ruled out.
-      //
-      // Report the ambiguity; do NOT fail on (a). A future improvement: instrument
-      // the combo state machine via an internal counter to confirm rotation directly.
-      console.warn(
-        `[round-robin] WARNING: Could not confirm spread from response body signals ` +
-        `(all model fields undefined or identical). Both providers were warmup-healthy, ` +
-        `cache was disabled, and prompts were unique. Body signal is ambiguous.`
-      );
+      return;
     }
-  } finally {
-    if (typeof combo?.id === "string") {
-      await h.combosDb.deleteCombo(combo.id as string);
+
+    const combo = await h.combosDb.createCombo({
+      name: comboName,
+      strategy: "round-robin",
+      models: uniqueTargets.map((c) => h.comboModelFor(c)),
+      // stickyRoundRobinLimit:1 → rotate on every request
+      config: { maxRetries: 0, retryDelayMs: 0, stickyRoundRobinLimit: 1 },
+    });
+
+    try {
+      const N = 6;
+      const modelFields: (string | undefined)[] = [];
+
+      for (let i = 0; i < N; i++) {
+        // Unique nonce per call — belt-and-suspenders against any caching.
+        const response = await h.handleChat(
+          h.buildRequest({
+            body: h.liveBody(comboName, {
+              messages: [{ role: "user", content: `ping ${uniqueNonce("rr")} call=${i}` }],
+            }),
+          })
+        );
+        assert.equal(
+          response.status,
+          200,
+          `Call ${i + 1}: expected HTTP 200, got ${response.status}`
+        );
+
+        const text = await h.readCompletionText(response);
+        assert.ok(text.length > 0, `Call ${i + 1}: expected non-empty completion text`);
+
+        // Collect the raw model field from the response body to track routing.
+        // Different providers return different model strings, so distinct model
+        // fields imply distinct providers were served.
+        const modelField = await readResponseModel(response);
+        modelFields.push(modelField);
+      }
+
+      // Count distinct non-undefined model strings across all 6 calls
+      const distinctModels = new Set(modelFields.filter((m): m is string => m !== undefined));
+
+      console.log(
+        `[round-robin] ${N} calls → model fields: [${modelFields.join(", ")}] ` +
+          `→ ${distinctModels.size} distinct: [${[...distinctModels].join(", ")}]`
+      );
+
+      if (distinctModels.size >= 2) {
+        // Happy path: round-robin spread confirmed via response model field.
+        assert.ok(
+          distinctModels.size >= 2,
+          `Expected ≥2 distinct model strings across ${N} calls, got ${distinctModels.size}: ` +
+            `${[...distinctModels].join(", ")}`
+        );
+      } else {
+        // All response model fields are undefined or identical. Two causes:
+        //  (a) Provider echoes a generic/unidentifiable model name.
+        //  (b) Round-robin actually didn't rotate (bug or all responses from one provider).
+        //
+        // We cannot distinguish (a) from (b) from body signals alone. We DO know:
+        //  - All 6 calls returned 200 + non-empty text (asserted above).
+        //  - Both providers passed a warmup health check before the combo was built.
+        //  - Cache was disabled at harness init + cleared in beforeEach.
+        //  - Each call used a unique prompt (nonce), so cache hits are ruled out.
+        //
+        // Report the ambiguity; do NOT fail on (a). A future improvement: instrument
+        // the combo state machine via an internal counter to confirm rotation directly.
+        console.warn(
+          `[round-robin] WARNING: Could not confirm spread from response body signals ` +
+            `(all model fields undefined or identical). Both providers were warmup-healthy, ` +
+            `cache was disabled, and prompts were unique. Body signal is ambiguous.`
+        );
+      }
+    } finally {
+      if (typeof combo?.id === "string") {
+        await h.combosDb.deleteCombo(combo.id as string);
+      }
     }
   }
-});
+);

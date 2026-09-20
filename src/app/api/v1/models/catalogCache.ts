@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Response cache for `GET /v1/models`, extracted from catalog.ts.
  *
@@ -77,7 +78,7 @@ export type BackgroundRefreshScheduler = (task: () => Promise<unknown>) => void;
  * it exists for. `setTimeout(…, 0)` defers by a macrotask but does not wait for the
  * flush, so it never delivered that guarantee.
  *
- * `after()` throws outside a Next request scope — the CLI/Electron server, unit tests —
+ * `after()` throws outside a Next request scope — the CLI/standalone server, unit tests —
  * so fall back to the macrotask there. Those callers have no response being flushed, so
  * the deferral is all they ever needed.
  */

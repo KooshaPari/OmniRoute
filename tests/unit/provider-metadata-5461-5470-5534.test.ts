@@ -1,12 +1,11 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { APIKEY_PROVIDERS_ENTERPRISE } = await import(
-  "../../src/shared/constants/providers/apikey/enterprise-cloud.ts"
-);
-const { APIKEY_PROVIDERS_INFERENCE } = await import(
-  "../../src/shared/constants/providers/apikey/inference-hosts.ts"
-);
+const { APIKEY_PROVIDERS_ENTERPRISE } =
+  await import("../../src/shared/constants/providers/apikey/enterprise-cloud.ts");
+const { APIKEY_PROVIDERS_INFERENCE } =
+  await import("../../src/shared/constants/providers/apikey/inference-hosts.ts");
 const { WEB_COOKIE_PROVIDERS } = await import("../../src/shared/constants/providers/web-cookie.ts");
 
 // #5461 — Scaleway's `website` pointed at https://www.scaleway.com/en/ai/generative-apis

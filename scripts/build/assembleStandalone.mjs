@@ -3,46 +3,41 @@
 /**
  * assembleStandalone.mjs - Shared standalone bundle assembler for OmniRoute.
  *
- * Task 0.1 Inventory: Copy/sync operations across the three build scripts
+ * Task 0.1 Inventory: Copy/sync operations across the two build scripts
  * -----------------------------------------------------------------------
- * Operation                                           build-next-isolated  prepublish  electron  Status
- * --------------------------------------------------- ------------------- ----------- -------- ------
- * .next/standalone -> outDir (cp)                              Y               Y           Y    SHARED
- * .next/static -> outDir/.next/static (cp)                    Y               Y           Y    SHARED
- * public/ -> outDir/public/ (cp)                              Y               Y           Y    SHARED
- * wreq-js -> outDir/node_modules/wreq-js                     Y               Y           Y    SHARED (extra module)
- * better-sqlite3/build -> outDir/node_modules/better-sqlite3/ Y               -           -    SHARED (native asset)
- * @swc/helpers -> outDir/node_modules/@swc/helpers             Y               Y           Y    SHARED (extra module)
- * pino-abstract-transport -> outDir/node_modules/...          Y               -           -    SHARED (extra module)
- * pino-pretty -> outDir/node_modules/pino-pretty              Y               -           -    SHARED (extra module)
- * split2 -> outDir/node_modules/split2                        Y               -           -    SHARED (extra module)
- * src/lib/db/migrations -> outDir/migrations                  Y               Y           -    SHARED (extra module)
- * src/mitm/server.cjs -> outDir/src/mitm/server.cjs           Y               -           -    SHARED (extra module)
- * scripts/dev/run-standalone.mjs -> outDir/dev/run-standalone Y               -           -    SHARED (extra module)
- * scripts/dev/standalone-server-ws.mjs -> outDir/server-ws    Y               Y           -    SHARED (extra module)
- * scripts/dev/peer-stamp.mjs -> outDir/peer-stamp.mjs         Y               Y           -    SHARED (extra module)
- * scripts/dev/responses-ws-proxy.mjs -> outDir/responses-ws-  Y               Y           -    SHARED (extra module)
- * scripts/dev/head-response-guard.cjs -> outDir/head-respons  Y               Y           -    SHARED (extra module)
- * scripts/build/runtime-env.mjs -> outDir/build/runtime-env   Y               -           -    SHARED (extra module)
- * scripts/build/bootstrap-env.mjs -> outDir/build/bootstrap-  Y               -           -    SHARED (extra module)
- * scripts/dev/healthcheck.mjs -> outDir/healthcheck.mjs       Y               -           -    SHARED (extra module)
- * playwright-core -> outDir/node_modules/playwright-core      Y               -           -    SHARED (extra module)
- * sqlite-vec -> outDir/node_modules/sqlite-vec                Y               -           -    SHARED (extra module)
- * sqlite-vec-linux-x64/arm64/darwin-x64/arm64/win-x64 (same) Y               -           -    SHARED (extra module)
- * abs-path sanitization in server.js + required-server-files  -               Y           Y    SHARED (opt-in: sanitizePaths)
- * Turbopack hashed-chunk patch (.next/server/ *.js)           -               Y           -    SHARED (opt-in: patchTurbopackChunks)
- * --- npm-UNIQUE ---
- * MITM tsc compile -> app/src/mitm/                           -               Y           -    UNIQUE (prepublish)
- * MCP server esbuild -> dist/open-sse/mcp-server/server.js    -               Y           -    UNIQUE (prepublish)
- * CLI esbuild -> bin/omniroute.mjs                            -               Y           -    UNIQUE (prepublish)
- * sidecar/doc copies (.env.example, docs/, sync-env, etc.)    -               Y           -    UNIQUE (prepublish)
- * prune + validate (pack-artifact-policy)                      -               Y           -    UNIQUE (prepublish)
- * data/ dir creation                                           -               Y           -    UNIQUE (prepublish)
- * --- electron-UNIQUE ---
- * better-sqlite3 prebuild verify + compile-input strip          -               -           Y    UNIQUE (electron)
- * Turbopack hashed-module symlink materialize (node_modules)   -               -           Y    SHARED (opt-in: materializeSymlinks)
- * symlink guard (assertBundleIsPackagable)                     -               -           Y    UNIQUE (electron)
- * removeGeneratedElectronArtifacts                             -               -           Y    UNIQUE (electron)
+ * Operation                                           build-next-isolated  prepublish  Status
+ * --------------------------------------------------- ------------------- ----------- ------
+ * .next/standalone -> outDir (cp)                              Y               Y      SHARED
+ * .next/static -> outDir/.next/static (cp)                    Y               Y      SHARED
+ * public/ -> outDir/public/ (cp)                              Y               Y      SHARED
+ * wreq-js -> outDir/node_modules/wreq-js                     Y               Y      SHARED (extra module)
+ * better-sqlite3/build -> outDir/node_modules/better-sqlite3/ Y               -      SHARED (native asset)
+ * @swc/helpers -> outDir/node_modules/@swc/helpers             Y               Y      SHARED (extra module)
+ * pino-abstract-transport -> outDir/node_modules/...          Y               -      SHARED (extra module)
+ * pino-pretty -> outDir/node_modules/pino-pretty              Y               -      SHARED (extra module)
+ * split2 -> outDir/node_modules/split2                        Y               -      SHARED (extra module)
+ * src/lib/db/migrations -> outDir/migrations                  Y               Y      SHARED (extra module)
+ * src/mitm/server.cjs -> outDir/src/mitm/server.cjs           Y               -      SHARED (extra module)
+ * scripts/dev/run-standalone.mjs -> outDir/dev/run-standalone Y               -      SHARED (extra module)
+ * scripts/dev/standalone-server-ws.mjs -> outDir/server-ws    Y               Y      SHARED (extra module)
+ * scripts/dev/peer-stamp.mjs -> outDir/peer-stamp.mjs         Y               Y      SHARED (extra module)
+ * scripts/dev/responses-ws-proxy.mjs -> outDir/responses-ws-  Y               Y      SHARED (extra module)
+ * scripts/dev/head-response-guard.cjs -> outDir/head-respons  Y               Y      SHARED (extra module)
+ * scripts/build/runtime-env.mjs -> outDir/build/runtime-env   Y               -      SHARED (extra module)
+ * scripts/build/bootstrap-env.mjs -> outDir/build/bootstrap-  Y               -      SHARED (extra module)
+ * scripts/dev/healthcheck.mjs -> outDir/healthcheck.mjs       Y               -      SHARED (extra module)
+ * playwright-core -> outDir/node_modules/playwright-core      Y               -      SHARED (extra module)
+ * sqlite-vec -> outDir/node_modules/sqlite-vec                Y               -      SHARED (extra module)
+ * sqlite-vec-linux-x64/arm64/darwin-x64/arm64/win-x64 (same) Y               -      SHARED (extra module)
+ * abs-path sanitization in server.js + required-server-files  -               Y      SHARED (opt-in: sanitizePaths)
+ * Turbopack hashed-chunk patch (.next/server/ *.js)           -               Y      SHARED (opt-in: patchTurbopackChunks)
+ * --- prepublish-UNIQUE ---
+ * MITM tsc compile -> app/src/mitm/                           -               Y      UNIQUE (prepublish)
+ * MCP server esbuild -> dist/open-sse/mcp-server/server.js    -               Y      UNIQUE (prepublish)
+ * CLI esbuild -> bin/omniroute.mjs                            -               Y      UNIQUE (prepublish)
+ * sidecar/doc copies (.env.example, docs/, sync-env, etc.)    -               Y      UNIQUE (prepublish)
+ * prune + validate (pack-artifact-policy)                      -               Y      UNIQUE (prepublish)
+ * data/ dir creation                                           -               Y      UNIQUE (prepublish)
  */
 
 import fs from "node:fs/promises";
@@ -738,7 +733,7 @@ function repairEmptyExternalPackageDirs(projectRoot, bundleNodeModules) {
  * Next.js/Turbopack standalone output emits entries like
  *   better-sqlite3-90e2652d1716b047 -> <buildMachineAbsPath>/node_modules/better-sqlite3
  * as ABSOLUTE symlinks into the build machine's tree. cpSync preserves symlinks and
- * electron-builder preserves extraResources symlinks verbatim, so the packaged app
+ * The bundler preserves extraResources symlinks verbatim, so the packaged app
  * ships dangling links pointing at e.g. /Users/runner/work/... On the end-user machine
  * those targets don't exist → the instrumentation hook throws
  * ERR_MODULE_NOT_FOUND: Cannot find package 'ws-<hash>' → server boot fails.
@@ -828,13 +823,13 @@ export function materializeBundledSymlinks(nodeModulesDir) {
 }
 
 /**
- * Sync an Electron-ABI-rebuilt native module into any hashed/plain copies of
+ * Sync a target-ABI-rebuilt native module into any hashed/plain copies of
  * that module already materialized inside a nested node_modules dir.
  *
  * materializeBundledSymlinks() turns Turbopack hashed-module symlinks (e.g.
  * `better-sqlite3-90e2652d1716b047`) into real directory copies of the
- * Node-ABI build. A later step in prepare-electron-standalone.mjs rebuilds
- * better-sqlite3 against the Electron ABI at the bundle root — but the
+ * Node-ABI build. A later packaging step rebuilds better-sqlite3 against the
+ * target runtime ABI at the bundle root — but the
  * hashed copy under the nested node_modules still holds the stale Node-ABI
  * build, and the server's hashed `require("better-sqlite3-<hash>")` resolves
  * to it, not the rebuilt root module. Previously that hashed copy was simply

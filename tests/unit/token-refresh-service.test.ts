@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -826,70 +827,79 @@ test("supportsTokenRefresh, isUnrecoverableRefreshError and formatProviderCreden
 
 test("getAccessToken discovers projectId for antigravity when stored value is empty", async () => {
   const log = createLog();
-  const { clearAntigravityProjectCache } = await import("../../open-sse/services/antigravityProjectBootstrap.ts");
+  const { clearAntigravityProjectCache } =
+    await import("../../open-sse/services/antigravityProjectBootstrap.ts");
   clearAntigravityProjectCache();
 
   let fetchCalls: string[] = [];
-  await withMockedFetch(async (url, init) => {
-    const urlStr = String(url);
-    fetchCalls.push(urlStr);
-    if (urlStr.includes("oauth2.googleapis.com/token")) {
-      return jsonResponse({
-        access_token: "new-token-1",
-        refresh_token: "new-refresh",
-        expires_in: 3600,
+  await withMockedFetch(
+    async (url, init) => {
+      const urlStr = String(url);
+      fetchCalls.push(urlStr);
+      if (urlStr.includes("oauth2.googleapis.com/token")) {
+        return jsonResponse({
+          access_token: "new-token-1",
+          refresh_token: "new-refresh",
+          expires_in: 3600,
+        });
+      }
+      if (urlStr.includes("loadCodeAssist")) {
+        return jsonResponse({ cloudaicompanionProject: "discovered-project" });
+      }
+      return new Response("not found", { status: 404 });
+    },
+    async () => {
+      const result = await getAccessToken("antigravity", {
+        refreshToken: "refresh",
+        projectId: "",
+        connectionId: "conn-1",
+        providerSpecificData: {},
       });
+      assert.equal(result.projectId, "discovered-project");
+      assert.ok(
+        fetchCalls.some((u) => u.includes("loadCodeAssist")),
+        "should call loadCodeAssist"
+      );
     }
-    if (urlStr.includes("loadCodeAssist")) {
-      return jsonResponse({ cloudaicompanionProject: "discovered-project" });
-    }
-    return new Response("not found", { status: 404 });
-  }, async () => {
-    const result = await getAccessToken("antigravity", {
-      refreshToken: "refresh",
-      projectId: "",
-      connectionId: "conn-1",
-      providerSpecificData: {},
-    });
-    assert.equal(result.projectId, "discovered-project");
-    assert.ok(fetchCalls.some((u) => u.includes("loadCodeAssist")), "should call loadCodeAssist");
-  });
+  );
   clearAntigravityProjectCache();
 });
-
 
 test("getAccessToken handles projectId discovery failure gracefully for antigravity", async () => {
   const log = createLog();
-  const { clearAntigravityProjectCache } = await import("../../open-sse/services/antigravityProjectBootstrap.ts");
+  const { clearAntigravityProjectCache } =
+    await import("../../open-sse/services/antigravityProjectBootstrap.ts");
   clearAntigravityProjectCache();
   tokenRefresh._clearTokenRotationMap();
 
-  await withMockedFetch(async (url) => {
-    const urlStr = String(url);
-    if (urlStr.includes("oauth2.googleapis.com/token")) {
-      return jsonResponse({
-        access_token: "new-token-3",
-        refresh_token: "new-refresh",
-        expires_in: 3600,
+  await withMockedFetch(
+    async (url) => {
+      const urlStr = String(url);
+      if (urlStr.includes("oauth2.googleapis.com/token")) {
+        return jsonResponse({
+          access_token: "new-token-3",
+          refresh_token: "new-refresh",
+          expires_in: 3600,
+        });
+      }
+      if (urlStr.includes("loadCodeAssist")) {
+        return new Response("server error", { status: 500 });
+      }
+      return new Response("not found", { status: 404 });
+    },
+    async () => {
+      const result = await getAccessToken("antigravity", {
+        refreshToken: "refresh",
+        projectId: "",
+        connectionId: "conn-1",
+        providerSpecificData: {},
       });
+      assert.equal(result.accessToken, "new-token-3");
+      assert.ok(result, "should return a result without throwing");
     }
-    if (urlStr.includes("loadCodeAssist")) {
-      return new Response("server error", { status: 500 });
-    }
-    return new Response("not found", { status: 404 });
-  }, async () => {
-    const result = await getAccessToken("antigravity", {
-      refreshToken: "refresh",
-      projectId: "",
-      connectionId: "conn-1",
-      providerSpecificData: {},
-    });
-    assert.equal(result.accessToken, "new-token-3");
-    assert.ok(result, "should return a result without throwing");
-  });
+  );
   clearAntigravityProjectCache();
 });
-
 
 test("getAccessToken deduplicates concurrent refreshes for the same provider and token", async () => {
   const log = createLog();

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * buildCurl — generate a cURL command string for playground copy-paste.
  *

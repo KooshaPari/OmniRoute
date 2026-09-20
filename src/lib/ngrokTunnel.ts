@@ -1,13 +1,8 @@
+// oxlint-disable no-unused-vars
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
 export type TunnelPhase =
-  | "unsupported"
-  | "not_installed"
-  | "stopped"
-  | "needs_auth"
-  | "starting"
-  | "running"
-  | "error";
+  "unsupported" | "not_installed" | "stopped" | "needs_auth" | "starting" | "running" | "error";
 
 export type NgrokTunnelStatus = {
   supported: boolean;

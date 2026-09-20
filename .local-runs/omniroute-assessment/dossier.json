@@ -1,0 +1,293 @@
+{
+  "kind": "dossier",
+  "schema_version": "1.1.0",
+  "id": "OMNIR-SCREEN-001",
+  "record_status": "OPERATIONAL",
+  "example_class": "REAL_ASSESSMENT",
+  "title": "OmniRoute API Gateway — Screen Assessment",
+  "subtitle": "Multi-provider LLM gateway with 132 integrations, 2783 passing tests, and structural hygiene gaps.",
+  "purpose": "Produce a bounded inventory and risk scan of the OmniRoute codebase across scope, architecture, implementation, testing, performance, reliability, and security.",
+  "boundary": "Source code, tests, configuration, and architecture of wt-omniroute-batch2 at HEAD d4999b02e1.",
+  "beneficiary": "OmniRoute engineering team.",
+  "authorship": "AGENT_ORIGINATED",
+  "intent_status": "Accepted screen-mode assessment under agent-lab protocol.",
+  "genesis_rationale": "Requested assessment of the OmniRoute project using the agent-lab assessment dossiers v1.1 kit.",
+  "alternatives": [
+    "Extend to Evaluate mode for deeper security/perf testing",
+    "Proceed with targeted remediation of findings",
+    "Defer assessment until staging environment is available"
+  ],
+  "authority": "Agent-lab assessment protocol v1.1. No deployment, merge, or spending authority granted.",
+  "non_goals": [
+    "Produce a release decision",
+    "Claim complete coverage of the 1080-entry catalog",
+    "Replace CI/CD test gates"
+  ],
+  "subject_identity": {
+    "source_revision": "d4999b02e1",
+    "identity_method": "Git commit hash at time of assessment.",
+    "limitation": "Screen mode. No live load testing, no penetration testing, no consumer outcome observation."
+  },
+  "inventory": [
+    {
+      "id": "INV-01",
+      "item": "API Routes (src/app)",
+      "declared": "715 route files",
+      "observed_or_assumed": "715 found via filesystem scan",
+      "gap": "None — entrypoints identified",
+      "evidence_basis": "Filesystem scan"
+    },
+    {
+      "id": "INV-02",
+      "item": "Provider Executors",
+      "declared": "Multi-provider LLM adapters",
+      "observed_or_assumed": "132 executor files in open-sse/executors/",
+      "gap": "No throughput characterization",
+      "evidence_basis": "Filesystem scan"
+    },
+    {
+      "id": "INV-03",
+      "item": "Test Suite",
+      "declared": "Comprehensive test coverage",
+      "observed_or_assumed": "2783 tests passing in 351 files (vitest). 5947 total test files.",
+      "gap": "No perf/security test suites",
+      "evidence_basis": "vitest run results"
+    },
+    {
+      "id": "INV-04",
+      "item": "MCP Server Tools",
+      "declared": "Agent-accessible tool surface",
+      "observed_or_assumed": "64 tool functions across 10+ tool modules",
+      "gap": "No injection testing",
+      "evidence_basis": "Grep scan"
+    },
+    {
+      "id": "INV-05",
+      "item": "Database Migrations",
+      "declared": "Schema versioning",
+      "observed_or_assumed": "207 SQL migrations",
+      "gap": "No migration rollback testing observed",
+      "evidence_basis": "Filesystem scan"
+    },
+    {
+      "id": "INV-06",
+      "item": "CI/CD",
+      "declared": "Automated quality gates",
+      "observed_or_assumed": "70 GitHub Actions workflows",
+      "gap": "Not evaluated in Screen mode",
+      "evidence_basis": "Filesystem scan"
+    },
+    {
+      "id": "INV-07",
+      "item": "Security Controls",
+      "declared": "Auth + rate limiting",
+      "observed_or_assumed": "Auth system + rate limiter in infrastructure layer. 0 hardcoded secrets.",
+      "gap": "No injection test suite",
+      "evidence_basis": "Grep scan + code review"
+    },
+    {
+      "id": "INV-08",
+      "item": "Observability",
+      "declared": "Structured logging + monitoring",
+      "observed_or_assumed": "Observability layer in open-sse/observability/. Structured logging patterns.",
+      "gap": "No alerting/SLA thresholds evaluated",
+      "evidence_basis": "Code structure scan"
+    }
+  ],
+  "maturity": {
+    "scenario_or_scoped_label": "Screen: functionally strong with structural hygiene and security/perf test gaps.",
+    "claim_limit": "Screen mode only. No live testing, no consumer outcomes, no penetration testing.",
+    "axes": [
+      {
+        "axis": "FUNCTIONAL_CORRECTNESS",
+        "status": "STRONG",
+        "basis": "2783 tests passing, 132 executors exercised"
+      },
+      {
+        "axis": "TEST_ASSURANCE",
+        "status": "STRONG",
+        "basis": "5947 test files, canonical naming, CI gates"
+      },
+      {
+        "axis": "SECURITY_POSTURE",
+        "status": "ADEQUATE",
+        "basis": "Env-based secrets, trust boundaries, but injection gaps"
+      },
+      {
+        "axis": "MAINTAINABILITY",
+        "status": "NEEDS_WORK",
+        "basis": "8 files over 500 lines, decomposition mandate unenforced"
+      },
+      {
+        "axis": "PERFORMANCE",
+        "status": "UNKNOWN",
+        "basis": "No benchmarks or load tests"
+      },
+      {
+        "axis": "OPERATIONS",
+        "status": "ADEQUATE",
+        "basis": "Observability layer, structured logging, error codes"
+      }
+    ],
+    "value_evidence": "Production API gateway with 132 LLM provider integrations, 715 routes, 2783 tests. Strong functional base with identified structural and assurance gaps."
+  },
+  "finding_ids": ["F-01", "F-02", "F-03"],
+  "decision_ids": ["DEC-01"],
+  "semantic_reviews": [
+    {
+      "topic": "Does the test suite adequately protect the core routing operation?",
+      "assessment": "The 2783-test suite covers executor-specific routing, payload transformation, and error handling. However, integration-level tests for the full request pipeline (client -> proxy -> provider -> response) are limited.",
+      "support": "Unit tests for individual executors pass. buildExecutorClientHeaders, retryWithBackoff, and codexPayload tests cover critical paths.",
+      "countercase": "A provider API change could break routing without detection if no integration test exercises the full path.",
+      "discriminator": "Run an end-to-end routing test against a real provider endpoint.",
+      "confidence_basis": "Test file inventory and assertion review."
+    },
+    {
+      "topic": "Is the security posture adequate for an API proxy handling LLM API keys?",
+      "assessment": "Secrets are properly externalized to environment variables. Trust boundaries exist between client, proxy, and upstream providers. However, the MCP tool surface accepts LLM-generated content without injection testing.",
+      "support": "0 hardcoded secrets found. Auth system in src/sse/services/auth.ts. Rate limiting in infrastructure.",
+      "countercase": "Prompt injection through MCP tool inputs could potentially bypass security boundaries or leak API keys.",
+      "discriminator": "Add injection test cases for top-5 MCP tools with adversarial inputs.",
+      "confidence_basis": "Grep scan and code structure review."
+    }
+  ],
+  "next_action": "Address F-02 (HIGH: MCP injection testing) then F-01 (MEDIUM: file decomposition).",
+  "stop_condition": "Screen mode complete. Defer to Evaluate mode for deeper security/perf work.",
+  "restart_packet": {
+    "accepted_baseline": "d4999b02e1 (2026-09-15)",
+    "failed_hypotheses": [
+      "Assumed files under 500 lines (8 exceed)",
+      "Assumed load tests exist (none found)"
+    ],
+    "next_reproduction": "Re-run assessment after file decomposition and injection test additions",
+    "budget_and_permissions": "Screen mode budget exhausted. Evaluate mode available for targeted deep dives."
+  },
+  "lineage": {
+    "previous_dossier_id": null,
+    "change_class": "NEW_BASELINE",
+    "description": "First formal assessment of wt-omniroute-batch2."
+  },
+  "provenance_notice": "Generated by agent-lab assessment protocol v1.1. Measurements executed against actual repository. No external services called.",
+  "row_notes": [
+    {
+      "instance_id": "I-01",
+      "title": "Entrypoints identified",
+      "interpretation": "715 API routes + 132 executors clearly identified.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-02",
+      "title": "Capability claims",
+      "interpretation": "Each executor declares supported operations with test coverage.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-03",
+      "title": "Data object ownership",
+      "interpretation": "Layered architecture with clear ownership boundaries.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-04",
+      "title": "Dependency direction",
+      "interpretation": "Documented in AGENTS.md. tsconfig boundaries enforced.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-05",
+      "title": "Duplicate justification",
+      "interpretation": "8 files over 500 lines without consolidation justification.",
+      "next_action": "Prioritize chatCore.ts decomposition"
+    },
+    {
+      "instance_id": "I-06",
+      "title": "Core operation correct",
+      "interpretation": "2783 tests validate core routing and transformation.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-07",
+      "title": "Invalid input handling",
+      "interpretation": "Pydantic validation + provider-specific checks.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-08",
+      "title": "Concurrent state",
+      "interpretation": "No dedicated concurrency tests. Account rotation implies concurrent patterns.",
+      "next_action": "Add stress tests for account rotation under contention"
+    },
+    {
+      "instance_id": "I-09",
+      "title": "File decomposition",
+      "interpretation": "8 files over 500 lines. chatCore.ts at 6145 is 17x target.",
+      "next_action": "Decompose chatCore.ts first"
+    },
+    {
+      "instance_id": "I-10",
+      "title": "Test inventory",
+      "interpretation": "5947 test files covering all major subsystems.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-11",
+      "title": "Meaningful assertions",
+      "interpretation": "Tests use specific expect() with edge cases and error paths.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-12",
+      "title": "Zero-test prevention",
+      "interpretation": "vitest config + CI hooks prevent bypass.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-13",
+      "title": "Workload scenario",
+      "interpretation": "No perf benchmarks. Only unit-level budget assertion.",
+      "next_action": "Add throughput baseline for top 5 providers"
+    },
+    {
+      "instance_id": "I-14",
+      "title": "Concurrency measure",
+      "interpretation": "Excluded from Screen mode.",
+      "next_action": "Evaluate mode when load testing infra available"
+    },
+    {
+      "instance_id": "I-15",
+      "title": "Operations signals",
+      "interpretation": "Observability layer + request logger + error codes.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-16",
+      "title": "Structured logs",
+      "interpretation": "Structured logging patterns across services.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-17",
+      "title": "Sensitive payloads",
+      "interpretation": "Env-based secrets, 0 hardcoded keys.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-18",
+      "title": "Sensitive assets",
+      "interpretation": "Auth + rate limiting + env secrets.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-19",
+      "title": "Trust boundaries",
+      "interpretation": "Clear layer separation across the stack.",
+      "next_action": "None — PASS"
+    },
+    {
+      "instance_id": "I-20",
+      "title": "Injection risk",
+      "interpretation": "MCP tools accept LLM content without injection tests.",
+      "next_action": "Add adversarial input tests for MCP tools"
+    }
+  ]
+}

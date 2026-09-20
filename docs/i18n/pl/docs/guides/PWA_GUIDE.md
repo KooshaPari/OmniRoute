@@ -6,92 +6,92 @@ lastUpdated: 2026-06-28
 
 # Przewodnik po Progressive Web App (PWA)
 
-OmniRoute jest dostarczany jako w pełni instalowalna Progressive Web App. Gdy otworzysz dashboard w dowolnej przeglądarce mobilnej — Android (Chrome) lub iOS (Safari) — możesz wybrać „Dodaj do ekranu głównego” i uzyskać doświadczenie zbliżone do natywnej aplikacji, bez sklepu z aplikacjami.
+OmniRoute ships as a fully installable Progressive Web App. When you access the dashboard from any mobile browser — Android (Chrome) or iOS (Safari) — you can "Add to Home Screen" and get a native app-like experience with no app store required.
 
-## Czym jest PWA?
+## What Is a PWA?
 
-Progressive Web App zamienia webowy dashboard OmniRoute w coś, co wygląda i działa jak natywna aplikacja mobilna. Po zainstalowaniu:
+A Progressive Web App turns the OmniRoute web dashboard into something that looks and feels like a native mobile app. Once installed, it:
 
-- Uruchamia się z ekranu głównego z własną ikoną
-- Otwiera się na pełnym ekranie — bez paska adresu przeglądarki ani interfejsu kart
-- Działa offline dzięki dedykowanej stronie łączności
-- Buforuje zasoby statyczne w celu szybszego ładowania
-- Obsługuje orientację pionową i poziomą
+- Launches from your home screen with its own icon
+- Opens fullscreen — no browser address bar or tab UI
+- Works offline with a dedicated connectivity page
+- Caches static assets for faster loading
+- Supports both portrait and landscape orientations
 
-## Instalacja
+## Installation
 
 ### Android (Chrome)
 
-1. Otwórz dashboard OmniRoute w Chrome: `http://YOUR_IP:20128`
-2. Chrome automatycznie pokaże baner **"Add OmniRoute to Home screen"**, albo:
-   - Stuknij menu **⋮** (trzy kropki) → **"Add to Home screen"** lub **"Install app"**
-3. Potwierdź monity
-4. OmniRoute pojawi się na ekranie głównym jako samodzielna aplikacja
+1. Open the OmniRoute dashboard in Chrome: `http://YOUR_IP:20128`
+2. Chrome will show an **"Add OmniRoute to Home screen"** banner automatically, or:
+   - Tap the **⋮** menu (three dots) → **"Add to Home screen"** or **"Install app"**
+3. Confirm the prompt
+4. OmniRoute appears on your home screen as a standalone app
 
 ### iOS (Safari)
 
-1. Otwórz dashboard OmniRoute w Safari: `http://YOUR_IP:20128`
-2. Stuknij przycisk **Share** (kwadrat ze strzałką)
-3. Przewiń w dół i stuknij **"Add to Home Screen"**
-4. Nadaj nazwę (domyślnie „OmniRoute”) i stuknij **Add**
-5. OmniRoute pojawi się na ekranie głównym z ikoną aplikacji
+1. Open the OmniRoute dashboard in Safari: `http://YOUR_IP:20128`
+2. Tap the **Share** button (box with arrow)
+3. Scroll down and tap **"Add to Home Screen"**
+4. Name it (defaults to "OmniRoute") and tap **Add**
+5. OmniRoute appears on your home screen with the app icon
 
 ### Desktop (Chrome / Edge)
 
-1. Otwórz dashboard OmniRoute
-2. Kliknij **ikona instalacji** na pasku adresu (lub ⋮ → "Install OmniRoute...")
-3. Potwierdź monity
-4. OmniRoute otworzy się jako samodzielne okno — bez kart i paska adresu
+1. Open the OmniRoute dashboard
+2. Click the **install icon** in the address bar (or ⋮ → "Install OmniRoute...")
+3. Confirm the prompt
+4. OmniRoute opens as a standalone window — no tabs, no address bar
 
-## Funkcje
+## Features
 
-### Doświadczenie pełnoekranowe
+### Fullscreen Experience
 
-Manifest jest skonfigurowany z `display: "fullscreen"`, co oznacza, że zainstalowana aplikacja zajmuje cały ekran — bez chrome przeglądarki i bez nakładania się paska statusu. Dzięki temu dashboard sprawia wrażenie w pełni natywnego.
+The manifest is configured with `display: "fullscreen"`, which means the installed app uses the entire screen — no browser chrome, no status bar overlap. This makes the dashboard feel truly native.
 
-### Wsparcie offline
+### Offline Support
 
-OmniRoute zawiera service worker (`sw.js`), który zapewnia inteligentne buforowanie:
+OmniRoute includes a service worker (`sw.js`) that provides intelligent caching:
 
-| Typ zasobu                                             | Strategia                          | Zachowanie                                                                   |
-| ------------------------------------------------------ | ---------------------------------- | ---------------------------------------------------------------------------- |
-| **App Shell**                                          | Cache-first                        | `/`, `/offline`, manifest i ikony są wstępnie buforowane przy instalacji     |
-| **Zasoby statyczne** (CSS, JS, obrazy, fonty)          | Network-first with cache fallback  | Pobiera świeże dane z sieci; w razie offline wraca do cache                  |
-| **Bundle'y Next.js** (`/_next/`)                       | Network-first with cache update    | Pobiera z sieci i aktualizuje cache; offline serwuje wersję z cache          |
-| **Żądania nawigacji**                                  | Network-only with offline fallback | Zawsze pobiera z sieci; przy braku sieci pokazuje stronę `/offline`          |
-| **Trasy API** (`/api/`, `/a2a`, `/dashboard/endpoint`) | Bypass (never cached)              | Zawsze idzie bezpośrednio na serwer — nigdy nie jest przechwytywane przez SW |
+| Asset Type                                                 | Strategy                          | Behavior                                                                                   |
+| ---------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------ |
+| **App Shell**                                              | Cache-first                       | `/`, `/offline`, manifest, and icons are pre-cached on install                             |
+| **Static assets** (CSS, JS, images, fonts)                 | Network-first with cache fallback | Fetches fresh from the network; falls back to cache if offline                             |
+| **Next.js bundles** (`/_next/`)                            | Network-first with cache update   | Fetches from network and updates cache; serves cached version if offline                   |
+| **Navigation requests**                                    | Bypass (never intercepted)        | Browser owns HTTP/3→HTTP/2 fallback; a dead QUIC socket must not become `Response.error()` |
+| **API / dashboard routes** (`/api/`, `/a2a`, `/dashboard`) | Bypass (never cached)             | Always goes directly to the server — never intercepted by the service worker               |
 
-### Strona offline
+### Offline Page
 
-Gdy sieć jest niedostępna i użytkownik przechodzi na nową stronę, service worker serwuje dedykowaną stronę `/offline`, która:
+When the network is unavailable and a user navigates to a new page, the service worker serves a dedicated `/offline` page that:
 
-- Wyświetla czytelny komunikat **"Connectivity Issue"**
-- Pokazuje żywy **wskaźnik statusu online/offline** aktualizowany w czasie rzeczywistym
-- Udostępnia przycisk **"Retry Connection"** do przeładowania po powrocie łączności
-- Linkuje do **Status Page** w celach diagnostycznych
+- Displays a clear **"Connectivity Issue"** message
+- Shows a live **online/offline status indicator** that updates in real time
+- Provides a **"Retry Connection"** button to reload when connectivity returns
+- Links to the **Status Page** for diagnostics
 
-### Ikony aplikacji
+### App Icons
 
-OmniRoute dostarcza ikony zoptymalizowane pod każdą platformę:
+OmniRoute provides icons optimized for each platform:
 
-| Plik                   | Rozmiar          | Używane przez                           |
-| ---------------------- | ---------------- | --------------------------------------- |
-| `icon-512.png`         | 512×512          | Monit instalacji Android, splash screen |
-| `apple-touch-icon.png` | 180×180          | Ikona ekranu głównego iOS               |
-| `icon-192.svg`         | 192×192 (wektor) | Adaptive icon Android                   |
-| `apple-touch-icon.svg` | 180×180 (wektor) | Fallback Apple                          |
-| `favicon.svg`          | Wektor           | Karty przeglądarki                      |
-| `favicon.ico`          | Wiele rozmiarów  | Starsze przeglądarki                    |
+| File                   | Size             | Used By                               |
+| ---------------------- | ---------------- | ------------------------------------- |
+| `icon-512.png`         | 512×512          | Android install prompt, splash screen |
+| `apple-touch-icon.png` | 180×180          | iOS home screen icon                  |
+| `icon-192.svg`         | 192×192 (vector) | Android adaptive icon                 |
+| `apple-touch-icon.svg` | 180×180 (vector) | Apple fallback                        |
+| `favicon.svg`          | Vector           | Browser tabs                          |
+| `favicon.ico`          | Multi-size       | Legacy browsers                       |
 
-### Automatyczna rejestracja
+### Automatic Registration
 
-Service worker jest rejestrowany automatycznie przez komponent `<PwaRegister />` w root layout. Nie jest potrzebna żadna akcja użytkownika — aplikacja staje się instalowalna, gdy tylko przeglądarka wykryje poprawny manifest i service worker.
+The service worker is registered automatically via the `<PwaRegister />` component in the root layout. No user action is needed — the app becomes installable as soon as the browser detects the valid manifest and service worker.
 
-## Architektura techniczna
+## Technical Architecture
 
 ### Web App Manifest (`manifest.webmanifest`)
 
-Generowany przez Next.js przez `src/app/manifest.ts`:
+Generated by Next.js via `src/app/manifest.ts`:
 
 ```json
 {
@@ -113,80 +113,80 @@ Generowany przez Next.js przez `src/app/manifest.ts`:
 
 ### Service Worker (`public/sw.js`)
 
-Zwykły service worker (bez zależności frameworkowych) z:
+A vanilla service worker (no framework dependencies) with:
 
-- **Faza install**: wstępnie buforuje app shell (root, strona offline, manifest, ikony)
-- **Faza activate**: czyści stare wersje cache i przejmuje wszystkie klienty
-- **Faza fetch**: inteligentne routowanie według typu żądania (nawigacja, zasób statyczny, API)
-- **Wersjonowanie cache**: `omniroute-pwa-v2` — zwiększ tę wartość, aby wymusić świeży cache przy aktualizacji
+- **Install phase**: Pre-caches the app shell (root, offline page, manifest, icons)
+- **Activate phase**: Cleans up old cache versions and claims all clients
+- **Fetch phase**: Intelligent routing based on request type (navigation, static asset, API)
+- **Cache versioning**: `omniroute-pwa-v3` — bump this to force a fresh cache on update
 
-### Metadane layoutu (`src/app/layout.tsx`)
+### Layout Metadata (`src/app/layout.tsx`)
 
-Root layout dostarcza wszystkie meta tagi wymagane do zgodności z PWA:
+The root layout provides all the meta tags required for PWA compliance:
 
-- Link `manifest` do `/manifest.webmanifest`
-- `apple-web-app-capable: true` dla trybu standalone na iOS
+- `manifest` link to `/manifest.webmanifest`
+- `apple-web-app-capable: true` for iOS standalone mode
 - `apple-web-app-status-bar-style: black-translucent`
-- `mobile-web-app-capable: yes` dla Chrome na Androidzie
+- `mobile-web-app-capable: yes` for Android Chrome
 - `theme-color: #0b0f1a`
-- `viewport-fit: cover` do renderowania od krawędzi do krawędzi
+- `viewport-fit: cover` for edge-to-edge rendering
 
-### Komponent: `PwaRegister`
+### Component: `PwaRegister`
 
-Znajduje się w `src/shared/components/PwaRegister.tsx`. Ten komponent kliencki:
+Located at `src/shared/components/PwaRegister.tsx`, this client component:
 
-1. Uruchamia się przy montowaniu (tylko po stronie klienta)
-2. Sprawdza obsługę `serviceWorker` w przeglądarce
-3. Rejestruje `/sw.js` w tle (błędy są połykane, aby nie blokować aplikacji)
-4. Nic nie renderuje (`return null`) — to komponent wyłącznie ze skutkami ubocznymi
+1. Runs on mount (client-side only)
+2. Checks for `serviceWorker` support in the browser
+3. Registers `/sw.js` silently (errors are swallowed to avoid blocking the app)
+4. Renders nothing (`return null`) — it's a side-effect-only component
 
-## Użycie z Termux (Android)
+## Use With Termux (Android)
 
-Przy uruchamianiu OmniRoute na Androidzie przez Termux PWA działa bezproblemowo:
+When running OmniRoute on Android via Termux, the PWA works seamlessly:
 
-1. Uruchom OmniRoute w Termux: `npx omniroute`
-2. Otwórz Chrome na tym samym telefonie: `http://localhost:20128`
-3. Zainstaluj PWA przez "Add to Home Screen"
-4. PWA łączy się z lokalnym serwerem Termux — wszystko działa na urządzeniu
+1. Start OmniRoute in Termux: `npx omniroute`
+2. Open Chrome on the same phone: `http://localhost:20128`
+3. Install the PWA via "Add to Home Screen"
+4. The PWA connects to the local Termux server — everything runs on-device
 
-Ta kombinacja oznacza, że telefon z Androidem jest jednocześnie **serwerem** (Termux) i **klientem** (PWA) — kompletna, samodzielna brama AI.
+This combination means your Android phone is both the **server** (Termux) and the **client** (PWA) — a complete self-contained AI gateway.
 
-## Użycie z innych urządzeń
+## Use From Other Devices
 
-Zainstaluj PWA na dowolnym urządzeniu, które ma dostęp przeglądarkowy do serwera OmniRoute:
+Install the PWA on any device that has browser access to your OmniRoute server:
 
-- **Inny telefon/tablet**: przejdź do `http://PHONE_IP:20128` i zainstaluj PWA
-- **Laptop**: otwórz Chrome/Edge i zainstaluj jako desktopowe PWA
-- **Smart TV z przeglądarką**: otwórz dashboard na pełnym ekranie
+- **Another phone/tablet**: Navigate to `http://PHONE_IP:20128` and install the PWA
+- **Laptop**: Open Chrome/Edge and install it as a desktop PWA
+- **Smart TV with browser**: Access the dashboard fullscreen
 
-## Dostosowywanie
+## Customization
 
-### Nazwa instancji
+### Instance Name
 
-Tytuł PWA respektuje ustawienie **Instance Name** z `Dashboard → Settings`. Jeśli zmienisz nazwę instancji na „My AI Gateway”, zainstalowane PWA pokaże tę nazwę.
+The PWA title respects the **Instance Name** setting from `Dashboard → Settings`. If you rename your instance to "My AI Gateway", the installed PWA will show that name.
 
-### Własny favicon
+### Custom Favicon
 
-Jeśli wgrasz własny favicon przez `Dashboard → Settings`, ikona PWA na desktopie odzwierciedli tę ikonę. Ikony ekranu głównego na mobile używają wbudowanych plików `icon-512.png` i `apple-touch-icon.png`.
+If you upload a custom favicon via `Dashboard → Settings`, the PWA icon on desktop will reflect the custom icon. Mobile home screen icons use the pre-built `icon-512.png` and `apple-touch-icon.png` files.
 
-## Ograniczenia
+## Limitations
 
-- **Brak push notifications** — service worker nie implementuje Push API. Powiadomienia obsługuje aplikacja Electron.
-- **Brak background sync** — akcje offline nie są kolejkowane do ponownego odtworzenia. PWA jest przede wszystkim przeglądarką dashboardu.
-- **Ograniczenia iOS** — Safari na iOS nie obsługuje wszystkich funkcji PWA (np. monity instalacji są ręczne, a background service workers są ograniczone).
-- **Rozmiar cache** — service worker buforuje wyłącznie zasoby statyczne. Duże payloady odpowiedzi z tras `/api/` nigdy nie trafiają do cache.
-- **Własne ikony na mobile** — zmiana faviconu w ustawieniach nie aktualizuje ikony ekranu głównego na mobile (wymaga to regeneracji ikon PWA).
+- **No push notifications** — The service worker does not implement the Push API. Notifications are handled by the Tauri desktop app instead.
+- **No background sync** — Offline actions are not queued for replay. The PWA is primarily a dashboard viewer.
+- **iOS restrictions** — Safari on iOS does not support all PWA features (e.g., install prompts are manual, and background service workers are limited).
+- **Cache size** — The service worker caches static assets only. Large response payloads from `/api/` routes are never cached.
+- **Custom icons on mobile** — Changing the favicon in settings does not update the home screen icon on mobile (this requires regenerating the PWA icons).
 
-## Referencja plików
+## Files Reference
 
-| Plik                                    | Przeznaczenie                                                  |
-| --------------------------------------- | -------------------------------------------------------------- |
-| `src/app/manifest.ts`                   | Trasa manifestu Next.js (generuje `manifest.webmanifest`)      |
-| `public/sw.js`                          | Service worker z logiką cache                                  |
-| `src/shared/components/PwaRegister.tsx` | Komponent kliencki rejestrujący service worker                 |
-| `src/app/offline/page.tsx`              | Strona fallback offline z żywym wskaźnikiem statusu            |
-| `src/app/layout.tsx`                    | Root layout z metadanymi PWA (apple-web-app, theme-color itd.) |
-| `public/icon-512.png`                   | Ikona PNG 512×512 (Android, splash screen)                     |
-| `public/apple-touch-icon.png`           | Ikona PNG 180×180 (ekran główny iOS)                           |
-| `public/icon-192.svg`                   | Ikona SVG 192×192 (Android adaptive)                           |
-| `public/apple-touch-icon.svg`           | Ikona SVG 180×180 (fallback Apple)                             |
+| File                                    | Purpose                                                          |
+| --------------------------------------- | ---------------------------------------------------------------- |
+| `src/app/manifest.ts`                   | Next.js manifest route (generates `manifest.webmanifest`)        |
+| `public/sw.js`                          | Service worker with caching logic                                |
+| `src/shared/components/PwaRegister.tsx` | Client component that registers the service worker               |
+| `src/app/offline/page.tsx`              | Offline fallback page with live status indicator                 |
+| `src/app/layout.tsx`                    | Root layout with PWA metadata (apple-web-app, theme-color, etc.) |
+| `public/icon-512.png`                   | 512×512 PNG icon (Android, splash screen)                        |
+| `public/apple-touch-icon.png`           | 180×180 PNG icon (iOS home screen)                               |
+| `public/icon-192.svg`                   | 192×192 SVG icon (Android adaptive)                              |
+| `public/apple-touch-icon.svg`           | 180×180 SVG icon (Apple fallback)                                |

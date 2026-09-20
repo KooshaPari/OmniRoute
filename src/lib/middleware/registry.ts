@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Pre-request Hook Registry
  *
@@ -139,9 +140,7 @@ function compileHookCode(code: string, hookName: string): HookMiddleware {
 
       const timeoutGuard = new Promise<never>((_resolve, reject) => {
         timer = setTimeout(() => {
-          reject(
-            new Error(`Hook "${hookName}" timed out after ${HOOK_EXECUTION_TIMEOUT_MS}ms`)
-          );
+          reject(new Error(`Hook "${hookName}" timed out after ${HOOK_EXECUTION_TIMEOUT_MS}ms`));
         }, HOOK_EXECUTION_TIMEOUT_MS);
       });
 

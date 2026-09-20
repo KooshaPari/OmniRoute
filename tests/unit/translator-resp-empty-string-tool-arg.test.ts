@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Regression tests for #4951: legitimate empty-string tool argument values must
  * not be stripped during streaming response translation.

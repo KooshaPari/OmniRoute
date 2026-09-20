@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * @file earlyStreamKeepalive.ts
  * @description Early SSE keepalive wrapper so short idle-read clients stay connected

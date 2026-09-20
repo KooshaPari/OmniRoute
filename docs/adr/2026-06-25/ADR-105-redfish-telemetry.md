@@ -19,13 +19,13 @@ prediction, and thermal-throttling alerts without OS-level agent installation.
 
 L5 nodes carry bare-metal servers whose BMCs expose rich hardware telemetry:
 
-| Signal | Source | Use case |
-|---|---|---|
-| CPU / DIMM / inlet temperature | Redfish `Chassis/Thermal` | Thermal throttling detection |
-| Fan RPM / status | Redfish `Chassis/Thermal` | Fan-failure prediction |
-| Power consumption (instant + avg) | Redfish `Chassis/Power` | Power-capping enforcement |
-| Voltage rail telemetry | Redfish `Chassis/Power` | PSU health monitoring |
-| Drive slot temperature | Redfish `Drives/{id}` | SMART temperature correlation |
+| Signal                            | Source                    | Use case                      |
+| --------------------------------- | ------------------------- | ----------------------------- |
+| CPU / DIMM / inlet temperature    | Redfish `Chassis/Thermal` | Thermal throttling detection  |
+| Fan RPM / status                  | Redfish `Chassis/Thermal` | Fan-failure prediction        |
+| Power consumption (instant + avg) | Redfish `Chassis/Power`   | Power-capping enforcement     |
+| Voltage rail telemetry            | Redfish `Chassis/Power`   | PSU health monitoring         |
+| Drive slot temperature            | Redfish `Drives/{id}`     | SMART temperature correlation |
 
 Currently this data is only accessible via the BMC web UI or `ipmitool` on the
 host OS — neither path feeds the platform OTEL pipeline. As L5's rack density
@@ -94,14 +94,14 @@ OTEL events.
 
 ## Decision Matrix
 
-| Criterion | Option 1 (IPMI) | Option 2 (Redfish) | Option 3 (SNMP) |
-|---|---|---|---|
-| Immutable infra compatible | ❌ (OS agent) | ✅ (out-of-band) | ⚠️ (trap config on BMC) |
-| Time-series baseline | ✅ | ✅ | ❌ (event-only) |
-| Standardised schema | ❌ (vendor SDR) | ✅ (DMTF Redfish) | ❌ (vendor MIB) |
-| Multi-node from one collector | ❌ (per-node) | ✅ | ✅ |
-| Schema stability | ❌ | ✅ (DMTF standard) | ❌ |
-| Operational overhead | Low | Medium (cred mgmt) | Medium (MIB drift) |
+| Criterion                     | Option 1 (IPMI) | Option 2 (Redfish) | Option 3 (SNMP)      |
+| ----------------------------- | --------------- | ------------------ | -------------------- |
+| Immutable infra compatible    | (OS agent)      | (out-of-band)      | (trap config on BMC) |
+| Time-series baseline          |                 |                    | (event-only)         |
+| Standardised schema           | (vendor SDR)    | (DMTF Redfish)     | (vendor MIB)         |
+| Multi-node from one collector | (per-node)      |                    |                      |
+| Schema stability              |                 | (DMTF standard)    |                      |
+| Operational overhead          | Low             | Medium (cred mgmt) | Medium (MIB drift)   |
 
 ## Consequences
 
@@ -145,13 +145,13 @@ OTEL events.
 
 ## Implementation Plan
 
-| Step | Description | Owner | Status |
-|---|---|---|---|
-| **1 — Crate scaffold** | `cargo init` in `pheno/telemetry/poller-redfish/` with dependencies: `reqwest`, `serde`, `opentelemetry`, `opentelemetry-otlp`, `tokio`, `tracing`. Define `RedfishSensorReading` / `RedfishChassisThermal` / `RedfishChassisPower` types. | pheno-ops | ☐ |
-| **2 — Poller loop** | `tokio::interval(60s)` loop: `GET /redfish/v1/Chassis/{id}/Thermal`, `GET /redfish/v1/Chassis/{id}/Power`, parse JSON, collect readings. Support multiple BMC targets from a config file. | pheno-ops | ☐ |
-| **3 — OTEL metric bridge** | Map Redfish readings to OTel instruments: `hw.temperature` (gauge, °C), `hw.fan_rpm` (gauge, RPM), `hw.power_watts` (gauge, W). Export via `opentelemetry-otlp` (grpc) to the configured collector endpoint. | pheno-ops | ☐ |
-| **4 — CI probe** | `docker-compose` test with a mock Redfish server (`/redfish/v1/Chassis/1/Thermal` returns canned JSON). Assert metrics emitted to an OTel test collector. Gate on parse-error count == 0. | pheno-ops | ☐ |
-| **5 — Operations docs** | `docs/operations/redfish-poller.md`: deployment topology, Vault credential setup, dashboards (fan-failure prediction, power-capping cap threshold, thermal throttling last-24h). | pheno-ops | ☐ |
+| Step                       | Description                                                                                                                                                                                                                                | Owner     | Status |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- | ------ |
+| **1 — Crate scaffold**     | `cargo init` in `pheno/telemetry/poller-redfish/` with dependencies: `reqwest`, `serde`, `opentelemetry`, `opentelemetry-otlp`, `tokio`, `tracing`. Define `RedfishSensorReading` / `RedfishChassisThermal` / `RedfishChassisPower` types. | pheno-ops |        |
+| **2 — Poller loop**        | `tokio::interval(60s)` loop: `GET /redfish/v1/Chassis/{id}/Thermal`, `GET /redfish/v1/Chassis/{id}/Power`, parse JSON, collect readings. Support multiple BMC targets from a config file.                                                  | pheno-ops |        |
+| **3 — OTEL metric bridge** | Map Redfish readings to OTel instruments: `hw.temperature` (gauge, °C), `hw.fan_rpm` (gauge, RPM), `hw.power_watts` (gauge, W). Export via `opentelemetry-otlp` (grpc) to the configured collector endpoint.                               | pheno-ops |        |
+| **4 — CI probe**           | `docker-compose` test with a mock Redfish server (`/redfish/v1/Chassis/1/Thermal` returns canned JSON). Assert metrics emitted to an OTel test collector. Gate on parse-error count == 0.                                                  | pheno-ops |        |
+| **5 — Operations docs**    | `docs/operations/redfish-poller.md`: deployment topology, Vault credential setup, dashboards (fan-failure prediction, power-capping cap threshold, thermal throttling last-24h).                                                           | pheno-ops |        |
 
 ## Cross-References
 

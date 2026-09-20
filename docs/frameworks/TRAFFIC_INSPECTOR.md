@@ -20,19 +20,19 @@ Traffic Inspector is OmniRoute's built-in HTTPS traffic debugger — a Charles P
 
 | Feature                                                             | mitmweb | Charles | Fiddler | **OmniRoute Traffic Inspector** |
 | ------------------------------------------------------------------- | :-----: | :-----: | :-----: | :-----------------------------: |
-| Web-based                                                           |    ✓    |    ✗    |    ✗    |                ✓                |
-| Open-source                                                         |    ✓    |    ✗    | partial |                ✓                |
-| **Agent-aware** (knows if request is from Antigravity/Copilot/etc.) |    ✗    |    ✗    |    ✗    |                ✓                |
-| **LLM-aware** (parses OpenAI/Anthropic/Gemini shape, tokens, model) |    ✗    |    ✗    |    ✗    |                ✓                |
-| **Model mapping visible** (gemini-3-flash → claude-sonnet-4.7)      |    ✗    |    ✗    |    ✗    |                ✓                |
-| **Proxy/upstream latency split**                                    | partial |    ✗    |    ✗    |                ✓                |
-| **Integrated with OmniRoute** routing, fallback, cost               |    ✗    |    ✗    |    ✗    |                ✓                |
-| **System-wide proxy debug** (any app on the machine)                |    ✓    |    ✓    |    ✓    |                ✓                |
-| **Custom host capture** (per-host DNS redirect)                     |    ✓    |    ✓    |    ✓    |                ✓                |
-| **HTTP_PROXY env mode**                                             |    ✓    |    ✓    |    ✓    |                ✓                |
-| **Conversation view** (multi-turn bubbles, tool_use/tool_result)    |    ✗    |    ✗    |    ✗    |                ✓                |
-| **SSE stream merger** (reconstruct from delta events)               |    ✗    |    ✗    |    ✗    |                ✓                |
-| **Session recording** (named, exportable .har/.jsonl)               |    ✗    |    ✓    |    ✓    |                ✓                |
+| Web-based                                                           |         |         |         |                                 |
+| Open-source                                                         |         |         | partial |                                 |
+| **Agent-aware** (knows if request is from Antigravity/Copilot/etc.) |         |         |         |                                 |
+| **LLM-aware** (parses OpenAI/Anthropic/Gemini shape, tokens, model) |         |         |         |                                 |
+| **Model mapping visible** (gemini-3-flash → claude-sonnet-4.7)      |         |         |         |                                 |
+| **Proxy/upstream latency split**                                    | partial |         |         |                                 |
+| **Integrated with OmniRoute** routing, fallback, cost               |         |         |         |                                 |
+| **System-wide proxy debug** (any app on the machine)                |         |         |         |                                 |
+| **Custom host capture** (per-host DNS redirect)                     |         |         |         |                                 |
+| **HTTP_PROXY env mode**                                             |         |         |         |                                 |
+| **Conversation view** (multi-turn bubbles, tool_use/tool_result)    |         |         |         |                                 |
+| **SSE stream merger** (reconstruct from delta events)               |         |         |         |                                 |
+| **Session recording** (named, exportable .har/.jsonl)               |         |         |         |                                 |
 
 ### Architecture in one paragraph
 
@@ -100,7 +100,7 @@ export HTTPS_PROXY=http://127.0.0.1:8080
 - Auto-disable timer (default 30 min, configurable via `INSPECTOR_SYSTEM_PROXY_GUARD_MINUTES`)
 - Previous system proxy state is saved in DB and restored on revert
 - Dashboard shows "Reverting system proxy" prompt if user navigates away while active
-- UI shows `⚠ Advanced` badge + explicit confirmation checkbox
+- UI shows ` Advanced` badge + explicit confirmation checkbox
 
 ### Mode 5 — TPROXY transparent decrypt (Linux, root, opt-in)
 
@@ -115,12 +115,12 @@ This is a substantial subsystem with its own dedicated operator guide — see `d
 
 ### Capture mode comparison
 
-| Mode              | Setup                         |          Sudo?          | Reach                       | Notes                                                                                                       |
-| ----------------- | ----------------------------- | :---------------------: | --------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| 1. AgentBridge    | Automatic                     |    Once (cert+hosts)    | 9 IDE agents                | Default on                                                                                                  |
-| 2. Custom Hosts   | Per-host input                |    Yes (hosts file)     | Any app using that host     | Persisted in DB                                                                                             |
-| 3. HTTP_PROXY     | `export HTTPS_PROXY=...`      |           No            | Apps respecting env         | Port 8080, no TLS decrypt by default                                                                        |
-| 4. System-wide    | Toggle + confirm              |           Yes           | All apps on machine         | Auto-disable in 30 min                                                                                      |
+| Mode              | Setup                         |          Sudo?          | Reach                       | Notes                                                                                                                  |
+| ----------------- | ----------------------------- | :---------------------: | --------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 1. AgentBridge    | Automatic                     |    Once (cert+hosts)    | 9 IDE agents                | Default on                                                                                                             |
+| 2. Custom Hosts   | Per-host input                |    Yes (hosts file)     | Any app using that host     | Persisted in DB                                                                                                        |
+| 3. HTTP_PROXY     | `export HTTPS_PROXY=...`      |           No            | Apps respecting env         | Port 8080, no TLS decrypt by default                                                                                   |
+| 4. System-wide    | Toggle + confirm              |           Yes           | All apps on machine         | Auto-disable in 30 min                                                                                                 |
 | 5. TPROXY decrypt | Toggle (Linux + native addon) | Yes (root + CA install) | Any host on the target port | Decrypts arbitrary hosts; off by default — see `docs/security/MITM-TPROXY-DECRYPT.md` (git; not compiled into `/docs`) |
 
 ---
@@ -132,19 +132,19 @@ This is a substantial subsystem with its own dedicated operator guide — see `d
 ```
 ┌─ Traffic Inspector ─────────────────────────────────────────────────────┐
 │ ┌─ Capture sources toolbar ─────────────────────────────────────────┐   │
-│ │ [✓ AgentBridge]  [✓ Custom hosts (3)]  [○ HTTP_PROXY]  [○ System]│   │
+│ │ [ AgentBridge]  [ Custom hosts (3)]  [○ HTTP_PROXY]  [○ System]│   │
 │ └─────────────────────────────────────────────────────────────────────┘  │
 │ ┌─ Filter/control bar ──────────────────────────────────────────────┐   │
 │ │ Profile: (●) LLM only  (○) Custom  (○) All                        │   │
-│ │ [⎉ Pause] [🗑 Clear] [⬇ .har] [● REC session]    ● live 482/1k  │   │
+│ │ [⎉ Pause] [ Clear] [⬇ .har] [● REC session]    ● live 482/1k  │   │
 │ └─────────────────────────────────────────────────────────────────────┘  │
 ├══◀▶══════════════════════════════╬══════════════════════════════════════╤╡
 │ REQUEST LIST (resizable)         ║ DETAIL PANE                         ▲ │
 │ ────────────────────────────── │ ║ [Conversation][Headers][Request]    │ │
 │ ▎ 14:32 POST 200 12k AG openai ║ [Response][Timing][LLM][Stats]      │ │
 │ ▎ 14:31 POST 200 8k  CP openai ║                                     ▼ │
-│ ▎ 14:31 POST 503 ⚠   KR ...   ║                                       │
-│ ▎ 14:30 GET  200 3k  🌐 custom ║                                       │
+│ ▎ 14:31 POST 503 KR ...   ║                                       │
+│ ▎ 14:30 GET  200 3k  custom ║                                       │
 └══════════════════════════════════╝══════════════════════════════════════╝
 ```
 
@@ -153,7 +153,7 @@ This is a substantial subsystem with its own dedicated operator guide — see `d
 - **Virtualized** (`useVirtualList` + `ResizeObserver`): handles 1000 items without freezing
 - **Auto-scroll** with toggle to pause while inspecting
 - **Color-coded status**: green (2xx), yellow (3xx), red (4xx/5xx), gray (in-flight)
-- **Agent emoji**: 🔵 Antigravity, 🟢 Copilot, 🟠 Kiro, 🟣 Codex, 🔷 Cursor, 🟤 Zed, 🟡 Claude Code, ⚫ Open Code, 🌐 custom host
+- **Agent emoji**: Antigravity, Copilot, Kiro, Codex, Cursor, Zed, Claude Code, Open Code, custom host
 - **Context color bar**: 1px left border colored by `contextKey` (SHA-256 of system prompt) — visually groups related conversations
 - **Lazy body**: only the selected request's body is materialized in the detail tabs (avoids rendering 1000 × 1MB bodies)
 
@@ -174,7 +174,7 @@ This is a substantial subsystem with its own dedicated operator guide — see `d
 | Control          | Action                                                                |
 | ---------------- | --------------------------------------------------------------------- |
 | ⎉ Pause          | Stops rendering new requests; "X new" badge accumulates               |
-| 🗑 Clear          | Clears the UI list (server buffer is not affected)                    |
+| Clear            | Clears the UI list (server buffer is not affected)                    |
 | ⬇ Export .har    | Downloads current filtered list as HAR file                           |
 | ● Record session | Starts a named recording session                                      |
 | Profile selector | LLM only / Custom hosts / All                                         |
@@ -318,7 +318,7 @@ support is a follow-up).
 
 1. Click **"● Record session"** in the toolbar → enter a name (optional)
 2. Live tail continues normally; a red pulsing indicator shows `◉ REC · <name> · 00:42 · 23 reqs`
-3. Click **"⏹ Stop"** → the session snapshot is saved to `inspector_sessions` + `inspector_session_requests`
+3. Click **" Stop"** → the session snapshot is saved to `inspector_sessions` + `inspector_session_requests`
 
 ### 5.2 Viewing a recorded session
 

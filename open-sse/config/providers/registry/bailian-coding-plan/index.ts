@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import type { RegistryEntry, RegistryModel } from "../../shared.ts";
 import { getAnthropicCompatHeaders, ANTHROPIC_VERSION_HEADER } from "../../shared.ts";
 

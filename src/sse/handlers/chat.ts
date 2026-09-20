@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
 import * as chatAdmission from "./chatAdmission.ts";

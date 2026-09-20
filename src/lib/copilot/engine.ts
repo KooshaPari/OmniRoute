@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * OmniRoute Copilot — Chat Engine
  *

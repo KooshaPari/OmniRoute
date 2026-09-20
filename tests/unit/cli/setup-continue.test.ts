@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -30,7 +31,12 @@ test("mergeContinueConfig replaces prior OmniRoute models, keeps others", () => 
   const existing = {
     name: "My Config",
     models: [
-      { name: "Local Ollama", provider: "ollama", model: "llama3", apiBase: "http://localhost:11434" },
+      {
+        name: "Local Ollama",
+        provider: "ollama",
+        model: "llama3",
+        apiBase: "http://localhost:11434",
+      },
       { name: "old omni", provider: "openai", model: "x", apiBase: "http://vps:20128/v1" },
     ],
   };
@@ -44,12 +50,22 @@ test("mergeContinueConfig replaces prior OmniRoute models, keeps others", () => 
 });
 
 test("mergeContinueConfig sets defaults on an empty config", () => {
-  const merged = mergeContinueConfig({}, buildContinueModels(["glm/glm-5.2"], "http://x/v1"), "http://x/v1");
+  const merged = mergeContinueConfig(
+    {},
+    buildContinueModels(["glm/glm-5.2"], "http://x/v1"),
+    "http://x/v1"
+  );
   assert.equal(merged.schema, "v1");
   assert.ok(merged.name && merged.version);
 });
 
 test("resolveContinueTarget ensures /v1 on apiBase", () => {
-  assert.equal(resolveContinueTarget({ remote: "http://vps:20128" }).apiBase, "http://vps:20128/v1");
-  assert.equal(resolveContinueTarget({ remote: "http://vps:20128/v1/" }).apiBase, "http://vps:20128/v1");
+  assert.equal(
+    resolveContinueTarget({ remote: "http://vps:20128" }).apiBase,
+    "http://vps:20128/v1"
+  );
+  assert.equal(
+    resolveContinueTarget({ remote: "http://vps:20128/v1/" }).apiBase,
+    "http://vps:20128/v1"
+  );
 });

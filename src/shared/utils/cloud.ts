@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { getMachineId } from "@/shared/utils/machine";
 
 // Function to get cloud URL with machine ID

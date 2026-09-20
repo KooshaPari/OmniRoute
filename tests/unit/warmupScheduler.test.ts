@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tests for the proactive warmup scheduler orchestrator (src/lib/warmupScheduler.ts).
  *

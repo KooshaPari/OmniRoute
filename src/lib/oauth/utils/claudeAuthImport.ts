@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import crypto from "node:crypto";
 import {
   getProviderConnections,

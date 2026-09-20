@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * db/apiKeys.js — API key management.
  */

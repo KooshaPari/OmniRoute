@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 // tests/unit/ui/use-stream-metrics.test.tsx
 // Runs via Vitest (vitest.config.ts — includes tests/unit/**/*.test.tsx)
@@ -5,9 +6,7 @@
 import React, { act, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  useStreamMetrics,
-} from "../../../src/app/(dashboard)/dashboard/playground/hooks/useStreamMetrics";
+import { useStreamMetrics } from "../../../src/app/(dashboard)/dashboard/playground/hooks/useStreamMetrics";
 import type { UseStreamMetrics } from "../../../src/app/(dashboard)/dashboard/playground/hooks/useStreamMetrics";
 
 // ─── Minimal hook test harness ────────────────────────────────────────────────

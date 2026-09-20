@@ -105,7 +105,7 @@ const whitespaceEngine: CompressionEngine = {
   id: "whitespace",
   name: "Whitespace Stripper",
   description: "Removes extra whitespace and blank lines",
-  icon: "📝",
+  icon: "",
   targets: ["messages", "tool_results"],
   stackable: true,
   stackPriority: 100, // Run AFTER caveman/rtk

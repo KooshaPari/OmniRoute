@@ -54,11 +54,7 @@ export function classifyPaths(files) {
     }
 
     // i18n tooling / non-message i18n source → also code (scripts, config, loaders).
-    if (
-      f.startsWith("scripts/i18n/") ||
-      f === "config/i18n.json" ||
-      f.startsWith("src/i18n/")
-    ) {
+    if (f.startsWith("scripts/i18n/") || f === "config/i18n.json" || f.startsWith("src/i18n/")) {
       i18n = true;
       code = true;
       continue;
@@ -73,7 +69,6 @@ export function classifyPaths(files) {
       f.startsWith("src/") ||
       f.startsWith("open-sse/") ||
       f.startsWith("bin/") ||
-      f.startsWith("electron/") ||
       f.startsWith("tests/") ||
       f.startsWith("scripts/") ||
       f.startsWith("db/") ||
@@ -129,8 +124,7 @@ function main() {
 }
 
 const isMain =
-  process.argv[1] &&
-  path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
+  process.argv[1] && path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1]);
 
 if (isMain) {
   main();

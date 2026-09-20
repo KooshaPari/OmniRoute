@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * OpenAI to Kiro Request Translator
  * Converts OpenAI Chat Completions format to Kiro/AWS CodeWhisperer format

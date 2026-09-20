@@ -1587,7 +1587,11 @@
     "settingsAdvancedDescription": "Advanced payload rules, request limits, and proxy API settings",
     "mitmProxyDescription": "Configure MITM proxy settings for traffic inspection and debugging",
     "oneProxyDescription": "Configure 1Proxy settings for advanced proxy chaining",
-    "omniSkillsDescription": "Instal dan kelola skill sandbox untuk eksekusi prompt dan alat otomatis"
+    "omniSkillsDescription": "Instal dan kelola skill sandbox untuk eksekusi prompt dan alat otomatis",
+    "windowControls": "Window controls",
+    "minimizeWindow": "Minimize window",
+    "maximizeWindow": "Toggle maximize window",
+    "closeWindow": "Close window"
   },
   "cloudSyncStatus": {
     "synced": "Tersinkronisasi",
@@ -1730,7 +1734,19 @@
     "updateAvailableDesc": "A new version is available. Click to update.",
     "updateStarted": "Update started...",
     "reloadingPageAutomatically": "Memuat ulang halaman secara otomatis...",
-    "providerTopology": "Topologi Penyedia"
+    "providerTopology": "Topologi Penyedia",
+    "desktopPanelTitle": "Desktop app",
+    "desktopPanelSubtitle": "Local server controls for the desktop build.",
+    "desktopServerState": "Server status",
+    "desktopServerOrigin": "Server URL",
+    "desktopStateStopped": "Stopped",
+    "desktopStateStarting": "Starting",
+    "desktopStateRunning": "Running",
+    "desktopStartServer": "Start server",
+    "desktopStopServer": "Stop server",
+    "desktopStatusUnavailable": "Desktop bridge error: {error}",
+    "desktopOpenOrigin": "Open in browser",
+    "desktopStateDetail": "Server detail: {detail}"
   },
   "analytics": {
     "title": "Analytics",
@@ -6256,8 +6272,6 @@
     "invalidLogoFileType": "Tipe berkas tidak valid. Silakan unggah PNG, JPG, SVG, GIF, atau WebP.",
     "invalidFaviconFileType": "Tipe berkas tidak valid. Silakan unggah PNG, ICO, SVG, GIF, or WebP.",
     "failedToReadFile": "Gagal membaca berkas",
-    "startOnLogin": "Mulai saat Login",
-    "startOnLoginDesc": "Luncurkan OmniRoute secara otomatis saat sistem dinyalakan dan jalankan secara diam-diam di baki latar belakang.",
     "flushCache": "Flush Cache",
     "flushing": "Flushing…",
     "size": "Size",
@@ -7549,7 +7563,10 @@
     "enableCredentialRedaction": "Aktifkan redaksi kredensial",
     "enableCredentialRedactionDesc": "Membersihkan kunci API, token, kunci privat, dan JWT dari pesan, panggilan alat, dan respons.",
     "pricingAutoSyncDisabled": "Automatic Sync Disabled",
-    "pricingAutoSyncEnabled": "Automatic Sync Enabled"
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "dataDirectory": "Data directory",
+    "dataDirectoryDesc": "Folder where OmniRoute stores its database, backups and logs on this machine.",
+    "dataDirectoryUnavailable": "Data directory unavailable: {error}"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -9071,8 +9088,6 @@
     "quickStartStep4Suffix": "Use provider prefix, for example",
     "deploySetupTitle": "Panduan Pengaturan",
     "deploySetupText": "Instalasi langkah demi langkah, konfigurasi lingkungan, dan panduan pertama kali dijalankan untuk OmniRoute.",
-    "deployElectronTitle": "Desktop Elektron",
-    "deployElectronText": "Jalankan OmniRoute sebagai aplikasi desktop asli di Windows, macOS, dan Linux.",
     "deployDockerTitle": "buruh pelabuhan",
     "deployDockerText": "Penerapan dalam container dengan Docker Compose; siap untuk tumpukan produksi dan Kubernetes.",
     "deployVmTitle": "Mesin Virtual",

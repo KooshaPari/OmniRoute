@@ -1,6 +1,6 @@
 # FEATURES (Gaeilge)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+**Languages:** [English](../../../../guides/FEATURES.md) · [ar](../../../ar/docs/guides/FEATURES.md) · [az](../../../az/docs/guides/FEATURES.md) · [bg](../../../bg/docs/guides/FEATURES.md) · [bn](../../../bn/docs/guides/FEATURES.md) · [cs](../../../cs/docs/guides/FEATURES.md) · [da](../../../da/docs/guides/FEATURES.md) · [de](../../../de/docs/guides/FEATURES.md) · [el](../../../el/docs/guides/FEATURES.md) · [es](../../../es/docs/guides/FEATURES.md) · [et](../../../et/docs/guides/FEATURES.md) · [fa](../../../fa/docs/guides/FEATURES.md) · [fi](../../../fi/docs/guides/FEATURES.md) · [fr](../../../fr/docs/guides/FEATURES.md) · [gu](../../../gu/docs/guides/FEATURES.md) · [he](../../../he/docs/guides/FEATURES.md) · [hi](../../../hi/docs/guides/FEATURES.md) · [hr](../../../hr/docs/guides/FEATURES.md) · [hu](../../../hu/docs/guides/FEATURES.md) · [id](../../../id/docs/guides/FEATURES.md) · [it](../../../it/docs/guides/FEATURES.md) · [ja](../../../ja/docs/guides/FEATURES.md) · [ko](../../../ko/docs/guides/FEATURES.md) · [lt](../../../lt/docs/guides/FEATURES.md) · [lv](../../../lv/docs/guides/FEATURES.md) · [mr](../../../mr/docs/guides/FEATURES.md) · [ms](../../../ms/docs/guides/FEATURES.md) · [mt](../../../mt/docs/guides/FEATURES.md) · [nl](../../../nl/docs/guides/FEATURES.md) · [no](../../../no/docs/guides/FEATURES.md) · [phi](../../../phi/docs/guides/FEATURES.md) · [pl](../../../pl/docs/guides/FEATURES.md) · [pt](../../../pt/docs/guides/FEATURES.md) · [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · [ro](../../../ro/docs/guides/FEATURES.md) · [ru](../../../ru/docs/guides/FEATURES.md) · [sk](../../../sk/docs/guides/FEATURES.md) · [sl](../../../sl/docs/guides/FEATURES.md) · [sr](../../../sr/docs/guides/FEATURES.md) · [sv](../../../sv/docs/guides/FEATURES.md) · [sw](../../../sw/docs/guides/FEATURES.md) · [ta](../../../ta/docs/guides/FEATURES.md) · [te](../../../te/docs/guides/FEATURES.md) · [th](../../../th/docs/guides/FEATURES.md) · [tr](../../../tr/docs/guides/FEATURES.md) · [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · [ur](../../../ur/docs/guides/FEATURES.md) · [vi](../../../vi/docs/guides/FEATURES.md) · [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
 
 ---
 
@@ -11,331 +11,327 @@ version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# OmniRoute — Gailearaí Gníomhartha an Deais
+## v3.8.0 Highlights
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth flows, deeper resilience, and a much richer CLI experience. Headline features below — full details further in the document and in linked specs.
 
-Treoir amhairc ar gach cuid de thaispeántas OmniRoute.
+- **Auto Combo / Zero-config auto-routing** — use prefixes `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Backed by a 16-factor scoring engine and 6 curated **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
+- **Command Code provider** (#2199) — first-class registration with model catalog and quota tracking
+- **Z.AI provider** — new free-tier provider with quota labels
+- **KIE media expansion** — extended catalog including video generation models
+- **Devin authentication** — Desktop imports an existing Devin API key; the CLI uses local `devin auth login` credentials
+- **8 new free providers** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- **Manifest-aware tier routing W1–W4** — provider manifests drive weighted tier selection
+- **Cursor full OpenAI parity** — tool calls, streaming, session management end-to-end
+- **Cursor Pro plan usage** — quota & cycle data surfaced in the provider-limits dashboard
+- **Service tier breakdown / Codex fast tier analytics** — per-tier consumption visibility
+- **Per-session sticky routing** — Codex sessions pin to the same account between turns
+- **Inworld TTS enhancements** — voice catalogs, streaming, and latency improvements
+- **Kiro headless auth** — login via local `kiro-cli` SQLite store, no browser required
+- **DeepSeek quota and limit monitoring** — daily/monthly usage exposed via dashboard
+- **Reset-aware routing strategy** — combos now prefer accounts whose quota window resets soonest
+- **`fallbackDelayMs`** and **dynamic tool limit detection** — finer fallback timing + per-provider tool-count limits
+- **Background mode degradation (Responses API)** — falls back to synchronous mode with a structured warning when an upstream lacks background polling
+- **Per-provider 429 classification** + `useUpstream429BreakerHints` toggle — finer breaker behavior using upstream rate-limit hints
+- **Model cooldowns dashboard** — observe per-model lockouts and manually re-enable from the UI
+- **MITM dynamic Linux cert detection** — works across Debian/Ubuntu, Fedora/RHEL, Arch, and other distros
+- **CLI enhancement suite** — 20+ commands including `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- **Qdrant embedding model discovery** — automatic vector-store model probe
+- **API Keys / Bearer keys with `manage` scope** — perform admin operations programmatically via API
+- **Combo target health analytics** + **structured combo builder** — per-target health & UI builder for assembling `(provider, model, connection)` steps
+- **GitLab Duo OAuth provider** — login with GitLab credentials
+- **Reasoning Replay Cache** — hybrid in-memory + SQLite persistence of reasoning traces
 
-> 📅 **Nuashonrú deireanach:** 2026-06-28 — **v3.8.40**
-
----
-
-## ✨ Príomhghnóthacha v3.8.0
-
-Chuir an timthriall v3.7.x → v3.8.0 aicsíú uath-bhealach gan chumrú, soláthraithe nua, sreameanna OAuth, athléimneacht níos doimhne, agus taithí CLI i bhfad níos saibhre leis. Seo na príomhghnéithe — tá sonraí iomlán níos déanaí sa cháipéis agus sna sonraíochtaí nasctha.
-
-- 🤖 **Uath-Chomhcheangal / Aicsíú uath-bhealach gan chumrú** — úsáid réamhshraitheanna `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Tacaíocht ó innill scórála 16-fhachtóir agus 6 **pacaí mód** curated (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
-- 🤖 **Soláthraí Command Code** (#2199) — clárnú cén chéad le catalóg samhlacha agus rianú cuóta
-- 🆕 **Soláthraí Z.AI** — soláthraí saor in aisce nua le lipéid cuóta
-- 🎬 **Leathnú meán KIE** — catalóg fhadaithe lena n-áirítear samhailte ghiniúint físe
-- 🔐 **Fíordheimhniú Devin** — iompórtálann Deasc eochair API Devin atá ann cheana; úsáideann an CLI creidmheachtaí `devin auth login` logánta
-- 🆓 **8 soláthraithe saor in aisce nua** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
-- 🎯 **Aicsíúicéime dearbháin-bhunaithe W1–W4** — tiomáineann dearbháin soláthraithe roghnú éadáin meáite
-- 🎨 **Comhionannas iomlán OpenAI le Cursor** — glaonna uirlisí, sruthú, bainistiú seisiún deireadh go dtí deireadh
-- 📊 **Úsáid phlan Cursor Pro** — sonraí cuóta agus timthriallaí tugtha os cionn sa deais teorainneacha soláthraithe
-- ⚡ **Briseadh síos éadáin seirbhíse / anailísíocht éadáin tapa Codex** — infheictheacht tomhaltais in aghaidh an éadáin
-- 📌 **Aicsíúicéime seisiún-greamaitheach** — cuireann seisiúin Codex an cuntas céanna idir casanna
-- 🔊 **Feabhsúcháin TTS Inworld** — catalóigh guthanna, sruthú, agus feabhsúcháin fithise
-- 🔑 **Fíordheimhniú ceannfaidh Kiro** — logáil isteach trí stóras SQLite `kiro-cli` logánta, gan brabhsálaí ag teastáil
-- 📰 **Monatóireacht cuóta agus teorainneacha DeepSeek** — tomhaltas laethúil/míosúil nochta tríd an deais
-- 🔄 **Straitéis aicsíúicéime atá ag cur san áireamh an athshocrú** — is fearr le comhcheangail anois cuntais a bhfuil a bhfuinneog cuóta ag dul in éag go luath
-- ⏱️ **`fallbackDelayMs`** agus **braite teorainn uirlisí dinimiciúla** — am chun filleadh níos míne + teorainneacha uimhir uirlisí in aghaidh an soláthraí
-- 🔧 **Meath mód cúlra (API Freagraí)** — filleadh ar mhód comhshóimseartha le rabhadh struchtúrtha nuair a bhfuil léarscáil cúlra ag easnamh ar shreathfaigh
-- 🚦 **Aicrithiú 429 in aghaidh an soláthraí** + cnaipe `useUpdrois429BreakerHints` — iompar briseadh níos míne ag baint úsáide as leideanna teorainne reatha ó shreathfaigh
-- 🩺 **Deais cónaithe samhla** — breathnaigh ar dhúnaidh in aghaidh samhla agus athcumasaigh de láimh ón eispéireas úsáideora
-- 🔒 **Braithteacht deimhniú MITM dinimiciúla Linux** — oibríonn sé trasna Debian/Ubuntu, Fedora/RHEL, Arch, agus distros eile
-- 💧 **An sraith feabhsúchán CLI** — 20+ ordú lena n-áirítear `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
-- 🔍 **Fionnadh samhla leabú Qdrant** — torthaí stórais veicteoir uathoibríoch
-- 🔑 **Eochranna API / Eochranna Bearer le scóip `manage`** — déan oibríochtaí riaracháin go programatach trí API
-- 🏥 **Anailísíocht sláinte comhcheangal sprioc** + **tógálaí comhcheangal struchtúrtha** — sláinte in aghaidh na spriocanna & tógálaí eispéireas úsáideora le haghaidh comhcheangal céimeanna `(soláthraí, samhail, ceangal)`
-- 🤝 **Soláthraí OAuth GitLab Duo** — logáil isteach le creidmheachtaí GitLab
-- 🧠 **Taisce Athsheolta Réasúnaithe** — cur i gcomhar cuimhne in-aiarraide + marthanacht SQLite de lorganna réasúnaithe
-
-📚 **Doiciméid gaolmhara:** [Creat Scileanna](../frameworks/SKILLS.md) · [Córas Cuimhne](../frameworks/MEMORY.md) · [Gníomhairí Scátháin](../frameworks/CLOUD_AGENT.md) · [Gréasáin](../frameworks/WEBHOOKS.md) · [Taisce Athsheolta Réasúnaithe](../routing/REASONING_REPLAY.md)
-
-## 🔌 Soláthraithe
-
-Bainistigh ceangail soláthraithe AI: soláthraithe OAuth (Claude Code, Codex), soláthraithe eochair API (Groq, DeepSeek, OpenRouter), agus soláthraithe saor in aisce (Qoder, Kiro). Áirítear le cuntais Kiro rianú iarmhairid creidmheacha — creidmheacha fágtha, ceadliomh iomlán, agus dáta athnuaite le feiceáil i deais → Úsáid.
-
-Is féidir le ceangail OpenRouter stóráil `preset` in aghaidh an cheangail i Socraithe Ardshocraíochta. Nuair a shocraítear é, seolann OmniRoute é mar réimse iarratais barrleibhél OpenRouter, mar shampla `"preset": "email-copywriter"`, mura bhfuil `preset` féin curtha ar fáil ag an iarratas cliént cheana féin.
-
-![Deais Soláthraithe](../screenshots/01-providers.png)
+**Related docs:** [Skills Framework](../frameworks/SKILLS.md) · [Memory System](../frameworks/MEMORY.md) · [Cloud Agents](../frameworks/CLOUD_AGENT.md) · [Webhooks](../frameworks/WEBHOOKS.md) · [Reasoning Replay Cache](../routing/REASONING_REPLAY.md)
 
 ---
 
-## 🎨 Ceangail
+## Providers
 
-Cruthaigh combos ródaithe samhail le 19 straitéis phoiblí: tosaíocht, méáite, timthriall, aisréalta comhthéacs, líonadh-ar dtús, p2c (cumhacht dhá rogha), randamach, úsáid is lú, costas-optimálaithe, athshocrú-bhunaithe, fuinneog-athshocrú, headroom, randamacht dhílis, uathoibríoch, lkgp (soláthraí dea-aitheanta is déanaí), comhthéacs-optimálaithe, taisce-optimálaithe, **cumasc** (seol amach go cothrom le pionna samhlanna i bhfíor-am, ansin déan sintéis ar fhreagra amháin trí bhreitheamh), agus **píobáin**. Ceangail gach combo samhlanna iolracha le aisfhalú uathoibríoch agus cuimsíonn sé teimpléid thapa agus seiceálta réidhochta.
+Manage AI provider connections: OAuth providers (Claude Code, Codex), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
 
-Feabhsuithe déanaí ar combos:
+OpenRouter connections can store a per-connection `preset` in Advanced Settings. When set, OmniRoute sends it as the OpenRouter top-level request field, for example `"preset": "email-copywriter"`, unless the client request already supplied its own `preset`.
 
-- **Tógálaí cumaisc struchtúrtha** — cruthaigh gach céim tríd an soláthraí, samhail, agus cuntas/ceangal beacht a roghnú
-- **Tacaíocht soláthraí athdhéanta** — athúsáid an soláthraí céanna iolranta uaireanta i combo amháin fad is atá an teaglaim `(soláthraí, samhail, ceangal)` uathúil
-- **Sláinte spriocanna combo** — anailísigh agus dromchlaí sláinte anois idirdhealú a dhéanamh idir spriocanna/céimeanna combo aonair seachas gach rud a chomhdhlúthú i sreanga samhlacha
-- **Ordú cille composite** — `defaultTier -> fallbackTier` anois tionchar ar ordú rithú/aisfhalú rithiúna do chéimeanna combo barrleibhéal
-- **Teimpléid treorach córais** — tacaíonn `system_message` combo le seiceálacha
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` agus `{{FINGERPRINT}}`
-  spásanna folmha, leathnaithe ón sprioc ródaithe iarbhíth díreach roimh sheoladh.
-  Liostaithe agus nach athchúrsáiltear; fanann spásanna folmha anaithnid litriúil; luachanna folmha
-  leathnaithe go folamh; ní athscríobhtar treoracha córais cliént. Réitíonn `{{FINGERPRINT}}`
-  ach do sholáthraithe saor in aisce bunaithe ar lorgdhigit le lorgdhigit pinnte nó
-  rothlaithe-uathoibríoch — leathnaítear é go folamh in áiteanna eile (m.sh.
-  ceangail lorgdhigit aonair, soláthraithe neamh-lorgdhigit). Clúdaíonn leathnú an
-  lúb seoladh caighdeánach, timthriall, agus seisiúin taisce comhthéacs pinnte;
-  ní leathnaíonn cumasc, chaos, píobáin agus straitéisí néalcheangail spásanna folmha fós.
-
-![Deais Ceangail](../screenshots/02-combos.png)
+![Providers Dashboard](../screenshots/01-providers.png)
 
 ---
 
-## 📊 Anailísíocht
+## Combos
 
-Anailísíocht úsáide chuimsitheach le tomhaltas comharthaí, meastacháin costais, mapaí teasa gníomhaíochta, cairteanna dáileadh seachtainiúla, agus breakdown in aghaidh an sholáthraí.
+Create model routing combos with 19 public strategies: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (fan out to a panel of models in parallel, then synthesize one answer via a judge), and **pipeline**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
 
-![Deais Anailísíochta](../screenshots/03-analytics.png)
+Recent combo improvements:
 
----
+- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
+- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
+- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
+- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+- **System prompt templates** — combo `system_message` supports server-side
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` and `{{FINGERPRINT}}`
+  placeholders, expanded from the actually-routed target right before dispatch.
+  Allowlisted and non-recursive; unknown placeholders stay literal; empty values
+  expand to empty; client system prompts are never rewritten. `{{FINGERPRINT}}`
+  resolves only for fingerprint-based free providers with a pinned or
+  auto-rotated fingerprint — it expands to empty elsewhere (e.g.
+  single-fingerprint connections, non-fp providers). Expansion covers the
+  standard dispatch loop, round-robin, and pinned context-cache sessions;
+  fusion, chaos, pipeline and nested-execute strategies do not expand
+  placeholders yet.
 
-## 🏥 Sláinte an Chórais
-
-Monatóireacht fhíor-am: am ag obair, cuimhne, leagan, céatadáin moille (p50/p95/p99), staitisticí taisce, stáit briseadóir slabhra soláthraithe, seisiúin ghníomhacha le faireamh ceadanna, agus sláinte spriocanna combo.
-
-![Deais Sláinte](../screenshots/04-health.png)
-
----
-
-## 🔧 Clósúchán Aistritheora
-
-Ceithre mhodh chun aistriúcháin API a dhífhabhtú: **Clósúchán** (tiontaire formáide), **Tástálaí Comhrá** (iarratais bheo), **Binse Tástála** (tástálacha baisc), agus **Monatóir Beo** (sruth fíor-ama).
-
-![Clósúchán Aistritheora](../screenshots/05-translator.png)
-
----
-
-## 🎮 Clósúchán Múnla _(v2.0.9+)_
-
-Tástáil aon mhúnla go díreach ón deais. Roghnaigh soláthraí, múnla, agus críochphointe, scríobh leideanna le hEagarthóir Monaco, sruthaigh freagraí i bhfíor-am, cuir deireadh le sruth leathbhealaigh, agus féach ar mhéadracht ama.
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 
-## 🎨 Téamaí _(v2.0.5+)_
+## Analytics
 
-Téamaí datha inoiriúnaithe don deais iomlán. Roghnaigh as 7 ndath réamhshocraithe (Córal, Gorm, Dearg, Glas, Corcra, Oráiste, Cian) nó cruthaigh téama saincheaptha trí aon dath heicsidheachúlach a roghnú. Tacaíonn sé le mód éadrom, dorcha, agus córais.
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
 
----
-
-## ⚙️ Socruithe
-
-Painéal socruithe cuimsitheach le **7 gcluaisín**:
-
-- **Ginearálta** — Stóráil chórais, bainistíocht chúltaca (onnmhairiú/allmhairiú bunachar sonraí)
-- **Cuma** — Roghnóir téama (dorcha/éadrom/córas), réamhshocruithe téama datha agus dathanna saincheaptha, infheictheacht loga sláinte, rialuithe infheictheachta do mhíreanna barra taoibh agus deighilteoirí grúpa, rialuithe infheictheachta tollán críochphointe
-- **AI** — Gnéithe cúntóra AI, réamhshocruithe ródaithe (Combo Uathoibríoch `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), taisce athsheinm réasúnaíochta, agus scoránaigh scileanna/cuimhne
-- **Slándáil** — Cosaint críochphointe API, blocáil soláthraithe saincheaptha, scagadh IP, faisnéis seisiúin
-- **Ródú** — Ailiasanna múnla, díghrádú tascanna cúlra, ródú sraitheanna feasach ar léiriú (W1–W4), `fallbackDelayMs`, ródú greamaitheach in aghaidh an tseisiúin
-- **Athléimneacht** — Leanúnachas teorann ráta, tiúnadh scoradáin chiorcaid, díchumasú uathoibríoch cuntas toirmiscthe, monatóireacht ar dhul in éag soláthraithe, tairseach aistrithe **Sealaíocht Chomhthéacs** agus cumraíocht múnla achoimre, aicmiú 429 in aghaidh an tsoláthraí & scorán `useUpstream429BreakerHints`, tréimhsí fuaraithe múnla
-- **Ard** — Forlíonta cumraíochta, rianta iniúchta cumraíochta, mód díghrádaithe titime, mód díghrádaithe cúlra do API Freagraí
-
-![Deais Socruithe](../screenshots/06-settings.png)
+![Analytics Dashboard](../screenshots/03-analytics.png)
 
 ---
 
-## 🔧 Uirlisí CLI
+## System Health
 
-Cumraíocht aon-chliceáil d'uirlisí códála AI: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, agus Factory Droid. Gnéithe cur i bhfeidhm/athshocrú uathoibríoch cumraíochta, próifílí ceangail, agus mapáil múnla.
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
 
-![Deais Uirlisí CLI](../screenshots/07-cli-tools.png)
-
----
-
-## 🤖 Gníomhairí CLI _(v2.0.11+)_
-
-Deais chun gníomhairí CLI a fhionnadh agus a bhainistiú. Taispeánann greille de 16 ghníomhaí ionsuite (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) le:
-
-- **Stádas suiteála** — Suiteáilte / Gan Aimsiú le brath leagan
-- **Suaitheantais phrótacail** — stdio, HTTP, srl.
-- **Gníomhairí saincheaptha** — Cláraigh aon uirlis CLI trí fhoirm (ainm, dénártha, ordú leagain, argóintí sceite)
-- **Meaitseáil Méarlorg CLI** — Scorán in aghaidh an tsoláthraí chun síniúcháin iarratais CLI dhúchasacha a mheaitseáil, ag laghdú riosca toirmisc agus prótacal IP á chaomhnú
-- **Fíordheimhniú Devin áitiúil** — Úsáideann Devin CLI `devin auth login`; níl aon sreabhadh OAuth brabhsálaí ag teastáil
+![Health Dashboard](../screenshots/04-health.png)
 
 ---
 
-## 🔗 Aistriú Comhthéacs _(v3.5.5+)_
+## Translator Playground
 
-Straitéis chombó a chaomhainn síorghluasacht seisiúin nuair a tharlann rothlú cuntais i lár comhrá. Sula bhfuil an cuntas gníomhach curtha i gcrích, gineann OmniRoute achoimre struchtúrtha aistrithe sa chúlra. Tar éis do iarratas eile réiteach go cuntas eile, déantar an achoimre a instealladh mar fhíric chórais ionas go leanann an cuntas nua le comhthiomsú iomlán.
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
 
-Intratable trí shocruithe combo nó domhanda:
-
-- **Tairsí Aistrithe** — Céatadán úsáide cuóta a thionscraíonn giniúint achoimre (réamhshocrú 85%)
-- **Uasmhéid Teachtaireachtaí le hAchoimre** — Méid stair le déanamh dlúth
-- **Samhail Achoimre** — Samhail roghnach sainmhínithe le haghaidh giniúin na hachoimre aistrithe
-
-Tacaíonn sé faoi láthair le rothlú cuntais Codex. Féach [Doiciméadú Aistriú Comhthéacs](../architecture/ ARCHITECTURE.md).
+![Translator Playground](../screenshots/05-translator.png)
 
 ---
 
-## 🗜️ Comhbhrú Biachlár _(v3.7.9+)_
+## Model Playground _(v2.0.9+)_
 
-Taispeánann Comhthéacs & Taisce leathanacha speisialtaithe do Chaveman, RTK, agus Comhbhrúanna Combo:
-
-- **Caveman** — Pacáistí rialacha teanga-bhunaithe, réamhamharc, rialúanna mód aschur, agus anailís
-- **RTK** — Comhbhrú rialbhunaithe le haghaidh aschur shell, git, tástáil, tógála, pacáiste, Docker, bonneagar, JSON, agus lorg carn
-- **Comhbhrúanna Combo** — píblínte ainmnithe cosúil le `rtk -> caveman` a shanntar do chombó na ródaithe; sroicheann an mata réamhshocraithe cruachaithe `~89%` meán agus 78-95% coigilte comhthéacs inchuíte nuair a chuirtear an dá innill i bhfeidhm
-- **Athshlánú aschur amh** — pointeoirí RTK aschur amh scriosta roghnach le haghaidh firr sonraí comhbhrúite teipthe
-
-Féach [Treoir Chomhbhrú](../compression/ COMPRESSION_GUIDE.md), [Comhbhrú RTK](../compression/ RTK_COMPRESSION.md), agus [Innill Chomhbhrú](../compression/ COMPRESSION_ENGINES.md).
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
 
 ---
 
-## 🛡️ Cruadal Próxí _(v3.5.5+)_
+## Themes _(v2.0.5+)_
 
-Fórsaíochta coinníollacha próxí iomlán tras an phíblíne iarratais ar fad:
-
-- **Seiceáil Sláinte Tokáin** — Athnuaigh OAuth sa chúlra anois a réiteach cumraíocht próxí in aghaidh an cheangail, ag cosaint teipthe i dtimpeallachtaí a éilítear próxí
-- **Bailíochtú Eochair API** — Bailíochtú eochair soláthraí (`POST /api/providers/validate`) a sheoltar trí `runWithProxyContext`, ag urramú socruithe próxí leibhéal soláthraí agus domhanda
-- **Deisiú Aschairthe undici** — Úsáidí aschairthe próxí feidhmchlár fetch féin undici in ionad fetch tógáil Node, ag réiteach earráidí `invalid onRequestStart method` ar Node.js 22
-- **Braith Leibhéal Node.js** — Braithfidh an leathanach logála isteach go gníomhach leibhéalanna Node.js neamh-chomhoiriúnach (24+) agus taispeánann sé tuairisc rabhaidh le treoracha le haghaidh úsáide Node.js 22 LTS
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
 
 ---
 
-## 📧 Scáthú Príobháideachta Ríomhphoist _(v3.5.6+)_
+## Settings
 
-Cuirtear ríomhphoist chuntais OAuth i scáth de réir réamhshocraithe (m.sh. `di*****@g****.com`) chun nochtadh de thaisme a chosc agus scáileáin á roinnt nó ag taifeadadh taispeántais. Úsáid Socruithe → Cuma → Infheictheacht ríomhphoist chuntais chun ríomhphoist iomlán cuntais a nochtadh nó a scáthú go domhanda tras na soláthraithe, comboanna, logaanna, cuóta, agus scáileáin spraoi.
+Comprehensive settings panel with **7 tabs**:
 
----
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item and group separator visibility controls, Endpoint tunnel visibility controls
+- **AI** — AI assistant features, default routing presets (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), reasoning replay cache, and skill/memory toggles
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation, manifest-aware tier routing (W1–W4), `fallbackDelayMs`, per-session sticky routing
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration, per-provider 429 classification & `useUpstream429BreakerHints` toggle, model cooldowns
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode, background mode degradation for Responses API
 
-## 👁️ Scáthú Infheictheachta Samhla _(v3.5.6+)_
-
-Tá liosta samhlacha leathanach an tsoláthraí anois ina bhfuil:
-
-- **Barra cuardach/braite fíor-ama** — aimsigh samhail ar leith go tapa
-- **Scáthú infheictheachta in aghaidh na samhla** (👁 icon) — Dúchan samhlacha dathaite agus dílis ó chatalog `/v1/models`
-- **Gníomhachtú-feithicil comhaireamh** (`N/M active`) — Taispeánann ar an toirt cé mhéad samhla atá cumasaithe i gcomparáid leis an iomlán
-
-## 🔧 Ceartúchán Timpeallachta OAuth _(v3.6.1+)_
-
-Gníomh "Ceartúchán timpeallachta" le cliceáil amháin do sholáthraithe OAuth a athchóiríonn athrógacha comhshaoil atá in easnamh agus a shocraíonn stáit fhiúntais briste. Inrochtana ó `Bord → Soláthraithe → [Soláthraí OAuth] → Ceartúchán timpeallachta`. Braith agus ceartúchán go huathoibríoch:
-
-- Creidmheachtaí cliant OAuth atá in easnamh
-- Iontrálacha comhaid comhshoil truaillithe
-- Slánú cosán cúltaca
+![Settings Dashboard](../screenshots/06-settings.png)
 
 ---
 
-## 🗑️ Díshuiteáil / Díshuiteáil Iomlán _(v3.6.2+)_
+## CLI Tools
 
-Scripteanna díshuiteáil glan do gach modh suiteála:
+One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
 
-| Ordú                     | Gníomh                                                                                              |
-| ------------------------ | --------------------------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Bainfean an aip chórais ach **coinnífidh sé do BNG agus cumraíochtaí** i `~/.omniroute`.            |
-| `npm run uninstall:full` | Bainfean an aip AGUS **scriosfaidh sé go buan gach cumraíocht, eochracha, agus bunachair shonraí**. |
+![CLI Tools Dashboard](../screenshots/07-cli-tools.png)
 
 ---
 
-## 🖼️ Meáin _(v2.0.3+)_
+## CLI Agents _(v2.0.11+)_
 
-Gin pictiúirí, físeáin, agus ceol ón mbord. Tacaíonn sé le OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, agus MusicGen.
+Dashboard for discovering and managing CLI agents. Shows a grid of 16 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
----
-
-## 📝 Logaí Iarratais
-
-Logáil iarratais fíor-ama le scagadh de réir soláthraí, samhla, cuntais, agus eochair API. Taispeánann sé códanna stádais, úsáid comharthaí, moill, agus sonraí freagra.
-
-![Logaí Úsáide](../screenshots/08-usage.png)
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+- **Local Devin authentication** — Devin CLI uses `devin auth login`; no browser OAuth flow is required
 
 ---
 
-## 🌐 Túama API
+## Context Relay _(v3.5.5+)_
 
-Do thamaí API aonfhoirme le miondealú cumais: Comhlánúchtaí Comhrá, Freagraí API, Leabú, Gin Pictiúir, Athraing, Transcríobh Fuaime, Téacs-go-Glór, Moderáíochtaí, agus eochracha API cláraithe. Tacaíocht le Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel, agus seachthreoraí scamall le haghaidh rochtain iargúlta.
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
 
-![Painéal Túama](../screenshots/09-endpoint.png)
+Configurable via combo-level or global settings:
 
----
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
 
-## 🔑 Bainistíocht Eochracha API
-
-Cruthaigh, scóp, agus cealaigh eochracha API. Is féidir gach eochair a shrianadh le samhlaí/soláthraithe ar leith le rochtain iomlán nó ceadanna léithe amháin. Bainistíocht eochracha amhairc le rianú úsáide.
-
----
-
-## 📝 Logaireacht Imscrúdaithe
-
-Rianú gníomhartha riaracháin le scagadh de réir cineáil gníomha, aisteora, sprioc, seoladh IP, agus stampa ama. Stair iomlán imeachtaí slándála.
+Currently supports Codex account rotation. See [Context Relay documentation](../architecture/ARCHITECTURE.md).
 
 ---
 
-## 🖥️ Feidhmchlár Deisce
+## Prompt Compression _(v3.7.9+)_
 
-Feidhmchlár deisce Electron dúchasach do Windows, macOS, agus Linux. Rith OmniRoute mar fheidhmchlár neamhspleách le comhtháthú tráidire córais, tacaíocht as líne, uath-threisiú, agus suiteáil le cliceáil amháin.
+Context & Cache now exposes dedicated pages for Caveman, RTK, and Compression Combos:
 
-Príghnéithe:
+- **Caveman** — language-aware rule packs, preview, output-mode controls, and analytics
+- **RTK** — command-aware compression for shell, git, test, build, package, Docker, infra, JSON, and stack-trace output
+- **Compression Combos** — named pipelines such as `rtk -> caveman` assigned to routing combos; the default stacked math reaches `~89%` average and `78-95%` eligible-context savings when both engines apply
+- **Raw-output recovery** — optional redacted RTK raw-output pointers for debugging compressed failures
 
-- Poláil réidhacht freastalaí (scáileán folamh ar fhuar-thosaigh)
-- Tráidire córais le bainistíocht poirt
-- Polasaí Slándála Ábhair
-- Glas aon-instealladh
-- Uath-threisiú ar atosaigh
-- UI coinníollach ardán (soilsí tráchta macOS, barra teidil réamhshocraithe Windows/Linux)
-- Pacáistiú suite cruaite Electron — dhéanfar sroiche `node_modules` i bhforbh bundle neamhspleách a bhrath agus a dhiúltú roimh phacáistiú, ag cosc spleáchas rithfheidhmiúcháin ar an meaisín tógála (v2.5.5+)
-- **Dúnadh milis** — dhúnadh Electron `before-quit` Next.js go glan, ag cosc glasanna bunachar sonraí SQLite WAL (v3.6.2+)
-
-📖 Féach [`electron/README.md`](../../electron/README.md) le haghaidh na ndoiciméad iomlán.
+See [Compression Guide](../compression/COMPRESSION_GUIDE.md), [RTK Compression](../compression/RTK_COMPRESSION.md), and
+[Compression Engines](../compression/COMPRESSION_ENGINES.md).
 
 ---
 
-## 🌐 Trasdáile V1 WebSocket _(v3.6.6+)_
+## Proxy Hardening _(v3.5.5+)_
 
-Tacaíonn OmniRoute anois le **cliaint WebSocket comhoiriúnach le OpenAI** trí thúnú `/v1/ws`. Briseann an freastalaí saincheaptha `scripts/dev/v1-ws-bridge.mjs` Next.js agus uasghrádaíonn ceangail WS go seisiúin sruthú déthreoch iomlán. Úsáideann an fhiúntais an eochair API nó fianán seisiúin céanna le hiarratais HTTP.
+Comprehensive proxy configuration enforcement across the entire request pipeline:
 
-Príomh-oibreachaí:
-
-- Cruthaítear WS upgrade ag `src/lib/ws/handshake.ts` roimh an gceangal a bhunú
-- Scriostar sruthanna go glan ar dhúnadh seisiúin nó earráid thuas-stream
-- Oibríonn sé taobh le cosán sruthú HTTP+SSE atá ann cheana ag an am céanna
-
----
-
-## 🔑 Comharthaí Sioncronaithe & Pacáiste Cumraíochta _(v3.6.6+)_
-
-Tá rochtain ilghléis agus oibreoirí seachtrach anois indéanta trí **comharthaí sioncronaithe scóipithe**:
-
-- **`POST /api/sync/tokens`** — Eiseachd comhartha sioncronaithe nua (scóipithe, le seachthréimhse roghnach)
-- **`DELETE /api/sync/tokens/:id`** — Cealaigh comhartha
-- **`GET /api/sync/bundle`** — Íoslódáil lámhscáileán JSON leagtha ag ETag de gach socruithe nach bhfuil cearr san áireamh (pasfhocail scriosta)
-
-Tógtar an pacáiste cumraíochta ag `src/lib/sern/bundle.ts`. Déanann tomhaltóirí comparáid idir an ceanntásc freagra `ETag` chun athruithe a bhrath gan an méid iomlán a íoslódáil arís.
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
 
 ---
 
-## 🧩 Réamhshocrú Smaointeoireachta GLM _(v3.6.6+)_
+## Email Privacy Masking _(v3.5.6+)_
 
-Is soláthraí den chéad chéim cláraithe anois é **Smaointeoireacht GLM (`glmt`)**: 65 536 comhartha aschur uasta, 24 576 buiséad smaointeoireachta, 900 s am réamhshocraithe, formáid API atá comhoiriúnach le Claude, agus sioncronúsáid le teaghlach GLM.
-
-Tháinig **comhaireamh comharthaí hibrideach** isteach freisin i v3.6.6: nuair a nochtann soláthraí atá comhoiriúnach le Claude `/messages/count_tokens`, glacann OmniRoute é roimh iarratais mhóla le meastóireacht shlán mar tharraingt siar.
+OAuth account emails are masked by default (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. Use Settings → Appearance → Account email visibility to reveal or mask full account emails globally across providers, combos, logs, quota, and playground screens.
 
 ---
 
-## 🛡️ Ceantain Sábháilte & Taobhchoimeád SSRF _(v3.6.6+)_
+## Model Visibility Toggle _(v3.5.6+)_
 
-Téann gach bailíochtú soláthraí agus glaonna aimsithe tsamhail anois trí dhá shraith taobhchoimeád taistil amach:
+The provider page model list now includes:
 
-1. **Taobhchoimeád URL** (`src/shared/network/outboundUrlGuard.ts`) — Coscann raonta IP príobháideach/aghnaithe/leabharnais sula n-osclaítear an soicéad.
-2. **Filleadh sábháilte** (`src/shared/network/safeOutboundFetch.ts`) — Cuireann sé an taobhchoimeád URL i bhfeidhm, normalaíonn sé amanna agus déanann sé iarracht ar earráidí sealadach le maolú easpónantúil.
-
-Taispeántar sáruithe taobhchoimeád mar HTTP 422 (`URL_GUARD_BLOCKED`) agus scríobhtar iad isteach i bhfíle iniúchta comhréire trí `providerAudit.ts`.
-
----
-
-## 🔄 Athitriail ar bhunús Comhair Aitheasa _(v3.6.6+)_
-
-Déanann iarratais comhrá anois **athitriail go huathoibríoch** nuair a thugann soláthraí suas-soilse comhair samhail-scóipithe ar ais. Is féidir é a chumrú trí `REQUEST_RETRY` (réamhshocrú: 2) agus `MAX_RETRY_INTERVAL_SEC` (réamhshocrú: 30 s). Feabhsaíodh foghlaim cheanntásca ráta-teorann trasna `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, agus `Retry-After` — tá stádas comhair in aghaidh na samhla le feiceáil sa deais Atarlú.
+- **Real-time search/filter bar** — Quickly find specific models
+- **Per-model visibility toggle** ( icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
+- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
 
 ---
 
-## 📋 Iniúch Comhréire v2 _(v3.6.6+)_
+## OAuth Env Repair _(v3.6.1+)_
 
-Leathnaíodh an fíle iniúchta le leathanú bunaithe ar an táscaire, shaibhriú comhthéacs iarratais (aitheantas iarratais, úsáideoir gníomhach, IP), imeachtaí údaraithe struchtúrtha, imeachtaí CRUD soláthraí le comhthéacs diff, agus logáil bailíochtú cosc SSRF. Imeachtaí nua ag `src/lib/compliance/providerAudit.ts`.
+One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
+
+- Missing OAuth client credentials
+- Corrupted env file entries
+- Backup path sanitization
+
+---
+
+## Uninstall / Full Uninstall _(v3.6.2+)_
+
+Clean removal scripts for all installation methods:
+
+| Command                  | Action                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
+
+---
+
+## Media _(v2.0.3+)_
+
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
+
+## Request Logs
+
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](../screenshots/08-usage.png)
+
+---
+
+## API Endpoint
+
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel, and cloud proxy support are available for remote access.
+
+![Endpoint Dashboard](../screenshots/09-endpoint.png)
+
+---
+
+## API Key Management
+
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
+
+## Audit Log
+
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
+
+## Desktop Application
+
+Native Tauri 2 desktop app (Rust shell + system webview, `apps/desktop/`) for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+
+Key features:
+
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
+- Content Security Policy
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Tauri 2 build packaging — hardened standalone bundle validation detects symlinked `node_modules` and rejects it before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+- **Graceful shutdown** — Tauri lifecycle hooks shut down the API server cleanly, preventing SQLite WAL database locks (v3.6.2+)
+
+See [`apps/desktop/README.md`](../../apps/desktop/README.md) for full documentation.
+
+---
+
+## V1 WebSocket Bridge _(v3.6.6+)_
+
+OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/dev/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+
+Key behaviours:
+
+- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
+- Streams terminated cleanly on session close or upstream error
+- Works alongside the existing HTTP+SSE streaming path simultaneously
+
+---
+
+## Sync Tokens & Config Bundle _(v3.6.6+)_
+
+Multi-device and external operator access is now possible via **scoped sync tokens**:
+
+- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
+- **`DELETE /api/sync/tokens/:id`** — Revoke a token
+- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
+
+The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
+
+---
+
+## GLM Thinking Preset _(v3.6.6+)_
+
+**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+
+**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+
+---
+
+## Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
+
+All provider validation and model discovery calls now go through a two-layer outbound guard:
+
+1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
+2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
+
+Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+
+---
+
+## Cooldown-Aware Retries _(v3.6.6+)_
+
+Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+
+---
+
+## Compliance Audit v2 _(v3.6.6+)_
+
+The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.

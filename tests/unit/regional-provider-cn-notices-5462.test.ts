@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -8,9 +9,8 @@ import assert from "node:assert/strict";
 // (api.stepfun.com) is the China platform, but a genuine Singapore-operated global
 // platform (platform.stepfun.ai) exists — so StepFun's notice must POINT users to
 // the global alternative rather than claim a hard CN-only block.
-const { APIKEY_PROVIDERS_REGIONAL } = await import(
-  "../../src/shared/constants/providers/apikey/regional.ts"
-);
+const { APIKEY_PROVIDERS_REGIONAL } =
+  await import("../../src/shared/constants/providers/apikey/regional.ts");
 
 function notice(id: string): { text?: string; signupUrl?: string } | undefined {
   const entry = (APIKEY_PROVIDERS_REGIONAL as Record<string, any>)[id];

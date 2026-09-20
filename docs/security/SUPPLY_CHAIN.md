@@ -25,7 +25,7 @@ without blocking; the _CRITICAL gate_ step (`severity: CRITICAL`, `ignore-unfixe
 `exit-code: 1`) fails the release on a CRITICAL CVE **with a fix available**. `ignore-unfixed`
 prevents blocking the release for a base-image CVE without an upstream patch.
 
-## ⚠️ CVE Variance (blocking osv/Trivy gates)
+## CVE Variance (blocking osv/Trivy gates)
 
 osv and Trivy compare deps against CVE databases that **continuously grow**. A PR
 that **touches no dependencies** can suddenly turn red because a new CVE was

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// oxlint-disable no-explicit-any
 
 /**
  * Test sending request from converted file directly to provider

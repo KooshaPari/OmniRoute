@@ -62,8 +62,10 @@ const KNOWN_HOOKS = new Set([
   "onUninstall",
   // Real callbacks wired in code that docs reference (verified present in src/):
   // onChunk/onFirstChunk — streaming callbacks (playground useStreamMetrics.ts and
-  //   ChatTab.tsx); onServerStatus/onPortChanged/onUpdateStatus — Electron
-  //   IPC callbacks (src/shared/hooks/useElectron.ts, HomePageClient.tsx);
+  //   ChatTab.tsx); onServerStatus/onPortChanged/onUpdateStatus — legacy desktop
+  //   IPC callbacks. The Electron bridge that defined them (src/shared/hooks/
+  //   useElectron.ts) was removed with the Electron stack, so these entries are
+  //   retained only so historical docs do not read as fabricated;
   //   onEmpty — model-metadata registry callback (src/lib/modelMetadataRegistry.ts).
   "onChunk",
   "onFirstChunk",
@@ -107,7 +109,7 @@ const ENV_VAR_ALLOWLIST = new Set([
   "OPENCODE_API_KEY", // ditto
   // ── External-tool / spawn-injected / ops env vars ────────────────────────
   // Real environment variables, but they belong to an UPSTREAM CLI/tool, a
-  // docker-compose/electron-build pipeline, or are injected into a spawned
+  // docker-compose/desktop-build pipeline, or are injected into a spawned
   // subprocess — never read via `process.env.X` in OmniRoute's own source, so the
   // code-read index can't see them. Documented (correctly) in the relevant guides.
   "COPILOT_PROVIDER_BASE_URL", // GitHub Copilot CLI ≥v1.0.19's own env var (AGENTBRIDGE.md)
@@ -125,7 +127,7 @@ const ENV_VAR_ALLOWLIST = new Set([
   "PROMPTFOO_PROVIDER_KEY", // promptfoo's own provider-key env var, used by the red-team suite (GUARDRAILS.md)
   "REDIS_PORT", // docker-compose host-port override (DOCKER_GUIDE.md)
   "AUTO_UPDATE_HOST_REPO_DIR", // docker-compose self-update mount (DOCKER_GUIDE.md)
-  "LINUX_GPG_KEY", // electron AppImage signing key, CI/build only (ELECTRON_GUIDE.md)
+  "LINUX_GPG_KEY", // desktop AppImage signing key, CI/build only (DESKTOP_GUIDE.md)
   "BRANCH_LOCK_TOKEN", // release branch-protection ops token (QUALITY_GATE_PLAYBOOK.md)
   "NEXT_LOCALE", // next-intl locale cookie name (I18N.md)
   // Telegram Mini App integration (proposal TELEGRAM-MINIAPP.md, not yet implemented): env vars named in the feasibility analysis but no code reads them yet.
@@ -326,8 +328,8 @@ const ENV_VAR_DENYLIST = new Set([
   // ── Error / Node codes documented in prose (string-literal codes, not env vars) ──
   "URL_GUARD_BLOCKED", // HTTP 422 guard-violation code (ARCHITECTURE.md)
   "AUTHZ_NOT_INITIALIZED", // AuthzAssertionError code (AUTHZ_GUIDE.md)
-  "MODULE_NOT_FOUND", // Node runtime error code watched by service supervisor (ELECTRON_GUIDE.md)
-  "ERR_DLOPEN_FAILED", // Node native-module load error code (ELECTRON_GUIDE.md)
+  "MODULE_NOT_FOUND", // Node runtime error code watched by the service supervisor
+  "ERR_DLOPEN_FAILED", // Node native-module load error code
   "SQLITE_FULL", // SQLite result code returned when the disk is full (DATABASE_GUIDE.md)
   // ── Code-symbol / naming-convention examples documented in prose ─────────────
   "UPPER_SNAKE", // the literal naming-convention token in the style guide (CODEBASE_DOCUMENTATION.md)
@@ -381,6 +383,32 @@ const SKIP_DOC_FILES = new Set([
   // Forward-looking coverage plan: a `- [ ]` checklist of test targets and helper
   // components to be created. Same rationale as the design/plan docs above.
   "docs/ops/COVERAGE_PLAN.md",
+  // ── Historical snapshots (frozen; never rewritten) ────────────────────────
+  // docs/legacy is the archived OmniRoute-desktop snapshot taken 2026-07-17. It
+  // documents an earlier fork's routes (/api/kbridge, /api/apikeys, /api/chat/
+  // completions) that never existed in this repository. The files are preserved
+  // verbatim as evidence and must not be rewritten, so the whole tree is skipped
+  // (same treatment as docs/i18n). Tracked by this repo's historical-docs policy.
+  "docs/legacy",
+  "docs/research/archive/router-docs/reference/CONSOLIDATION_PLAN.md", // archived research
+  "docs/research/archive/router-docs/reference/UNIFIED_ARCHITECTURE.md", // archived research
+  "docs/research/archive/router-docs/research/GOOSE_SMART_TOOL_RESEARCH.md", // archived research
+  // ── Dated session notes (append-only work logs; assertions are historical) ──
+  "docs/sessions/20260719-cross-chat-alignment/HANDOFFS.md",
+  "docs/sessions/20260912-omniroute-fork-audit/06_CI_DRIFT_AUDIT.md",
+  "docs/sessions/20260912-omniroute-fork-audit/07_SVELTEKIT_MIGRATION_PLAN.md",
+  "docs/sessions/20260912-omniroute-fork-audit/08_BIFROST_INTEGRATION_PLAN.md",
+  "docs/sessions/20260912-omniroute-fork-audit/15_PEP_ASSESSMENT_REMEDIATION.md",
+  // ── Forward-looking plan docs (`- [ ]` acceptance checklists, "Files: … (new)") ──
+  // Same rationale as docs/ops/COVERAGE_PLAN.md above: these enumerate files to be
+  // CREATED, so a missing path is a plan item, not a fabricated claim about today.
+  "docs/omniroute-pr-body.md", // saved PR body; test path is a proposed new file
+  "docs/superpowers/plans/2026-08-26-tauri-active-desktop.md",
+  "docs/wbs/w4-performance.md",
+  "docs/wbs/w5-dx-tooling.md",
+  "docs/wbs/w6-deployment.md",
+  "docs/wbs/w7-polish.md",
+  "docs/wbs/w8-community.md",
 ]);
 
 // ── File discovery ─────────────────────────────────────────────────────────
@@ -548,13 +576,18 @@ export function buildCodebaseIndex(root = ROOT) {
   walkForEnv("open-sse");
   walkForEnv("bin");
   walkForEnv("scripts");
+  // `apps/` holds first-class in-repo workspaces (apps/bff, apps/web, apps/desktop)
+  // whose manifests/docs reference their own env vars (e.g. BFF_API_KEY is read in
+  // apps/bff/src/env.ts and middleware/auth.ts). Omitting apps/ made every such
+  // documented var look fabricated. Scan it like any other source root.
+  walkForEnv("apps");
   // Env vars that are only read by the test harness (e.g. RUN_CHAOS_INT) are still
   // real env vars and must not be flagged as fabricated.
   walkForEnv("tests");
 
   // Env contract maintained by the sibling gate (check-env-doc-sync.mjs): a var
   // listed in .env.example or docs/reference/ENVIRONMENT.md is, by definition, a
-  // documented OmniRoute env var (including external-CLI / docker / electron vars
+  // documented OmniRoute env var (including external-CLI / docker / desktop vars
   // that are not read via process.env in our own source).
   function readEnvContract() {
     try {
@@ -639,7 +672,7 @@ const COARSE_PATTERNS = {
   hookName: /\b(on[A-Z][a-zA-Z]+)\b/g,
   // File references like src/lib/foo.ts, open-sse/handlers/bar.ts, bin/cli/baz.mjs
   fileRef:
-    /\b((?:src|open-sse|bin|scripts|tests|electron)\/[A-Za-z0-9_\-\/\.]+\.(?:ts|tsx|mjs|js|cjs|sh|sql))\b/g,
+    /\b((?:src|open-sse|bin|scripts|tests)\/[A-Za-z0-9_\-\/\.]+\.(?:ts|tsx|mjs|js|cjs|sh|sql))\b/g,
 };
 
 function stripCodeBlocksAndFences(text) {

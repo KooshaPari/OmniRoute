@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * quotaAdapters.ts — Provider-specific quota header adapters.
  *
@@ -78,7 +79,8 @@ export function parseProviderQuotaHeaders(
     const windowResetMs = parseResetMs(resetStr);
 
     if (limit !== undefined || remaining !== undefined) {
-      const tokensUsed = limit !== undefined && remaining !== undefined ? Math.max(0, limit - remaining) : undefined;
+      const tokensUsed =
+        limit !== undefined && remaining !== undefined ? Math.max(0, limit - remaining) : undefined;
       return { tokenLimit: limit, tokensRemaining: remaining, tokensUsed, windowResetMs };
     }
   }
@@ -88,8 +90,16 @@ export function parseProviderQuotaHeaders(
   const remainingTokens = parseNum(getHeader("x-ratelimit-remaining-tokens"));
   const resetTokens = getHeader("x-ratelimit-reset-tokens");
   if (limitTokens !== undefined || remainingTokens !== undefined) {
-    const tokensUsed = limitTokens !== undefined && remainingTokens !== undefined ? Math.max(0, limitTokens - remainingTokens) : undefined;
-    return { tokenLimit: limitTokens, tokensRemaining: remainingTokens, tokensUsed, windowResetMs: parseResetMs(resetTokens) };
+    const tokensUsed =
+      limitTokens !== undefined && remainingTokens !== undefined
+        ? Math.max(0, limitTokens - remainingTokens)
+        : undefined;
+    return {
+      tokenLimit: limitTokens,
+      tokensRemaining: remainingTokens,
+      tokensUsed,
+      windowResetMs: parseResetMs(resetTokens),
+    };
   }
 
   // 3. OpenRouter / Generic Request level headers
@@ -97,8 +107,16 @@ export function parseProviderQuotaHeaders(
   const genericRemaining = parseNum(getHeader("x-ratelimit-remaining"));
   const genericReset = getHeader("x-ratelimit-reset");
   if (genericLimit !== undefined || genericRemaining !== undefined) {
-    const tokensUsed = genericLimit !== undefined && genericRemaining !== undefined ? Math.max(0, genericLimit - genericRemaining) : undefined;
-    return { tokenLimit: genericLimit, tokensRemaining: genericRemaining, tokensUsed, windowResetMs: parseResetMs(genericReset) };
+    const tokensUsed =
+      genericLimit !== undefined && genericRemaining !== undefined
+        ? Math.max(0, genericLimit - genericRemaining)
+        : undefined;
+    return {
+      tokenLimit: genericLimit,
+      tokensRemaining: genericRemaining,
+      tokensUsed,
+      windowResetMs: parseResetMs(genericReset),
+    };
   }
 
   return null;
@@ -119,7 +137,9 @@ export function applyQuotaHeadersToState(
   const now = Date.now();
   const windowReset = parsed.windowResetMs ? now + parsed.windowResetMs : now + 60_000;
   const tokenLimit = parsed.tokenLimit ?? 0;
-  const tokensUsed = parsed.tokensUsed ?? (parsed.tokenLimit && parsed.tokensRemaining ? parsed.tokenLimit - parsed.tokensRemaining : 0);
+  const tokensUsed =
+    parsed.tokensUsed ??
+    (parsed.tokenLimit && parsed.tokensRemaining ? parsed.tokenLimit - parsed.tokensRemaining : 0);
 
   recordProviderQuotaUsage(connectionId, model, tokensUsed, {
     tokenLimit,

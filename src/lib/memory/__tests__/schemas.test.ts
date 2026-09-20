@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { MemoryConfigSchema, MemoryCreateInputSchema, MemoryUpdateInputSchema } from "../schemas";
 import { z } from "zod";
 

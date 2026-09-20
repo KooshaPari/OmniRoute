@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { CORS_HEADERS } from "../utils/cors.ts";
 /**
  * Responses API Handler for Workers

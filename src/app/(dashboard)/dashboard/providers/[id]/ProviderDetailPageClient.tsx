@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 "use client";
 
 // Issue #3501 strangler-fig decomposition — Phase 1t (final push)

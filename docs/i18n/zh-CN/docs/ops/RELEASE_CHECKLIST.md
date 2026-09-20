@@ -144,7 +144,7 @@ Husky hooks 位于 `.husky/` 目录，在 git 操作时自动运行。
 - [ ] 模型已在 `open-sse/config/providerRegistry.ts` 中注册
 - [ ] `tests/unit/` 中的单元测试覆盖服务商分类和路由
 
-### 桌面应用（Electron）
+### 桌面应用（Tauri 2）
 
 若 `electron/` 有变更：
 
@@ -158,11 +158,11 @@ Husky hooks 位于 `.husky/` 目录，在 git 操作时自动运行。
 
 仓库使用三个不同的输出目录 — 切勿混淆：
 
-| 目录       | 用途                                                     | 是否追踪？      |
-| ---------- | -------------------------------------------------------- | --------------- |
-| `src/`     | 应用源码（TypeScript / TSX）                              | 是              |
-| `.build/`  | 构建中间产物 — `next build` 输出（`distDir`）             | 否（gitignored） |
-| `dist/`    | 可分发的 npm 包 — 由 `assembleStandalone` 组装            | 否（gitignored） |
+| 目录      | 用途                                           | 是否追踪？       |
+| --------- | ---------------------------------------------- | ---------------- |
+| `src/`    | 应用源码（TypeScript / TSX）                   | 是               |
+| `.build/` | 构建中间产物 — `next build` 输出（`distDir`）  | 否（gitignored） |
+| `dist/`   | 可分发的 npm 包 — 由 `assembleStandalone` 组装 | 否（gitignored） |
 
 > **运维说明：** 远程 VPS 镜像目录仍为 `/usr/lib/node_modules/omniroute/app/`。
 > 仅**仓库内**的构建输出路径有变化（`app/` → `dist/`）。部署技能将 `dist/` 内容
@@ -295,30 +295,30 @@ npm run build:release
 
 ---
 
-## 回滚
+## Rollback
 
-若 Release 出现严重问题：
+If release has critical issue:
 
-1. `gh release edit vX.Y.Z --prerelease`（标记为非最新版本）
-2. `git tag -d vX.Y.Z && git push --delete origin vX.Y.Z`（仅限用户尚未采用时）
-3. 或：在 `release/vX.Y.0` 上做 hotfix → 发布补丁版本 `vX.Y.(Z+1)`
-4. 立即在 GitHub Discussions 和 Discord 中沟通
+1. `gh release edit vX.Y.Z --prerelease` (marks as not latest)
+2. `git tag -d vX.Y.Z && git push --delete origin vX.Y.Z` (only if not yet adopted by users)
+3. Or: hotfix on `release/vX.Y.0` → patch release `vX.Y.(Z+1)`
+4. Communicate in GitHub Discussions and Discord immediately
 
-## 硬性规则
+## Hard Rules
 
-- 切勿直接提交到 `main`
-- 切勿对 `main` 或 `release/*` 分支使用 `git push --force`
-- 切勿跳过 Husky hooks（`--no-verify`）
-- 切勿提交密钥、凭证或 `.env` 文件
-- 覆盖率必须保持 ≥60/60/60/60（语句/行/函数/分支）
-- 修改 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的生产代码时，始终包含或更新测试
+- Never commit directly to `main`
+- Never use `git push --force` to `main` or `release/*` branches
+- Never skip Husky hooks (`--no-verify`)
+- Never commit secrets, credentials, or `.env` files
+- Coverage must stay ≥60/60/60/60 (statements/lines/functions/branches)
+- Always include or update tests when changing production code in `src/`, `open-sse/`, or `bin/`
 
-## 自动同步检查
+## Automated Sync Check
 
-在发起 PR 前本地运行文档同步守卫：
+Run the docs sync guard locally before opening a PR:
 
 ```bash
 npm run check:docs-sync
 ```
 
-CI 也会在 `.github/workflows/ci.yml`（lint 任务）中运行此检查。
+CI also runs this check in `.github/workflows/ci.yml` (lint job).

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * tests/unit/quota-enforce.test.ts
  *
@@ -147,12 +148,7 @@ const { decideFairShare } = await import("../../src/lib/quota/fairShare.ts");
 
 const THRESHOLD = 0.5;
 
-function dim(
-  globalUsedPercent: number,
-  consumed: number,
-  limit = 1000,
-  consumedTotal?: number
-) {
+function dim(globalUsedPercent: number, consumed: number, limit = 1000, consumedTotal?: number) {
   return {
     key: { poolId: POOL_ID, unit: "tokens" as const, window: "hourly" as const },
     limit,
@@ -263,7 +259,11 @@ await test("enforceQuotaShare (via fairShare) — generous mode, burst, consumed
     saturationThreshold: THRESHOLD,
   });
 
-  assert.equal(decision.kind, "allow", "burst in generous mode → always allow while global headroom exists");
+  assert.equal(
+    decision.kind,
+    "allow",
+    "burst in generous mode → always allow while global headroom exists"
+  );
 });
 
 // ---------------------------------------------------------------------------

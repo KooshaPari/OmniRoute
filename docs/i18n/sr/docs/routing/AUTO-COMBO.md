@@ -1,6 +1,6 @@
 # AUTO-COMBO (Српски)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../routing/AUTO-COMBO.md) · 🇸🇦 [ar](../../../ar/docs/routing/AUTO-COMBO.md) · 🇦🇿 [az](../../../az/docs/routing/AUTO-COMBO.md) · 🇧🇬 [bg](../../../bg/docs/routing/AUTO-COMBO.md) · 🇧🇩 [bn](../../../bn/docs/routing/AUTO-COMBO.md) · 🇨🇿 [cs](../../../cs/docs/routing/AUTO-COMBO.md) · 🇩🇰 [da](../../../da/docs/routing/AUTO-COMBO.md) · 🇩🇪 [de](../../../de/docs/routing/AUTO-COMBO.md) · 🇬🇷 [el](../../../el/docs/routing/AUTO-COMBO.md) · 🇪🇸 [es](../../../es/docs/routing/AUTO-COMBO.md) · 🇪🇪 [et](../../../et/docs/routing/AUTO-COMBO.md) · 🇮🇷 [fa](../../../fa/docs/routing/AUTO-COMBO.md) · 🇫🇮 [fi](../../../fi/docs/routing/AUTO-COMBO.md) · 🇫🇷 [fr](../../../fr/docs/routing/AUTO-COMBO.md) · 🇮🇪 [ga](../../../ga/docs/routing/AUTO-COMBO.md) · 🇮🇳 [gu](../../../gu/docs/routing/AUTO-COMBO.md) · 🇮🇱 [he](../../../he/docs/routing/AUTO-COMBO.md) · 🇮🇳 [hi](../../../hi/docs/routing/AUTO-COMBO.md) · 🇭🇷 [hr](../../../hr/docs/routing/AUTO-COMBO.md) · 🇭🇺 [hu](../../../hu/docs/routing/AUTO-COMBO.md) · 🇮🇩 [id](../../../id/docs/routing/AUTO-COMBO.md) · 🇮🇹 [it](../../../it/docs/routing/AUTO-COMBO.md) · 🇯🇵 [ja](../../../ja/docs/routing/AUTO-COMBO.md) · 🇰🇷 [ko](../../../ko/docs/routing/AUTO-COMBO.md) · 🇱🇹 [lt](../../../lt/docs/routing/AUTO-COMBO.md) · 🇱🇻 [lv](../../../lv/docs/routing/AUTO-COMBO.md) · 🇮🇳 [mr](../../../mr/docs/routing/AUTO-COMBO.md) · 🇲🇾 [ms](../../../ms/docs/routing/AUTO-COMBO.md) · 🇲🇹 [mt](../../../mt/docs/routing/AUTO-COMBO.md) · 🇳🇱 [nl](../../../nl/docs/routing/AUTO-COMBO.md) · 🇳🇴 [no](../../../no/docs/routing/AUTO-COMBO.md) · 🇵🇭 [phi](../../../phi/docs/routing/AUTO-COMBO.md) · 🇵🇱 [pl](../../../pl/docs/routing/AUTO-COMBO.md) · 🇵🇹 [pt](../../../pt/docs/routing/AUTO-COMBO.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · 🇷🇴 [ro](../../../ro/docs/routing/AUTO-COMBO.md) · 🇷🇺 [ru](../../../ru/docs/routing/AUTO-COMBO.md) · 🇸🇰 [sk](../../../sk/docs/routing/AUTO-COMBO.md) · 🇸🇮 [sl](../../../sl/docs/routing/AUTO-COMBO.md) · 🇸🇪 [sv](../../../sv/docs/routing/AUTO-COMBO.md) · 🇰🇪 [sw](../../../sw/docs/routing/AUTO-COMBO.md) · 🇮🇳 [ta](../../../ta/docs/routing/AUTO-COMBO.md) · 🇮🇳 [te](../../../te/docs/routing/AUTO-COMBO.md) · 🇹🇭 [th](../../../th/docs/routing/AUTO-COMBO.md) · 🇹🇷 [tr](../../../tr/docs/routing/AUTO-COMBO.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · 🇵🇰 [ur](../../../ur/docs/routing/AUTO-COMBO.md) · 🇻🇳 [vi](../../../vi/docs/routing/AUTO-COMBO.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
+**Languages:** [English](../../../../routing/AUTO-COMBO.md) · [ar](../../../ar/docs/routing/AUTO-COMBO.md) · [az](../../../az/docs/routing/AUTO-COMBO.md) · [bg](../../../bg/docs/routing/AUTO-COMBO.md) · [bn](../../../bn/docs/routing/AUTO-COMBO.md) · [cs](../../../cs/docs/routing/AUTO-COMBO.md) · [da](../../../da/docs/routing/AUTO-COMBO.md) · [de](../../../de/docs/routing/AUTO-COMBO.md) · [el](../../../el/docs/routing/AUTO-COMBO.md) · [es](../../../es/docs/routing/AUTO-COMBO.md) · [et](../../../et/docs/routing/AUTO-COMBO.md) · [fa](../../../fa/docs/routing/AUTO-COMBO.md) · [fi](../../../fi/docs/routing/AUTO-COMBO.md) · [fr](../../../fr/docs/routing/AUTO-COMBO.md) · [ga](../../../ga/docs/routing/AUTO-COMBO.md) · [gu](../../../gu/docs/routing/AUTO-COMBO.md) · [he](../../../he/docs/routing/AUTO-COMBO.md) · [hi](../../../hi/docs/routing/AUTO-COMBO.md) · [hr](../../../hr/docs/routing/AUTO-COMBO.md) · [hu](../../../hu/docs/routing/AUTO-COMBO.md) · [id](../../../id/docs/routing/AUTO-COMBO.md) · [it](../../../it/docs/routing/AUTO-COMBO.md) · [ja](../../../ja/docs/routing/AUTO-COMBO.md) · [ko](../../../ko/docs/routing/AUTO-COMBO.md) · [lt](../../../lt/docs/routing/AUTO-COMBO.md) · [lv](../../../lv/docs/routing/AUTO-COMBO.md) · [mr](../../../mr/docs/routing/AUTO-COMBO.md) · [ms](../../../ms/docs/routing/AUTO-COMBO.md) · [mt](../../../mt/docs/routing/AUTO-COMBO.md) · [nl](../../../nl/docs/routing/AUTO-COMBO.md) · [no](../../../no/docs/routing/AUTO-COMBO.md) · [phi](../../../phi/docs/routing/AUTO-COMBO.md) · [pl](../../../pl/docs/routing/AUTO-COMBO.md) · [pt](../../../pt/docs/routing/AUTO-COMBO.md) · [pt-BR](../../../pt-BR/docs/routing/AUTO-COMBO.md) · [ro](../../../ro/docs/routing/AUTO-COMBO.md) · [ru](../../../ru/docs/routing/AUTO-COMBO.md) · [sk](../../../sk/docs/routing/AUTO-COMBO.md) · [sl](../../../sl/docs/routing/AUTO-COMBO.md) · [sv](../../../sv/docs/routing/AUTO-COMBO.md) · [sw](../../../sw/docs/routing/AUTO-COMBO.md) · [ta](../../../ta/docs/routing/AUTO-COMBO.md) · [te](../../../te/docs/routing/AUTO-COMBO.md) · [th](../../../th/docs/routing/AUTO-COMBO.md) · [tr](../../../tr/docs/routing/AUTO-COMBO.md) · [uk-UA](../../../uk-UA/docs/routing/AUTO-COMBO.md) · [ur](../../../ur/docs/routing/AUTO-COMBO.md) · [vi](../../../vi/docs/routing/AUTO-COMBO.md) · [zh-CN](../../../zh-CN/docs/routing/AUTO-COMBO.md) · [zh-TW](../../../zh-TW/docs/routing/AUTO-COMBO.md)
 
 ---
 
@@ -78,11 +78,11 @@ model: "auto/cheap"           # najjeftinije po tokenu
 
 **Ključne osobine:**
 
-- ✅ **Uvek aktivno:** Nema prekidača, kreiranja kombinacije ni potrebe za konfigurisanjem
-- ✅ **Dinamično:** Automatski odražava trenutno povezane provajdere
-- ✅ **Postojanost sesije:** LKGP obezbeđuje da posljednji uspešan provajder ima prioritet
-- ✅ **Svesnost više naloga:** Svaka veza sa provajderom postaje poseban kandidat
-- ✅ **Bez upisa u bazu:** Virtuelna kombinacija postoji samo za trajanje zahteva, bez ikakvog opterećenja za trajno čuvanje
+- **Uvek aktivno:** Nema prekidača, kreiranja kombinacije ni potrebe za konfigurisanjem
+- **Dinamično:** Automatski odražava trenutno povezane provajdere
+- **Postojanost sesije:** LKGP obezbeđuje da posljednji uspešan provajder ima prioritet
+- **Svesnost više naloga:** Svaka veza sa provajderom postaje poseban kandidat
+- **Bez upisa u bazu:** Virtuelna kombinacija postoji samo za trajanje zahteva, bez ikakvog opterećenja za trajno čuvanje
 
 ### Kontrola kandidata po ključu (#7819, Nivo 1+2)
 
@@ -306,10 +306,10 @@ OmniRoute-ов combo енџин подржава **19 стратегија ру�
 | `lkgp`              | Last-Known-Good Path (пин на последњи успешан провајдер, уз повратак на правила)                                                                                                                 |
 | `context-optimized` | Бира циљ који најбоље одговара тренутној величини контекста                                                                                                                                      |
 | `cache-optimized`   | Преуређује циљеве по афинитету према prompt-cache-у — прва се проба веза која најпробабилније већ садржи кеширани префикс овог захтева (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Паралелно шаље захтев панелу модела, затим синтетизује један одговор преко „судије” (види испод)                                                                                                 |
+| `fusion`            | Паралелно шаље захтев панелу модела, затим синтетизује један одговор преко „судије” (види испод)                                                                                                 |
 | `pipeline`          | Извршава циљеве секвенцијално, прослеђујући излаз сваког корака као улаз следећег; враћа се само коначан одговор (#6396)                                                                         |
 
-⭐ = Ново у v3.8.0 · 🧬 = Ново у v3.8.36
+⭐ = Ново у v3.8.0 · = Ново у v3.8.36
 
 ### Семантика `weighted`
 

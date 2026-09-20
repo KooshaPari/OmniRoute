@@ -173,9 +173,9 @@ export function resolveNextBuildEnv(baseEnv = process.env, platform = process.pl
   // Windows-only: `next build`'s static-generation glob scan and framework cache
   // helpers walk %USERPROFILE%/AppData, which on GitHub-hosted Windows runners (and
   // some OneDrive-backed dev profiles) contains reparse points/junctions that raise
-  // EPERM during Next's file-system scans. `.github/workflows/electron-release.yml`
-  // ("Sanitize Windows home directory" step) already patches USERPROFILE for the CI
-  // runner, but that only covers the electron-release CI job — a local `npm run
+  // EPERM during Next's file-system scans. CI workflows ("Sanitize Windows home
+  // directory" step) already patch USERPROFILE for the CI runner, but that only
+  // covers specific CI jobs — a local `npm run
   // build` on Windows (or any other Windows CI path that calls this script
   // directly) hits the same EPERM unprotected. Doing the isolation here covers
   // every caller of build-next-isolated.mjs, not just one workflow step. Skipped
@@ -356,7 +356,7 @@ export async function main() {
           distDir,
           outDir: standaloneDir,
           projectRoot,
-          // Match the hardened packaging path used by Electron builds:
+          // Use the hardened packaging path:
           // Turbopack can emit hashed external-package references and
           // standalone symlinks that break after the bundle is moved/copied.
           patchTurbopackChunks: true,

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { expect, type Page } from "@playwright/test";
 
 type GotoDashboardRouteOptions = {

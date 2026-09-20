@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * @file live-gemini-agentic-loop.test.ts
  * @description Live 3-turn Gemini combo agentic loop with cooldown-wait + keepalive.

@@ -20,19 +20,19 @@ Traffic Inspector to wbudowany debugger ruchu HTTPS w OmniRoute — narzędzie w
 
 | Feature                                                                | mitmweb | Charles | Fiddler | **OmniRoute Traffic Inspector** |
 | ---------------------------------------------------------------------- | :-----: | :-----: | :-----: | :-----------------------------: |
-| Interfejs webowy                                                       |    ✓    |    ✗    |    ✗    |                ✓                |
-| Open-source                                                            |    ✓    |    ✗    | partial |                ✓                |
-| **Agent-aware** (wie, czy żądanie pochodzi z Antigravity/Copilot/itd.) |    ✗    |    ✗    |    ✗    |                ✓                |
-| **LLM-aware** (parsuje kształt OpenAI/Anthropic/Gemini, tokeny, model) |    ✗    |    ✗    |    ✗    |                ✓                |
-| **Widoczne mapowanie modeli** (gemini-3-flash → claude-sonnet-4.7)     |    ✗    |    ✗    |    ✗    |                ✓                |
-| **Podział latencji proxy/upstream**                                    | partial |    ✗    |    ✗    |                ✓                |
-| **Zintegrowany z OmniRoute** routing, fallback, cost                   |    ✗    |    ✗    |    ✗    |                ✓                |
-| **Debug proxy systemowego** (dowolna aplikacja na maszynie)            |    ✓    |    ✓    |    ✓    |                ✓                |
-| **Przechwytywanie custom host** (per-host DNS redirect)                |    ✓    |    ✓    |    ✓    |                ✓                |
-| **Tryb HTTP_PROXY env**                                                |    ✓    |    ✓    |    ✓    |                ✓                |
-| **Widok Conversation** (multi-turn bubbles, tool_use/tool_result)      |    ✗    |    ✗    |    ✗    |                ✓                |
-| **SSE stream merger** (rekonstrukcja z eventów delta)                  |    ✗    |    ✗    |    ✗    |                ✓                |
-| **Nagrywanie sesji** (nazwane, eksport .har/.jsonl)                    |    ✗    |    ✓    |    ✓    |                ✓                |
+| Interfejs webowy                                                       |         |         |         |                                 |
+| Open-source                                                            |         |         | partial |                                 |
+| **Agent-aware** (wie, czy żądanie pochodzi z Antigravity/Copilot/itd.) |         |         |         |                                 |
+| **LLM-aware** (parsuje kształt OpenAI/Anthropic/Gemini, tokeny, model) |         |         |         |                                 |
+| **Widoczne mapowanie modeli** (gemini-3-flash → claude-sonnet-4.7)     |         |         |         |                                 |
+| **Podział latencji proxy/upstream**                                    | partial |         |         |                                 |
+| **Zintegrowany z OmniRoute** routing, fallback, cost                   |         |         |         |                                 |
+| **Debug proxy systemowego** (dowolna aplikacja na maszynie)            |         |         |         |                                 |
+| **Przechwytywanie custom host** (per-host DNS redirect)                |         |         |         |                                 |
+| **Tryb HTTP_PROXY env**                                                |         |         |         |                                 |
+| **Widok Conversation** (multi-turn bubbles, tool_use/tool_result)      |         |         |         |                                 |
+| **SSE stream merger** (rekonstrukcja z eventów delta)                  |         |         |         |                                 |
+| **Nagrywanie sesji** (nazwane, eksport .har/.jsonl)                    |         |         |         |                                 |
 
 ### Architektura w jednym akapicie
 
@@ -100,7 +100,7 @@ export HTTPS_PROXY=http://127.0.0.1:8080
 - Timer auto-wyłączenia (domyślnie 30 min, konfigurowalny przez `INSPECTOR_SYSTEM_PROXY_GUARD_MINUTES`)
 - Poprzedni stan proxy systemowego jest zapisywany w DB i przywracany przy revert
 - Dashboard pokazuje prompt „Reverting system proxy”, jeśli użytkownik odejdzie ze strony przy aktywnym trybie
-- UI pokazuje odznakę `⚠ Advanced` + jawny checkbox potwierdzenia
+- UI pokazuje odznakę ` Advanced` + jawny checkbox potwierdzenia
 
 ### Mode 5 — przezroczyste deszyfrowanie TPROXY (Linux, root, opt-in)
 
@@ -132,19 +132,19 @@ To istotny podsystem z własnym przewodnikiem operatorskim — zobacz **[`docs/s
 ```
 ┌─ Traffic Inspector ─────────────────────────────────────────────────────┐
 │ ┌─ Capture sources toolbar ─────────────────────────────────────────┐   │
-│ │ [✓ AgentBridge]  [✓ Custom hosts (3)]  [○ HTTP_PROXY]  [○ System]│   │
+│ │ [ AgentBridge]  [ Custom hosts (3)]  [○ HTTP_PROXY]  [○ System]│   │
 │ └─────────────────────────────────────────────────────────────────────┘  │
 │ ┌─ Filter/control bar ──────────────────────────────────────────────┐   │
 │ │ Profile: (●) LLM only  (○) Custom  (○) All                        │   │
-│ │ [⎉ Pause] [🗑 Clear] [⬇ .har] [● REC session]    ● live 482/1k  │   │
+│ │ [⎉ Pause] [ Clear] [⬇ .har] [● REC session]    ● live 482/1k  │   │
 │ └─────────────────────────────────────────────────────────────────────┘  │
 ├══◀▶══════════════════════════════╬══════════════════════════════════════╤╡
 │ REQUEST LIST (resizable)         ║ DETAIL PANE                         ▲ │
 │ ────────────────────────────── │ ║ [Conversation][Headers][Request]    │ │
 │ ▎ 14:32 POST 200 12k AG openai ║ [Response][Timing][LLM][Stats]      │ │
 │ ▎ 14:31 POST 200 8k  CP openai ║                                     ▼ │
-│ ▎ 14:31 POST 503 ⚠   KR ...   ║                                       │
-│ ▎ 14:30 GET  200 3k  🌐 custom ║                                       │
+│ ▎ 14:31 POST 503 KR ...   ║                                       │
+│ ▎ 14:30 GET  200 3k  custom ║                                       │
 └══════════════════════════════════╝══════════════════════════════════════╝
 ```
 
@@ -153,7 +153,7 @@ To istotny podsystem z własnym przewodnikiem operatorskim — zobacz **[`docs/s
 - **Wirtualizowana** (`useVirtualList` + `ResizeObserver`): obsługuje 1000 elementów bez zamrażania
 - **Auto-scroll** z przełącznikiem pauzy podczas inspekcji
 - **Kolorowany status**: zielony (2xx), żółty (3xx), czerwony (4xx/5xx), szary (in-flight)
-- **Emoji agenta**: 🔵 Antigravity, 🟢 Copilot, 🟠 Kiro, 🟣 Codex, 🔷 Cursor, 🟤 Zed, 🟡 Claude Code, ⚫ Open Code, 🌐 custom host
+- **Emoji agenta**: Antigravity, Copilot, Kiro, Codex, Cursor, Zed, Claude Code, Open Code, custom host
 - **Pasek koloru kontekstu**: 1px lewa ramka kolorowana według `contextKey` (SHA-256 system promptu) — wizualnie grupuje powiązane rozmowy
 - **Leniwe body**: tylko body wybranego żądania jest materializowane w zakładkach szczegółów (unika renderowania 1000 × 1MB body)
 
@@ -174,7 +174,7 @@ To istotny podsystem z własnym przewodnikiem operatorskim — zobacz **[`docs/s
 | Control          | Action                                                                     |
 | ---------------- | -------------------------------------------------------------------------- |
 | ⎉ Pause          | Zatrzymuje renderowanie nowych żądań; badge „X new” się kumuluje           |
-| 🗑 Clear          | Czyści listę UI (bufor serwera pozostaje nietknięty)                       |
+| Clear            | Czyści listę UI (bufor serwera pozostaje nietknięty)                       |
 | ⬇ Export .har    | Pobiera bieżącą przefiltrowaną listę jako plik HAR                         |
 | ● Record session | Startuje nazwaną sesję nagrywania                                          |
 | Profile selector | LLM only / Custom hosts / All                                              |
@@ -310,7 +310,7 @@ to follow-up).
 
 1. Kliknij **„● Record session”** na toolbarze → podaj nazwę (opcjonalnie)
 2. Live tail działa normalnie; czerwony pulsujący wskaźnik pokazuje `◉ REC · <name> · 00:42 · 23 reqs`
-3. Kliknij **„⏹ Stop”** → snapshot sesji trafia do `inspector_sessions` + `inspector_session_requests`
+3. Kliknij **„ Stop”** → snapshot sesji trafia do `inspector_sessions` + `inspector_session_requests`
 
 ### 5.2 Podgląd nagranej sesji
 

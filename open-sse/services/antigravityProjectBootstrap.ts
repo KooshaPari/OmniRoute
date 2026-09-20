@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Antigravity project bootstrap — loadCodeAssist + onboardUser.
  *

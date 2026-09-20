@@ -176,7 +176,7 @@ http.createServer = function createServerWithResponsesWs(...args) {
   // keep-alive HTTP clients that idle longer than that between requests (e.g.
   // the JVM java.net.http.HttpClient used by JetBrains AI Assistant), which
   // reuse a socket the server already tore down and get 0 response bytes back
-  // (#7003). This wrapper is what `omniroute serve` / Docker / Electron actually
+  // (#7003). This wrapper is what `omniroute serve` / Docker actually
   // spawn in production (run-standalone.mjs prefers server-ws.mjs over the bare
   // Next server.js), so it needs the same fix already wired into run-next.mjs
   // (the dev-only entry point) — otherwise real installs never got it. Raise

@@ -1,0 +1,17 @@
+{
+  "kind": "decision",
+  "schema_version": "1.0.0",
+  "id": "DEC-01",
+  "record_status": "OPERATIONAL",
+  "created_at": "2026-09-15T07:04:42Z",
+  "subject_ref": "subject.json",
+  "authority_ref": "assessment-protocol",
+  "disposition": "IMPROVE",
+  "status": "ACCEPTED",
+  "evidence_refs": ["E-001", "E-009"],
+  "alternatives": ["Defer to Evaluate mode", "Proceed with remediation first"],
+  "rationale": "Screen-mode assessment complete. 19/20 instances pass. 3 findings identified. Recommend addressing F-02 (HIGH) first.",
+  "resource_envelope_ref": "screen-mode-budget",
+  "reversal_condition": "New evidence from Evaluate mode changes severity assessment",
+  "execution_receipt_refs": []
+}

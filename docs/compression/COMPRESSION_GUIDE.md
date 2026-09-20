@@ -1,10 +1,10 @@
 ---
-title: "🗜️ Prompt Compression Guide — OmniRoute"
+title: " Prompt Compression Guide — OmniRoute"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# 🗜️ Prompt Compression Guide — OmniRoute
+# Prompt Compression Guide — OmniRoute
 
 > Save 15-95% on eligible context automatically. For a quick overview, see the [README Compression section](../README.md#%EF%B8%8F-prompt-compression--save-15-95-eligible-tokens-automatically).
 
@@ -268,13 +268,13 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 The compression engine **always preserves:**
 
-- ✅ Code blocks (fenced and inline)
-- ✅ URLs and file paths
-- ✅ JSON structures and structured data
-- ✅ Identifiers and protected technical tokens
-- ✅ Mathematical expressions
-- ✅ Tool/function call definitions
-- ✅ System prompts (in lite mode)
+- Code blocks (fenced and inline)
+- URLs and file paths
+- JSON structures and structured data
+- Identifiers and protected technical tokens
+- Mathematical expressions
+- Tool/function call definitions
+- System prompts (in lite mode)
 
 RTK raw-output recovery redacts common API keys, bearer tokens, Slack tokens, AWS access keys,
 passwords, tokens, and secrets before anything is persisted.
@@ -303,13 +303,13 @@ Every compressed request includes stats in the server logs:
 
 ## Phase Roadmap
 
-| Phase    | Modes                                                                                                        | Status                                                                 |
-| -------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| Phase 1  | Off, Lite                                                                                                    | ✅ Shipped                                                             |
-| Phase 2  | Standard, Aggressive, Ultra                                                                                  | ✅ Shipped                                                             |
-| Phase 3  | RTK, Stacked, Compression Combos                                                                             | ✅ Shipped                                                             |
-| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                  | ✅ Shipped                                                             |
-| Phase 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) + dashboard mode/policy controls | ✅ Shipped |
+| Phase    | Modes                                                                                                                                         | Status  |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Phase 1  | Off, Lite                                                                                                                                     | Shipped |
+| Phase 2  | Standard, Aggressive, Ultra                                                                                                                   | Shipped |
+| Phase 3  | RTK, Stacked, Compression Combos                                                                                                              | Shipped |
+| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                                                   | Shipped |
+| Phase 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) + dashboard mode/policy controls | Shipped |
 
 ---
 
@@ -454,13 +454,13 @@ into a catalog of composable output styles: `OUTPUT_STYLE_CATALOG` in
 instruction that makes the model itself produce cheaper output; styles can be enabled
 together and are injected in catalog order.
 
-| Style | `id` | What it does | Instruction languages |
-| --- | --- | --- | --- |
-| Terse prose | `terse-prose` | Drop filler/articles/hedging; keep technical substance exact. Same text as the legacy caveman output mode (referenced, not re-typed). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
-| Less code | `less-code` | YAGNI ladder: smallest working change, no unrequested abstractions. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
-| Ponytail (lazy senior dev) | `ponytail` | "The best code is the code never written": reuse > rewrite, root cause > symptom, shortest working diff. | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
-| I have ADHD (action-first) | `i-have-adhd` | Action first (command/path/snippet before prose), numbered bounded steps, ONE concrete next step, no preamble/recap/closers. Adapted from [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi |
-| Terse CJK (文言) | `terse-cjk` | Classical-Chinese ultra-terse style. | zh (locale-gated: only offered when the resolved language is `zh`) |
+| Style                      | `id`          | What it does                                                                                                                                                                                                 | Instruction languages                                              |
+| -------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Terse prose                | `terse-prose` | Drop filler/articles/hedging; keep technical substance exact. Same text as the legacy caveman output mode (referenced, not re-typed).                                                                        | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                      |
+| Less code                  | `less-code`   | YAGNI ladder: smallest working change, no unrequested abstractions.                                                                                                                                          | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                      |
+| Ponytail (lazy senior dev) | `ponytail`    | "The best code is the code never written": reuse > rewrite, root cause > symptom, shortest working diff.                                                                                                     | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                      |
+| I have ADHD (action-first) | `i-have-adhd` | Action first (command/path/snippet before prose), numbered bounded steps, ONE concrete next step, no preamble/recap/closers. Adapted from [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT). | en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi                      |
+| Terse CJK (文言)           | `terse-cjk`   | Classical-Chinese ultra-terse style.                                                                                                                                                                         | zh (locale-gated: only offered when the resolved language is `zh`) |
 
 Every style ships three intensity levels — `lite`, `full`, `ultra` — and every level
 ends with the shared boundaries clause, which keeps code blocks, file paths, commands,

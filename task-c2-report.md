@@ -46,11 +46,11 @@ real é o `clearTimeout` no `finally` — e refiz o mutation-check:
 
 ```
 --- MUTATED (clearTimeout removed) ---
-✖ collectMemoryHits leaves no pending timer behind on either path (20.667659ms)
+collectMemoryHits leaves no pending timer behind on either path (20.667659ms)
 ℹ pass 15
 ℹ fail 1
 --- RESTORED ---
-✔ collectMemoryHits leaves no pending timer behind on either path (9.073282ms)
+collectMemoryHits leaves no pending timer behind on either path (9.073282ms)
 ℹ pass 16
 ℹ fail 0
 ```

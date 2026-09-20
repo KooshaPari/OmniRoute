@@ -61,7 +61,7 @@ API key it created, even on failure (`finally` block in `scripts/homolog/run.mjs
 
 All output lands in `homolog-report/` (gitignored):
 
-- `summary.md` — the same table printed to stdout, one row per layer (✅/❌ + detail).
+- `summary.md` — the same table printed to stdout, one row per layer (/ + detail).
 - `homolog-ctrf.json` — the unified CTRF report (merge of API/SSE, provider-smoke, and
   UI results) — this is the artifact to attach to a release STOP #2 checklist.
 - `httpyac-junit.xml`, `api-ctrf.json`, `providers-ctrf.json`, `ui-ctrf.json` — the

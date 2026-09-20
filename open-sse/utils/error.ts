@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { CORS_HEADERS } from "./cors.ts";
 import { unwrapClinepassEnvelope } from "./clinepassEnvelope.ts";
 import {

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { afterEach, describe, expect, it } from "vitest";
 import { A2ATaskManager, type A2APersistence } from "../../../src/lib/a2a/taskManager.ts";
 import { executeA2ATaskWithState } from "../../../src/lib/a2a/taskExecution.ts";

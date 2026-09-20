@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { beforeAll, describe, it, expect } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";

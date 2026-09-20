@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
@@ -17,7 +18,10 @@ describe("intentClassifier", () => {
     });
 
     it("classifies reasoning intent", () => {
-      assert.equal(mod.classifyPromptIntent("Explain the reasoning behind quantum mechanics"), "reasoning");
+      assert.equal(
+        mod.classifyPromptIntent("Explain the reasoning behind quantum mechanics"),
+        "reasoning"
+      );
     });
 
     it("classifies creative intent", () => {

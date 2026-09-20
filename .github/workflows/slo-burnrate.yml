@@ -2,13 +2,15 @@ name: slo-burnrate
 permissions:
   contents: read
 on:
-  schedule: [{cron: '0 */6 * * *'}]
+  schedule: [{ cron: "0 */6 * * *" }]
   workflow_dispatch: {}
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
       - run: echo "Checking SLO burn-rate thresholds..."
       - name: Alert if config drift
         run: |

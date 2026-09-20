@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tests for useTrafficStream — WebSocket snapshot/new/update/clear + reconnect backoff
  */
@@ -179,10 +180,7 @@ describe("useTrafficStream core logic", () => {
   });
 
   it("TrafficStreamState interface includes pendingCount field (R5-9)", () => {
-    assert.ok(
-      HOOK_SRC.includes("pendingCount"),
-      "TrafficStreamState should expose pendingCount"
-    );
+    assert.ok(HOOK_SRC.includes("pendingCount"), "TrafficStreamState should expose pendingCount");
   });
 
   it("pendingCount increments when paused and new event arrives (R5-9)", () => {

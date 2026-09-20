@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 "use client";
 
 // Phase 1t.6 extraction — Issue #3501

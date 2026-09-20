@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Common scalar grammar for GCF (Graph Compact Format).
  * Vendored from gcf-typescript — generic profile only. Current with GCF spec v3.2

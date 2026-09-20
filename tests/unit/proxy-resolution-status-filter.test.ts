@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * TDD — proxy resolution must not hand out a proxy that has been explicitly
  * marked dead (status inactive/error/disabled). Today the resolution queries

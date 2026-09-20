@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import "../../open-sse/utils/setupPolyfill.ts";
 import test, { describe, beforeEach, mock } from "node:test";
 import assert from "node:assert/strict";
@@ -119,18 +120,14 @@ describe("Sync Pull — Manifest Diff", () => {
   });
 
   test("skips files where both mtime and size match", () => {
-    const serverFiles: ManifestEntry[] = [
-      { path: "a.md", mtime: 1000, size: 100 },
-    ];
+    const serverFiles: ManifestEntry[] = [{ path: "a.md", mtime: 1000, size: 100 }];
     const localMap = new Map([["a.md", { path: "a.md", mtime: 1000, size: 100 }]]);
     const result = buildPullResult(serverFiles, [], [], localMap, 0);
     assert.equal(result.filesToPull.length, 0);
   });
 
   test("returns file when mtime differs even if size matches", () => {
-    const serverFiles: ManifestEntry[] = [
-      { path: "a.md", mtime: 2000, size: 100 },
-    ];
+    const serverFiles: ManifestEntry[] = [{ path: "a.md", mtime: 2000, size: 100 }];
     const localMap = new Map([["a.md", { path: "a.md", mtime: 1000, size: 100 }]]);
     const result = buildPullResult(serverFiles, [], [], localMap, 0);
     assert.equal(result.filesToPull.length, 1);
@@ -138,18 +135,14 @@ describe("Sync Pull — Manifest Diff", () => {
   });
 
   test("returns file when size differs even if mtime matches", () => {
-    const serverFiles: ManifestEntry[] = [
-      { path: "a.md", mtime: 1000, size: 200 },
-    ];
+    const serverFiles: ManifestEntry[] = [{ path: "a.md", mtime: 1000, size: 200 }];
     const localMap = new Map([["a.md", { path: "a.md", mtime: 1000, size: 100 }]]);
     const result = buildPullResult(serverFiles, [], [], localMap, 0);
     assert.equal(result.filesToPull.length, 1);
   });
 
   test("returns file when local has no entry for it", () => {
-    const serverFiles: ManifestEntry[] = [
-      { path: "new.md", mtime: 1000, size: 50 },
-    ];
+    const serverFiles: ManifestEntry[] = [{ path: "new.md", mtime: 1000, size: 50 }];
     const localMap = new Map([["other.md", { path: "other.md", mtime: 1000, size: 100 }]]);
     const result = buildPullResult(serverFiles, [], [], localMap, 0);
     assert.equal(result.filesToPull.length, 1);
@@ -157,7 +150,10 @@ describe("Sync Pull — Manifest Diff", () => {
   });
 
   test("returns only folders not tracked in local manifest", () => {
-    const localMap = new Map([["existing-folder/note.md", { path: "existing-folder/note.md", mtime: 1000, size: 100 }], ["existing-folder", { path: "existing-folder", mtime: 0, size: 0 }]]);
+    const localMap = new Map([
+      ["existing-folder/note.md", { path: "existing-folder/note.md", mtime: 1000, size: 100 }],
+      ["existing-folder", { path: "existing-folder", mtime: 0, size: 0 }],
+    ]);
     const result = buildPullResult([], ["existing-folder", "new-folder"], [], localMap, 0);
     assert.deepEqual(result.folders, ["new-folder"]);
   });
@@ -178,9 +174,7 @@ describe("Sync Pull — Manifest Diff", () => {
   });
 
   test("returns empty when all tombstones are older than since", () => {
-    const tombstones: TombstoneEntry[] = [
-      { path: "a.md", deletedAt: 100, deletedBy: "desktop" },
-    ];
+    const tombstones: TombstoneEntry[] = [{ path: "a.md", deletedAt: 100, deletedBy: "desktop" }];
     const result = buildPullResult([], [], tombstones, new Map(), 9999);
     assert.equal(result.tombstones.length, 0);
   });
@@ -267,13 +261,14 @@ describe("Tombstone Log", () => {
     ];
     const filtered = filterTombstones(tombstones, 150);
     assert.equal(filtered.length, 2);
-    assert.deepEqual(filtered.map((t) => t.path), ["b.md", "c.md"]);
+    assert.deepEqual(
+      filtered.map((t) => t.path),
+      ["b.md", "c.md"]
+    );
   });
 
   test("filterTombstones returns empty when since is after all", () => {
-    const tombstones: TombstoneEntry[] = [
-      { path: "a.md", deletedAt: 100, deletedBy: "d" },
-    ];
+    const tombstones: TombstoneEntry[] = [{ path: "a.md", deletedAt: 100, deletedBy: "d" }];
     const filtered = filterTombstones(tombstones, 999999);
     assert.equal(filtered.length, 0);
   });
@@ -360,11 +355,7 @@ describe("Conflict File Detection", () => {
   });
 
   test("does not match partial path names", () => {
-    const allFiles = [
-      "daily.md",
-      "daily.md.conflict-1717000000000.md",
-      "daily.md.backup",
-    ];
+    const allFiles = ["daily.md", "daily.md.conflict-1717000000000.md", "daily.md.backup"];
     const conflicts = findConflictFiles(allFiles, "daily.md");
     assert.equal(conflicts.length, 1);
     assert.equal(conflicts[0], "daily.md.conflict-1717000000000.md");
@@ -381,11 +372,7 @@ describe("Conflict File Detection", () => {
   });
 
   test("does not match non-.conflict- files with similar prefix", () => {
-    const allFiles = [
-      "note.md",
-      "note.md.conflict-1000.md",
-      "note.md.conflicting.md",
-    ];
+    const allFiles = ["note.md", "note.md.conflict-1000.md", "note.md.conflicting.md"];
     const conflicts = findConflictFiles(allFiles, "note.md");
     assert.equal(conflicts.length, 1);
     assert.equal(conflicts[0], "note.md.conflict-1000.md");

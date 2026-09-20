@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Batch A — Domain Layer + Infrastructure Tests
  *

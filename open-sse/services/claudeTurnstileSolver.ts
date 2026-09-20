@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Cloudflare Turnstile Solver for Claude Web
  *

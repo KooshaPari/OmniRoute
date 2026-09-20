@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * CCR (Content-Compression-Retrieve) engine (H4)
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // Regression test for the anthropic-compatible connection validator.
 //
 // Upstream fix: GET /models is not part of the Anthropic API spec; many
@@ -20,61 +21,55 @@ test.afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 
-test(
-  "anthropic-compatible validation falls back to /messages when /models returns 403",
-  async () => {
-    const calls: { url: string; method: string }[] = [];
-    globalThis.fetch = async (url: any, init: any = {}) => {
-      const u = String(url);
-      const method = String(init?.method || "GET").toUpperCase();
-      calls.push({ url: u, method });
-      if (u.endsWith("/models")) {
-        return new Response(JSON.stringify({ error: "forbidden on models" }), { status: 403 });
-      }
-      // /messages: upstream accepts the key but rejects the toy payload with 400.
-      return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
-    };
+test("anthropic-compatible validation falls back to /messages when /models returns 403", async () => {
+  const calls: { url: string; method: string }[] = [];
+  globalThis.fetch = async (url: any, init: any = {}) => {
+    const u = String(url);
+    const method = String(init?.method || "GET").toUpperCase();
+    calls.push({ url: u, method });
+    if (u.endsWith("/models")) {
+      return new Response(JSON.stringify({ error: "forbidden on models" }), { status: 403 });
+    }
+    // /messages: upstream accepts the key but rejects the toy payload with 400.
+    return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
+  };
 
-    const result = await validateProviderApiKey({
-      provider: "anthropic-compatible-403-on-models",
-      apiKey: "sk-test",
-      providerSpecificData: { baseUrl: "https://proxy.example.com/v1/messages" },
-    });
+  const result = await validateProviderApiKey({
+    provider: "anthropic-compatible-403-on-models",
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: "https://proxy.example.com/v1/messages" },
+  });
 
-    // BEFORE the fix this returned { valid: false, error: "Invalid API key" }
-    // because validateAnthropicCompatibleProvider short-circuited on the 403
-    // from GET /models without ever probing POST /v1/messages.
-    assert.equal(result.valid, true, "403 on /models alone must NOT mark the key invalid");
-    assert.equal(result.error, null);
+  // BEFORE the fix this returned { valid: false, error: "Invalid API key" }
+  // because validateAnthropicCompatibleProvider short-circuited on the 403
+  // from GET /models without ever probing POST /v1/messages.
+  assert.equal(result.valid, true, "403 on /models alone must NOT mark the key invalid");
+  assert.equal(result.error, null);
 
-    // The validator must actually exercise the messages endpoint.
-    const messagesCall = calls.find(
-      (call) => call.url.endsWith("/messages") && call.method === "POST"
-    );
-    assert.ok(messagesCall, "expected a POST /messages probe after /models 403");
-  }
-);
+  // The validator must actually exercise the messages endpoint.
+  const messagesCall = calls.find(
+    (call) => call.url.endsWith("/messages") && call.method === "POST"
+  );
+  assert.ok(messagesCall, "expected a POST /messages probe after /models 403");
+});
 
-test(
-  "anthropic-compatible validation still rejects when /messages itself returns 401",
-  async () => {
-    // Symmetry guard: the fix must NOT make every 403/401 pass. Only the
-    // messages probe is authoritative — if it also rejects auth, the key is bad.
-    globalThis.fetch = async (url: any) => {
-      const u = String(url);
-      if (u.endsWith("/models")) {
-        return new Response(JSON.stringify({ error: "no models endpoint" }), { status: 403 });
-      }
-      return new Response(JSON.stringify({ error: "invalid_api_key" }), { status: 401 });
-    };
+test("anthropic-compatible validation still rejects when /messages itself returns 401", async () => {
+  // Symmetry guard: the fix must NOT make every 403/401 pass. Only the
+  // messages probe is authoritative — if it also rejects auth, the key is bad.
+  globalThis.fetch = async (url: any) => {
+    const u = String(url);
+    if (u.endsWith("/models")) {
+      return new Response(JSON.stringify({ error: "no models endpoint" }), { status: 403 });
+    }
+    return new Response(JSON.stringify({ error: "invalid_api_key" }), { status: 401 });
+  };
 
-    const result = await validateProviderApiKey({
-      provider: "anthropic-compatible-truly-bad-key",
-      apiKey: "sk-bad",
-      providerSpecificData: { baseUrl: "https://proxy.example.com/v1/messages" },
-    });
+  const result = await validateProviderApiKey({
+    provider: "anthropic-compatible-truly-bad-key",
+    apiKey: "sk-bad",
+    providerSpecificData: { baseUrl: "https://proxy.example.com/v1/messages" },
+  });
 
-    assert.equal(result.valid, false);
-    assert.equal(result.error, "Invalid API key");
-  }
-);
+  assert.equal(result.valid, false);
+  assert.equal(result.error, "Invalid API key");
+});

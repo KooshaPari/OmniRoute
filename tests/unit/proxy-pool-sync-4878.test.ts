@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import "../../open-sse/utils/setupPolyfill.ts";
 import test from "node:test";
 import assert from "node:assert/strict";

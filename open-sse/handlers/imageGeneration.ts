@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { randomUUID } from "crypto";
 /** Image generation handler for POST /v1/images/generations (OpenAI-compatible). */
 

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import { describe, it } from "node:test";
 import assert from "node:assert";
 import {
@@ -40,7 +41,7 @@ describe("ChipotleExecutor", () => {
     const result = (executor as any).transformRequest(
       "pepper-1",
       { model: "pepper-1", messages: [{ role: "user", content: "hi" }] },
-      false,
+      false
     );
     assert.strictEqual(result.model, "pepper-1");
   });

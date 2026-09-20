@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -338,4 +339,3 @@ test("Provider registry: blackbox-web models are exposed", async () => {
   }
   // If not present, skip assertions - provider may have been temporarily removed
 });
-

@@ -1,15 +1,11 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 
 import { USAGE_SUPPORTED_PROVIDERS } from "../../src/shared/constants/providers.ts";
 import { supportsProviderQuota } from "../../src/shared/utils/providerQuotaVisibility.ts";
-import {
-  USAGE_FETCHER_PROVIDERS,
-  getUsageForProvider,
-} from "../../open-sse/services/usage.ts";
-import {
-  getAgentrouterUsage,
-} from "../../open-sse/services/usage/agentrouter.ts";
+import { USAGE_FETCHER_PROVIDERS, getUsageForProvider } from "../../open-sse/services/usage.ts";
+import { getAgentrouterUsage } from "../../open-sse/services/usage/agentrouter.ts";
 import {
   invalidateAgentrouterQuotaCache,
   type AgentrouterQuota,

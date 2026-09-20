@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 import React from "react";
 import { act } from "react";
@@ -19,20 +20,39 @@ vi.mock("next/navigation", () => ({
 // --- Mock shared components ---
 vi.mock("@/shared/components", () => ({
   Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <div data-testid="card" className={className}>{children}</div>
+    <div data-testid="card" className={className}>
+      {children}
+    </div>
   ),
-  Button: ({ children, onClick, disabled, loading, "aria-label": ariaLabel }: {
+  Button: ({
+    children,
+    onClick,
+    disabled,
+    loading,
+    "aria-label": ariaLabel,
+  }: {
     children?: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
     loading?: boolean;
     "aria-label"?: string;
   }) => (
-    <button data-testid="button" onClick={onClick} disabled={disabled || loading} aria-label={ariaLabel}>
+    <button
+      data-testid="button"
+      onClick={onClick}
+      disabled={disabled || loading}
+      aria-label={ariaLabel}
+    >
       {children}
     </button>
   ),
-  Select: ({ options = [], value, onChange, placeholder, "aria-label": ariaLabel }: {
+  Select: ({
+    options = [],
+    value,
+    onChange,
+    placeholder,
+    "aria-label": ariaLabel,
+  }: {
     options?: Array<{ value: string; label: string }>;
     value?: string;
     onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
@@ -42,11 +62,18 @@ vi.mock("@/shared/components", () => ({
     <select data-testid="select" value={value} onChange={onChange} aria-label={ariaLabel}>
       {placeholder && <option value="">{placeholder}</option>}
       {options.map((o) => (
-        <option key={o.value} value={o.value}>{o.label}</option>
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
       ))}
     </select>
   ),
-  SegmentedControl: ({ options = [], value, onChange, "aria-label": ariaLabel }: {
+  SegmentedControl: ({
+    options = [],
+    value,
+    onChange,
+    "aria-label": ariaLabel,
+  }: {
     options?: Array<{ value: string; label: string }>;
     value?: string;
     onChange?: (v: string) => void;
@@ -54,7 +81,13 @@ vi.mock("@/shared/components", () => ({
   }) => (
     <div data-testid="segmented-control" role="tablist" aria-label={ariaLabel}>
       {options.map((o) => (
-        <button key={o.value} role="tab" aria-selected={value === o.value} onClick={() => onChange?.(o.value)} data-value={o.value}>
+        <button
+          key={o.value}
+          role="tab"
+          aria-selected={value === o.value}
+          onClick={() => onChange?.(o.value)}
+          data-value={o.value}
+        >
           {o.label}
         </button>
       ))}
@@ -62,85 +95,75 @@ vi.mock("@/shared/components", () => ({
   ),
   InfoTooltip: ({ text }: { text: string }) => <span aria-label={text}>i</span>,
   Badge: ({ children, variant }: { children: React.ReactNode; variant?: string }) => (
-    <span data-testid="badge" data-variant={variant}>{children}</span>
+    <span data-testid="badge" data-variant={variant}>
+      {children}
+    </span>
   ),
 }));
 
 // --- Mock useProviderOptions ---
-vi.mock(
-  "@/app/(dashboard)/dashboard/translator/hooks/useProviderOptions",
-  () => ({
-    useProviderOptions: () => ({
-      provider: "openai",
-      setProvider: vi.fn(),
-      providerOptions: [
-        { value: "openai", label: "OpenAI" },
-        { value: "anthropic", label: "Anthropic" },
-      ],
-      loading: false,
-    }),
-  })
-);
+vi.mock("@/app/(dashboard)/dashboard/translator/hooks/useProviderOptions", () => ({
+  useProviderOptions: () => ({
+    provider: "openai",
+    setProvider: vi.fn(),
+    providerOptions: [
+      { value: "openai", label: "OpenAI" },
+      { value: "anthropic", label: "Anthropic" },
+    ],
+    loading: false,
+  }),
+}));
 
 // --- Mock useAvailableModels ---
-vi.mock(
-  "@/app/(dashboard)/dashboard/translator/hooks/useAvailableModels",
-  () => ({
-    useAvailableModels: () => ({
-      model: "gpt-4o",
-      setModel: vi.fn(),
-      availableModels: ["gpt-4o"],
-      loading: false,
-      pickModelForFormat: () => "gpt-4o",
-    }),
-  })
-);
+vi.mock("@/app/(dashboard)/dashboard/translator/hooks/useAvailableModels", () => ({
+  useAvailableModels: () => ({
+    model: "gpt-4o",
+    setModel: vi.fn(),
+    availableModels: ["gpt-4o"],
+    loading: false,
+    pickModelForFormat: () => "gpt-4o",
+  }),
+}));
 
 // --- Mock useTranslateSession ---
-vi.mock(
-  "@/app/(dashboard)/dashboard/translator/hooks/useTranslateSession",
-  () => ({
-    useTranslateSession: () => ({
-      result: {
-        detected: null,
-        target: "openai",
-        status: "idle",
-        responsePreview: null,
-        translatedJson: null,
-        pipelinePath: null,
-        intermediateJson: null,
-        errorMessage: null,
-        latencyMs: null,
-      },
-      run: vi.fn(),
-      reset: vi.fn(),
-    }),
-  })
-);
+vi.mock("@/app/(dashboard)/dashboard/translator/hooks/useTranslateSession", () => ({
+  useTranslateSession: () => ({
+    result: {
+      detected: null,
+      target: "openai",
+      status: "idle",
+      responsePreview: null,
+      translatedJson: null,
+      pipelinePath: null,
+      intermediateJson: null,
+      errorMessage: null,
+      latencyMs: null,
+    },
+    run: vi.fn(),
+    reset: vi.fn(),
+  }),
+}));
 
 // --- Mock exampleTemplates ---
-vi.mock(
-  "@/app/(dashboard)/dashboard/translator/exampleTemplates",
-  () => ({
-    FORMAT_OPTIONS: [
-      { value: "openai", label: "OpenAI" },
-      { value: "claude", label: "Claude" },
-    ],
-    FORMAT_META: {
-      openai: { label: "OpenAI", color: "emerald", icon: "smart_toy" },
-      claude: { label: "Claude", color: "orange", icon: "psychology" },
+vi.mock("@/app/(dashboard)/dashboard/translator/exampleTemplates", () => ({
+  FORMAT_OPTIONS: [
+    { value: "openai", label: "OpenAI" },
+    { value: "claude", label: "Claude" },
+  ],
+  FORMAT_META: {
+    openai: { label: "OpenAI", color: "emerald", icon: "smart_toy" },
+    claude: { label: "Claude", color: "orange", icon: "psychology" },
+  },
+  getExampleTemplates: () => [
+    {
+      id: "simple-chat",
+      name: "Simple Chat",
+      icon: "chat",
+      description: "Chat example",
+      formats: { openai: { model: "gpt-4o", messages: [] } },
     },
-    getExampleTemplates: () => [
-      {
-        id: "simple-chat",
-        name: "Simple Chat",
-        icon: "chat",
-        description: "Chat example",
-        formats: { openai: { model: "gpt-4o", messages: [] } },
-      },
-    ],
-  })
-);
+  ],
+}));
 
 // --- Setup ---
 const cleanupCallbacks: Array<() => void> = [];
@@ -154,7 +177,9 @@ function makeContainer(): HTMLElement {
 
 describe("TranslateTab", () => {
   beforeEach(() => {
-    (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
   });
 
   afterEach(() => {
@@ -164,16 +189,13 @@ describe("TranslateTab", () => {
   });
 
   it("exports a default function component", async () => {
-    const mod = await import(
-      "@/app/(dashboard)/dashboard/translator/components/TranslateTab"
-    );
+    const mod = await import("@/app/(dashboard)/dashboard/translator/components/TranslateTab");
     expect(typeof mod.default).toBe("function");
   });
 
   it("renders smoke without throwing", async () => {
-    const { default: TranslateTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/TranslateTab"
-    );
+    const { default: TranslateTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/TranslateTab");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -183,9 +205,8 @@ describe("TranslateTab", () => {
   });
 
   it("renders 2-column grid on desktop (has grid class)", async () => {
-    const { default: TranslateTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/TranslateTab"
-    );
+    const { default: TranslateTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/TranslateTab");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -198,9 +219,8 @@ describe("TranslateTab", () => {
   });
 
   it("does not expose data-advanced-section placeholder div (GAP-5)", async () => {
-    const { default: TranslateTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/TranslateTab"
-    );
+    const { default: TranslateTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/TranslateTab");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -211,9 +231,8 @@ describe("TranslateTab", () => {
   });
 
   it("calls onAdvancedSlugChange with 'rawjson' when the Advanced button is clicked", async () => {
-    const { default: TranslateTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/TranslateTab"
-    );
+    const { default: TranslateTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/TranslateTab");
     const container = makeContainer();
     const root = createRoot(container);
     const onAdvancedSlugChange = vi.fn();
@@ -234,9 +253,8 @@ describe("TranslateTab", () => {
   });
 
   it("renders without onAdvancedSlugChange prop (optional)", async () => {
-    const { default: TranslateTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/TranslateTab"
-    );
+    const { default: TranslateTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/TranslateTab");
     const container = makeContainer();
     const root = createRoot(container);
     // Should not throw
@@ -247,9 +265,8 @@ describe("TranslateTab", () => {
   });
 
   it("renders both SimpleControls and ResultNarrated panels (2 Card children in grid)", async () => {
-    const { default: TranslateTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/TranslateTab"
-    );
+    const { default: TranslateTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/TranslateTab");
     const container = makeContainer();
     const root = createRoot(container);
     await act(async () => {
@@ -262,9 +279,8 @@ describe("TranslateTab", () => {
   });
 
   it("calls onInputChange callback when inputText changes via SimpleControls (GAP-NOVO-2)", async () => {
-    const { default: TranslateTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/TranslateTab"
-    );
+    const { default: TranslateTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/TranslateTab");
     const container = makeContainer();
     const root = createRoot(container);
     const onInputChange = vi.fn();

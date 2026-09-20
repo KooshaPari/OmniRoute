@@ -7,7 +7,7 @@ export function registerAutostart(program) {
     .description(t("autostart.description") || "Manage OmniRoute autostart at login");
 
   // #3331 — autostart could previously only be toggled from the tray
-  // (`serve --tray`) or the Electron Appearance tab; a plain `omniroute serve`
+  // (`serve --tray`) or the desktop app's Appearance tab; a plain `omniroute serve`
   // user had no path. These subcommands (with `on`/`off`/`true`/`false`
   // aliases, e.g. `omniroute autostart on`) make it a first-class CLI action.
   cmd

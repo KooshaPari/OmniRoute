@@ -1,10 +1,10 @@
 ---
-title: "🗜️ Przewodnik po kompresji promptów — OmniRoute"
+title: " Przewodnik po kompresji promptów — OmniRoute"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# 🗜️ Przewodnik po kompresji promptów — OmniRoute
+# Przewodnik po kompresji promptów — OmniRoute
 
 > Oszczędzaj automatycznie 15–95% kwalifikującego się kontekstu. Szybki przegląd: [sekcja Compression w README](../README.md#%EF%B8%8F-prompt-compression--save-15-95-eligible-tokens-automatically).
 
@@ -248,13 +248,13 @@ curl -X POST http://localhost:20128/api/context/rtk/test \
 
 Silnik kompresji **zawsze zachowuje:**
 
-- ✅ Bloki kodu (fenced i inline)
-- ✅ URL-e i ścieżki plików
-- ✅ Struktury JSON i dane strukturalne
-- ✅ Identyfikatory i chronione tokeny techniczne
-- ✅ Wyrażenia matematyczne
-- ✅ Definicje wywołań narzędzi/funkcji
-- ✅ System prompty (w trybie lite)
+- Bloki kodu (fenced i inline)
+- URL-e i ścieżki plików
+- Struktury JSON i dane strukturalne
+- Identyfikatory i chronione tokeny techniczne
+- Wyrażenia matematyczne
+- Definicje wywołań narzędzi/funkcji
+- System prompty (w trybie lite)
 
 Odzyskiwanie surowego wyjścia RTK redaguje typowe klucze API, tokeny bearer, tokeny Slack, klucze dostępu AWS,
 hasła, tokeny i sekrety zanim cokolwiek zostanie zapisane.
@@ -283,13 +283,13 @@ Każde skompresowane żądanie zawiera statystyki w logach serwera:
 
 ## Roadmapa faz
 
-| Phase    | Modes                                                                                                        | Status                                                                        |
-| -------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| Phase 1  | Off, Lite                                                                                                    | ✅ Wydane                                                                     |
-| Phase 2  | Standard, Aggressive, Ultra                                                                                  | ✅ Wydane                                                                     |
-| Phase 3  | RTK, Stacked, Compression Combos                                                                             | ✅ Wydane                                                                     |
-| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                  | ✅ Wydane                                                                     |
-| Phase 4C | Adaptive context-budget („dial”) — silnik compute + API (`contextBudget` na `PUT /api/settings/compression`) | ✅ Wydane (konfigurowalne przez API; kontrolki dashboardu jeszcze nie, #7005) |
+| Phase    | Modes                                                                                                        | Status                                                                     |
+| -------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| Phase 1  | Off, Lite                                                                                                    | Wydane                                                                     |
+| Phase 2  | Standard, Aggressive, Ultra                                                                                  | Wydane                                                                     |
+| Phase 3  | RTK, Stacked, Compression Combos                                                                             | Wydane                                                                     |
+| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                  | Wydane                                                                     |
+| Phase 4C | Adaptive context-budget („dial”) — silnik compute + API (`contextBudget` na `PUT /api/settings/compression`) | Wydane (konfigurowalne przez API; kontrolki dashboardu jeszcze nie, #7005) |
 
 ---
 

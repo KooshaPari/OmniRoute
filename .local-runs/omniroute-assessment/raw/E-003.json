@@ -1,0 +1,6 @@
+{
+  "scan": "filesystem",
+  "target": "open-sse/executors/",
+  "count": 132,
+  "detail": "executor files found"
+}

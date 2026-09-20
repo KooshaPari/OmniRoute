@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
@@ -30,7 +31,7 @@ function createTestAuth(
     email: string;
     oidc_issuer: string;
     oidc_client_id: string;
-  }> = {},
+  }> = {}
 ): string {
   const dir = mkdtempSync(join(tmpdir(), "grok-auth-test-"));
   const entry = {
@@ -87,10 +88,10 @@ test("fetchGrokWebQuota reads auth and calls billing endpoint", async () => {
     const urlStr = typeof url === "string" ? url : "";
     // OIDC discovery
     if (urlStr.includes(".well-known/openid-configuration")) {
-      return new Response(
-        JSON.stringify({ token_endpoint: "https://auth.x.ai/oauth2/token" }),
-        { status: 200, headers: { "content-type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ token_endpoint: "https://auth.x.ai/oauth2/token" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
     // Billing endpoint
     if (urlStr.includes("billing")) {
@@ -113,7 +114,7 @@ test("fetchGrokWebQuota reads auth and calls billing endpoint", async () => {
             isUnifiedBillingUser: true,
           },
         }),
-        { status: 200, headers: { "content-type": "application/json" } },
+        { status: 200, headers: { "content-type": "application/json" } }
       );
     }
     return new Response("not found", { status: 404 });
@@ -153,10 +154,10 @@ test("fetchGrokWebQuota refreshes token on 401 and retries", async () => {
 
     // OIDC discovery
     if (urlStr.includes(".well-known/openid-configuration")) {
-      return new Response(
-        JSON.stringify({ token_endpoint: "https://auth.x.ai/oauth2/token" }),
-        { status: 200, headers: { "content-type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ token_endpoint: "https://auth.x.ai/oauth2/token" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
 
     // Token refresh
@@ -168,7 +169,7 @@ test("fetchGrokWebQuota refreshes token on 401 and retries", async () => {
           refresh_token: "new-refresh-token",
           expires_in: 3600,
         }),
-        { status: 200, headers: { "content-type": "application/json" } },
+        { status: 200, headers: { "content-type": "application/json" } }
       );
     }
 
@@ -188,7 +189,7 @@ test("fetchGrokWebQuota refreshes token on 401 and retries", async () => {
             },
           },
         }),
-        { status: 200, headers: { "content-type": "application/json" } },
+        { status: 200, headers: { "content-type": "application/json" } }
       );
     }
 
@@ -221,17 +222,20 @@ test("fetchGrokWebQuota caches results for 60s", async () => {
         JSON.stringify({
           config: {
             creditUsagePercent: 30,
-            currentPeriod: { type: "WEEKLY", end: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() },
+            currentPeriod: {
+              type: "WEEKLY",
+              end: new Date(Date.now() + 7 * 24 * 3600_000).toISOString(),
+            },
           },
         }),
-        { status: 200, headers: { "content-type": "application/json" } },
+        { status: 200, headers: { "content-type": "application/json" } }
       );
     }
     if (urlStr.includes(".well-known")) {
-      return new Response(
-        JSON.stringify({ token_endpoint: "https://auth.x.ai/oauth2/token" }),
-        { status: 200, headers: { "content-type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ token_endpoint: "https://auth.x.ai/oauth2/token" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
     return new Response("not found", { status: 404 });
   };
@@ -260,20 +264,23 @@ test("registerGrokWebQuotaFetcher registers the fetcher for grok-web", async () 
   globalThis.fetch = async (url, init) => {
     const urlStr = typeof url === "string" ? url : "";
     if (urlStr.includes(".well-known")) {
-      return new Response(
-        JSON.stringify({ token_endpoint: "https://auth.x.ai/oauth2/token" }),
-        { status: 200, headers: { "content-type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ token_endpoint: "https://auth.x.ai/oauth2/token" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
     if (urlStr.includes("billing")) {
       return new Response(
         JSON.stringify({
           config: {
             creditUsagePercent: 50,
-            currentPeriod: { type: "WEEKLY", end: new Date(Date.now() + 7 * 24 * 3600_000).toISOString() },
+            currentPeriod: {
+              type: "WEEKLY",
+              end: new Date(Date.now() + 7 * 24 * 3600_000).toISOString(),
+            },
           },
         }),
-        { status: 200, headers: { "content-type": "application/json" } },
+        { status: 200, headers: { "content-type": "application/json" } }
       );
     }
     return new Response("not found", { status: 404 });

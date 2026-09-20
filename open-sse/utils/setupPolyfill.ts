@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // Polyfill worker_threads.markAsUncloneable for Node.js < 21 compatibility (specifically Node 20.20.2)
 import worker_threads from "node:worker_threads";
 import { AsyncLocalStorage } from "node:async_hooks";

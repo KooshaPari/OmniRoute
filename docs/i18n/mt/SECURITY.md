@@ -1,6 +1,6 @@
 # Security Policy (Malti)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [el](../el/SECURITY.md) · [es](../es/SECURITY.md) · [et](../et/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [ga](../ga/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hr](../hr/SECURITY.md) · [hu](../hu/SECURITY.md) · [id](../id/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [lv](../lv/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [tr](../tr/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-CN](../zh-CN/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -24,9 +24,9 @@ Jekk tiskopri vulnerabbiltà tas-sigurtà f'OmniRoute, jekk jogħġbok irrapport
 
 | Verżjoni | Status tal-Appoġġ |
 | -------- | ----------------- |
-| 3.8.x    | ✅ Attiv          |
-| 3.7.x    | ✅ Sigurtà        |
-| < 3.7.0  | ❌ Mhux Appoġġjat |
+| 3.8.x    | Attiv             |
+| 3.7.x    | Sigurtà           |
+| < 3.7.0  | Mhux Appoġġjat    |
 
 ---
 
@@ -40,7 +40,7 @@ Talba → CORS → Pipeline tal-awtorizzazzjoni (ikklassifika → politiki → i
       → Limitatur tar-Rata → Circuit Breaker → Perjodu ta' Stennija → Imblukkar tal-Mudell → Fornitur
 ```
 
-### 🔐 Awtentikazzjoni u Awtorizzazzjoni
+### Awtentikazzjoni u Awtorizzazzjoni
 
 | Karatteristika                        | Implimentazzjoni                                                                                                                                                                |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,7 +54,7 @@ Talba → CORS → Pipeline tal-awtorizzazzjoni (ikklassifika → politiki → i
 | **MCP bl-Ambitu tal-Ġestjoni**        | L-aċċess remot għal `/api/mcp/*` huwa kkontrollat minn API keys bl-ambitu `manage`; `/api/cli-tools/runtime/*` jibqa' ristrett strettament għal loopback. Ara ROUTE_GUARD_TIERS |
 | **Ambiti MCP**                        | 32 ambitu granulari (read:health, write:combos, execute:completions, eċċ.) — ara `docs/frameworks/MCP-SERVER.md`                                                                |
 
-### 🛡️ Kriptaġġ tad-Data Maħżuna
+### Kriptaġġ tad-Data Maħżuna
 
 Id-data sensittiva kollha maħżuna f'SQLite hija kriptata bl-użu ta' **AES-256-GCM** b'derivazzjoni taċ-ċavetta permezz ta' scrypt:
 
@@ -67,7 +67,7 @@ Id-data sensittiva kollha maħżuna f'SQLite hija kriptata bl-użu ta' **AES-256
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Qafas tas-Salvagwardji
+### Qafas tas-Salvagwardji
 
 OmniRoute jinkludi **reġistru tas-salvagwardji** li jista' jerġa' jitgħabba waqt it-tħaddim (`src/lib/guardrails/`) bi 3 salvagwardji integrati, ordnati skont il-prijorità:
 
@@ -79,7 +79,7 @@ OmniRoute jinkludi **reġistru tas-salvagwardji** li jista' jerġa' jitgħabba w
 
 Salvagwardji personalizzati jiġu rreġistrati permezz ta' `registerGuardrail(new MyGuardrail())`. Il-mudell huwa fail-open (l-eċċezzjonijiet qatt ma jimblukkaw it-traffiku). Tista' tagħżel li ma tużahomx għal kull talba permezz tal-header `x-omniroute-disabled-guardrails`. → Ara [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Protezzjoni Kontra l-Injezzjoni tal-Prompt
+### Protezzjoni Kontra l-Injezzjoni tal-Prompt
 
 Middleware ewristiku tal-aħjar sforz li jidentifika mudelli ta' injezzjoni tal-prompt fit-talbiet lil LLM.
 **Mhuwiex firewall komplut kontra l-injezzjoni tal-prompt** — jista' jipproduċi pożittivi foloz (prompts
@@ -105,7 +105,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (politika tal-injezzjoni; il-modali
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (predefinit) | medium | low — is-severitajiet f'dan il-livell jew ogħla jiġu mblukkati fil-modalità block
 ```
 
-### 🔒 Ċensura tal-PII
+### Ċensura tal-PII
 
 Identifikazzjoni awtomatika u ċensura fakultattiva ta' informazzjoni identifikabbli personalment:
 
@@ -123,7 +123,7 @@ PII_REDACTION_ENABLED=true   # kitba mill-ġdid tal-PII fit-talba; indipendenti 
 PII_RESPONSE_SANITIZATION=true  # fakultattiv: iċċensura l-PII fit-tweġibiet tal-fornitur mibgħuta lura lill-klijenti
 ```
 
-### 🌐 Sigurtà tan-Network
+### Sigurtà tan-Network
 
 | Karatteristika               | Deskrizzjoni                                                                                                    |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
@@ -134,7 +134,7 @@ PII_RESPONSE_SANITIZATION=true  # fakultattiv: iċċensura l-PII fit-tweġibiet 
 | **Marka tas-Swaba' TLS**     | Simulazzjoni ta' marka tas-swaba' TLS simili għal browser biex titnaqqas l-identifikazzjoni tal-bots            |
 | **Marka tas-Swaba' CLI**     | Ordni tal-headers/korp għal kull fornitur biex jaqbel mal-firem nattivi tas-CLI                                 |
 
-### 🔌 Reżiljenza u Disponibbiltà
+### Reżiljenza u Disponibbiltà
 
 | Karatteristika              | Deskrizzjoni                                                                      |
 | --------------------------- | --------------------------------------------------------------------------------- |
@@ -143,7 +143,7 @@ PII_RESPONSE_SANITIZATION=true  # fakultattiv: iċċensura l-PII fit-tweġibiet 
 | **Backoff Esponenzjali**    | Tentattiv awtomatiku mill-ġdid b'dewmien dejjem jiżdied                           |
 | **Pannell tas-Saħħa**       | Monitoraġġ f'ħin reali tas-saħħa tal-fornituri                                    |
 
-### 📋 Konformità
+### Konformità
 
 | Karatteristika                  | Deskrizzjoni                                                                          |
 | ------------------------------- | ------------------------------------------------------------------------------------- |
@@ -155,30 +155,13 @@ PII_RESPONSE_SANITIZATION=true  # fakultattiv: iċċensura l-PII fit-tweġibiet 
 
 ---
 
-## Varjabbli Ambjentali Meħtieġa
+## Docker Security
 
-Il-kollha sigrieti jridu jitwaħħlu qabel ma tibda s-servizz. Is-servizz se **jitwaqfa malajr** jekk ikunu nieqsa jew dgħajfa.
-
-```bash
-# MEĦTIEĠ — is-servizz ma se jibdiex mingħajr dawn:
-JWT_SECRET=$(openssl rand -base64 48)     # min 32 karattru
-API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 karattru
-
-# IRRIMMANDAT — jippermetti enkriżjoni fil-bażi tad-dejta:
-STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
-
-Is-servizz iwaqfa b'mod attiv valuri magħrufa dgħajfa bħal `changeme`, `secret`, jew `password`.
-
----
-
-## Sigurtà Docker
-
-- Uża utent li mhux root fil-produzzjoni
-- Waħħal is-sigrieti bħala volumi biss tista' taqrahom
-- Qatt tikkopja fajls `.env` fil-figuri Docker
-- Uża `.dockerignore` biex teskludi fajls sensittivi
-- Waħħal `AUTH_COOKIE_SECURE=true` meta tkun wara HTTPS
+- Use non-root user in production
+- Mount secrets as read-only volumes
+- Never copy `.env` files into Docker images
+- Use `.dockerignore` to exclude sensitive files
+- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
 
 ```bash
 docker run -d \
@@ -195,53 +178,71 @@ docker run -d \
 
 ---
 
-## Dipendenzi
+## Dependencies
 
-- Uża `npm audit` regolarment (`npm run audit:deps` jinkludi l-primarja + electron)
-- Żomm id-dipendenzi aġġornati
-- Il-proġett juża `husky` + `lint-staged` għal kontrolli ta' qabel l-impenn (lint-staged + check-docs-sync + check:any-budget:t11)
-- Il-pipeline CI jittraqqas regoli ta' sigurtà tal-ESLint fuq kull push (`no-eval`, `no-implied-eval`, `no-new-func` = żball)
-- Il-konstanti tal-fornitur jiġu validati f'sekkond wara t-tħaddim tal-modulu permezz tal-Zod (`src/shared/validation/schemas.ts`)
-- Libreriji b'base sigur jiġu jużaw: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (ebda riskju ta' SQLi permezz tal-kwistjonijiet parametriżżati), `bcryptjs` (ħatja tal-passwds)
+- Run `npm audit` regularly (`npm run audit:deps` audits the root package)
+- Keep dependencies updated
+- The project uses `husky` + `lint-staged` for pre-commit checks (lint-staged + check-docs-sync + check:any-budget:t11)
+- CI pipeline runs ESLint security rules on every push (`no-eval`, `no-implied-eval`, `no-new-func` = error)
+- Provider constants validated at module load via Zod (`src/shared/validation/schemas.ts`)
+- Secure-by-default libraries used: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (no SQLi risk via parameterized queries), `bcryptjs` (password hashing)
 
-## Regoli b'saħħta ta' Sigurtà
+## Hard Security Rules
 
-Dawn ir-regoli jiġu infurzati permezz ta' għodod u rreveduri:
+These rules are enforced by tooling and reviewers:
 
-1. **Qatt tikkmanda sigrieti** — `.env` huwa ġiġnored; `.env.example` huwa l-mudell (ebda letterali, kummenti biss — ara PUBLIC_CREDS.md t'hawn taħt)
-2. **Qatt tuża `eval()`, `new Function()`, jew eval impliċit** — l-ESLint jinfurzah
-3. **Qatt taħlif il-hooks ta' Husky** (`--no-verify`, `--no-gpg-sign`) mingħajr approvazzjoni espliċita tal-operatur
-4. **Qatt tikteb SQL mhux ipproċessat fit-triq** — dejjem għaddi permezz ta' `src/lib/db/` (parametriżżat)
-5. **Dejjem validaw id-daħli permezz tal-Zod** — `src/shared/validation/schemas.ts`
-6. **Dejjem sanitizzaw il-headings upstream** — lista ta' projbizzjoni f'`src/shared/constants/upstreamHeaders.ts`
-7. **Enkriptaw l-identifikaturi fil-bażi tad-dejta** — AES-256-GCM permezz ta' `src/lib/db/encryption.ts`
-8. **Identifikaturi upstream OAuth pubbliċi permezz ta' `resolvePublicCred()`** — qatt tiddaħħal litterali bħal `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` fis-sors. Ara [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
-9. **Risposti ta' żball permezz ta' `buildErrorBody()` / `sanitizeErrorMessage()`** — qatt tpoggi `err.stack` / `err.message mhux ipproċessat fil-ġisem tal-risposta tal-HTTP / SSE / eżekutur / MCP. Ara [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
-10. **`exec()` / `spawn()` valuri tal-ħin tal-mewt permezz tal-għażla `env`** — qatt interpolla b'stringu toroq esterni jew valuri mhux fdata fil-kripti mogħtija lill-shell. Referenza: `src/mitm/cert/install.ts::updateNssDatabases`.
-11. **Ippreferixxi libreriji b'base sigur** — ara [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Waqfas qabel tagħmel tiegħek stess.
+1. **Never commit secrets** — `.env` is gitignored; `.env.example` is the template (no literals, comments only — see PUBLIC_CREDS.md below)
+2. **Never use `eval()`, `new Function()`, or implied eval** — ESLint enforces
+3. **Never bypass Husky hooks** (`--no-verify`, `--no-gpg-sign`) without explicit operator approval
+4. **Never write raw SQL in routes** — always go through `src/lib/db/` (parameterized)
+5. **Always validate inputs with Zod** — `src/shared/validation/schemas.ts`
+6. **Always sanitize upstream headers** — denylist in `src/shared/constants/upstreamHeaders.ts`
+7. **Encrypt credentials at rest** — AES-256-GCM via `src/lib/db/encryption.ts`
+8. **Public upstream OAuth identifiers via `resolvePublicCred()`** — never embed `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` literals in source. See [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Error responses through `buildErrorBody()` / `sanitizeErrorMessage()`** — never put raw `err.stack` / `err.message` in HTTP / SSE / executor / MCP response bodies. See [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **`exec()` / `spawn()` runtime values via the `env` option** — never string-interpolate external paths or untrusted values into shell-passed scripts. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Prefer secure-by-default libraries** — see [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Reach for them before rolling your own.
 
-## Sorsi ta' ħruġ mill-pipeline tal-provvista (Socket.dev / Snyk / simili)
+## Supply-chain scanner findings (Socket.dev / Snyk / similar)
 
-L-arti tal-npm `omniroute` ippubblikat fih il-bini tal-Next.js `output: "standalone"`, li jfisser li kull maniġer tal-rotta - inkluż il-funzjonijiet privileġġati deskritti (MITM, importazzjoni Zed, Sema Sincronizzata, superviżur tas-servizz integrated) - jintwera f'biċċiet `.next/server/*.js` minifika. Is-skenners heuristiċi tal-provvista ta' ħruġ spiss jgħaqqdu dik il-kurġata mal-firxat tal-malware.
+The published `omniroute` npm artifact bundles the Next.js `output: "standalone"`
+build, which means every route handler — including documented privileged
+features (MITM, Zed import, Cloud Sync, embedded service supervisor) — ends
+up in `.next/server/*.js` minified chunks. Heuristic supply-chain scanners
+frequently pattern-match those chunks against malware signatures.
 
-Għal kull kategorija ta' ħruġ inżommu attestazzjoni tal-maniġer għal dak l-ħruġ:
+The scanner configuration we use lives at [`socket.yml`](socket.yml) in the
+repo root (Socket.dev GitHub App format v2 — see
+<https://docs.socket.dev/docs/socket-yml>). It explicitly excludes
+non-shipped directories (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, etc.) so the scanner only reports on code paths that
+actually reach published users — the scan itself is driven by the Socket
+GitHub App reading that file, not by a workflow in this repository.
+
+For each finding category we maintain a per-finding maintainer attestation:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  mappa għal kull ħruġ: fajl sors ↔ chunk immarkat ↔ imġiba ↔ mitigazzjoni applikata fil-v3.8.6.
-- Blocchi `SECURITY-AUDITOR-NOTE:` fil-kodiċi stess fi kull funzjoni immarkata jirreferixxu lura għad-dokument l-istess.
+  per-finding map: source file ↔ flagged chunk ↔ behaviour ↔ mitigation
+  applied in v3.8.6.
+- In-source `SECURITY-AUDITOR-NOTE:` blocks at each flagged function point
+  back to the same document.
 
-Għall-utenti li l-pipeline tagħhom ma jistax ifaqqar l-allert, ibnu bħala profili:
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Dan jibdel l-erba 'moduli sensittivi bi sinkopaturi li jirritornaw HTTP 530 "feature-disabled" matul ir-runtim, sabiex il-ħġieġ tal-kodiċi privileġġat huma fiżikament assenti mill-kurġata. Ara [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) għar-riċetta tal-pubblikazzjoni.
+For users whose pipeline cannot relax the alert: build with
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. That replaces the four
+sensitive modules with stubs that return HTTP 503 `feature-disabled` at
+runtime, so the privileged code paths are physically absent from the bundle.
+See [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+for the publishing recipe.
 
-## Riferenzi
+## References
 
-- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — pipeline tal-awtorizzazzjoni
-- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — qafas tal-protezzjoni
-- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — log tal-awditjar u r-ritenzjoni
-- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — sistema **mandatorja** għal kredenzjali pubbliċi upstream
-- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — sistema **mandatorja** għal risponsi ta' żbalji
-- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — attestazzjoni tal-maniġer għal ħruġ tal-pipeline tal-provvista
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — authorization pipeline
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — guardrails framework
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — audit log and retention
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **mandatory** pattern for public upstream credentials
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **mandatory** pattern for error responses
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — maintainer attestation for supply-chain scanner findings
 - [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
-- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (avviż legali/etiku)
-- [`CLAUDE.md`](CLAUDE.md) — regoli iebes għall-aġenti tal-AI
-- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — ktieb magħżul ta' libraries bil-garfunaż bħala default sikur
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (legal/ethical notice)
+- [`CLAUDE.md`](CLAUDE.md) — hard rules for AI agents
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — curated secure-by-default libraries

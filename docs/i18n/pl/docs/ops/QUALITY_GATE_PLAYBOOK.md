@@ -63,28 +63,28 @@ zbieżności (nie skopiowaliśmy checklisty; zeszliśmy się na właściwych pra
 
 ### Uczciwe słabości (rzeczywiste luki)
 
-1. **🔴 Podział fast-gates wciąż zostawia strukturalną dziurę.** `quality.yml` (PR→`release/**`)
+1. ** Podział fast-gates wciąż zostawia strukturalną dziurę.** `quality.yml` (PR→`release/**`)
    uruchamia teraz typecheck, szybkie testy deterministyczne oraz advisory production build dla PR z kodem,
    ale nadal nie odpala pełnej powierzchni release-PR z `ci.yml` (coverage ratchets,
    package artifact, integration, E2E, SonarQube). Motywacja (szybkość) jest słuszna, ale bramka
    powinna stać tam, gdzie dzieje się merge (shift-left). **Największa zaległa poprawka strukturalna.**
-2. **🟠 Ryzyko sprawlu/zmęczenia bramkami.** ~46 bramek + 25 jobów to DUŻO. Sam Sonar ostrzega:
+2. ** Ryzyko sprawlu/zmęczenia bramkami.** ~46 bramek + 25 jobów to DUŻO. Sam Sonar ostrzega:
    zbyt wiele warunków powoduje „gate fatigue” i debaty o priorytetach, z ryzykiem że bramka zostanie
    zignorowana. DORA ostrzega, że ciężkie bramki kosztują lead-time. Łagodzimy to warstwami advisory i
    nieabsolutnymi ratchetami, ale brakuje **okresowego przeglądu ROI per bramka** (część mikro-bramek
    doc-sync da się skonsolidować).
-3. **🟠 Mutation score nie jest jeszcze ratchetem.** Najsilniejsze antidotum na coverage-gaming jest
+3. ** Mutation score nie jest jeszcze ratchetem.** Najsilniejsze antidotum na coverage-gaming jest
    **advisory**. To pozycja o najwyższej wartości wśród zaległości (i już w ~90% zbudowana).
-4. **🟡 Advisory, które powinny blokować (z właściwym zakresem).** `osv` (vulnCount) i `oasdiff` są
+4. ** Advisory, które powinny blokować (z właściwym zakresem).** `osv` (vulnCount) i `oasdiff` są
    advisory mimo zamrożonych baseline'ów. osv-advisory ma sens (nowe CVE na starej zależności zablokowałoby
    niepowiązany PR) — ale jest złoty środek (blokuj tylko CRITICAL+fixable, jak zrobiliśmy z
    Trivy). oasdiff advisory oznacza, że zmiana łamiąca kontrakt może przejść.
-5. **🟡 Runtime security tylko nightly.** schemathesis/garak/promptfoo/chaos/k6 lecą w nocy.
+5. ** Runtime security tylko nightly.** schemathesis/garak/promptfoo/chaos/k6 lecą w nocy.
    Słuszna decyzja (wolne, potrzebują żywego serwera), ale PR może wprowadzić regresję injection-guard,
    która złapie się dopiero następnej nocy.
-6. **🟡 Branch-protection na `main` jest OFF.** `BRANCH_LOCK_TOKEN` blokuje gałęzie _release_, ale
+6. ** Branch-protection na `main` jest OFF.** `BRANCH_LOCK_TOKEN` blokuje gałęzie _release_, ale
    sam `main` jest niechroniony. Minus w Scorecard/DSOMM. Wymaga akcji właściciela.
-7. **🟡 CodeQL default-setup; semgrep nieskodyfikowany.** default-setup działa (0 alertów), ale
+7. ** CodeQL default-setup; semgrep nieskodyfikowany.** default-setup działa (0 alertów), ale
    zacommitowany `codeql.yml` daje więcej kontroli; semgrep leci przez zewnętrzną platformę cloud, nie
    jest wersjonowany w repo.
 

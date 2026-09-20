@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * TDD (integration) — quota-share combo cooldown-aware retry (Variante A),
  * exercised through handleComboChat.

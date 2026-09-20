@@ -1,36 +1,54 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "categories": {
-    "correctness": "error",
-    "suspicious": "error",
-    "pedantic": "off",
-    "style": "off",
-    "nursery": "off",
-    "restriction": "off",
-    "perf": "off"
-  },
-  "plugins": ["react", "typescript", "import", "jsdoc", "unicorn"],
   "rules": {
-    "no-unused-vars": "error",
-    "no-undef": "error",
-    "no-console": "off",
-    "no-empty": "off",
-    "eqeqeq": ["error", "smart"],
-    "prefer-const": "error",
-    "no-var": "error",
-    "typescript/no-explicit-any": "off",
-    "typescript/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "typescript/no-non-null-assertion": "off"
+    // Core correctness rules (mirroring ESLint config)
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-restricted-imports": "error",
+
+    // TypeScript rules
+    "typescript/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
+
+    // React rules (when react plugin enabled)
+    "react/exhaustive-deps": "error",
+    "react/rules-of-hooks": "error"
   },
+  "plugins": ["typescript", "react", "nextjs", "import"],
   "ignorePatterns": [
-    "node_modules/**",
     ".next/**",
     ".build/**",
+    "out/**",
+    "build/**",
     "dist/**",
     "coverage/**",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.spec.ts",
-    "**/*.spec.tsx"
+    "node_modules/**",
+    ".worktrees/**",
+    ".claude/**",
+    ".omnivscodeagent/**",
+    "_tasks/**",
+    ".agents/**",
+    ".source/**",
+    "vscode-extension/**",
+    "_references/**",
+    "_mono_repo/**",
+    "docs/**",
+    "open-sse/mcp-server/dist/**",
+    "playwright-report/**",
+    "test-results/**",
+    "app/**",
+    "app.__qa_backup/**",
+    "clipr/**",
+    "scripts/**",
+    "bin/**"
   ]
 }

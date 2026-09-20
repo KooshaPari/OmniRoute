@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * chatCore stream finalize wrapper (Quality Gate v2 / Fase 9 — chatCore god-file decomposition,
  * #3501).

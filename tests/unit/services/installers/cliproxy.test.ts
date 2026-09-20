@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * T-11 — cliproxy installer unit tests.
  *

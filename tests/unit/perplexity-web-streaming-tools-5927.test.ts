@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // Tool-call emulation for the Perplexity Web executor in STREAMING mode (#5927).
 //
 // perplexity-web.ts converts <tool>{...}</tool> text into real OpenAI tool_calls

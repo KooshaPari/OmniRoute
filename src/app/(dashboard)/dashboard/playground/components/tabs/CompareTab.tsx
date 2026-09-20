@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 "use client";
 
 // src/app/(dashboard)/dashboard/playground/components/tabs/CompareTab.tsx

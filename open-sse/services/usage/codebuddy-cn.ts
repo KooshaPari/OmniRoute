@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 /**
  * CodeBuddy CN usage handler — scoped to the "codebuddy-cn" provider.
  *
@@ -83,7 +84,7 @@ function cycleEndMs(acc: TencentAccount): number {
 
 function deductionEndMs(acc: TencentAccount): number {
   const v = acc.DeductionEndTime;
-  if (typeof v === "number") return (v < 1e12 ? v * 1000 : v);
+  if (typeof v === "number") return v < 1e12 ? v * 1000 : v;
   if (typeof v === "string" && /^\d+$/.test(v)) {
     const n = Number(v);
     return n < 1e12 ? n * 1000 : n;

@@ -18,6 +18,7 @@ across 47 languages. Every English doc in `docs/` is mirrored into
   ahead of translations
 
 The generated content:
+
 - Is **stale by minutes** (any doc edit re-triggers the pipeline)
 - Has **no semantic value** beyond SEO (translations are LLM-generated and
   rarely reviewed)
@@ -62,12 +63,14 @@ single `git rm -r --cached docs/i18n/` commit. The on-disk files are kept
 ## Consequences
 
 **Positive**
+
 - `git clone` is ~2.7GB lighter
 - PR diffs are readable again (i18n updates no longer pollute the diff)
 - CI is materially faster (no need to checkout 682K lines of content)
 - Drift detection becomes signal, not noise
 
 **Negative**
+
 - If a contributor wants to read the German docs, they have to run
   `pnpm run docs:translate` first (or visit the deployed docs site)
 - The `git rm -r --cached docs/i18n/` is a 682K-LOC commit; it's a one-time
@@ -93,6 +96,6 @@ single `git rm -r --cached docs/i18n/` commit. The on-disk files are kept
 
 ## Cross-References
 
-- `SPEC.md` § Repo Layout (i18n marked with ⚠️)
+- `SPEC.md` § Repo Layout (i18n marked with )
 - `PLAN.md` § Decomposition Roadmap (i18n is the first step)
 - ADR-0004 — decomposition into packages

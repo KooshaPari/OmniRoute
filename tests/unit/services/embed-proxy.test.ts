@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * T-07 — embed proxy route handler tests.
  *

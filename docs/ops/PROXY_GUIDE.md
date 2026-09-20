@@ -1,10 +1,10 @@
 ---
-title: "🌐 OmniRoute Proxy Guide"
+title: " OmniRoute Proxy Guide"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# 🌐 OmniRoute Proxy Guide
+# OmniRoute Proxy Guide
 
 > **Bypass geographic blocks, protect your identity, and route AI traffic through any proxy — with zero configuration complexity.**
 
@@ -89,10 +89,10 @@ OmniRoute supports proxy configuration at **four independent scopes**, resolved 
 ```
 Priority Resolution Order (highest → lowest):
 
-  1. 🔵 Account/Connection Proxy  →  per API key / OAuth connection
-  2. 🟡 Provider Proxy            →  per provider (e.g., all OpenAI traffic)
-  3. 🟠 Combo Proxy               →  per combo/routing configuration
-  4. 🟢 Global Proxy              →  all traffic, all providers
+  1. Account/Connection Proxy  →  per API key / OAuth connection
+  2. Provider Proxy            →  per provider (e.g., all OpenAI traffic)
+  3. Combo Proxy               →  per combo/routing configuration
+  4. Global Proxy              →  all traffic, all providers
 ```
 
 ### How Resolution Works
@@ -110,14 +110,14 @@ The first match wins. This means you can set a global proxy as a fallback but ov
 
 | Traffic Type         | Proxied? | Notes                                         |
 | -------------------- | -------- | --------------------------------------------- |
-| Chat completions     | ✅       | All `/v1/chat/completions` requests           |
-| Embeddings           | ✅       | `/v1/embeddings`                              |
-| Image generation     | ✅       | `/v1/images/generations`                      |
-| Audio (TTS/STT)      | ✅       | `/v1/audio/*`                                 |
-| OAuth token exchange | ✅       | Solves `unsupported_country_region_territory` |
-| Connection tests     | ✅       | "Test Connection" button uses proxy           |
-| Token refresh        | ✅       | Background OAuth renewal                      |
-| Model sync           | ✅       | Model listing and discovery                   |
+| Chat completions     |          | All `/v1/chat/completions` requests           |
+| Embeddings           |          | `/v1/embeddings`                              |
+| Image generation     |          | `/v1/images/generations`                      |
+| Audio (TTS/STT)      |          | `/v1/audio/*`                                 |
+| OAuth token exchange |          | Solves `unsupported_country_region_territory` |
+| Connection tests     |          | "Test Connection" button uses proxy           |
+| Token refresh        |          | Background OAuth renewal                      |
+| Model sync           |          | Model listing and discovery                   |
 
 ---
 
@@ -261,7 +261,7 @@ This happens once on first startup after upgrade. Use `migrateLegacyProxyConfigT
 
 ## 1proxy Free Proxy Marketplace
 
-> 🆕 **Contributed by [@oyi77](https://github.com/oyi77)** — PR [#1847](https://github.com/diegosouzapw/OmniRoute/pull/1847) (Issue [#1788](https://github.com/diegosouzapw/OmniRoute/issues/1788))
+> **Contributed by [@oyi77](https://github.com/oyi77)** — PR [#1847](https://github.com/diegosouzapw/OmniRoute/pull/1847) (Issue [#1788](https://github.com/diegosouzapw/OmniRoute/issues/1788))
 
 OmniRoute integrates with the **[1proxy](https://1proxy-api.aitradepulse.com)** community platform to provide access to **hundreds of free, validated proxies** from around the world. This is perfect for users who don't have their own proxy infrastructure.
 
@@ -398,9 +398,9 @@ Color-coded badges in the dashboard show which proxy level is active:
 
 | Badge | Level      | Meaning                                   |
 | ----- | ---------- | ----------------------------------------- |
-| 🟢    | Global     | All traffic goes through this proxy       |
-| 🟡    | Provider   | Only this provider's traffic is proxied   |
-| 🔵    | Connection | This specific key/account uses this proxy |
+|       | Global     | All traffic goes through this proxy       |
+|       | Provider   | Only this provider's traffic is proxied   |
+|       | Connection | This specific key/account uses this proxy |
 
 The badge also shows the resolved proxy IP for verification.
 
@@ -810,7 +810,7 @@ variable list.
 
 ---
 
-> 📖 **Related documentation:**
+> **Related documentation:**
 >
 > - [User Guide](../guides/USER_GUIDE.md) — General setup and configuration
 > - [API Reference](../reference/API_REFERENCE.md) — Full API documentation

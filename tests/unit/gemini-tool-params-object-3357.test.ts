@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Regression test for #3357 — Vertex AI function-calling fails with
  * "functionDeclaration parameters schema should be of type OBJECT".
@@ -49,9 +50,7 @@ describe("buildGeminiTools — function parameters must be an OBJECT schema (#33
   });
 
   it("defaults missing parameters to a type:object schema", () => {
-    const tools = buildGeminiTools([
-      { type: "function", function: { name: "bare" } },
-    ]);
+    const tools = buildGeminiTools([{ type: "function", function: { name: "bare" } }]);
     assert.equal(paramsOf(tools).type, "object");
   });
 

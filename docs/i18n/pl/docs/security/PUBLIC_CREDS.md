@@ -8,40 +8,40 @@ lastUpdated: 2026-06-28
 
 > **Source of truth:** `open-sse/utils/publicCreds.ts`
 > **Tests:** `tests/unit/publicCreds.test.ts`
-> **Last updated:** 2026-06-28 — v3.8.40
-> **Audience:** Inżynierowie integrujący providerów, którzy udostępniają publiczne OAuth client_id / client_secret / klucze Firebase Web API w swoich publicznych CLI.
-> **Status:** **OBOWIĄZKOWE** dla każdego nowego kodu, który osadza identyfikatory upstream.
+> **Last updated:** 2026-08-07 — v3.8.50
+> **Audience:** Engineers integrating providers that ship public OAuth client_id / client_secret / Firebase Web API keys in their public CLIs.
+> **Status:** **MANDATORY** for all new code that embeds upstream identifiers.
 
-## Po co to istnieje
+## Why this exists
 
-- [OAuth 2.0 for native apps (PKCE)](https://developers.google.com/identity/protocols/oauth2/native-app) — OAuth client_id / client_secret dla zainstalowanych aplikacji są publiczne; rzeczywiste bezpieczeństwo zapewnia PKCE.
-- [Firebase API keys](https://firebase.google.com/docs/projects/api-keys) — identyfikatory klientów Web są publiczne z założenia.
+- [OAuth 2.0 for native apps (PKCE)](https://developers.google.com/identity/protocols/oauth2/native-app) — OAuth client_id / client_secret for installed apps are public; PKCE provides the actual security.
+- [Firebase API keys](https://firebase.google.com/docs/projects/api-keys) — Web client identifiers are public by design.
 
-OmniRoute musi osadzać te wartości, aby użytkownicy, którzy nie konfigurują `.env`, nadal mieli działający flow OAuth od razu po uruchomieniu. Bez wbudowanego fallbacku providerzy Gemini / Antigravity przestają działać dla każdego, kto idzie ścieżką „po prostu sklonuj i uruchom”.
+OmniRoute must embed these values so users who do not configure `.env` still get a working OAuth flow out of the box. Without an embedded fallback, the Gemini / Antigravity providers stop working for any user who follows the "just clone and run" path.
 
-Jednak literały w stylu `AIzaSy…`, `GOCSPX-…`, `…apps.googleusercontent.com` są łapane przez **GitHub Secret Scanning**, **Semgrep** i podobne skanery wzorców. Każdy release zamienia się w szum fałszywych alarmów, push protection blokuje legalne commity, a operatorzy tracą zaufanie do feedu alertów.
+However, literal values like `AIzaSy…`, `GOCSPX-…`, `…apps.googleusercontent.com` are matched by **GitHub Secret Scanning**, **Semgrep**, and similar pattern scanners. Every release becomes a noisy stream of false positives, push protection blocks legitimate commits, and operators stop trusting the alert feed.
 
-Helper `open-sse/utils/publicCreds.ts` rozwiązuje oba ograniczenia naraz:
+The `open-sse/utils/publicCreds.ts` helper solves both constraints at once:
 
-- Osadza publiczny identyfikator jako **sekwencję bajtów zamaskowaną XOR** (brak wzorca skanera w źródle).
-- Dekoduje w runtime przez `decodePublicCred` / `resolvePublicCred`.
-- Wykrywa surowe wartości z dobrze znanymi prefiksami (`AIza`, `GOCSPX-`, `<digits>-<32hex>.apps.googleusercontent.com`, `Iv1.<hex>`) i przepuszcza je bez zmian, dzięki czemu użytkownicy z surowymi wartościami w istniejącym `.env` działają dalej przy **zerowej migracji**.
+- Embeds the public identifier as a **XOR-masked byte sequence** (no scanner pattern in source).
+- Decodes at runtime via `decodePublicCred` / `resolvePublicCred`.
+- Detects raw values that already follow well-known prefixes (`AIza`, `GOCSPX-`, `<digits>-<32hex>.apps.googleusercontent.com`, `Iv1.<hex>`) and passes them through unchanged, so users with raw values in their existing `.env` keep working with **zero migration**.
 
-To jest **obfuskacja, nie szyfrowanie.** Każdy, kto czyta źródło, może odzyskać wartość — i to jest w porządku, bo wartość jest publiczna z założenia. Jedynym celem jest uniknięcie dopasowań regex skanerów.
+This is **obfuscation, not encryption.** Anyone reading the source can recover the value — which is fine because the value is public by design. The only goal is to avoid scanner regex matches.
 
-## Obowiązkowy wzorzec
+## The mandatory pattern
 
-### 1. Dodawanie nowego publicznego poświadczenia
+### 1. Adding a new public credential
 
-Gdy musisz osadzić nową wartość dostarczoną przez upstream, która:
+When you need to embed a new upstream-provided value that:
 
-- pochodzi z publicznego CLI / aplikacji desktopowej / bundla przeglądarkowego, **oraz**
-- upstream provider dokumentuje ją (lub traktuje) jako publiczny identyfikator klienta, **oraz**
-- skaner wzorców w przeciwnym razie by ją złapał (`AIza…`, `GOCSPX-…`, `<digits>-…apps.googleusercontent.com` itd.),
+- comes from a public CLI / desktop app / browser bundle, **and**
+- the upstream provider documents (or treats) it as a public client identifier, **and**
+- a pattern scanner would otherwise match it (`AIza…`, `GOCSPX-…`, `<digits>-…apps.googleusercontent.com`, etc.),
 
-…postępuj według tej checklisty:
+…follow this checklist:
 
-1. Wygeneruj zamaskowaną sekwencję bajtów:
+1. Generate the masked byte sequence:
 
    ```bash
    node --import tsx/esm -e \
@@ -51,11 +51,11 @@ Gdy musisz osadzić nową wartość dostarczoną przez upstream, która:
         ))))'
    ```
 
-2. Dodaj nowy wpis do `EMBEDDED_DEFAULTS` w `open-sse/utils/publicCreds.ts` z **neutralną nazwą klucza** (`<provider>_id`, `<provider>_alt`, `<provider>_fb` itd.). **Nie** używaj w helperze nazw w stylu `client_secret` ani `api_key` — te słowa uruchamiają reguły Semgrep generic-secret.
+2. Add a new entry to `EMBEDDED_DEFAULTS` in `open-sse/utils/publicCreds.ts` with a **neutral key name** (`<provider>_id`, `<provider>_alt`, `<provider>_fb`, etc.). Do **not** use names like `client_secret` or `api_key` in the helper — those words trigger Semgrep generic-secret rules.
 
-3. Dodaj `keyof typeof EMBEDDED_DEFAULTS` do publicznej unii typów (jest wnioskowany automatycznie).
+3. Add a `keyof typeof EMBEDDED_DEFAULTS` to the public type union (it is inferred automatically).
 
-4. W kodzie konsumenckim zamień zahardkodowany literał na:
+4. In the consumer code, replace the hardcoded literal with:
 
    ```ts
    // single env override
@@ -71,7 +71,7 @@ Gdy musisz osadzić nową wartość dostarczoną przez upstream, która:
    firebaseApiKey: resolvePublicCred("provider_fb"),
    ```
 
-5. Usuń literał z `.env.example` (zastąp dokumentacją wyłącznie w komentarzach, wskazującą czytelników tutaj):
+5. Remove the literal from `.env.example` (replace with comment-only documentation pointing readers here):
 
    ```dotenv
    # ── Provider (Google / Firebase / etc.) ──
@@ -81,19 +81,19 @@ Gdy musisz osadzić nową wartość dostarczoną przez upstream, która:
    # PROVIDER_OAUTH_CLIENT_SECRET=
    ```
 
-6. Zaktualizuj `tests/unit/publicCreds.test.ts`, dodając asercję kształtu dla nowego klucza (weryfikuj format, nie literał wartości — wzorzec w istniejących testach).
+6. Update `tests/unit/publicCreds.test.ts` to add a shape assertion for the new key (verify format, not literal value — see existing tests for the pattern).
 
-7. **Nigdy** nie dodawaj literałów `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` do plików testowych. Używaj stałych `FAKE_*` zbudowanych z fragmentów `.join("")` (patrz istniejące testy).
+7. **Never** add `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` literals to test files. Use the `FAKE_*` constants built from `.join("")` fragments (see existing tests).
 
-### 2. Konsumenci
+### 2. Consumers
 
-- **Czytaj wyłącznie z `resolvePublicCred()` / `resolvePublicCredMulti()`** — nigdy nie wywołuj `decodePublicCredBytes()` bezpośrednio poza helperem.
-- Helper jest celowo tani (liniowy XOR na bajtach) i bezpieczny do wywołania w czasie ładowania modułu; domyślne wartości są liczone raz.
-- Override ze zmiennej env zawsze wygrywa. Jeśli użytkownik ustawi `PROVIDER_OAUTH_CLIENT_SECRET=GOCSPX-myown`, helper przepuszcza tę surową wartość bez zmian.
+- **Read from `resolvePublicCred()` / `resolvePublicCredMulti()` only** — never call `decodePublicCredBytes()` directly outside the helper.
+- The helper is intentionally cheap (linear byte XOR) and safe to call at module-load time; defaults are computed once.
+- The env override always wins. If a user sets `PROVIDER_OAUTH_CLIENT_SECRET=GOCSPX-myown`, the helper passes that raw value straight through.
 
-### 3. Zabronione wzorce
+### 3. Forbidden patterns
 
-❌ **Nigdy** nie rób żadnej z poniższych rzeczy w kodzie produkcyjnym (`src/`, `open-sse/`, `electron/`, `bin/`):
+**Never** do any of the following in production code (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // BAD: literal value triggers Secret Scanning + Semgrep
@@ -110,31 +110,31 @@ clientSecret: "GO" + "CS" + "PX-" + "realvalue",
 clientSecret: hexDecode("474f4353..."),
 ```
 
-Wszystkie te warianty w końcu odpala skaner. Używaj `resolvePublicCred()`.
+These all eventually trip a scanner. Use `resolvePublicCred()`.
 
-❌ **Nigdy** nie dodawaj literałów poświadczeń do `.env.example`. Użytkownicy, którzy potrzebują prawdziwych wartości upstream, mogą je wyciągnąć z publicznego CLI sami albo użyć własnej rejestracji OAuth.
+**Never** add literal credentials to `.env.example`. Users who need real upstream values can extract them from the public CLI themselves, or use their own OAuth registration.
 
-❌ **Nigdy** nie odrzucaj nowego alertu secret-scanning bez wcześniejszego sprawdzenia, czy poświadczenie nie powinno trafić do tego helpera.
+**Never** dismiss a new secret-scanning alert without first checking whether the credential should be moved to this helper.
 
-## Powiązane kontrole
+## Related controls
 
-- `RAW_VALUE_PATTERN` w `publicCreds.ts` wylicza prefiksy uruchamiające passthrough (retrokompatybilność). Rozszerzaj go wyłącznie o udokumentowane formaty publicznych poświadczeń, nigdy o sekrety własnościowe.
-- `.env.example` jest objęty skryptem CI `check-env-doc-sync` — gdy usuniesz tu zmienną, upewnij się, że dokumentacja się zgadza.
-- Oba zestawy testów `npm run test:vitest` oraz `node --import tsx/esm --test tests/unit/publicCreds.test.ts` muszą pozostać zielone.
+- `RAW_VALUE_PATTERN` in `publicCreds.ts` enumerates the prefixes that trigger passthrough (retrocompat). Extend it only for documented public credential formats, never for proprietary secrets.
+- `.env.example` lives in CI's `check-env-doc-sync` script — when you remove a var here, make sure the docs match.
+- The `npm run test:vitest` and `node --import tsx/esm --test tests/unit/publicCreds.test.ts` suites must both stay green.
 
-## Kiedy NIE używać tego helpera
+## When NOT to use this helper
 
-Ten helper jest **wyłącznie** dla poświadczeń, które są:
+This helper is **only** for credentials that are:
 
-1. Publicznie dystrybuowane przez upstream providera (binarka CLI, bundel przeglądarkowy, oficjalna dokumentacja).
-2. Udokumentowane lub silnie sugerowane jako niepoufne (chronione PKCE, klucz Firebase Web, podobne).
+1. Distributed publicly by the upstream provider (CLI binary, browser bundle, official docs).
+2. Documented or strongly implied to be non-confidential (PKCE-protected, Firebase Web key, similar).
 
-Dla wszystkiego innego — tokeny wydane przez operatora, sekrety per-tenant, client_secret Twojej własnej aplikacji OAuth, klucze szyfrowania, sekrety JWT, hasła do bazy — używaj **wyłącznie zmiennych env** (`process.env.FOO`, fallback `||` do pustego / jawnego błędu). Te wartości należą do `.env` i do [szyfrowanego magazynu poświadczeń](./COMPLIANCE.md), nie do źródeł.
+For everything else — operator-issued tokens, per-tenant secrets, your own OAuth app's client_secret, encryption keys, JWT secrets, database passwords — use **env vars only** (`process.env.FOO`, `||` fallback to empty / explicit error). These belong in `.env` and the [encrypted credentials store](./COMPLIANCE.md), not in source.
 
-## Referencje
+## References
 
 - [Google: OAuth 2.0 for native apps](https://developers.google.com/identity/protocols/oauth2/native-app)
 - [Firebase: API keys for client identification](https://firebase.google.com/docs/projects/api-keys)
 - [GitHub Secret Scanning supported secrets](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns)
 - [GitHub: base64 detection for tokens (Feb 2025)](https://github.blog/changelog/2025-02-14-secret-scanning-detects-base64-encoded-github-tokens/)
-- Commit wprowadzający ten helper: `1a39c31f` — _fix(security): mask public upstream creds + centralize error sanitization_
+- Commit introducing this helper: `1a39c31f` — _fix(security): mask public upstream creds + centralize error sanitization_

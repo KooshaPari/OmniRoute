@@ -149,7 +149,7 @@ Antigravity requests preserve caller text byte-for-byte. OmniRoute does not inse
 
 Strips Stainless SDK markers (`x-stainless-lang`, `x-stainless-package-version`, `x-stainless-os`, `x-stainless-arch`, `x-stainless-runtime`, `x-stainless-runtime-version`, `x-stainless-timeout`, `x-stainless-retry-count`, `x-stainless-helper-method`) before forwarding.
 
-### ⚠️ Risk: `ANTIGRAVITY_CREDITS=always` (account-ban hot spot)
+### Risk: `ANTIGRAVITY_CREDITS=always` (account-ban hot spot)
 
 `ANTIGRAVITY_CREDITS=always` (consumed by `open-sse/executors/antigravity.ts`) routes **every** request through Antigravity AI Credit Overages (paid Google credits) instead of letting Google's free-tier quota gate things. This is documented as a feature, but it is **the single most common ToS-violation report we see** — multiple Google Ultra accounts have been banned with `403 / "service disabled for ToS violation" / insufficient_quota` after running for a few hours with `=always`.
 

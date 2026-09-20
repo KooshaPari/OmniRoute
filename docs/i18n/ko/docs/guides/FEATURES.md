@@ -1,6 +1,6 @@
 # OmniRoute — Dashboard Features Gallery (한국어)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇷 [hr](../../../hr/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+**Languages:** [English](../../../../guides/FEATURES.md) · [ar](../../../ar/docs/guides/FEATURES.md) · [az](../../../az/docs/guides/FEATURES.md) · [bg](../../../bg/docs/guides/FEATURES.md) · [bn](../../../bn/docs/guides/FEATURES.md) · [cs](../../../cs/docs/guides/FEATURES.md) · [da](../../../da/docs/guides/FEATURES.md) · [de](../../../de/docs/guides/FEATURES.md) · [el](../../../el/docs/guides/FEATURES.md) · [es](../../../es/docs/guides/FEATURES.md) · [et](../../../et/docs/guides/FEATURES.md) · [fa](../../../fa/docs/guides/FEATURES.md) · [fi](../../../fi/docs/guides/FEATURES.md) · [fr](../../../fr/docs/guides/FEATURES.md) · [ga](../../../ga/docs/guides/FEATURES.md) · [gu](../../../gu/docs/guides/FEATURES.md) · [he](../../../he/docs/guides/FEATURES.md) · [hi](../../../hi/docs/guides/FEATURES.md) · [hr](../../../hr/docs/guides/FEATURES.md) · [hu](../../../hu/docs/guides/FEATURES.md) · [id](../../../id/docs/guides/FEATURES.md) · [it](../../../it/docs/guides/FEATURES.md) · [ja](../../../ja/docs/guides/FEATURES.md) · [lt](../../../lt/docs/guides/FEATURES.md) · [lv](../../../lv/docs/guides/FEATURES.md) · [mr](../../../mr/docs/guides/FEATURES.md) · [ms](../../../ms/docs/guides/FEATURES.md) · [mt](../../../mt/docs/guides/FEATURES.md) · [nl](../../../nl/docs/guides/FEATURES.md) · [no](../../../no/docs/guides/FEATURES.md) · [phi](../../../phi/docs/guides/FEATURES.md) · [pl](../../../pl/docs/guides/FEATURES.md) · [pt](../../../pt/docs/guides/FEATURES.md) · [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · [ro](../../../ro/docs/guides/FEATURES.md) · [ru](../../../ru/docs/guides/FEATURES.md) · [sk](../../../sk/docs/guides/FEATURES.md) · [sl](../../../sl/docs/guides/FEATURES.md) · [sr](../../../sr/docs/guides/FEATURES.md) · [sv](../../../sv/docs/guides/FEATURES.md) · [sw](../../../sw/docs/guides/FEATURES.md) · [ta](../../../ta/docs/guides/FEATURES.md) · [te](../../../te/docs/guides/FEATURES.md) · [th](../../../th/docs/guides/FEATURES.md) · [tr](../../../tr/docs/guides/FEATURES.md) · [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · [ur](../../../ur/docs/guides/FEATURES.md) · [vi](../../../vi/docs/guides/FEATURES.md) · [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
 
 ---
 
@@ -8,15 +8,60 @@ Visual guide to every section of the OmniRoute dashboard.
 
 ---
 
-## 🔌 Providers
+## Providers
 
 ![Providers Dashboard](screenshots/01-providers.png)
 
 ---
 
-## 🎨 Combos
+## v3.8.0 Highlights
 
-Create model routing combos with 13 strategies: priority, weighted, round-robin, random, least-used, cost-optimized, strict-random, auto, fill-first, p2c, lkgp, context-optimized, and **context-relay**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
+The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth flows, deeper resilience, and a much richer CLI experience. Headline features below — full details further in the document and in linked specs.
+
+- **Auto Combo / Zero-config auto-routing** — use prefixes `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Backed by a 16-factor scoring engine and 6 curated **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
+- **Command Code provider** (#2199) — first-class registration with model catalog and quota tracking
+- **Z.AI provider** — new free-tier provider with quota labels
+- **KIE media expansion** — extended catalog including video generation models
+- **Devin authentication** — Desktop imports an existing Devin API key; the CLI uses local `devin auth login` credentials
+- **8 new free providers** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- **Manifest-aware tier routing W1–W4** — provider manifests drive weighted tier selection
+- **Cursor full OpenAI parity** — tool calls, streaming, session management end-to-end
+- **Cursor Pro plan usage** — quota & cycle data surfaced in the provider-limits dashboard
+- **Service tier breakdown / Codex fast tier analytics** — per-tier consumption visibility
+- **Per-session sticky routing** — Codex sessions pin to the same account between turns
+- **Inworld TTS enhancements** — voice catalogs, streaming, and latency improvements
+- **Kiro headless auth** — login via local `kiro-cli` SQLite store, no browser required
+- **DeepSeek quota and limit monitoring** — daily/monthly usage exposed via dashboard
+- **Reset-aware routing strategy** — combos now prefer accounts whose quota window resets soonest
+- **`fallbackDelayMs`** and **dynamic tool limit detection** — finer fallback timing + per-provider tool-count limits
+- **Background mode degradation (Responses API)** — falls back to synchronous mode with a structured warning when an upstream lacks background polling
+- **Per-provider 429 classification** + `useUpstream429BreakerHints` toggle — finer breaker behavior using upstream rate-limit hints
+- **Model cooldowns dashboard** — observe per-model lockouts and manually re-enable from the UI
+- **MITM dynamic Linux cert detection** — works across Debian/Ubuntu, Fedora/RHEL, Arch, and other distros
+- **CLI enhancement suite** — 20+ commands including `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- **Qdrant embedding model discovery** — automatic vector-store model probe
+- **API Keys / Bearer keys with `manage` scope** — perform admin operations programmatically via API
+- **Combo target health analytics** + **structured combo builder** — per-target health & UI builder for assembling `(provider, model, connection)` steps
+- **GitLab Duo OAuth provider** — login with GitLab credentials
+- **Reasoning Replay Cache** — hybrid in-memory + SQLite persistence of reasoning traces
+
+**Related docs:** [Skills Framework](../frameworks/SKILLS.md) · [Memory System](../frameworks/MEMORY.md) · [Cloud Agents](../frameworks/CLOUD_AGENT.md) · [Webhooks](../frameworks/WEBHOOKS.md) · [Reasoning Replay Cache](../routing/REASONING_REPLAY.md)
+
+---
+
+## Providers
+
+Manage AI provider connections: OAuth providers (Claude Code, Codex), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+
+OpenRouter connections can store a per-connection `preset` in Advanced Settings. When set, OmniRoute sends it as the OpenRouter top-level request field, for example `"preset": "email-copywriter"`, unless the client request already supplied its own `preset`.
+
+![Providers Dashboard](../screenshots/01-providers.png)
+
+---
+
+## Combos
+
+Create model routing combos with 19 public strategies: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (fan out to a panel of models in parallel, then synthesize one answer via a judge), and **pipeline**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
 
 Recent combo improvements:
 
@@ -24,82 +69,95 @@ Recent combo improvements:
 - **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
 - **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
 - **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+- **System prompt templates** — combo `system_message` supports server-side
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` and `{{FINGERPRINT}}`
+  placeholders, expanded from the actually-routed target right before dispatch.
+  Allowlisted and non-recursive; unknown placeholders stay literal; empty values
+  expand to empty; client system prompts are never rewritten. `{{FINGERPRINT}}`
+  resolves only for fingerprint-based free providers with a pinned or
+  auto-rotated fingerprint — it expands to empty elsewhere (e.g.
+  single-fingerprint connections, non-fp providers). Expansion covers the
+  standard dispatch loop, round-robin, and pinned context-cache sessions;
+  fusion, chaos, pipeline and nested-execute strategies do not expand
+  placeholders yet.
 
-![Combos Dashboard](screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 
-## 📊 Analytics
+## Analytics
 
 Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
 
-![Analytics Dashboard](screenshots/03-analytics.png)
+![Analytics Dashboard](../screenshots/03-analytics.png)
 
 ---
 
-## 🏥 System Health
+## System Health
 
 Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
 
-![Health Dashboard](screenshots/04-health.png)
+![Health Dashboard](../screenshots/04-health.png)
 
 ---
 
-## 🔧 Translator Playground
+## Translator Playground
 
 Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
 
-![Translator Playground](screenshots/05-translator.png)
+![Translator Playground](../screenshots/05-translator.png)
 
 ---
 
-## 🎮 Model Playground _(v2.0.9+)_
+## Model Playground _(v2.0.9+)_
 
 Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
 
 ---
 
-## 🎨 Themes _(v2.0.5+)_
+## Themes _(v2.0.5+)_
 
 Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
 
 ---
 
-## ⚙️ Settings
+## Settings
 
-Comprehensive settings panel with tabs:
+Comprehensive settings panel with **7 tabs**:
 
 - **General** — System storage, backup management (export/import database)
-- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item and group separator visibility controls, Endpoint tunnel visibility controls
+- **AI** — AI assistant features, default routing presets (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), reasoning replay cache, and skill/memory toggles
 - **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+- **Routing** — Model aliases, background task degradation, manifest-aware tier routing (W1–W4), `fallbackDelayMs`, per-session sticky routing
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration, per-provider 429 classification & `useUpstream429BreakerHints` toggle, model cooldowns
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode, background mode degradation for Responses API
 
-![Settings Dashboard](screenshots/06-settings.png)
+![Settings Dashboard](../screenshots/06-settings.png)
 
 ---
 
-## 🔧 CLI Tools
+## CLI Tools
 
 One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
 
-![CLI Tools Dashboard](screenshots/07-cli-tools.png)
+![CLI Tools Dashboard](../screenshots/07-cli-tools.png)
 
 ---
 
-## 🤖 CLI Agents _(v2.0.11+)_
+## CLI Agents _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 17 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
+Dashboard for discovering and managing CLI agents. Shows a grid of 16 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
 - **Installation status** — Installed / Not Found with version detection
 - **Protocol badges** — stdio, HTTP, etc.
 - **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
 - **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+- **Local Devin authentication** — Devin CLI uses `devin auth login`; no browser OAuth flow is required
 
 ---
 
-## 🔗 Context Relay _(v3.5.5+)_
+## Context Relay _(v3.5.5+)_
 
 A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
 
@@ -109,11 +167,25 @@ Configurable via combo-level or global settings:
 - **Max Messages For Summary** — How much recent history to condense
 - **Summary Model** — Optional override model for generating the handoff summary
 
-Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+Currently supports Codex account rotation. See [Context Relay documentation](../architecture/ARCHITECTURE.md).
 
 ---
 
-## 🛡️ Proxy Hardening _(v3.5.5+)_
+## Prompt Compression _(v3.7.9+)_
+
+Context & Cache now exposes dedicated pages for Caveman, RTK, and Compression Combos:
+
+- **Caveman** — language-aware rule packs, preview, output-mode controls, and analytics
+- **RTK** — command-aware compression for shell, git, test, build, package, Docker, infra, JSON, and stack-trace output
+- **Compression Combos** — named pipelines such as `rtk -> caveman` assigned to routing combos; the default stacked math reaches `~89%` average and `78-95%` eligible-context savings when both engines apply
+- **Raw-output recovery** — optional redacted RTK raw-output pointers for debugging compressed failures
+
+See [Compression Guide](../compression/COMPRESSION_GUIDE.md), [RTK Compression](../compression/RTK_COMPRESSION.md), and
+[Compression Engines](../compression/COMPRESSION_ENGINES.md).
+
+---
+
+## Proxy Hardening _(v3.5.5+)_
 
 Comprehensive proxy configuration enforcement across the entire request pipeline:
 
@@ -124,23 +196,23 @@ Comprehensive proxy configuration enforcement across the entire request pipeline
 
 ---
 
-## 📧 Email Privacy Masking _(v3.5.6+)_
+## Email Privacy Masking _(v3.5.6+)_
 
-OAuth account emails are now masked in the provider dashboard (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. The full email address remains accessible via hover tooltip (`title` attribute).
+OAuth account emails are masked by default (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. Use Settings → Appearance → Account email visibility to reveal or mask full account emails globally across providers, combos, logs, quota, and playground screens.
 
 ---
 
-## 👁️ Model Visibility Toggle _(v3.5.6+)_
+## Model Visibility Toggle _(v3.5.6+)_
 
 The provider page model list now includes:
 
 - **Real-time search/filter bar** — Quickly find specific models
-- **Per-model visibility toggle** (👁 icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
+- **Per-model visibility toggle** ( icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
 - **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
 
 ---
 
-## 🔧 OAuth Env Repair _(v3.6.1+)_
+## OAuth Env Repair _(v3.6.1+)_
 
 One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
 
@@ -150,7 +222,7 @@ One-click "Repair env" action for OAuth providers that restores missing environm
 
 ---
 
-## 🗑️ Uninstall / Full Uninstall _(v3.6.2+)_
+## Uninstall / Full Uninstall _(v3.6.2+)_
 
 Clean removal scripts for all installation methods:
 
@@ -161,43 +233,43 @@ Clean removal scripts for all installation methods:
 
 ---
 
-## 🖼️ Media _(v2.0.3+)_
+## Media _(v2.0.3+)_
 
 Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
 
 ---
 
-## 📝 Request Logs
+## Request Logs
 
 Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
 
-![Usage Logs](screenshots/08-usage.png)
+![Usage Logs](../screenshots/08-usage.png)
 
 ---
 
-## 🌐 API Endpoint
+## API Endpoint
 
-Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel integration and cloud proxy support for remote access.
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel, and cloud proxy support are available for remote access.
 
-![Endpoint Dashboard](screenshots/09-endpoint.png)
+![Endpoint Dashboard](../screenshots/09-endpoint.png)
 
 ---
 
-## 🔑 API Key Management
+## API Key Management
 
 Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
 
 ---
 
-## 📋 Audit Log
+## Audit Log
 
 Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
 
 ---
 
-## 🖥️ Desktop Application
+## Desktop Application
 
-Native Electron desktop app for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+Native Tauri 2 desktop app (Rust shell + system webview, `apps/desktop/`) for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
 
 Key features:
 
@@ -207,16 +279,16 @@ Key features:
 - Single-instance lock
 - Auto-update on restart
 - Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
-- Hardened Electron build packaging — symlinked `node_modules` in the standalone bundle is detected and rejected before packaging, preventing runtime dependency on the build machine (v2.5.5+)
-- **Graceful shutdown** — Electron `before-quit` shuts down Next.js cleanly, preventing SQLite WAL database locks (v3.6.2+)
+- Tauri 2 build packaging — hardened standalone bundle validation detects symlinked `node_modules` and rejects it before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+- **Graceful shutdown** — Tauri lifecycle hooks shut down the API server cleanly, preventing SQLite WAL database locks (v3.6.2+)
 
-📖 See [`electron/README.md`](../electron/README.md) for full documentation.
+See [`apps/desktop/README.md`](../../apps/desktop/README.md) for full documentation.
 
 ---
 
-## 🌐 V1 WebSocket Bridge _(v3.6.6+)_
+## V1 WebSocket Bridge _(v3.6.6+)_
 
-OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
+OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/dev/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
 
 Key behaviours:
 
@@ -226,7 +298,7 @@ Key behaviours:
 
 ---
 
-## 🔑 Sync Tokens & Config Bundle _(v3.6.6+)_
+## Sync Tokens & Config Bundle _(v3.6.6+)_
 
 Multi-device and external operator access is now possible via **scoped sync tokens**:
 
@@ -238,7 +310,7 @@ The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `E
 
 ---
 
-## 🧠 GLM Thinking Preset _(v3.6.6+)_
+## GLM Thinking Preset _(v3.6.6+)_
 
 **GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
 
@@ -246,7 +318,7 @@ The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `E
 
 ---
 
-## 🛡️ Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
+## Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
 
 All provider validation and model discovery calls now go through a two-layer outbound guard:
 
@@ -257,12 +329,12 @@ Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to th
 
 ---
 
-## 🔄 Cooldown-Aware Retries _(v3.6.6+)_
+## Cooldown-Aware Retries _(v3.6.6+)_
 
 Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
 
 ---
 
-## 📋 Compliance Audit v2 _(v3.6.6+)_
+## Compliance Audit v2 _(v3.6.6+)_
 
 The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.

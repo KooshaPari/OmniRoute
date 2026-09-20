@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Adobe Firefly durable session manager.
  *

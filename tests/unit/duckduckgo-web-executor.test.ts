@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 import { describe, it, type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import { FETCH_TIMEOUT_MS } from "../../open-sse/config/constants.ts";
@@ -31,11 +32,7 @@ describe("DuckDuckGoWebExecutor", () => {
     });
 
     it("should export DUCKDUCKGO_BASE constant", () => {
-      assert.equal(
-        DUCKDUCKGO_BASE,
-        "https://duck.ai",
-        "DUCKDUCKGO_BASE should be correct URL"
-      );
+      assert.equal(DUCKDUCKGO_BASE, "https://duck.ai", "DUCKDUCKGO_BASE should be correct URL");
     });
   });
 

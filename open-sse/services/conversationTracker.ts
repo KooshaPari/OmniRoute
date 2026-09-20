@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Conversation Tracker — assigns a stable conversation id across separate
  * HTTP requests that are turns of the same multi-turn agentic conversation.

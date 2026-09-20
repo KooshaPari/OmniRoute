@@ -14,7 +14,6 @@ lastUpdated: 2026-08-07
 
 ## Why this exists
 
-
 - [OAuth 2.0 for native apps (PKCE)](https://developers.google.com/identity/protocols/oauth2/native-app) — OAuth client_id / client_secret for installed apps are public; PKCE provides the actual security.
 - [Firebase API keys](https://firebase.google.com/docs/projects/api-keys) — Web client identifiers are public by design.
 
@@ -94,7 +93,7 @@ When you need to embed a new upstream-provided value that:
 
 ### 3. Forbidden patterns
 
-❌ **Never** do any of the following in production code (`src/`, `open-sse/`, `electron/`, `bin/`):
+**Never** do any of the following in production code (`src/`, `open-sse/`, `bin/`):
 
 ```ts
 // BAD: literal value triggers Secret Scanning + Semgrep
@@ -113,9 +112,9 @@ clientSecret: hexDecode("474f4353..."),
 
 These all eventually trip a scanner. Use `resolvePublicCred()`.
 
-❌ **Never** add literal credentials to `.env.example`. Users who need real upstream values can extract them from the public CLI themselves, or use their own OAuth registration.
+**Never** add literal credentials to `.env.example`. Users who need real upstream values can extract them from the public CLI themselves, or use their own OAuth registration.
 
-❌ **Never** dismiss a new secret-scanning alert without first checking whether the credential should be moved to this helper.
+**Never** dismiss a new secret-scanning alert without first checking whether the credential should be moved to this helper.
 
 ## Related controls
 

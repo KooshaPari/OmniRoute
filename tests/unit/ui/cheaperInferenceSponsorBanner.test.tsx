@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 /**
  * CheaperInferenceSponsorBanner — render gate (localStorage dismissal), CTA

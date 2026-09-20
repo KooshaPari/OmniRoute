@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -44,9 +45,8 @@ test("estimateSizeFast handles circular references", async () => {
 
 test("HEAP_PRESSURE_THRESHOLD_MB auto-calibrates from the live V8 heap ceiling (no fixed 200)", async () => {
   const { getHeapStatistics } = await import("node:v8");
-  const { HEAP_PRESSURE_THRESHOLD_MB, computeHeapPressureThresholdMb } = await import(
-    "../../open-sse/utils/heapPressure.ts"
-  );
+  const { HEAP_PRESSURE_THRESHOLD_MB, computeHeapPressureThresholdMb } =
+    await import("../../open-sse/utils/heapPressure.ts");
   const limitMb = getHeapStatistics().heap_size_limit / (1024 * 1024);
   // The live constant must equal the pure helper applied to this process's
   // actual ceiling — no drift between the resolved value and the formula.

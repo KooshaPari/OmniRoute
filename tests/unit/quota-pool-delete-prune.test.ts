@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * tests/unit/quota-pool-delete-prune.test.ts
  *

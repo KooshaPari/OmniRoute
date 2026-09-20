@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { backupDbFile } from "./backup";
 import { getDefaultCompressionCombo } from "./compressionCombos";
 import { getDbInstance } from "./core";
@@ -917,7 +918,10 @@ let proactiveRatioCache: { value: number; readAt: number } | null = null;
 
 export function getProactiveCompressionRatio(): number {
   const now = Date.now();
-  if (proactiveRatioCache && now - proactiveRatioCache.readAt < PROACTIVE_COMPRESSION_CACHE_TTL_MS) {
+  if (
+    proactiveRatioCache &&
+    now - proactiveRatioCache.readAt < PROACTIVE_COMPRESSION_CACHE_TTL_MS
+  ) {
     return proactiveRatioCache.value;
   }
   let ratio = PROACTIVE_COMPRESSION_DEFAULT_RATIO;

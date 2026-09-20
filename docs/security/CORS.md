@@ -122,7 +122,7 @@ restart.
 - **Bearer / `x-api-key` (the `/v1/*` inference surface):** browsers never attach
   these automatically. CORS is not a meaningful barrier here — the API key is the
   barrier — which is why that surface is intentionally permissive so browser and
-  Electron clients can read responses they are already entitled to.
+  Tauri clients can read responses they are already entitled to.
 - **Cookie session (the dashboard):** protected by the fail-closed default **and**
   by the absence of `Access-Control-Allow-Credentials` on the shared path. Keep
   management/dashboard origins out of any permissive config; they must stay exactly

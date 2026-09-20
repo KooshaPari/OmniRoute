@@ -13,6 +13,7 @@ import {
   parseGitleaksJson,
   evaluateSecretsRatchet,
   readBaselineSecretsValue,
+  GITLEAKS_SCAN_TIMEOUT_MS,
   // @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
 } from "../../../scripts/check/check-secrets.mjs";
 
@@ -250,6 +251,37 @@ test("parseGitleaksJson: findingCount == soma de todos os byFile values", () => 
   const result = parseGitleaksJson(findings);
   const sumByFile = Object.values(result.byFile).reduce((s, n) => s + n, 0);
   assert.equal(result.findingCount, sumByFile, "findingCount must equal sum of byFile counts");
+});
+
+// ---------------------------------------------------------------------------
+// GITLEAKS_SCAN_TIMEOUT_MS — per-directory gitleaks budget (locked after the
+// 2026-09 upstream sync pushed the src scan to 138s and the old 90s budget made
+// every run ETIMEDOUT, so the ratchet silently never produced a value).
+// ---------------------------------------------------------------------------
+
+test("GITLEAKS_SCAN_TIMEOUT_MS: é número positivo", () => {
+  assert.equal(typeof GITLEAKS_SCAN_TIMEOUT_MS, "number");
+  assert.ok(GITLEAKS_SCAN_TIMEOUT_MS > 0, "timeout must be positive");
+});
+
+test("GITLEAKS_SCAN_TIMEOUT_MS: cobre o src scan medido de 138s com folga", () => {
+  // 138s = gitleaks dir src, medido 2026-09-19 após o sync upstream 6b14884af4.
+  // O orçamento precisa exceder o scan real; 2x de folga é o mínimo aceitável.
+  const MEASURED_SRC_SCAN_S = 138;
+  assert.ok(
+    GITLEAKS_SCAN_TIMEOUT_MS >= MEASURED_SRC_SCAN_S * 1000,
+    "timeout must cover the measured 138s src scan"
+  );
+  assert.ok(
+    GITLEAKS_SCAN_TIMEOUT_MS >= MEASURED_SRC_SCAN_S * 1000 * 2,
+    "timeout should keep ~2x headroom over the measured scan"
+  );
+});
+
+test("GITLEAKS_SCAN_TIMEOUT_MS: falha rápido o bastante para o gate não travar a CI", () => {
+  // Teto superior: um processo genuinamente pendurado não deve prender a CI
+  // por mais de 10 minutos.
+  assert.ok(GITLEAKS_SCAN_TIMEOUT_MS <= 600_000, "timeout must stay under 10 minutes");
 });
 
 // ---------------------------------------------------------------------------

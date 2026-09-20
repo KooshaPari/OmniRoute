@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * GeminiWebExecutor — Gemini Web Session Provider
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Chaos Engine — parallel multi-model dispatch for the `auto/chaos` auto-model.
  *

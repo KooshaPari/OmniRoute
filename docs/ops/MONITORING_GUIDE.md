@@ -297,7 +297,7 @@ The autopilot operates in **manual mode** by default — it detects issues and g
 ```
 Combo "always-on" (priority strategy)
 ├─ Target 1: openai/gpt-5 (healthy)
-├─ Target 2: anthropic/claude-opus-4-6 (⚠️ model lockout until 14:00)
+├─ Target 2: anthropic/claude-opus-4-6 ( model lockout until 14:00)
 └─ Target 3: kiro/claude-sonnet-4-5 (healthy)
 
 Recommended action: Reorder — move kiro above anthropic until lockout expires

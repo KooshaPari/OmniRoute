@@ -1,6 +1,6 @@
 # Security Policy (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [es](../es/SECURITY.md) · [et](../et/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [ga](../ga/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hr](../hr/SECURITY.md) · [hu](../hu/SECURITY.md) · [id](../id/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [lv](../lv/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [mt](../mt/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [tr](../tr/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-CN](../zh-CN/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -24,9 +24,9 @@
 
 | Έκδοση  | Κατάσταση Υποστήριξης |
 | ------- | --------------------- |
-| 3.8.x   | ✅ Ενεργή             |
-| 3.7.x   | ✅ Ασφάλεια           |
-| < 3.7.0 | ❌ Μη υποστηριζόμενη  |
+| 3.8.x   | Ενεργή                |
+| 3.7.x   | Ασφάλεια              |
+| < 3.7.0 | Μη υποστηριζόμενη     |
 
 ---
 
@@ -40,7 +40,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
        → Rate Limiter → Circuit Breaker → Cooldown → Model Lockout → Provider
 ```
 
-### 🔐 Αυθεντικοποίηση & Εξουσιοδότηση
+### Αυθεντικοποίηση & Εξουσιοδότηση
 
 | Λειτουργία                  | Υλοποίηση                                                                                                                                                          |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -54,7 +54,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | **Manage-Scope MCP**        | Η απομακρυσμένη πρόσβαση `/api/mcp/*` ελέγχεται από API keys με εμβέλεια `manage`· το `/api/cli-tools/runtime/*` παραμένει αυστηρά loopback. Βλ. ROUTE_GUARD_TIERS |
 | **MCP Scopes**              | 32 λεπτομερείς εμβέλειες (read:health, write:combos, execute:completions, κ.λπ.) — βλ. `docs/frameworks/MCP-SERVER.md`                                             |
 
-### 🛡️ Κρυπτογράφηση σε Ηρεμία
+### Κρυπτογράφηση σε Ηρεμία
 
 Όλα τα ευαίσθητα δεδομένα που αποθηκεύονται στο SQLite κρυπτογραφούνται με **AES-256-GCM** και παραγωγή κλειδιού scrypt:
 
@@ -67,7 +67,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🛡️ Πλαίσιο Guardrails
+### Πλαίσιο Guardrails
 
 Το OmniRoute διαθέτει ένα **μητρώο guardrails** που επαναφορτώνεται εν ώρα λειτουργίας (`src/lib/guardrails/`) με 3 ενσωματωμένα guardrails ταξινομημένα κατά προτεραιότητα:
 
@@ -79,7 +79,7 @@ STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 
 Τα προσαρμοσμένα guardrails δηλώνονται μέσω `registerGuardrail(new MyGuardrail())`. Το μοντέλο είναι fail-open (οι εξαιρέσεις δεν αποκλείουν ποτέ την κίνηση). Απόρριψη ανά αίτημα μέσω της κεφαλίδας `x-omniroute-disabled-guardrails`. → Βλ. [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
-### 🧠 Φρουρός Έγχυσης Οδηγιών
+### Φρουρός Έγχυσης Οδηγιών
 
 Ευρετικό middleware καλύτερης προσπάθειας που ανιχνεύει μοτίβα έγχυσης οδηγιών σε αιτήματα LLM.
 **Δεν αποτελεί πλήρες τείχος προστασίας έγχυσης οδηγιών** — μπορεί να παράγει ψευδώς θετικά (αβλαβείς
@@ -105,7 +105,7 @@ INPUT_SANITIZER_MODE=block    # warn | block (πολιτική έγχυσης· 
 INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (προεπιλογή) | medium | low — σοβαρότητες ίσες ή πάνω από αυτό αποκλείονται σε λειτουργία block
 ```
 
-### 🔒 Απόκρυψη PII
+### Απόκρυψη PII
 
 Αυτόματη ανίχνευση και προαιρετική απόκρυψη προσωπικά αναγνωρίσιμων πληροφοριών:
 
@@ -123,7 +123,7 @@ PII_REDACTION_ENABLED=true   # επανεγγραφή PII αιτήματος· �
 PII_RESPONSE_SANITIZATION=true  # προαιρετικό: απόκρυψη PII στις αποκρίσεις παρόχου που επιστρέφονται στους πελάτες
 ```
 
-### 🌐 Ασφάλεια Δικτύου
+### Ασφάλεια Δικτύου
 
 | Λειτουργία               | Περιγραφή                                                                            |
 | ------------------------ | ------------------------------------------------------------------------------------ |
@@ -134,7 +134,7 @@ PII_RESPONSE_SANITIZATION=true  # προαιρετικό: απόκρυψη PII �
 | **TLS Fingerprint**      | Πλαστογράφηση TLS fingerprint τύπου browser για μείωση ανίχνευσης bot                |
 | **CLI Fingerprint**      | Διάταξη κεφαλίδων/σώματος ανά πάροχο για αντιστοίχιση με υπογραφές native CLI        |
 
-### 🔌 Ανθεκτικότητα & Διαθεσιμότητα
+### Ανθεκτικότητα & Διαθεσιμότητα
 
 | Λειτουργία                | Περιγραφή                                                               |
 | ------------------------- | ----------------------------------------------------------------------- |
@@ -143,7 +143,7 @@ PII_RESPONSE_SANITIZATION=true  # προαιρετικό: απόκρυψη PII �
 | **Εκθετική Καθυστέρηση**  | Αυτόματη επανάληψη με αυξανόμενες καθυστερήσεις                         |
 | **Dashboard Υγείας**      | Παρακολούθηση υγείας παρόχου σε πραγματικό χρόνο                        |
 
-### 📋 Συμμόρφωση
+### Συμμόρφωση
 
 | Λειτουργία              | Περιγραφή                                                                      |
 | ----------------------- | ------------------------------------------------------------------------------ |
@@ -155,30 +155,13 @@ PII_RESPONSE_SANITIZATION=true  # προαιρετικό: απόκρυψη PII �
 
 ---
 
-## Απαιτούμενες Μεταβλητές Περιβάλλοντος
+## Docker Security
 
-Όλα τα μυστικά πρέπει να οριστούν πριν από την εκκίνηση του διακομιστή. Ο διακομιστής θα **αποτύχει άμεσα** εάν λείπουν ή είναι αδύναμα.
-
-```bash
-# ΑΠΑΙΤΟΥΜΕΝΑ — ο διακομιστής δεν θα εκκινήσει χωρίς αυτά:
-JWT_SECRET=$(openssl rand -base64 48)     # ελάχ. 32 χαρακτήρες
-API_KEY_SECRET=$(openssl rand -hex 32)    # ελάχ. 16 χαρακτήρες
-
-# ΣΥΝΙΣΤΩΜΕΝΑ — ενεργοποιεί κρυπτογράφηση δεδομένων σε ηρεμία:
-STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
-```
-
-Ο διακομιστής απορρίπτει ενεργά γνωστές αδύναμες τιμές όπως `changeme`, `secret` ή `password`.
-
----
-
-## Ασφάλεια Docker
-
-- Χρησιμοποιείτε χρήστη χωρίς δικαιώματα root στο περιβάλλον παραγωγής
-- Προσαρτάτε τα μυστικά ως τόμους μόνο για ανάγνωση
-- Μην αντιγράφετε ποτέ αρχεία `.env` μέσα σε Docker images
-- Χρησιμοποιείτε `.dockerignore` για να αποκλείετε ευαίσθητα αρχεία
-- Ορίστε `AUTH_COOKIE_SECURE=true` όταν βρίσκεστε πίσω από HTTPS
+- Use non-root user in production
+- Mount secrets as read-only volumes
+- Never copy `.env` files into Docker images
+- Use `.dockerignore` to exclude sensitive files
+- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
 
 ```bash
 docker run -d \
@@ -195,63 +178,71 @@ docker run -d \
 
 ---
 
-## Εξαρτήσεις
+## Dependencies
 
-- Εκτελείτε `npm audit` τακτικά (`npm run audit:deps` καλύπτει main + electron)
-- Διατηρείτε τις εξαρτήσεις ενημερωμένες
-- Το έργο χρησιμοποιεί `husky` + `lint-staged` για ελέγχους πριν από κάθε commit (lint-staged + check-docs-sync + check:any-budget:t11)
-- Το CI pipeline εκτελεί κανόνες ασφαλείας ESLint σε κάθε push (`no-eval`, `no-implied-eval`, `no-new-func` = error)
-- Οι σταθερές παρόχου επικυρώνονται κατά τη φόρτωση της μονάδας μέσω Zod (`src/shared/validation/schemas.ts`)
-- Χρησιμοποιούνται βιβλιοθήκες με ασφαλείς προεπιλογές: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (χωρίς κίνδυνο SQLi μέσω παραμετροποιημένων ερωτημάτων), `bcryptjs` (κατακερματισμός κωδικών πρόσβασης)
+- Run `npm audit` regularly (`npm run audit:deps` audits the root package)
+- Keep dependencies updated
+- The project uses `husky` + `lint-staged` for pre-commit checks (lint-staged + check-docs-sync + check:any-budget:t11)
+- CI pipeline runs ESLint security rules on every push (`no-eval`, `no-implied-eval`, `no-new-func` = error)
+- Provider constants validated at module load via Zod (`src/shared/validation/schemas.ts`)
+- Secure-by-default libraries used: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (no SQLi risk via parameterized queries), `bcryptjs` (password hashing)
 
-## Αυστηροί Κανόνες Ασφαλείας
+## Hard Security Rules
 
-Αυτοί οι κανόνες επιβάλλονται από εργαλεία και αξιολογητές:
+These rules are enforced by tooling and reviewers:
 
-1. **Ποτέ μην κάνετε commit μυστικά** — το `.env` είναι στο gitignore· το `.env.example` είναι το πρότυπο (χωρίς κυριολεκτικές τιμές, μόνο σχόλια — βλ. PUBLIC_CREDS.md παρακάτω)
-2. **Ποτέ μην χρησιμοποιείτε `eval()`, `new Function()` ή έμμεσο eval** — το ESLint επιβάλλει τον κανόνα
-3. **Ποτέ μην παρακάμπτετε τα Husky hooks** (`--no-verify`, `--no-gpg-sign`) χωρίς ρητή έγκριση διαχειριστή
-4. **Ποτέ μην γράφετε ακατέργαστη SQL σε routes** — πάντα να διέρχεστε από το `src/lib/db/` (παραμετροποιημένο)
-5. **Πάντα να επικυρώνετε εισόδους με Zod** — `src/shared/validation/schemas.ts`
-6. **Πάντα να απολυμαίνετε επικεφαλίδες upstream** — λίστα απαγορευμένων στο `src/shared/constants/upstreamHeaders.ts`
-7. **Κρυπτογραφείτε τα διαπιστευτήρια σε ηρεμία** — AES-256-GCM μέσω `src/lib/db/encryption.ts`
-8. **Δημόσιοι αναγνωριστές OAuth upstream μέσω `resolvePublicCred()`** — ποτέ μην ενσωματώνετε κυριολεκτικές τιμές `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` στον πηγαίο κώδικα. Βλ. [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
-9. **Αποκρίσεις σφαλμάτων μέσω `buildErrorBody()` / `sanitizeErrorMessage()`** — ποτέ μην τοποθετείτε ακατέργαστο `err.stack` / `err.message` σε σώματα HTTP / SSE / executor / MCP αποκρίσεων. Βλ. [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
-10. **Τιμές χρόνου εκτέλεσης `exec()` / `spawn()` μέσω της επιλογής `env`** — ποτέ μην παρεμβάλλετε εξωτερικά μονοπάτια ή μη αξιόπιστες τιμές σε σενάρια που περνούν από το shell. Αναφορά: `src/mitm/cert/install.ts::updateNssDatabases`.
-11. **Προτιμάτε βιβλιοθήκες με ασφαλείς προεπιλογές** — βλ. [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Καταφεύγετε σε αυτές πριν υλοποιήσετε τη δική σας λύση.
+1. **Never commit secrets** — `.env` is gitignored; `.env.example` is the template (no literals, comments only — see PUBLIC_CREDS.md below)
+2. **Never use `eval()`, `new Function()`, or implied eval** — ESLint enforces
+3. **Never bypass Husky hooks** (`--no-verify`, `--no-gpg-sign`) without explicit operator approval
+4. **Never write raw SQL in routes** — always go through `src/lib/db/` (parameterized)
+5. **Always validate inputs with Zod** — `src/shared/validation/schemas.ts`
+6. **Always sanitize upstream headers** — denylist in `src/shared/constants/upstreamHeaders.ts`
+7. **Encrypt credentials at rest** — AES-256-GCM via `src/lib/db/encryption.ts`
+8. **Public upstream OAuth identifiers via `resolvePublicCred()`** — never embed `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com` literals in source. See [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Error responses through `buildErrorBody()` / `sanitizeErrorMessage()`** — never put raw `err.stack` / `err.message` in HTTP / SSE / executor / MCP response bodies. See [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **`exec()` / `spawn()` runtime values via the `env` option** — never string-interpolate external paths or untrusted values into shell-passed scripts. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Prefer secure-by-default libraries** — see [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Reach for them before rolling your own.
 
-## Ευρήματα σαρωτή αλυσίδας εφοδιασμού (Socket.dev / Snyk / παρόμοια)
+## Supply-chain scanner findings (Socket.dev / Snyk / similar)
 
-Το δημοσιευμένο artifact npm `omniroute` περιλαμβάνει το build του Next.js με `output: "standalone"`,
-που σημαίνει ότι κάθε χειριστής διαδρομής — συμπεριλαμβανομένων των τεκμηριωμένων προνομιακών
-λειτουργιών (MITM, εισαγωγή Zed, Cloud Sync, ενσωματωμένος επόπτης υπηρεσιών) — καταλήγει
-σε ελαχιστοποιημένα τμήματα `.next/server/*.js`. Οι ευρετικοί σαρωτές αλυσίδας εφοδιασμού
-αντιστοιχίζουν συχνά αυτά τα τμήματα με υπογραφές κακόβουλου λογισμικού.
+The published `omniroute` npm artifact bundles the Next.js `output: "standalone"`
+build, which means every route handler — including documented privileged
+features (MITM, Zed import, Cloud Sync, embedded service supervisor) — ends
+up in `.next/server/*.js` minified chunks. Heuristic supply-chain scanners
+frequently pattern-match those chunks against malware signatures.
 
-Για κάθε κατηγορία εύρεσης διατηρούμε μια επιμέρους επαλήθευση συντηρητή ανά εύρημα:
+The scanner configuration we use lives at [`socket.yml`](socket.yml) in the
+repo root (Socket.dev GitHub App format v2 — see
+<https://docs.socket.dev/docs/socket-yml>). It explicitly excludes
+non-shipped directories (`tests/`, `_tasks/`, `_references/`, `_ideia/`,
+`_mono_repo/`, `docs/`, etc.) so the scanner only reports on code paths that
+actually reach published users — the scan itself is driven by the Socket
+GitHub App reading that file, not by a workflow in this repository.
+
+For each finding category we maintain a per-finding maintainer attestation:
 
 - **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
-  χάρτης ανά εύρημα: αρχείο πηγής ↔ επισημασμένο τμήμα ↔ συμπεριφορά ↔ μέτρο μετριασμού
-  που εφαρμόστηκε στην v3.8.6.
-- Μπλοκ `SECURITY-AUDITOR-NOTE:` εντός πηγαίου κώδικα σε κάθε επισημασμένο σημείο συνάρτησης
-  παραπέμπουν στο ίδιο έγγραφο.
+  per-finding map: source file ↔ flagged chunk ↔ behaviour ↔ mitigation
+  applied in v3.8.6.
+- In-source `SECURITY-AUDITOR-NOTE:` blocks at each flagged function point
+  back to the same document.
 
-Για χρήστες των οποίων η διοχέτευση δεν μπορεί να χαλαρώσει την ειδοποίηση: κάντε build με
-`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. Αυτό αντικαθιστά τις τέσσερις
-ευαίσθητες μονάδες με stubs που επιστρέφουν HTTP 503 `feature-disabled` κατά την
-εκτέλεση, ώστε τα προνομιακά μονοπάτια κώδικα να απουσιάζουν φυσικά από το bundle.
-Δείτε το [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
-για τη συνταγή δημοσίευσης.
+For users whose pipeline cannot relax the alert: build with
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. That replaces the four
+sensitive modules with stubs that return HTTP 503 `feature-disabled` at
+runtime, so the privileged code paths are physically absent from the bundle.
+See [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+for the publishing recipe.
 
-## Αναφορές
+## References
 
-- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — διοχέτευση εξουσιοδότησης
-- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — πλαίσιο προστατευτικών ελέγχων
-- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — αρχείο καταγραφής ελέγχου και διατήρηση
-- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **υποχρεωτικό** μοτίβο για δημόσια διαπιστευτήρια upstream
-- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **υποχρεωτικό** μοτίβο για αποκρίσεις σφαλμάτων
-- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — επαλήθευση συντηρητή για ευρήματα σαρωτή αλυσίδας εφοδιασμού
-- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — αποδιακόπτης + περίοδος ψύξης + κλείδωμα
-- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — δακτυλοτύπωση TLS (νομική/ηθική σημείωση)
-- [`CLAUDE.md`](CLAUDE.md) — αυστηροί κανόνες για πράκτορες ΤΝ
-- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — επιμελημένες βιβλιοθήκες ασφαλείς εξ ορισμού
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — authorization pipeline
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — guardrails framework
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — audit log and retention
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **mandatory** pattern for public upstream credentials
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **mandatory** pattern for error responses
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — maintainer attestation for supply-chain scanner findings
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (legal/ethical notice)
+- [`CLAUDE.md`](CLAUDE.md) — hard rules for AI agents
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — curated secure-by-default libraries

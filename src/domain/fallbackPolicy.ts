@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Fallback Policy — Domain Layer (T-19)
  *

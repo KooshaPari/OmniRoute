@@ -6,7 +6,6 @@ const EXCLUDED_SEGMENTS = new Set([
   ".next",
   ".build",
   "dist",
-  "dist-electron",
   ".claude",
   "_references",
   "_mono_repo",

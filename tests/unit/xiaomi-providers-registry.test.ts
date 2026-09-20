@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { xiaomi_mimoProvider } from "../../open-sse/config/providers/registry/xiaomi-mimo/index.ts";
@@ -178,18 +179,13 @@ test("buildUrl: xiaomi-mimo-token-plan sem targetFormat mantem a URL OpenAI padr
 // ---------------------------------------------------------------------------
 
 test("xiaomi-mimo-token-plan aponta para o host token-plan-sgp", () => {
-  assert.equal(
-    xiaomi_mimo_token_planProvider.baseUrl,
-    "https://token-plan-sgp.xiaomimimo.com/v1"
-  );
+  assert.equal(xiaomi_mimo_token_planProvider.baseUrl, "https://token-plan-sgp.xiaomimimo.com/v1");
   assert.equal(xiaomi_mimo_token_planProvider.format, "openai");
   assert.equal(xiaomi_mimo_token_planProvider.authHeader, "bearer");
 });
 
 test("xiaomi-mimo-token-plan declara a variante Anthropic no host token-plan", () => {
-  const alt = xiaomi_mimo_token_planProvider.alternateFormats?.find(
-    (a) => a.format === "claude"
-  );
+  const alt = xiaomi_mimo_token_planProvider.alternateFormats?.find((a) => a.format === "claude");
   assert.ok(alt, "esperava uma alternativa claude declarada");
   assert.equal(alt.baseUrl, "https://token-plan-sgp.xiaomimimo.com/anthropic/v1/messages");
   assert.equal(alt.authHeader, "x-api-key");
@@ -197,10 +193,7 @@ test("xiaomi-mimo-token-plan declara a variante Anthropic no host token-plan", (
 
 test("xiaomi-mimo-token-plan esta registrado e nao colide de host com o normal", () => {
   assert.ok(REGISTRY["xiaomi-mimo-token-plan"], "provedor nao registrado");
-  assert.notEqual(
-    REGISTRY["xiaomi-mimo-token-plan"].baseUrl,
-    REGISTRY["xiaomi-mimo"].baseUrl
-  );
+  assert.notEqual(REGISTRY["xiaomi-mimo-token-plan"].baseUrl, REGISTRY["xiaomi-mimo"].baseUrl);
 });
 
 test("xiaomi-mimo-token-plan expoe os modelos de chat", () => {

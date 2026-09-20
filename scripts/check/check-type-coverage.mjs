@@ -14,7 +14,7 @@
 //     open-sse/tsconfig.json declares path aliases (`@/*`, `@omniroute/open-sse/*`)
 //     relative to its own directory, so it resolves both workspaces correctly and
 //     yields a representative global %. It carried a `baseUrl: ".."` until TS 7
-//     readiness removed it; that also stopped `electron/*.js` from being pulled
+//     readiness removed it; that also stopped root-relative files from being pulled
 //     into the program via root-relative resolution, which moved the measured %
 //     up (~92.2% -> ~94.0%).
 //

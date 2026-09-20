@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -278,9 +279,7 @@ test("OpenAI -> Claude does not leave tool results separated from their tool use
     (message) =>
       message.role === "user" &&
       message.content.some(
-        (block) =>
-          block.type === "text" &&
-          block.text === "Please wait before using that result."
+        (block) => block.type === "text" && block.text === "Please wait before using that result."
       )
   );
   assert.ok(

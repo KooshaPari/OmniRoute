@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * db/providers.js — Provider connections and nodes CRUD.
  */

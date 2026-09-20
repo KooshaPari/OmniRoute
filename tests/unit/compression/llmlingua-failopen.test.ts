@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * TDD tests for the llmlingua async compression engine (L1/L3 — F2.1).
  *

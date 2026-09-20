@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 export const a2aMemorySkill = {
   name: "memory_aware_routing",
   version: "1.0.0",

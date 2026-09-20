@@ -1,0 +1,13 @@
+{
+  "kind": "evidence",
+  "schema_version": "1.0.0",
+  "id": "E-Q8-01",
+  "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec",
+  "path": "raw/E-Q8-01.json",
+  "digest": "sha256:ffe73be9767a1bcf6a7b1ee7d4f6b9ea99a4535e2399996ef97b5d73526356f3",
+  "observed_at": "2026-09-15T06:17:10Z",
+  "sensitivity": "PUBLIC",
+  "role": "QUALIFICATION",
+  "origin": "LOCAL_OBSERVATION",
+  "summary": "Overall qualification: 19/20 instances pass, 1 FAIL (performance). Screen mode assessment."
+}

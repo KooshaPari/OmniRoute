@@ -285,7 +285,7 @@ export async function runAuthzPipeline(
   // read-only PUBLIC endpoints. These authenticate via Authorization /
   // x-api-key headers that browsers never auto-attach, so echoing the caller's
   // Origin (or `*`) there carries no credentialed-session / CSRF risk — it just
-  // lets browser/Electron clients (issue #5242) read responses they are already
+  // lets browser clients (issue #5242) read responses they are already
   // entitled to. MANAGEMENT (cookie-authed dashboard) and non-read-only PUBLIC
   // routes (e.g. /api/cloud/, which sets Allow-Credentials in its own handler)
   // stay exactly fail-closed.

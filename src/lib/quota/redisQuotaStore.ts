@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * redisQuotaStore.ts — Optional Redis-backed QuotaStore implementation.
  *

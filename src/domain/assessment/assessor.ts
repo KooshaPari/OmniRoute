@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Assessor — Probes provider/model pairs to determine working status and performance.
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // #3027 — A per-model subscription 403 on a passthrough / per-model-quota provider
 // (e.g. ollama-cloud "this model requires a subscription") must lock out ONLY the paid
 // model, not cool down the whole connection (which would knock out the free models on

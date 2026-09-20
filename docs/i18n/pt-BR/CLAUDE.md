@@ -1,6 +1,6 @@
 # CLAUDE.md (Português (Brasil))
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇬🇷 [el](../el/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇪🇪 [et](../et/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇪 [ga](../ga/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇷 [hr](../hr/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇱🇹 [lt](../lt/CLAUDE.md) · 🇱🇻 [lv](../lv/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇲🇹 [mt](../mt/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇮 [sl](../sl/CLAUDE.md) · 🇷🇸 [sr](../sr/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md) · 🇹🇼 [zh-TW](../zh-TW/CLAUDE.md)
+**Languages:** [English](../../../CLAUDE.md) · [ar](../ar/CLAUDE.md) · [az](../az/CLAUDE.md) · [bg](../bg/CLAUDE.md) · [bn](../bn/CLAUDE.md) · [cs](../cs/CLAUDE.md) · [da](../da/CLAUDE.md) · [de](../de/CLAUDE.md) · [el](../el/CLAUDE.md) · [es](../es/CLAUDE.md) · [et](../et/CLAUDE.md) · [fa](../fa/CLAUDE.md) · [fi](../fi/CLAUDE.md) · [fr](../fr/CLAUDE.md) · [ga](../ga/CLAUDE.md) · [gu](../gu/CLAUDE.md) · [he](../he/CLAUDE.md) · [hi](../hi/CLAUDE.md) · [hr](../hr/CLAUDE.md) · [hu](../hu/CLAUDE.md) · [id](../id/CLAUDE.md) · [it](../it/CLAUDE.md) · [ja](../ja/CLAUDE.md) · [ko](../ko/CLAUDE.md) · [lt](../lt/CLAUDE.md) · [lv](../lv/CLAUDE.md) · [mr](../mr/CLAUDE.md) · [ms](../ms/CLAUDE.md) · [mt](../mt/CLAUDE.md) · [nl](../nl/CLAUDE.md) · [no](../no/CLAUDE.md) · [phi](../phi/CLAUDE.md) · [pl](../pl/CLAUDE.md) · [pt](../pt/CLAUDE.md) · [ro](../ro/CLAUDE.md) · [ru](../ru/CLAUDE.md) · [sk](../sk/CLAUDE.md) · [sl](../sl/CLAUDE.md) · [sr](../sr/CLAUDE.md) · [sv](../sv/CLAUDE.md) · [sw](../sw/CLAUDE.md) · [ta](../ta/CLAUDE.md) · [te](../te/CLAUDE.md) · [th](../th/CLAUDE.md) · [tr](../tr/CLAUDE.md) · [uk-UA](../uk-UA/CLAUDE.md) · [ur](../ur/CLAUDE.md) · [vi](../vi/CLAUDE.md) · [zh-CN](../zh-CN/CLAUDE.md) · [zh-TW](../zh-TW/CLAUDE.md)
 
 ---
 
@@ -56,363 +56,68 @@ Para a matriz completa de testes, veja `CONTRIBUTING.md` → "Executando Testes"
 | Habilidades      | `src/lib/skills/`       | Estrutura de habilidades extensível                                       |
 | Memória          | `src/lib/memory/`       | Memória conversacional persistente                                        |
 
-Monorepo: `src/` (aplicativo Next.js 16), `open-sse/` (workspace do motor de streaming), `electron/` (aplicativo desktop), `tests/`, `bin/` (ponto de entrada CLI).
+Monorepo: `src/` (aplicativo Next.js 16), `open-sse/` (workspace do motor de streaming), `apps/desktop/` (aplicativo desktop), `tests/`, `bin/` (ponto de entrada CLI).
 
 ---
 
-## Pipeline de Solicitação
-
-```
-Cliente → /v1/chat/completions (rota Next.js)
-  → CORS → validação Zod → auth? → verificação de política → proteção contra injeção de prompt
-  → handleChatCore() [open-sse/handlers/chatCore.ts]
-    → verificação de cache → limite de taxa → roteamento combinado?
-      → resolveComboTargets() → handleSingleModel() por alvo
-    → translateRequest() → getExecutor() → executor.execute()
-      → fetch() upstream → retry w/ backoff
-    → tradução de resposta → stream SSE ou JSON
-    → Se Responses API: responsesTransformer.ts TransformStream
-```
-
-As rotas da API seguem um padrão consistente: `Rota → pré-vôo CORS → validação de corpo Zod → Autenticação opcional (extractApiKey/isValidApiKey) → aplicação de política de chave da API → delegação de manipulador (open-sse)`. Sem middleware global do Next.js — a interceptação é específica da rota.
-
-**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
-
----
-
-## Estado de Execução de Resiliência
-
-OmniRoute possui três mecanismos de falha temporária relacionados, mas distintos. Mantenha seu
-escopo separado ao depurar o comportamento de roteamento. Veja o
-[diagrama de resiliência de 3 camadas](./docs/diagrams/exported/resilience-3layers.svg)
-(fonte: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
-para um mapa rápido.
-
-### Disjuntor do Provedor
-
-**Escopo**: provedor inteiro, por exemplo, `glm`, `openai`, `anthropic`.
-
-**Propósito**: parar de enviar tráfego para um provedor que está falhando repetidamente no
-nível upstream/serviço, para que um provedor não saudável não atrase cada solicitação.
-
-**Implementação**:
-
-- Classe principal: `src/shared/utils/circuitBreaker.ts`
-- Fiação de porta/executação de chat: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
-- API de status em tempo de execução: `src/app/api/monitoring/health/route.ts`
-- Wrappers compartilhados: `open-sse/services/accountFallback.ts`
-- Tabela de estado persistido: `domain_circuit_breakers`
-
-**Estados**:
-
-- `CLOSED`: tráfego normal é permitido.
-- `OPEN`: provedor está temporariamente bloqueado; chamadores recebem uma resposta de circuito-aberto do provedor
-  ou o roteamento combinado pula para outro alvo.
-- `HALF_OPEN`: o tempo limite de reset expirou; permite uma solicitação de teste. Sucesso fecha o
-  disjuntor, falha o abre novamente.
-
-**Padrões** (`open-sse/config/constants.ts`):
-
-- Provedores OAuth: limite `3`, tempo limite de reset `60s`.
-- Provedores de chave da API: limite `5`, tempo limite de reset `30s`.
-- Provedores locais: limite `2`, tempo limite de reset `15s`.
-
-Somente estados de falha em nível de provedor devem acionar o disjuntor do provedor:
-
-```ts
-(408, 500, 502, 503, 504);
-```
-
-Não acione o disjuntor do provedor inteiro para erros normais de conta/chave/modelo como a maioria
-dos casos `401`, `403` ou `429`. Esses geralmente pertencem ao cooldown de conexão ou bloqueio de modelo. Um provedor de chave da API genérico `403` deve ser recuperável, a menos que seja classificado
-como um erro terminal de provedor/conta.
-
-O disjuntor usa recuperação preguiçosa, não um temporizador em segundo plano. Quando `OPEN` expira, leituras como
-`getStatus()`, `canExecute()`, e `getRetryAfterMs()` atualizam o estado para
-`HALF_OPEN`, para que painéis e construtores de candidatos combinados não continuem excluindo um
-provedor expirado para sempre.
-
-### Cooldown de Conexão
-
-**Escopo**: uma conexão de provedor/conta/chave.
-
-**Propósito**: pular temporariamente uma chave/conta ruim enquanto permite que outras conexões para
-o mesmo provedor continuem atendendo solicitações.
-
-**Implementação**:
-
-- Caminho de gravação/atualização: `src/sse/services/auth.ts::markAccountUnavailable()`
-- Seleção/filtragem de conta: `src/sse/services/auth.ts::getProviderCredentials...`
-- Cálculo de cooldown: `open-sse/services/accountFallback.ts::checkFallbackError()`
-- Configurações: `src/lib/resilience/settings.ts`
-
-Campos importantes nas conexões do provedor:
-
-```ts
-rateLimitedUntil;
-testStatus: "unavailable";
-lastError;
-lastErrorType;
-errorCode;
-backoffLevel;
-```
-
-Durante a seleção de conta, uma conexão é pulada enquanto:
-
-```ts
-new Date(rateLimitedUntil).getTime() > Date.now();
-```
-
-Cooldowns também são preguiçosos: quando `rateLimitedUntil` está no passado, a conexão se torna
-elegível novamente. Ao usar com sucesso, `clearAccountError()` limpa `testStatus`,
-`rateLimitedUntil`, campos de erro e `backoffLevel`.
-
-Comportamento padrão de cooldown de conexão:
-
-- Cooldown base de OAuth: `5s`.
-- Cooldown base de chave da API: `3s`.
-- Chave da API `429` deve preferir dicas de retry upstream (`Retry-After`, cabeçalhos de reset, ou
-  texto de reset analisável) quando disponíveis.
-- Falhas recuperáveis repetidas usam backoff exponencial:
-
-```ts
-baseCooldownMs * 2 ** failureIndex;
-```
-
-O guardião anti-thundering-herd impede que falhas concorrentes na mesma conexão
-estendam repetidamente o cooldown ou dobrem o incremento de `backoffLevel`.
-
-Estados terminais não são cooldowns. `banned`, `expired`, e `credits_exhausted` são
-destinados a permanecer indisponíveis até que credenciais/configurações mudem ou um operador os redefina.
-Não sobrescreva estados terminais com estado de cooldown transitório.
-
-### Bloqueio de Modelo
-
-**Escopo**: provedor + conexão + modelo.
-
-**Propósito**: evitar desabilitar uma conexão inteira quando apenas um modelo está indisponível ou
-limitado por cota para essa conexão.
-
-Exemplos:
-
-- Provedores de cota por modelo retornando `429`.
-- Provedores locais retornando `404` para um modelo ausente.
-- Falhas de permissão de modo/modelo específicas do provedor, como modos Grok selecionados.
-
-O bloqueio de modelo vive em `open-sse/services/accountFallback.ts` e permite que a mesma
-conexão continue atendendo outros modelos.
-
-### Orientações para Depuração
-
-- Se todas as chaves para um provedor forem puladas, inspecione tanto o estado do disjuntor do provedor quanto
-  `rateLimitedUntil`/`testStatus` de cada conexão.
-- Se um provedor parecer permanentemente excluído após a janela de reset, verifique se o código
-  está lendo o `state` bruto em vez de usar `getStatus()`/`canExecute()`.
-- Se uma chave de provedor falhar, mas outras devem funcionar, prefira o cooldown de conexão em vez
-  do disjuntor do provedor.
-- Se apenas um modelo falhar, prefira o bloqueio de modelo em vez do cooldown de conexão.
-- Se um estado deve se recuperar automaticamente, ele deve ter um timestamp futuro/tempo limite de reset e um
-  caminho de leitura que atualiza o estado expirado. Status permanentes requerem mudanças manuais de credenciais
-  ou configuração.
-
-## Convenções Chave
-
-### Estilo de Código
-
-- **2 espaços**, ponto e vírgula, aspas duplas, largura de 100 caracteres, vírgulas finais ES5 (aplicadas pelo lint-staged via Prettier)
-- **Imports**: externo → interno (`@/`, `@omniroute/open-sse`) → relativo
-- **Nomenclatura**: arquivos=camelCase/kebab, componentes=PascalCase, constantes=UPPER_SNAKE
-- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = erro em todo lugar; `no-explicit-any` = aviso em `open-sse/` e `tests/`
-- **TypeScript**: `strict: false`, alvo ES2022, módulo esnext, resolução bundler. Preferir tipos explícitos.
-
-### Banco de Dados
-
-- **Sempre** passe pelos módulos de domínio em `src/lib/db/` — **nunca** escreva SQL bruto em rotas ou manipuladores
-- **Nunca** adicione lógica em `src/lib/localDb.ts` (apenas camada de re-exportação)
-- **Nunca** faça importação em barril de `localDb.ts` — importe módulos específicos de `db/` em vez disso
-- Singleton de DB: `getDbInstance()` de `src/lib/db/core.ts` (journaling WAL)
-- Migrações: `src/lib/db/migrations/` — arquivos SQL versionados, idempotentes, executados em transações
-
-### Tratamento de Erros
-
-- try/catch com tipos de erro específicos, registre com contexto pino
-- Nunca oculte erros em streams SSE — use sinais de abortar para limpeza
-- Retorne códigos de status HTTP apropriados (4xx/5xx)
-
-### Segurança
-
-- **Nunca** use `eval()`, `new Function()`, ou eval implícito
-- Valide todas as entradas com esquemas Zod
-- Criptografe credenciais em repouso (AES-256-GCM)
-- Lista de negação de cabeçalhos upstream: `src/shared/constants/upstreamHeaders.ts` — mantenha saneamento, esquemas Zod e testes unitários alinhados ao editar
-- **Credenciais públicas upstream** (client_id/secret do OAuth estilo Gemini/Antigravity/Windsurf + chaves Web do Firebase extraídas de CLIs públicas): **DEVEM** ser incorporadas via `resolvePublicCred()` de `open-sse/utils/publicCreds.ts` — **nunca** como literais de string. Veja `docs/security/PUBLIC_CREDS.md` para o padrão obrigatório.
-- **Respostas de erro** (HTTP / SSE / executor / manipulador MCP): **DEVEM** passar por `buildErrorBody()` ou `sanitizeErrorMessage()` de `open-sse/utils/error.ts` — **nunca** coloque `err.stack` ou `err.message` brutos no corpo da resposta. Veja `docs/security/ERROR_SANITIZATION.md`.
-- **Comandos de shell construídos a partir de variáveis**: ao chamar `exec()`/`spawn()` com um script que precisa de valores em tempo de execução, passe-os via a opção `env` (automaticamente escapado para shell) — **nunca** interpolar strings de caminhos não confiáveis/externos no corpo do script. Referência: `src/mitm/cert/install.ts::updateNssDatabases`.
-- **Bibliotecas seguras por padrão** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): prefira Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink em vez de implementações personalizadas sempre que adicionar novas superfícies sensíveis à segurança.
-
----
-
-## Cenários Comuns de Modificação
-
-### Adicionando um Novo Provedor
-
-1. Registre em `src/shared/constants/providers.ts` (validado por Zod ao carregar)
-2. Adicione executor em `open-sse/executors/` se lógica personalizada for necessária (estenda `BaseExecutor`)
-3. Adicione tradutor em `open-sse/translator/` se formato não for OpenAI
-4. Adicione configuração OAuth em `src/lib/oauth/constants/oauth.ts` se baseado em OAuth — se o CLI upstream enviar um client_id/secret público, incorpore via `resolvePublicCred()` (veja `docs/security/PUBLIC_CREDS.md`), **nunca** como um literal
-5. Registre modelos em `open-sse/config/providerRegistry.ts`
-6. Escreva testes em `tests/unit/` (inclua a asserção de forma publicCreds se você adicionou um novo padrão incorporado)
-
-### Adicionando uma Nova Rota de API
-
-1. Crie um diretório em `src/app/api/v1/sua-rota/`
-2. Crie `route.ts` com manipuladores `GET`/`POST`
-3. Siga o padrão: CORS → validação do corpo Zod → autenticação opcional → delegação de manipulador
-4. O manipulador vai em `open-sse/handlers/` (importe de lá, não inline)
-5. Respostas de erro usam `buildErrorBody()` / `errorResponse()` de `open-sse/utils/error.ts` (auto-sanitizado — nunca coloque `err.stack` ou `err.message` brutos no corpo). Veja `docs/security/ERROR_SANITIZATION.md`.
-6. Adicione testes — incluindo pelo menos uma asserção de que as respostas de erro não vazam rastros de pilha (`!body.error.message.includes("at /")`)
-
-### Adicionando um Novo Módulo de DB
-
-1. Crie `src/lib/db/seuModulo.ts` — importe `getDbInstance` de `./core.ts`
-2. Exporte funções CRUD para sua(s) tabela(s) de domínio
-3. Adicione migração em `src/lib/db/migrations/` se novas tabelas forem necessárias
-4. Re-exporte de `src/lib/localDb.ts` (adicione à lista de re-exportação apenas)
-5. Escreva testes
-
-### Adicionando uma Nova Ferramenta MCP
-
-1. Adicione definição da ferramenta em `open-sse/mcp-server/tools/` com esquema de entrada Zod + manipulador assíncrono
-2. Registre no conjunto de ferramentas (conectado por `createMcpServer()`)
-3. Atribua aos escopos apropriados
-4. Escreva testes (invocação da ferramenta registrada na tabela `mcp_audit`)
-
-### Adicionando uma Nova Habilidade A2A
-
-1. Crie habilidade em `src/lib/a2a/skills/` (5 já existem: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
-2. A habilidade recebe contexto da tarefa (mensagens, metadados) → retorna resultado estruturado
-3. Registre em `A2A_SKILL_HANDLERS` em `src/lib/a2a/taskExecution.ts`
-4. Exponha em `src/app/.well-known/agent.json/route.ts` (Cartão do Agente)
-5. Escreva testes em `tests/unit/`
-6. Documente na tabela de habilidades em `docs/frameworks/A2A-SERVER.md`
-
-### Adicionando um Novo Agente de Nuvem
-
-1. Crie classe de agente em `src/lib/cloudAgent/agents/` estendendo `CloudAgentBase` (3 já existem: codex-cloud, devin, jules)
-2. Implemente `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
-3. Registre em `src/lib/cloudAgent/registry.ts`
-4. Adicione manipulação de OAuth/credenciais se necessário (`src/lib/oauth/providers/`)
-5. Testes + documente em `docs/frameworks/CLOUD_AGENT.md`
-
-### Adicionando um Novo Guardrail / Eval / Skill / Evento de Webhook
-
-- Guardrail: `src/lib/guardrails/` → docs: `docs/security/GUARDRAILS.md`
-- Conjunto de Eval: `src/lib/evals/` → docs: `docs/frameworks/EVALS.md`
-- Skill (sandbox): `src/lib/skills/` → docs: `docs/frameworks/SKILLS.md`
-- Evento de Webhook: `src/lib/webhookDispatcher.ts` → docs: `docs/frameworks/WEBHOOKS.md`
-
-## Documentação de Referência
-
-Para qualquer alteração não trivial, leia primeiro a análise correspondente:
-
-| Área                                                 | Documento                                                         |
-| ---------------------------------------------------- | ----------------------------------------------------------------- |
-| Navegação no repositório                             | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Arquitetura                                          | `docs/architecture/ARCHITECTURE.md`                               |
-| Referência de engenharia                             | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Auto-Combo (13-factor scoring, 19 public strategies) | `docs/routing/AUTO-COMBO.md`                                      |
-| Resiliência (3 mecanismos)                           | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Repetição de raciocínio                              | `docs/routing/REASONING_REPLAY.md`                                |
-| Estrutura de habilidades                             | `docs/frameworks/SKILLS.md`                                       |
-| Sistema de memória (FTS5 + Qdrant)                   | `docs/frameworks/MEMORY.md`                                       |
-| Agentes de nuvem                                     | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Guardrails (PII / injeção / visão)                   | `docs/security/GUARDRAILS.md`                                     |
-| Credenciais públicas upstream (Gemini/etc.)          | `docs/security/PUBLIC_CREDS.md`                                   |
-| Sanitização de mensagens de erro                     | `docs/security/ERROR_SANITIZATION.md`                             |
-| Avaliações                                           | `docs/frameworks/EVALS.md`                                        |
-| Conformidade / auditoria                             | `docs/security/COMPLIANCE.md`                                     |
-| Webhooks                                             | `docs/frameworks/WEBHOOKS.md`                                     |
-| Pipeline de autorização                              | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Stealth (TLS / impressão digital)                    | `docs/security/STEALTH_GUIDE.md`                                  |
-| Protocolos de agente (A2A / ACP / Nuvem)             | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| Servidor MCP                                         | `docs/frameworks/MCP-SERVER.md`                                   |
-| Servidor A2A                                         | `docs/frameworks/A2A-SERVER.md`                                   |
-| Referência da API + OpenAPI                          | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
-| Catálogo de provedores (gerado automaticamente)      | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Fluxo de lançamento                                  | `docs/ops/RELEASE_CHECKLIST.md`                                   |
-
----
-
-## Testes
-
-| O que                   | Comando                                                                         |
-| ----------------------- | ------------------------------------------------------------------------------- |
-| Testes unitários        | `npm run test:unit`                                                             |
-| Arquivo único           | `node --import tsx/esm --test tests/unit/file.test.ts`                          |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                           |
-| E2E (Playwright)        | `npm run test:e2e`                                                              |
-| Protocolo E2E (MCP+A2A) | `npm run test:protocols:e2e`                                                    |
-| Ecossistema             | `npm run test:ecosystem`                                                        |
-| Porta de cobertura      | `npm run test:coverage` (75/75/75/70 — declarações/linhas/funções/ramificações) |
-| Relatório de cobertura  | `npm run coverage:report`                                                       |
-
-**Regra de PR**: Se você alterar o código de produção em `src/`, `open-sse/`, `electron/` ou `bin/`, você deve incluir ou atualizar testes no mesmo PR.
-
-**Preferência de camada de teste**: unitário primeiro → integração (multi-módulo ou estado do DB) → e2e (somente UI/workflow). Codifique reproduções de bugs como testes automatizados antes ou junto com a correção.
-
-**Política de cobertura do Copilot**: Quando um PR altera o código de produção e a cobertura está abaixo de 75% (declarações/linhas/funções) ou 70% (ramificações), não apenas relate — adicione ou atualize testes, execute novamente a porta de cobertura e, em seguida, peça confirmação. Inclua comandos executados, arquivos de teste alterados e o resultado final da cobertura no relatório do PR.
-
----
-
-## Fluxo de Trabalho do Git
-
-```bash
-# Nunca faça commit diretamente no main
-git checkout -b feat/sua-funcionalidade
-git commit -m "feat: descreva sua alteração"
-git push -u origin feat/sua-funcionalidade
-```
-
-**Prefixos de branch**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
-
-**Formato de commit** (Commits Convencionais): `feat(db): adicionar circuito de interrupção` — escopos: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`
-
-**Ganchos do Husky**:
-
-- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
-- **pre-push**: `npm run test:unit`
-
----
-
-## Ambiente
-
-- **Tempo de Execução**: Node.js ≥20.20.2 <21 |
-  | ≥22.22.2 <23 |
-  | ≥24 <25, Módulos ES
-- **TypeScript**: 5.9+, alvo ES2022, módulo esnext, resolução bundler
-- **Aliases de caminho**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
-- **Porta padrão**: 20128 (API + dashboard na mesma porta)
-- **Diretório de dados**: variável de ambiente `DATA_DIR`, padrão para `~/.omniroute/`
-- **Principais variáveis de ambiente**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
-- Configuração: `cp .env.example .env` e, em seguida, gere `JWT_SECRET` (`openssl rand -base64 48`) e `API_KEY_SECRET` (`openssl rand -hex 32`)
-
----
-
-## Regras Rigorosas
-
-1. Nunca faça commit de segredos ou credenciais
-2. Nunca adicione lógica a `localDb.ts`
-3. Nunca use `eval()` / `new Function()` / eval implícito
-4. Nunca faça commit diretamente em `main`
-5. Nunca escreva SQL bruto em rotas — use módulos de `src/lib/db/`
-6. Nunca silencie erros em streams SSE
-7. Sempre valide entradas com esquemas Zod
-8. Sempre inclua testes ao alterar código de produção
-9. A cobertura deve permanecer ≥75% (declarações, linhas, funções) / ≥70% (ramificações). Medido atualmente: ~82%.
-10. Nunca ignore ganchos do Husky (`--no-verify`, `--no-gpg-sign`) sem aprovação explícita do operador.
-11. Nunca incorpore client_id/secret OAuth público ou chaves Web do Firebase como literais de string — sempre passe por `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`). Veja `docs/security/PUBLIC_CREDS.md`.
-12. Nunca retorne `err.stack` / `err.message` bruto em respostas HTTP / SSE / executor — sempre roteie através de `buildErrorBody()` ou `sanitizeErrorMessage()` (`open-sse/utils/error.ts`). Veja `docs/security/ERROR_SANITIZATION.md`.
-13. Nunca interpolar strings de caminhos externos ou valores de tempo de execução em scripts shell passados para `exec()`/`spawn()` — passe pela opção `env` em vez disso. Referência: `src/mitm/cert/install.ts::updateNssDatabases`.
-14. Nunca desconsidere um alerta de CodeQL / Secret-Scanning sem (a) primeiro verificar a documentação do padrão acima para ver se o helper se aplica, e (b) registrar a justificativa técnica no comentário de desclassificação. Precedente: `js/stack-trace-exposure` levantado em sites de chamada que já roteiam através de `sanitizeErrorMessage()` é uma limitação conhecida do CodeQL (sanitizadores personalizados não reconhecidos) — desconsidere como `falso positivo` referenciando `docs/security/ERROR_SANITIZATION.md`.
-15. Nunca exponha rotas que geram processos filhos (`/api/mcp/`, `/api/cli-tools/runtime/`) sem classificação `isLocalOnlyPath()` em `src/server/authz/routeGuard.ts`. A aplicação de loopback acontece incondicionalmente antes de qualquer verificação de autenticação — JWT vazado via túnel não pode acionar a geração de processos. Veja `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Nunca inclua trailers `Co-Authored-By` que creditem um assistente de IA, LLM ou conta de automação (p. ex. nomes contendo "Claude", "GPT", "Copilot", "Bot"; e-mails em `anthropic.com` / `openai.com` / endereços `noreply.github.com` pertencentes a bots). Esses trailers roteiam a atribuição do commit para a conta do bot no GitHub, ocultando o autor real (`diegosouzapw`) no histórico do PR. Colaboradores humanos — incluindo autores de PRs upstream e relatores de issues sendo portados para o OmniRoute — PODEM e DEVEM ser creditados com trailers padrão `Co-authored-by: Name <email>`; os workflows de port upstream (`/port-upstream-features`, `/port-upstream-issues`) dependem disso.
+## Worktree isolation — Claude Code specifics
+
+The full mandatory worktree protocol (base-branch confirmation, `.claude/worktrees/` canonical
+path, `cp -al` node_modules, teardown rules) is in `AGENTS.md` → Git Workflow → "Worktree
+isolation". Claude-Code-specific points:
+
+- Confirm the base branch with the operator via `AskUserQuestion` (Hard Rule #19) unless they
+  already told you.
+- Prefer the native `EnterWorktree` tool — it already creates worktrees under
+  `.claude/worktrees/` (the canonical path). Create the worktree with the documented `git
+worktree add` command, then call `EnterWorktree` with its `path`.
+
+## Cross-session safety — Claude Code specifics
+
+Hard Rules #19/#21/#22 (in `AGENTS.md`) govern parallel sessions. Operational reminders for this
+harness:
+
+- **Replicate the `git stash` ban verbatim in the prompt of every subagent that touches git**
+  (Agent tool / Workflow scripts) — subagents do not inherit this file, and the recorded
+  recurrence of the stash incident came through a subagent.
+- Before merging or pushing to any PR you did not create _this session_, run `git worktree list`
+  and re-check `gh pr view <N> --json state,headRefOid` (Hard Rule #22b).
+- End every session with the main checkout on the branch it started on.
+
+## Superpowers / planning artifacts — path overrides
+
+The `_tasks/` convention is defined in `AGENTS.md` → "Planning & Research Artifacts". The
+superpowers skills ship with defaults that point at `docs/…` — those defaults are **overridden
+here**. When a superpowers skill announces a path like "saved to `docs/superpowers/plans/…`",
+rewrite it to the `_tasks/…` equivalent before writing:
+
+| Artifact (skill)                   | Default (do NOT use)      | Save here instead                                             |
+| ---------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| Plans (`writing-plans`)            | `docs/superpowers/plans/` | `_tasks/superpowers/plans/YYYY-MM-DD-<feature>.md`            |
+| Specs / design (`brainstorming`)   | `docs/superpowers/specs/` | `_tasks/superpowers/specs/YYYY-MM-DD-<topic>-design.md`       |
+| Research (`deep-research`, ad-hoc) | `docs/research/`          | `_tasks/research/…`                                           |
+| Hand-offs (`/handoff`)             | —                         | `_tasks/hands-off/<YYYY-MM-DD>_<branch>_v<versão>_sess-<id>/` |
+
+Commit those artifacts inside the `_tasks/` repo (`git -C _tasks …`), never in the main repo.
+
+## Scratch / temporary files — use `_artifacts/`, not `/tmp`
+
+This project overrides the harness's default session scratchpad (`/tmp/claude-*/…`). Write
+temporary/working files — exports, generated zips, one-off intermediate outputs, anything you'd
+otherwise put in `/tmp` — to `/home/diegosouzapw/dev/proxys/OmniRoute/_artifacts/` instead.
+
+- `_artifacts/` is a root `_*` path: already gitignored (`AGENTS.md` → "Root `_*` paths"), lives
+  on disk only, never tracked.
+- Reason: keeping scratch output inside the project (vs `/tmp`) makes it trivial for the operator
+  to find and delete everything temporary in one place, instead of hunting across ephemeral
+  session-specific `/tmp` directories that vanish or accumulate untracked.
+- Do **not** confuse this with `_tasks/` (Hard Rule #23, its own private git repo for durable
+  plans/specs/research/hand-offs) — `_artifacts/` is for disposable working files only, nothing
+  here needs to survive or be versioned.
+
+## Base-green before opening PRs
+
+Before cutting a branch or opening a PR, run the base-green check (`AGENTS.md` → Git Workflow →
+"Base-green check"; project skills reference it as `.agents/skills/_shared/base-green.md`). A PR
+opened while the base tip is red must carry ` base-red inherited: #<issue>` in its body. To
+drain an accumulated red state (base tip + red PRs), use the `/sweep-reds` skill.

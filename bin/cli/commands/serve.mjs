@@ -258,7 +258,7 @@ export async function runServe(opts = {}) {
     NODE_ENV: "production",
     // #5238: preserve a user-set NODE_OPTIONS (incl. their own
     // `--max-old-space-size=…`) instead of clobbering it with the calibrated
-    // default — mirror the Electron/standalone launchers.
+    // default — mirror the standalone launcher.
     NODE_OPTIONS: buildServerNodeOptions(process.env, memoryLimit),
     ...(tlsCert ? { OMNIROUTE_TLS_CERT: tlsCert } : {}),
     ...(tlsKey ? { OMNIROUTE_TLS_KEY: tlsKey } : {}),

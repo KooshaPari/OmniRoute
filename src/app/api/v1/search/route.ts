@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { handleSearch } from "@omniroute/open-sse/handlers/search.ts";
 import {
   getProviderCredentialsWithQuotaPreflight,

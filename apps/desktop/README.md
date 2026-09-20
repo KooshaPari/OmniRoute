@@ -41,16 +41,13 @@ Run the Rust lifecycle tests with:
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-## Inactive desktop implementations
+## Removed desktop implementations
 
-Electron and Electrobun are preserved as historical evidence and rollback
-references. They are not active setup, development, or release targets for
-the current desktop architecture:
+Electron and Electrobun were retired under the ZERO-electron decision and their
+source trees (`electron/`, `desktop-electrobun/`) have been removed from the
+repository. They are not active setup, development, or release targets for the
+current desktop architecture.
 
-- [`../../electron/`](../../electron/) is the preserved Electron client.
-- [`../../desktop-electrobun/`](../../desktop-electrobun/) is the preserved
-  Electrobun spike.
 - [`../../docs/legacy/omniroute-desktop-snapshot-2026-07-17/`](../../docs/legacy/omniroute-desktop-snapshot-2026-07-17/)
-  contains the historical architecture and decision records.
-
-Do not delete or rewrite those paths when changing the active Tauri shell.
+  contains the historical architecture and decision records for the retired
+  desktop shells.

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 import { DeepSeekWebExecutor } from "../../open-sse/executors/deepseek-web.ts";

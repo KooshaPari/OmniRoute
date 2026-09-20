@@ -1,10 +1,10 @@
 ---
-title: "🐳 Przewodnik Docker — OmniRoute"
+title: " Przewodnik Docker — OmniRoute"
 version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# 🐳 Przewodnik Docker — OmniRoute
+# Przewodnik Docker — OmniRoute
 
 > Kompletne odniesienie do wdrożenia w Dockerze. Szybki start: [sekcja Docker w README](../README.md#-docker).
 

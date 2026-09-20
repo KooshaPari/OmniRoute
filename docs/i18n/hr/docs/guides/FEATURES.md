@@ -1,6 +1,6 @@
 # FEATURES (Hrvatski)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+**Languages:** [English](../../../../guides/FEATURES.md) · [ar](../../../ar/docs/guides/FEATURES.md) · [az](../../../az/docs/guides/FEATURES.md) · [bg](../../../bg/docs/guides/FEATURES.md) · [bn](../../../bn/docs/guides/FEATURES.md) · [cs](../../../cs/docs/guides/FEATURES.md) · [da](../../../da/docs/guides/FEATURES.md) · [de](../../../de/docs/guides/FEATURES.md) · [el](../../../el/docs/guides/FEATURES.md) · [es](../../../es/docs/guides/FEATURES.md) · [et](../../../et/docs/guides/FEATURES.md) · [fa](../../../fa/docs/guides/FEATURES.md) · [fi](../../../fi/docs/guides/FEATURES.md) · [fr](../../../fr/docs/guides/FEATURES.md) · [ga](../../../ga/docs/guides/FEATURES.md) · [gu](../../../gu/docs/guides/FEATURES.md) · [he](../../../he/docs/guides/FEATURES.md) · [hi](../../../hi/docs/guides/FEATURES.md) · [hu](../../../hu/docs/guides/FEATURES.md) · [id](../../../id/docs/guides/FEATURES.md) · [it](../../../it/docs/guides/FEATURES.md) · [ja](../../../ja/docs/guides/FEATURES.md) · [ko](../../../ko/docs/guides/FEATURES.md) · [lt](../../../lt/docs/guides/FEATURES.md) · [lv](../../../lv/docs/guides/FEATURES.md) · [mr](../../../mr/docs/guides/FEATURES.md) · [ms](../../../ms/docs/guides/FEATURES.md) · [mt](../../../mt/docs/guides/FEATURES.md) · [nl](../../../nl/docs/guides/FEATURES.md) · [no](../../../no/docs/guides/FEATURES.md) · [phi](../../../phi/docs/guides/FEATURES.md) · [pl](../../../pl/docs/guides/FEATURES.md) · [pt](../../../pt/docs/guides/FEATURES.md) · [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · [ro](../../../ro/docs/guides/FEATURES.md) · [ru](../../../ru/docs/guides/FEATURES.md) · [sk](../../../sk/docs/guides/FEATURES.md) · [sl](../../../sl/docs/guides/FEATURES.md) · [sr](../../../sr/docs/guides/FEATURES.md) · [sv](../../../sv/docs/guides/FEATURES.md) · [sw](../../../sw/docs/guides/FEATURES.md) · [ta](../../../ta/docs/guides/FEATURES.md) · [te](../../../te/docs/guides/FEATURES.md) · [th](../../../th/docs/guides/FEATURES.md) · [tr](../../../tr/docs/guides/FEATURES.md) · [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · [ur](../../../ur/docs/guides/FEATURES.md) · [vi](../../../vi/docs/guides/FEATURES.md) · [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
 
 ---
 
@@ -11,337 +11,327 @@ version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# OmniRoute — Galerija značajki nadzorne ploče
+## v3.8.0 Highlights
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/FEATURES.md) · 🇸🇦 [ar](../../../ar/docs/guides/FEATURES.md) · 🇦🇿 [az](../../../az/docs/guides/FEATURES.md) · 🇧🇬 [bg](../../../bg/docs/guides/FEATURES.md) · 🇧🇩 [bn](../../../bn/docs/guides/FEATURES.md) · 🇨🇿 [cs](../../../cs/docs/guides/FEATURES.md) · 🇩🇰 [da](../../../da/docs/guides/FEATURES.md) · 🇩🇪 [de](../../../de/docs/guides/FEATURES.md) · 🇬🇷 [el](../../../el/docs/guides/FEATURES.md) · 🇪🇸 [es](../../../es/docs/guides/FEATURES.md) · 🇪🇪 [et](../../../et/docs/guides/FEATURES.md) · 🇮🇷 [fa](../../../fa/docs/guides/FEATURES.md) · 🇫🇮 [fi](../../../fi/docs/guides/FEATURES.md) · 🇫🇷 [fr](../../../fr/docs/guides/FEATURES.md) · 🇮🇪 [ga](../../../ga/docs/guides/FEATURES.md) · 🇮🇳 [gu](../../../gu/docs/guides/FEATURES.md) · 🇮🇱 [he](../../../he/docs/guides/FEATURES.md) · 🇮🇳 [hi](../../../hi/docs/guides/FEATURES.md) · 🇭🇺 [hu](../../../hu/docs/guides/FEATURES.md) · 🇮🇩 [id](../../../id/docs/guides/FEATURES.md) · 🇮🇹 [it](../../../it/docs/guides/FEATURES.md) · 🇯🇵 [ja](../../../ja/docs/guides/FEATURES.md) · 🇰🇷 [ko](../../../ko/docs/guides/FEATURES.md) · 🇱🇹 [lt](../../../lt/docs/guides/FEATURES.md) · 🇱🇻 [lv](../../../lv/docs/guides/FEATURES.md) · 🇮🇳 [mr](../../../mr/docs/guides/FEATURES.md) · 🇲🇾 [ms](../../../ms/docs/guides/FEATURES.md) · 🇲🇹 [mt](../../../mt/docs/guides/FEATURES.md) · 🇳🇱 [nl](../../../nl/docs/guides/FEATURES.md) · 🇳🇴 [no](../../../no/docs/guides/FEATURES.md) · 🇵🇭 [phi](../../../phi/docs/guides/FEATURES.md) · 🇵🇱 [pl](../../../pl/docs/guides/FEATURES.md) · 🇵🇹 [pt](../../../pt/docs/guides/FEATURES.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/FEATURES.md) · 🇷🇴 [ro](../../../ro/docs/guides/FEATURES.md) · 🇷🇺 [ru](../../../ru/docs/guides/FEATURES.md) · 🇸🇰 [sk](../../../sk/docs/guides/FEATURES.md) · 🇸🇮 [sl](../../../sl/docs/guides/FEATURES.md) · 🇷🇸 [sr](../../../sr/docs/guides/FEATURES.md) · 🇸🇪 [sv](../../../sv/docs/guides/FEATURES.md) · 🇰🇪 [sw](../../../sw/docs/guides/FEATURES.md) · 🇮🇳 [ta](../../../ta/docs/guides/FEATURES.md) · 🇮🇳 [te](../../../te/docs/guides/FEATURES.md) · 🇹🇭 [th](../../../th/docs/guides/FEATURES.md) · 🇹🇷 [tr](../../../tr/docs/guides/FEATURES.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/FEATURES.md) · 🇵🇰 [ur](../../../ur/docs/guides/FEATURES.md) · 🇻🇳 [vi](../../../vi/docs/guides/FEATURES.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/FEATURES.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/FEATURES.md)
+The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth flows, deeper resilience, and a much richer CLI experience. Headline features below — full details further in the document and in linked specs.
 
-Vizualni vodič kroz svaki dio OmniRoute nadzorne ploče.
+- **Auto Combo / Zero-config auto-routing** — use prefixes `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Backed by a 16-factor scoring engine and 6 curated **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
+- **Command Code provider** (#2199) — first-class registration with model catalog and quota tracking
+- **Z.AI provider** — new free-tier provider with quota labels
+- **KIE media expansion** — extended catalog including video generation models
+- **Devin authentication** — Desktop imports an existing Devin API key; the CLI uses local `devin auth login` credentials
+- **8 new free providers** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- **Manifest-aware tier routing W1–W4** — provider manifests drive weighted tier selection
+- **Cursor full OpenAI parity** — tool calls, streaming, session management end-to-end
+- **Cursor Pro plan usage** — quota & cycle data surfaced in the provider-limits dashboard
+- **Service tier breakdown / Codex fast tier analytics** — per-tier consumption visibility
+- **Per-session sticky routing** — Codex sessions pin to the same account between turns
+- **Inworld TTS enhancements** — voice catalogs, streaming, and latency improvements
+- **Kiro headless auth** — login via local `kiro-cli` SQLite store, no browser required
+- **DeepSeek quota and limit monitoring** — daily/monthly usage exposed via dashboard
+- **Reset-aware routing strategy** — combos now prefer accounts whose quota window resets soonest
+- **`fallbackDelayMs`** and **dynamic tool limit detection** — finer fallback timing + per-provider tool-count limits
+- **Background mode degradation (Responses API)** — falls back to synchronous mode with a structured warning when an upstream lacks background polling
+- **Per-provider 429 classification** + `useUpstream429BreakerHints` toggle — finer breaker behavior using upstream rate-limit hints
+- **Model cooldowns dashboard** — observe per-model lockouts and manually re-enable from the UI
+- **MITM dynamic Linux cert detection** — works across Debian/Ubuntu, Fedora/RHEL, Arch, and other distros
+- **CLI enhancement suite** — 20+ commands including `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- **Qdrant embedding model discovery** — automatic vector-store model probe
+- **API Keys / Bearer keys with `manage` scope** — perform admin operations programmatically via API
+- **Combo target health analytics** + **structured combo builder** — per-target health & UI builder for assembling `(provider, model, connection)` steps
+- **GitLab Duo OAuth provider** — login with GitLab credentials
+- **Reasoning Replay Cache** — hybrid in-memory + SQLite persistence of reasoning traces
 
-> 📅 **Zadnje ažuriranje:** 2026-06-28 — **v3.8.40**
-
----
-
-## ✨ Istaknute značajke v3.8.0
-
-Ciklus v3.7.x → v3.8.0 donio je automatsko usmjeravanje bez konfiguracije, nove pružatelje usluga, OAuth tokove, dublju otpornost i puno bogatije korisničko iskustvo CLI-a. Glavne značajke su niže — potpuni detalji dalje u dokumentu i u povezanim specifikacijama.
-
-- 🤖 **Auto Combo / Automatsko usmjeravanje bez konfiguracije** — koristite prefikse `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, `auto/chaos`. Podržano motorom za bodovanje s 16 faktora i 6 pomno odabranih **paketa načina rada** (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode)
-- 🆕 **Pružatelj usluga Command Code** (#2199) — registracija prvog razreda s katalogom modela i praćenjem kvota
-- 🆕 **Pružatelj usluga Z.AI** — novi pružatelj s besplatnim razredom i oznakama kvota
-- 🎬 **Proširenje KIE medija** — proširen katalog koji uključuje modele za generiranje videa
-- 🔐 **Devin autentifikacija** — Desktop uvozi postojeći Devin API ključ; CLI koristi lokalne vjerodajnice iz `devin auth login`
-- 🆓 **8 novih besplatnih pružatelja usluga** — LLM7, Lepton, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
-- 🎯 **Usmjeravanje po razinama svjesno manifesta W1–W4** — manifesti pružatelja usluga pokreću odabir ponderirane razine
-- 🎨 **Cursor potpuni OpenAI paritet** — pozivi alata, streaming i upravljanje sesijama od kraja do kraja
-- 📊 **Korištenje Cursor Pro plana** — podaci o kvoti i ciklusu prikazani na nadzornoj ploči ograničenja pružatelja usluga
-- ⚡ **Raščlamba razine usluge / analitika Codex brze razine** — vidljivost potrošnje po razini
-- 📌 **Trajno usmjeravanje po sesiji** — Codex sesije se vežu za isti račun između poteza
-- 🔊 **Poboljšanja Inworld TTS-a** — katalozi glasova, streaming i poboljšanja kašnjenja
-- 🔑 **Kiro headless autentifikacija** — prijava putem lokalne SQLite pohrane `kiro-cli`, bez potrebe za pregledavačem
-- 📉 **Praćenje kvote i ograničenja za DeepSeek** — dnevno/mjesečno korištenje prikazano na nadzornoj ploči
-- 🔄 **Strategija usmjeravanja svjesna resetiranja** — kombinacije sada preferiraju račune čiji se prozor kvote uskoro resetira
-- ⏱️ **`fallbackDelayMs`** i **dinamičko otkrivanje ograničenja alata** — precizniji tajming rezervnog rješenja + ograničenja broja alata po pružatelju usluga
-- 🔧 **Degradacija pozadinskog načina rada (Responses API)** — vraća se na sinkroni način rada sa strukturiranim upozorenjem kada nadređeni sustav ne podržava pozadinsko ispitivanje
-- 🚦 **Klasifikacija 429 po pružatelju usluga** + prekidač `useUpstream429BreakerHints` — precizniji rad prekidača koristeći naznake nadređenog sustava o ograničenju stope
-- 🩺 **Nadzorna ploča razdoblja hlađenja modela** — pratite zabrane po modelu i ručno ih ponovno omogućite putem korisničkog sučelja
-- 🔒 **MITM dinamičko otkrivanje Linux certifikata** — radi na Debian/Ubuntu, Fedora/RHEL, Arch i drugim distribucijama
-- 💻 **Paket poboljšanja CLI-a** — preko 20 naredbi, uključujući `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
-- 🔍 **Otkrivanje modela ugrađivanja za Qdrant** — automatska provjera modela vektorske pohrane
-- 🔑 **API ključevi / Bearer ključevi s opsegom `manage`** — programski izvršavajte administratorske operacije putem API-ja
-- 🏥 **Analitika zdravlja ciljeva kombinacija** + **strukturirani izrađivač kombinacija** — zdravlje po cilju i alat korisničkog sučelja za sastavljanje koraka `(provider, model, connection)`
-- 🤝 **GitLab Duo OAuth pružatelj usluga** — prijava putem GitLab vjerodajnica
-- 🧠 **Predmemorija ponovnog odigravanja rezoniranja** — hibridna postojanost tragova rezoniranja u memoriji i SQLite bazi
-
-📚 **Povezana dokumentacija:** [Okvir vještina](../frameworks/SKILLS.md) · [Sustav memorije](../frameworks/MEMORY.md) · [Agenti u oblaku](../frameworks/CLOUD_AGENT.md) · [Webhookovi](../frameworks/WEBHOOKS.md) · [Predmemorija ponovnog odigravanja rezoniranja](../routing/REASONING_REPLAY.md)
+**Related docs:** [Skills Framework](../frameworks/SKILLS.md) · [Memory System](../frameworks/MEMORY.md) · [Cloud Agents](../frameworks/CLOUD_AGENT.md) · [Webhooks](../frameworks/WEBHOOKS.md) · [Reasoning Replay Cache](../routing/REASONING_REPLAY.md)
 
 ---
 
-## 🔌 Provideri
+## Providers
 
-Upravljajte vezama s AI providerima: OAuth provideri (Claude Code, Codex), provideri s API ključem (Groq, DeepSeek, OpenRouter) te besplatni provideri (Qoder, Kiro). Kiro računi uključuju praćenje stanja kredita — preostali krediti, ukupna dodijeljena kvota i datum obnove vidljivi su u Dashboard → Usage.
+Manage AI provider connections: OAuth providers (Claude Code, Codex), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
 
-OpenRouter veze mogu pohraniti `preset` po vezi u Advanced Settings. Kada je postavljen, OmniRoute ga šalje kao vrhovno polje OpenRouter zahtjeva, na primjer `"preset": "email-copywriter"`, osim ako klijentski zahtjev već ne sadrži svoj vlastiti `preset`.
+OpenRouter connections can store a per-connection `preset` in Advanced Settings. When set, OmniRoute sends it as the OpenRouter top-level request field, for example `"preset": "email-copywriter"`, unless the client request already supplied its own `preset`.
 
 ![Providers Dashboard](../screenshots/01-providers.png)
 
 ---
 
-## 🎨 Combosi
+## Combos
 
-Kreirajte combose za usmjeravanje modela s 19 javnih strategija: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (paralelno raspoređivanje na panel modela, zatim sinteza jednog odgovora putem suca) i **pipeline**. Svaki combo povezuje više modela s automatskim fallbackom te uključuje brze predloške i provjere spremnosti.
+Create model routing combos with 19 public strategies: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (fan out to a panel of models in parallel, then synthesize one answer via a judge), and **pipeline**. Each combo chains multiple models with automatic fallback and includes quick templates and readiness checks.
 
-Nedavna poboljšanja comboa:
+Recent combo improvements:
 
-- **Strukturirani combo builder** — kreirajte svaki korak odabirom providera, modela i točnog računa/veze
-- **Podrška za ponovljene providere** — ponovno koristite isti provider više puta u jednom combou sve dok je tuple `(provider, model, connection)` jedinstven
-- **Zdravlje combo ciljeva** — analitika i prikazi zdravlja sada razlikuju pojedinačne combo ciljeve/korake umjesto da sve sažimaju u niz modela
-- **Redoslijed kompozitnih razina (tier)** — `defaultTier -> fallbackTier` sada utječe na redoslijed izvršavanja/fallbacka pri izvođenju za korake comboa na vrhovnoj razini
-- **Predlošci sistemskih poruka** — combo `system_message` podržava poslužiteljske
-  placeholdere `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` i `{{FINGERPRINT}}`,
-  koji se proširuju iz stvarno usmjerenog cilja neposredno prije slanja.
-  Nalaze se na dopuštenom popisu i nisu rekurzivni; nepoznati placeholderi ostaju u izvornom obliku; prazne vrijednosti
-  proširuju se u prazno; klijentski sistemski prompti se nikada ne prepisuju. `{{FINGERPRINT}}`
-  razrješava se samo za besplatne providere temeljene na fingerprintu s pinanim ili
-  automatski rotiranim fingerprintom — svugdje drugdje proširuje se u prazno (npr.
-  veze s jednim fingerprintom, provideri koji nisu fp). Proširenje obuhvaća
-  standardnu petlju slanja, round-robin i pinane sesije s context-cacheom;
-  fusion, chaos, pipeline i strategije s ugniježđenim izvršavanjem (nested-execute) još ne proširuju
-  placeholdere.
+- **Structured combo builder** — create each step by selecting provider, model, and exact account/connection
+- **Repeated provider support** — reuse the same provider many times in one combo as long as the `(provider, model, connection)` tuple is unique
+- **Combo target health** — analytics and health surfaces now distinguish individual combo targets/steps instead of collapsing everything into model strings
+- **Composite tier ordering** — `defaultTier -> fallbackTier` now influences runtime execution/fallback order for top-level combo steps
+- **System prompt templates** — combo `system_message` supports server-side
+  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` and `{{FINGERPRINT}}`
+  placeholders, expanded from the actually-routed target right before dispatch.
+  Allowlisted and non-recursive; unknown placeholders stay literal; empty values
+  expand to empty; client system prompts are never rewritten. `{{FINGERPRINT}}`
+  resolves only for fingerprint-based free providers with a pinned or
+  auto-rotated fingerprint — it expands to empty elsewhere (e.g.
+  single-fingerprint connections, non-fp providers). Expansion covers the
+  standard dispatch loop, round-robin, and pinned context-cache sessions;
+  fusion, chaos, pipeline and nested-execute strategies do not expand
+  placeholders yet.
 
 ![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 
-## 📊 Analitika
+## Analytics
 
-Sveobuhvatna analitika korištenja s potrošnjom tokena, procjenama troškova, toplinskim kartama aktivnosti, grafikonima tjedne distribucije i raspodjelama po pojedinačnim providerima.
+Comprehensive usage analytics with token consumption, cost estimates, activity heatmaps, weekly distribution charts, and per-provider breakdowns.
 
 ![Analytics Dashboard](../screenshots/03-analytics.png)
 
 ---
 
-## 🏥 Zdravlje sustava
+## System Health
 
-Praćenje u stvarnom vremenu: vrijeme aktivnosti (uptime), memorija, verzija, percentili latencije (p50/p95/p99), statistika predmemorije (cache), stanja circuit breakera providera, aktivne sesije praćene po kvoti i zdravlje combo ciljeva.
+Real-time monitoring: uptime, memory, version, latency percentiles (p50/p95/p99), cache statistics, provider circuit breaker states, active quota-monitored sessions, and combo target health.
 
 ![Health Dashboard](../screenshots/04-health.png)
 
 ---
 
-## 🔧 Playground za prevoditelj
+## Translator Playground
 
-Četiri načina za otklanjanje pogrešaka u API prijevodima: **Playground** (pretvarač formata), **Chat Tester** (uživo zahtjevi), **Test Bench** (skupno testiranje) i **Live Monitor** (stream u stvarnom vremenu).
+Four modes for debugging API translations: **Playground** (format converter), **Chat Tester** (live requests), **Test Bench** (batch tests), and **Live Monitor** (real-time stream).
 
 ![Translator Playground](../screenshots/05-translator.png)
 
 ---
 
-## 🎮 Model Playground _(v2.0.9+)_
+## Model Playground _(v2.0.9+)_
 
-Testirajte bilo koji model izravno s nadzorne ploče. Odaberite pružatelja usluge, model i endpoint, pišite upite pomoću Monaco Editora, streamajte odgovore u stvarnom vremenu, prekinite stream u sredini i pregledajte metrike vremena.
-
----
-
-## 🎨 Teme _(v2.0.5+)_
-
-Prilagodljive teme boja za cijelu nadzornu ploču. Odaberite između 7 unaprijed postavljenih boja (Coral, Blue, Red, Green, Violet, Orange, Cyan) ili izradite prilagođenu temu odabirom bilo koje hex boje. Podržava svijetli, tamni i sistemski način rada.
+Test any model directly from the dashboard. Select provider, model, and endpoint, write prompts with Monaco Editor, stream responses in real-time, abort mid-stream, and view timing metrics.
 
 ---
 
-## ⚙️ Postavke
+## Themes _(v2.0.5+)_
 
-Sveobuhvatna ploča postavki s **7 kartica**:
+Customizable color themes for the entire dashboard. Choose from 7 preset colors (Coral, Blue, Red, Green, Violet, Orange, Cyan) or create a custom theme by picking any hex color. Supports light, dark, and system mode.
 
-- **General** — Pohrana sustava, upravljanje sigurnosnim kopijama (izvoz/uvoz baze podataka)
-- **Appearance** — Odabir teme (tamna/svijetla/sistemska), unaprijed postavljene teme boja i prilagođene boje, vidljivost zapisnika stanja, kontrole vidljivosti stavki i separatora grupa na bočnoj traci, kontrole vidljivosti Endpoint tunela
-- **AI** — Značajke AI asistenta, zadani predlošci usmjeravanja (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), predmemorija ponavljanja zaključivanja (reasoning replay cache) i prekidači vještina/memorije
-- **Security** — Zaštita API endpointa, blokiranje prilagođenih pružatelja usluga, filtriranje IP adresa, informacije o sesiji
-- **Routing** — Aliasi modela, degradacija pozadinskih zadataka, usmjeravanje po razinama (W1–W4) svjesno manifesta, `fallbackDelayMs`, prianjajuće (sticky) usmjeravanje po sesiji
-- **Resilience** — Postojanost ograničenja stope, podešavanje sigurnosnog prekidača, automatsko onemogućavanje zabranjenih računa, praćenje isteka pružatelja usluga, prag prijenosa **Context Relay** i konfiguracija sažetog modela, klasifikacija 429 po pružatelju usluge i prekidač `useUpstream429BreakerHints`, hlađenje modela (cooldowns)
-- **Advanced** — Zamjene konfiguracije, revizijski trag konfiguracije, način degradacije zamjenskog rješenja, degradacija pozadinskog načina rada za Responses API
+---
+
+## Settings
+
+Comprehensive settings panel with **7 tabs**:
+
+- **General** — System storage, backup management (export/import database)
+- **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item and group separator visibility controls, Endpoint tunnel visibility controls
+- **AI** — AI assistant features, default routing presets (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), reasoning replay cache, and skill/memory toggles
+- **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
+- **Routing** — Model aliases, background task degradation, manifest-aware tier routing (W1–W4), `fallbackDelayMs`, per-session sticky routing
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration, per-provider 429 classification & `useUpstream429BreakerHints` toggle, model cooldowns
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode, background mode degradation for Responses API
 
 ![Settings Dashboard](../screenshots/06-settings.png)
 
 ---
 
-## 🔧 CLI alati
+## CLI Tools
 
-Konfiguracija jednim klikom za AI alate za kodiranje: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor i Factory Droid. Sadrži automatiziranu primjenu/poništavanje konfiguracije, profile veze i mapiranje modela.
+One-click configuration for AI coding tools: Claude Code, Codex CLI, OpenClaw, Kilo Code, Antigravity, Cline, Continue, Cursor, and Factory Droid. Features automated config apply/reset, connection profiles, and model mapping.
 
 ![CLI Tools Dashboard](../screenshots/07-cli-tools.png)
 
 ---
 
-## 🤖 CLI agenti _(v2.0.11+)_
+## CLI Agents _(v2.0.11+)_
 
-Nadzorna ploča za otkrivanje i upravljanje CLI agentima. Prikazuje mrežu od 16 ugrađenih agenata (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) s:
+Dashboard for discovering and managing CLI agents. Shows a grid of 16 built-in agents (Codex, Claude, Goose, OpenClaw, Aider, OpenCode, Cline, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
-- **Statusom instalacije** — Instaliran / Nije pronađen, uz otkrivanje verzije
-- **Značkama protokola** — stdio, HTTP itd.
-- **Prilagođenim agentima** — Registrirajte bilo koji CLI alat putem obrasca (naziv, binarna datoteka, naredba za verziju, argumenti pokretanja)
-- **Podudaranjem CLI otiska (Fingerprint Matching)** — Prekidač po pružatelju usluge za podudaranje potpisa izvornih CLI zahtjeva, čime se smanjuje rizik zabrane uz očuvanje IP adrese proxyja
-- **Lokalnom autentifikacijom za Devin** — Devin CLI koristi `devin auth login`; nije potreban tok OAuth prijave putem preglednika
-
----
-
-## 🔗 Prijenos konteksta (Context Relay) _(v3.5.5+)_
-
-Kombinirana strategija koja održava kontinuitet sesije kada rotacija računa nastupi usred razgovora. Prije nego što se aktivni račun potroši, OmniRoute u pozadini generira strukturirani sažetak predaje (handoff summary). Nakon što se sljedeći zahtjev razriješi na drugi račun, sažetak se ubacuje kao sistemska poruka tako da novi račun nastavlja s potpunim kontekstom.
-
-Konfigurabilno na razini kombinacije ili globalnih postavki:
-
-- **Handoff Threshold (prag predaje)** — postotak iskorištenosti kvote koji pokreće generiranje sažetka (zadano 85%)
-- **Max Messages For Summary (maks. broj poruka za sažetak)** — koliko se nedavne povijesti sažima
-- **Summary Model (model za sažetak)** — opcionalni model koji zamjenjuje zadani za generiranje sažetka predaje
-
-Trenutno podržava rotaciju Codex računa. Pogledajte [dokumentaciju za Context Relay](../architecture/ARCHITECTURE.md).
+- **Installation status** — Installed / Not Found with version detection
+- **Protocol badges** — stdio, HTTP, etc.
+- **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
+- **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+- **Local Devin authentication** — Devin CLI uses `devin auth login`; no browser OAuth flow is required
 
 ---
 
-## 🗜️ Kompresija upita (Prompt Compression) _(v3.7.9+)_
+## Context Relay _(v3.5.5+)_
 
-Context & Cache sada nudi namjenske stranice za Caveman, RTK i Compression Combos:
+A combo strategy that preserves session continuity when account rotation happens mid-conversation. Before the active account is exhausted, OmniRoute generates a structured handoff summary in the background. After the next request resolves to a different account, the summary is injected as a system message so the new account continues with full context.
 
-- **Caveman** — paketi pravila svjesni jezika, pregled, kontrole izlaznog načina rada i analitika
-- **RTK** — kompresija svjesna naredbi za izlaz shella, git-a, testova, izgradnje, paketa, Dockera, infrastrukture, JSON-a i stack-trace-a
-- **Compression Combos** — imenovani pipeline-ovi kao npr. `rtk -> caveman` dodijeljeni kombinacijama usmjeravanja; zadana slagana matematika dosiže prosjek od `~89%` i uštede od `78-95%` prihvatljivog konteksta kada se primjenjuju oba pogona
-- **Raw-output recovery** — opcionalni redigirani pokazivači na RTK sirovi izlaz za otklanjanje pogrešaka kompresiranih neuspjeha
+Configurable via combo-level or global settings:
 
-Pogledajte [Vodič za kompresiju](../compression/COMPRESSION_GUIDE.md), [RTK kompresiju](../compression/RTK_COMPRESSION.md), i
-[Pogone za kompresiju](../compression/COMPRESSION_ENGINES.md).
+- **Handoff Threshold** — Quota usage percentage that triggers summary generation (default 85%)
+- **Max Messages For Summary** — How much recent history to condense
+- **Summary Model** — Optional override model for generating the handoff summary
 
----
-
-## 🛡️ Ojačavanje proxyja (Proxy Hardening) _(v3.5.5+)_
-
-Sveobuhvatna provedba konfiguracije proxyja kroz cijeli tijek obrade zahtjeva:
-
-- **Provjera zdravlja tokena** — pozadinsko OAuth obnavljanje sada razrješava konfiguraciju proxyja po vezi, sprječavajući neuspjehe u okruženjima koja zahtijevaju proxy
-- **Validacija API ključa** — validacija ključa pružatelja usluge (`POST /api/providers/validate`) prolazi kroz `runWithProxyContext`, poštujući postavke proxyja na razini pružatelja usluge i globalne postavke
-- **Popravak undici Dispatchera** — proxy dispatcheri koriste vlastitu implementaciju fetch-a undici-ja umjesto ugrađenog fetch-a Node-a, čime se rješavaju greške `invalid onRequestStart method` na Node.js 22
-- **Detekcija verzije Node.js-a** — stranica za prijavu proaktivno otkriva nekompatibilne verzije Node.js-a (24+) i prikazuje upozoravajući banner s uputama za korištenje Node 22 LTS
+Currently supports Codex account rotation. See [Context Relay documentation](../architecture/ARCHITECTURE.md).
 
 ---
 
-## 📧 Maskiranje privatnosti e-pošte _(v3.5.6+)_
+## Prompt Compression _(v3.7.9+)_
 
-E-adrese OAuth računa su prema zadanim postavkama maskirane (npr. `di*****@g****.com`) da bi se spriječilo nehotično izlaganje prilikom dijeljenja snimki zaslona ili snimanja demonstracija. Koristite Settings → Appearance → Account email visibility za otkrivanje ili maskiranje punih e-adresa računa globalno na pružateljima usluga, kombinacijama, zapisima, kvotama i ekranima playgrounda.
+Context & Cache now exposes dedicated pages for Caveman, RTK, and Compression Combos:
 
----
+- **Caveman** — language-aware rule packs, preview, output-mode controls, and analytics
+- **RTK** — command-aware compression for shell, git, test, build, package, Docker, infra, JSON, and stack-trace output
+- **Compression Combos** — named pipelines such as `rtk -> caveman` assigned to routing combos; the default stacked math reaches `~89%` average and `78-95%` eligible-context savings when both engines apply
+- **Raw-output recovery** — optional redacted RTK raw-output pointers for debugging compressed failures
 
-## 👁️ Prekidač vidljivosti modela _(v3.5.6+)_
-
-Popis modela na stranici pružatelja usluge sada uključuje:
-
-- **Traku za pretraživanje/filtriranje u stvarnom vremenu** — brzo pronalaženje određenih modela
-- **Prekidač vidljivosti po modelu** (ikona 👁) — skriveni modeli su prikazani sivo i isključeni iz kataloga `/v1/models`
-- **Značku aktivnog broja** (`N/M active`) — pokazuje na prvi pogled koliko je modela omogućeno u odnosu na ukupan broj
+See [Compression Guide](../compression/COMPRESSION_GUIDE.md), [RTK Compression](../compression/RTK_COMPRESSION.md), and
+[Compression Engines](../compression/COMPRESSION_ENGINES.md).
 
 ---
 
-## 🔧 Popravak OAuth env varijabli _(v3.6.1+)_
+## Proxy Hardening _(v3.5.5+)_
 
-Radnja "Repair env" jednim klikom za OAuth pružatelje usluga koja vraća nedostajuće varijable okoline i popravlja neispravno stanje autentikacije. Dostupno preko `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatski otkriva i popravlja:
+Comprehensive proxy configuration enforcement across the entire request pipeline:
 
-- Nedostajuće OAuth vjerodajnice klijenta
-- Oštećene unose u env datoteci
-- Sanitizaciju putanje sigurnosne kopije
-
----
-
-## 🗑️ Deinstalacija / Potpuna deinstalacija _(v3.6.2+)_
-
-Skripte za čisto uklanjanje za sve metode instalacije:
-
-| Naredba                  | Radnja                                                                                          |
-| ------------------------ | ----------------------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Uklanja sustavsku aplikaciju, ali **čuva vašu bazu podataka i konfiguracije** u `~/.omniroute`. |
-| `npm run uninstall:full` | Uklanja aplikaciju I trajno **briše sve konfiguracije, ključeve i baze podataka**.              |
+- **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
+- **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
+- **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
+- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
 
 ---
 
-## 🖼️ Mediji _(v2.0.3+)_
+## Email Privacy Masking _(v3.5.6+)_
 
-Generirajte slike, videozapise i glazbu izravno iz nadzorne ploče. Podržava OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open i MusicGen.
-
----
-
-## 📝 Zapisnici zahtjeva
-
-Zapisivanje zahtjeva u stvarnom vremenu s filtriranjem po pružatelju usluge, modelu, računu i API ključu. Prikazuje statusne kodove, potrošnju tokena, latenciju i detalje odgovora.
-
-![Zapisnici korištenja](../screenshots/08-usage.png)
+OAuth account emails are masked by default (e.g. `di*****@g****.com`) to prevent accidental exposure when sharing screenshots or recording demos. Use Settings → Appearance → Account email visibility to reveal or mask full account emails globally across providers, combos, logs, quota, and playground screens.
 
 ---
 
-## 🌐 API krajnja točka
+## Model Visibility Toggle _(v3.5.6+)_
 
-Vaša jedinstvena API krajnja točka s razradom mogućnosti: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations i registrirani API ključevi. Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel i podrška za cloud proxy dostupni su za udaljeni pristup.
+The provider page model list now includes:
 
-![Nadzorna ploča krajnje točke](../screenshots/09-endpoint.png)
-
----
-
-## 🔑 Upravljanje API ključevima
-
-Izradite, ograničite doseg i opozivajte API ključeve. Svaki ključ može biti ograničen na određene modele/pružatelje s potpunim pristupom ili dozvolama samo za čitanje. Vizualno upravljanje ključevima s praćenjem korištenja.
+- **Real-time search/filter bar** — Quickly find specific models
+- **Per-model visibility toggle** ( icon) — Hidden models are grayed out and excluded from the `/v1/models` catalog
+- **Active-count badge** (`N/M active`) — Shows at a glance how many models are enabled vs total
 
 ---
 
-## 📋 Zapisnik revizije
+## OAuth Env Repair _(v3.6.1+)_
 
-Praćenje administrativnih radnji s filtriranjem po vrsti radnje, izvršitelju, cilju, IP adresi i vremenskoj oznaci. Potpuna povijest sigurnosnih događaja.
+One-click "Repair env" action for OAuth providers that restores missing environment variables and fixes broken auth state. Accessible from `Dashboard → Providers → [OAuth Provider] → Repair env`. Automatically detects and repairs:
+
+- Missing OAuth client credentials
+- Corrupted env file entries
+- Backup path sanitization
 
 ---
 
-## 🖥️ Desktop aplikacija
+## Uninstall / Full Uninstall _(v3.6.2+)_
 
-Nativna Electron desktop aplikacija za Windows, macOS i Linux. Pokrenite OmniRoute kao samostalnu aplikaciju s integracijom u sistemsku traku, podrškom za rad offline, automatskim ažuriranjem i instalacijom jednim klikom.
+Clean removal scripts for all installation methods:
 
-Ključne značajke:
+| Command                  | Action                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
 
-- Ispitivanje spremnosti poslužitelja (nema prazan zaslon pri hladnom pokretanju)
-- Sistemska traka s upravljanjem portovima
+---
+
+## Media _(v2.0.3+)_
+
+Generate images, videos, and music from the dashboard. Supports OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI, AnimateDiff, Stable Audio Open, and MusicGen.
+
+---
+
+## Request Logs
+
+Real-time request logging with filtering by provider, model, account, and API key. Shows status codes, token usage, latency, and response details.
+
+![Usage Logs](../screenshots/08-usage.png)
+
+---
+
+## API Endpoint
+
+Your unified API endpoint with capability breakdown: Chat Completions, Responses API, Embeddings, Image Generation, Reranking, Audio Transcription, Text-to-Speech, Moderations, and registered API keys. Cloudflare Quick Tunnel, Tailscale Funnel, ngrok Tunnel, and cloud proxy support are available for remote access.
+
+![Endpoint Dashboard](../screenshots/09-endpoint.png)
+
+---
+
+## API Key Management
+
+Create, scope, and revoke API keys. Each key can be restricted to specific models/providers with full access or read-only permissions. Visual key management with usage tracking.
+
+---
+
+## Audit Log
+
+Administrative action tracking with filtering by action type, actor, target, IP address, and timestamp. Full security event history.
+
+---
+
+## Desktop Application
+
+Native Tauri 2 desktop app (Rust shell + system webview, `apps/desktop/`) for Windows, macOS, and Linux. Run OmniRoute as a standalone application with system tray integration, offline support, auto-update, and one-click install.
+
+Key features:
+
+- Server readiness polling (no blank screen on cold start)
+- System tray with port management
 - Content Security Policy
-- Zaključavanje jedne instance
-- Automatsko ažuriranje pri ponovnom pokretanju
-- Sučelje ovisno o platformi (macOS semafori za prozor, zadana naslovna traka za Windows/Linux)
-- Pojačano pakiranje Electron builda — simbolički povezani `node_modules` u samostalnom paketu se otkriva i odbija prije pakiranja, sprječavajući ovisnost o strojnu za izradu tijekom izvođenja (v2.5.5+)
-- **Elegantno zatvaranje** — Electron `before-quit` uredno zatvara Next.js, sprječavajući zaključavanje SQLite WAL baze podataka (v3.6.2+)
+- Single-instance lock
+- Auto-update on restart
+- Platform-conditional UI (macOS traffic lights, Windows/Linux default titlebar)
+- Tauri 2 build packaging — hardened standalone bundle validation detects symlinked `node_modules` and rejects it before packaging, preventing runtime dependency on the build machine (v2.5.5+)
+- **Graceful shutdown** — Tauri lifecycle hooks shut down the API server cleanly, preventing SQLite WAL database locks (v3.6.2+)
 
-📖 Pogledajte [`electron/README.md`](../../electron/README.md) za potpunu dokumentaciju.
-
----
-
-## 🌐 V1 WebSocket most _(v3.6.6+)_
-
-OmniRoute sada podržava **OpenAI-kompatibilne WebSocket klijente** putem krajnje točke za nadogradnju `/v1/ws`. Prilagođeni poslužitelj `scripts/dev/v1-ws-bridge.mjs` obavija Next.js i nadograđuje WS veze u potpune dvosmjerne sesije strujanja. Autentikacija koristi isti API ključ ili kolačić sesije kao i HTTP zahtjevi.
-
-Ključna ponašanja:
-
-- WS nadogradnju validira `src/lib/ws/handshake.ts` prije uspostavljanja veze
-- Strujanja se uredno prekidaju pri zatvaranju sesije ili pogrešci na nadređenom poslužitelju
-- Radi istovremeno uz postojeći HTTP+SSE put strujanja
+See [`apps/desktop/README.md`](../../apps/desktop/README.md) for full documentation.
 
 ---
 
-## 🔑 Sinkronizacijski tokeni i paket konfiguracije _(v3.6.6+)_
+## V1 WebSocket Bridge _(v3.6.6+)_
 
-Pristup s više uređaja i pristup vanjskih operatora sada je moguć putem **opsegom ograničenih sinkronizacijskih tokena**:
+OmniRoute now supports **OpenAI-compatible WebSocket clients** via the `/v1/ws` upgrade endpoint. The custom `scripts/dev/v1-ws-bridge.mjs` server wraps Next.js and upgrades WS connections to full bidirectional streaming sessions. Authentication uses the same API key or session cookie as HTTP requests.
 
-- **`POST /api/sync/tokens`** — Izdavanje novog sinkronizacijskog tokena (s ograničenim opsegom, uz opcionalno isticanje)
-- **`DELETE /api/sync/tokens/:id`** — Opoziv tokena
-- **`GET /api/sync/bundle`** — Preuzimanje verzioniranog JSON snimka svih neosjetljivih postavki s ETag ključem (lozinke su prikrivene)
+Key behaviours:
 
-Paket konfiguracije izrađuje `src/lib/sync/bundle.ts`. Klijenti uspoređuju zaglavlje odgovora `ETag` kako bi otkrili promjene bez ponovnog preuzimanja cijelog sadržaja.
-
----
-
-## 🧠 GLM Thinking preset _(v3.6.6+)_
-
-**GLM Thinking (`glmt`)** sada je registriran kao ravnopravni pružatelj usluge: 65 536 maksimalnih izlaznih tokena, 24 576 budžeta za razmišljanje, zadani istek vremena od 900 s, format API-ja kompatibilan s Claudeom te zajednička sinkronizacija korištenja s GLM obitelji.
-
-**Hibridno brojanje tokena** također stiže u v3.6.6: kada pružatelj kompatibilan s Claudeom izloži `/messages/count_tokens`, OmniRoute ga poziva prije velikih zahtjeva, s postupnim vraćanjem na procjenu ako pozivanje ne uspije.
+- WS upgrade validated by `src/lib/ws/handshake.ts` before the connection is established
+- Streams terminated cleanly on session close or upstream error
+- Works alongside the existing HTTP+SSE streaming path simultaneously
 
 ---
 
-## 🛡️ Sigurni izlazni dohvat i SSRF zaštita _(v3.6.6+)_
+## Sync Tokens & Config Bundle _(v3.6.6+)_
 
-Sva validacija pružatelja usluga i pozivi za otkrivanje modela sada prolaze kroz dvoslojnu zaštitu izlaznog prometa:
+Multi-device and external operator access is now possible via **scoped sync tokens**:
 
-1. **URL zaštita** (`src/shared/network/outboundUrlGuard.ts`) — Blokira privatne/loopback/link-local raspone IP adresa prije otvaranja utičnice (socket).
-2. **Omotač za siguran dohvat** (`src/shared/network/safeOutboundFetch.ts`) — Primjenjuje URL zaštitu, normalizira istek vremena i ponavlja privremene pogreške eksponencijalnim odgađanjem (backoff).
+- **`POST /api/sync/tokens`** — Issue a new sync token (scoped, with optional expiry)
+- **`DELETE /api/sync/tokens/:id`** — Revoke a token
+- **`GET /api/sync/bundle`** — Download a versioned, ETag-keyed JSON snapshot of all non-sensitive settings (passwords redacted)
 
-Kršenja zaštite prikazuju se kao HTTP 422 (`URL_GUARD_BLOCKED`) i zapisuju se u dnevnik revizije usklađenosti putem `providerAudit.ts`.
-
----
-
-## 🔄 Ponovni pokušaji svjesni razdoblja hlađenja _(v3.6.6+)_
-
-Chat zahtjevi sada se **automatski ponovno pokušavaju** kada uzvodni pružatelj vrati razdoblje hlađenja ograničeno na model. Konfigurabilno putem `REQUEST_RETRY` (zadano: 2) i `MAX_RETRY_INTERVAL_SEC` (zadano: 30 s). Poboljšano je učenje zaglavlja o ograničenju brzine za `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens` i `Retry-After` — stanje razdoblja hlađenja po modelu vidljivo je na nadzornoj ploči otpornosti (Resilience dashboard).
+The config bundle is built by `src/lib/sync/bundle.ts`. Consumers compare the `ETag` response header to detect changes without re-downloading the full payload.
 
 ---
 
-## 📋 Revizija usklađenosti v2 _(v3.6.6+)_
+## GLM Thinking Preset _(v3.6.6+)_
 
-Dnevnik revizije proširen je paginacijom temeljenom na kursoru, obogaćivanjem konteksta zahtjeva (ID zahtjeva, korisnički agent, IP adresa), strukturiranim događajima autentifikacije, CRUD događajima pružatelja usluga s kontekstom razlika te bilježenjem validacija blokiranih SSRF zaštitom. Novi događaji emitiraju se iz `src/lib/compliance/providerAudit.ts`.
+**GLM Thinking (`glmt`)** is now a registered first-class provider: 65 536 max output tokens, 24 576 thinking budget, 900 s default timeout, Claude-compatible API format, and shared usage sync with the GLM family.
+
+**Hybrid token counting** also lands in v3.6.6: when a Claude-compatible provider exposes `/messages/count_tokens`, OmniRoute calls it before large requests with graceful estimation fallback.
+
+---
+
+## Safe Outbound Fetch & SSRF Guard _(v3.6.6+)_
+
+All provider validation and model discovery calls now go through a two-layer outbound guard:
+
+1. **URL guard** (`src/shared/network/outboundUrlGuard.ts`) — Blocks private/loopback/link-local IP ranges before the socket is opened.
+2. **Safe fetch wrapper** (`src/shared/network/safeOutboundFetch.ts`) — Applies the URL guard, normalises timeouts, and retries transient errors with exponential backoff.
+
+Guard violations surface as HTTP 422 (`URL_GUARD_BLOCKED`) and are written to the compliance audit log via `providerAudit.ts`.
+
+---
+
+## Cooldown-Aware Retries _(v3.6.6+)_
+
+Chat requests now **automatically retry** when an upstream provider returns a model-scoped cooldown. Configurable via `REQUEST_RETRY` (default: 2) and `MAX_RETRY_INTERVAL_SEC` (default: 30 s). Rate-limit header learning improved across `x-ratelimit-reset-requests`, `x-ratelimit-reset-tokens`, and `Retry-After` — per-model cooldown state is visible in the Resilience dashboard.
+
+---
+
+## Compliance Audit v2 _(v3.6.6+)_
+
+The audit log has been expanded with cursor-based pagination, request context enrichment (request ID, user agent, IP), structured auth events, provider CRUD events with diff context, and SSRF-blocked validation logging. New events emitted by `src/lib/compliance/providerAudit.ts`.

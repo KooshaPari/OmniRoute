@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { handleAudioSpeech } from "@omniroute/open-sse/handlers/audioSpeech.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * HyperAgentExecutor — hyperagent.com agent chat (Unofficial/Experimental)
  *

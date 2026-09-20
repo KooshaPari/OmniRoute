@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * #5696 — Layer A capability filter unit tests.
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * AgentBridge DNS provisioning — best-effort, extracted from manager.ts so each step
  * is guarded and unit-testable without spawning the MITM server (#6127 / #6198).

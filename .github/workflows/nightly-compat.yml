@@ -19,7 +19,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 concurrency:
   group: nightly-compat
@@ -115,12 +114,13 @@ jobs:
       - run: npm run test:unit:ci:shard
 
   report:
+    permissions:
+      contents: read
+      issues: write
     name: Open / update tracking issue on failure
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && (needs.compat-tests.result == 'failure' || needs.compat-build-26.result == 'failure') }}
     needs: [resolve-branch, compat-build-26, compat-tests]
-    permissions:
-      issues: write
     steps:
       - name: Open or update issue
         env:

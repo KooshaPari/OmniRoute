@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import type { AggressiveConfig, CompressionStats, Summarizer } from "./types.ts";
 import { DEFAULT_AGGRESSIVE_CONFIG } from "./types.ts";
 import {

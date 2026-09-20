@@ -1,21 +1,20 @@
+// oxlint-disable no-unused-vars
 import test from "node:test";
 import assert from "node:assert/strict";
 
 // ─── toolLimitDetector ────────────────────────────────────────────────────────
 
 test("toolLimitDetector: getEffectiveToolLimit returns MAX_TOOLS_LIMIT default", async () => {
-  const { getEffectiveToolLimit, clearDetectedLimits } = await import(
-    "../../open-sse/services/toolLimitDetector.ts"
-  );
+  const { getEffectiveToolLimit, clearDetectedLimits } =
+    await import("../../open-sse/services/toolLimitDetector.ts");
   clearDetectedLimits();
   const limit = getEffectiveToolLimit("nonexistent-provider");
   assert.equal(limit, 128, "default limit should be MAX_TOOLS_LIMIT (128)");
 });
 
 test("toolLimitDetector: setDetectedToolLimit only lowers the limit", async () => {
-  const { getEffectiveToolLimit, setDetectedToolLimit, clearDetectedLimits } = await import(
-    "../../open-sse/services/toolLimitDetector.ts"
-  );
+  const { getEffectiveToolLimit, setDetectedToolLimit, clearDetectedLimits } =
+    await import("../../open-sse/services/toolLimitDetector.ts");
   clearDetectedLimits();
 
   setDetectedToolLimit("test-provider", 50);
@@ -31,9 +30,7 @@ test("toolLimitDetector: setDetectedToolLimit only lowers the limit", async () =
 });
 
 test("toolLimitDetector: parseToolLimitFromError extracts numeric limits", async () => {
-  const { parseToolLimitFromError } = await import(
-    "../../open-sse/services/toolLimitDetector.ts"
-  );
+  const { parseToolLimitFromError } = await import("../../open-sse/services/toolLimitDetector.ts");
 
   assert.equal(parseToolLimitFromError("'tools': maximum number of items is 64"), 64);
   assert.equal(parseToolLimitFromError("Maximum number of tools allowed is 32"), 32);
@@ -52,9 +49,8 @@ test("toolLimitDetector: shouldDetectLimit checks status 400 and keywords", asyn
 });
 
 test("toolLimitDetector: clearDetectedLimits resets all entries", async () => {
-  const { setDetectedToolLimit, getDetectedToolLimit, clearDetectedLimits } = await import(
-    "../../open-sse/services/toolLimitDetector.ts"
-  );
+  const { setDetectedToolLimit, getDetectedToolLimit, clearDetectedLimits } =
+    await import("../../open-sse/services/toolLimitDetector.ts");
 
   setDetectedToolLimit("clear-test-a", 10);
   setDetectedToolLimit("clear-test-b", 20);
@@ -68,9 +64,8 @@ test("toolLimitDetector: clearDetectedLimits resets all entries", async () => {
 // ─── codexQuotaFetcher: connectionRegistry bounds ────────────────────────────
 
 test("codexQuotaFetcher: register/unregister connection lifecycle", async () => {
-  const { registerCodexConnection, unregisterCodexConnection } = await import(
-    "../../open-sse/services/codexQuotaFetcher.ts"
-  );
+  const { registerCodexConnection, unregisterCodexConnection } =
+    await import("../../open-sse/services/codexQuotaFetcher.ts");
 
   // Should not throw
   registerCodexConnection("conn-1", { accessToken: "tok-abc" });
@@ -83,9 +78,8 @@ test("codexQuotaFetcher: register/unregister connection lifecycle", async () => 
 });
 
 test("codexQuotaFetcher: connectionRegistry evicts oldest when full (100)", async () => {
-  const { registerCodexConnection, unregisterCodexConnection } = await import(
-    "../../open-sse/services/codexQuotaFetcher.ts"
-  );
+  const { registerCodexConnection, unregisterCodexConnection } =
+    await import("../../open-sse/services/codexQuotaFetcher.ts");
 
   for (let i = 0; i < 100; i++) {
     registerCodexConnection(`evict-test-${i}`, { accessToken: `tok-${i}` });
@@ -112,16 +106,13 @@ test("codexQuotaFetcher: connectionRegistry evicts oldest when full (100)", asyn
 });
 
 test("codexQuotaFetcher: invalidateCodexQuotaCache does not throw", async () => {
-  const { invalidateCodexQuotaCache } = await import(
-    "../../open-sse/services/codexQuotaFetcher.ts"
-  );
+  const { invalidateCodexQuotaCache } =
+    await import("../../open-sse/services/codexQuotaFetcher.ts");
   assert.doesNotThrow(() => invalidateCodexQuotaCache("nonexistent"));
 });
 
 test("codexQuotaFetcher: getCodexQuotaCooldownMs returns 0 when under threshold", async () => {
-  const { getCodexQuotaCooldownMs } = await import(
-    "../../open-sse/services/codexQuotaFetcher.ts"
-  );
+  const { getCodexQuotaCooldownMs } = await import("../../open-sse/services/codexQuotaFetcher.ts");
 
   const quota = {
     used: 50,
@@ -137,9 +128,7 @@ test("codexQuotaFetcher: getCodexQuotaCooldownMs returns 0 when under threshold"
 });
 
 test("codexQuotaFetcher: getCodexQuotaCooldownMs returns cooldown when 7d exhausted", async () => {
-  const { getCodexQuotaCooldownMs } = await import(
-    "../../open-sse/services/codexQuotaFetcher.ts"
-  );
+  const { getCodexQuotaCooldownMs } = await import("../../open-sse/services/codexQuotaFetcher.ts");
 
   const futureReset = new Date(Date.now() + 60_000).toISOString();
   const quota = {
@@ -160,30 +149,32 @@ test("codexQuotaFetcher: getCodexQuotaCooldownMs returns cooldown when 7d exhaus
 // ─── quotaMonitor: alertSuppression bounds ───────────────────────────────────
 
 test("quotaMonitor: clearQuotaMonitors resets active count to 0", async () => {
-  const { clearQuotaMonitors, getActiveMonitorCount } = await import(
-    "../../open-sse/services/quotaMonitor.ts"
-  );
+  const { clearQuotaMonitors, getActiveMonitorCount } =
+    await import("../../open-sse/services/quotaMonitor.ts");
 
   clearQuotaMonitors();
   assert.equal(getActiveMonitorCount(), 0);
 });
 
 test("quotaMonitor: isQuotaMonitorEnabled checks providerSpecificData flag", async () => {
-  const { isQuotaMonitorEnabled } = await import(
-    "../../open-sse/services/quotaMonitor.ts"
-  );
+  const { isQuotaMonitorEnabled } = await import("../../open-sse/services/quotaMonitor.ts");
 
-  assert.equal(isQuotaMonitorEnabled({ providerSpecificData: { quotaMonitorEnabled: true } }), true);
-  assert.equal(isQuotaMonitorEnabled({ providerSpecificData: { quotaMonitorEnabled: false } }), false);
+  assert.equal(
+    isQuotaMonitorEnabled({ providerSpecificData: { quotaMonitorEnabled: true } }),
+    true
+  );
+  assert.equal(
+    isQuotaMonitorEnabled({ providerSpecificData: { quotaMonitorEnabled: false } }),
+    false
+  );
   assert.equal(isQuotaMonitorEnabled({ providerSpecificData: {} }), false);
   assert.equal(isQuotaMonitorEnabled({}), false);
   assert.equal(isQuotaMonitorEnabled({ providerSpecificData: null }), false);
 });
 
 test("quotaMonitor: getQuotaMonitorSummary returns zeroed after clear", async () => {
-  const { clearQuotaMonitors, getQuotaMonitorSummary } = await import(
-    "../../open-sse/services/quotaMonitor.ts"
-  );
+  const { clearQuotaMonitors, getQuotaMonitorSummary } =
+    await import("../../open-sse/services/quotaMonitor.ts");
 
   clearQuotaMonitors();
   const summary = getQuotaMonitorSummary();
@@ -194,9 +185,8 @@ test("quotaMonitor: getQuotaMonitorSummary returns zeroed after clear", async ()
 });
 
 test("quotaMonitor: getQuotaMonitorSnapshots returns empty array after clear", async () => {
-  const { clearQuotaMonitors, getQuotaMonitorSnapshots } = await import(
-    "../../open-sse/services/quotaMonitor.ts"
-  );
+  const { clearQuotaMonitors, getQuotaMonitorSnapshots } =
+    await import("../../open-sse/services/quotaMonitor.ts");
 
   clearQuotaMonitors();
   const snapshots = getQuotaMonitorSnapshots();
@@ -205,9 +195,8 @@ test("quotaMonitor: getQuotaMonitorSnapshots returns empty array after clear", a
 });
 
 test("quotaMonitor: getQuotaMonitorSnapshot returns null for unknown session", async () => {
-  const { clearQuotaMonitors, getQuotaMonitorSnapshot } = await import(
-    "../../open-sse/services/quotaMonitor.ts"
-  );
+  const { clearQuotaMonitors, getQuotaMonitorSnapshot } =
+    await import("../../open-sse/services/quotaMonitor.ts");
 
   clearQuotaMonitors();
   assert.equal(getQuotaMonitorSnapshot("nonexistent-session"), null);
@@ -216,9 +205,8 @@ test("quotaMonitor: getQuotaMonitorSnapshot returns null for unknown session", a
 // ─── ipFilter: tempBans with time advancement ────────────────────────────────
 
 test("ipFilter: tempBanIP blocks then expires", async () => {
-  const { configureIPFilter, checkIP, tempBanIP, removeTempBan, resetIPFilter } = await import(
-    "../../open-sse/services/ipFilter.ts"
-  );
+  const { configureIPFilter, checkIP, tempBanIP, removeTempBan, resetIPFilter } =
+    await import("../../open-sse/services/ipFilter.ts");
 
   resetIPFilter();
   configureIPFilter({ enabled: true, mode: "blacklist" });
@@ -239,9 +227,8 @@ test("ipFilter: tempBanIP blocks then expires", async () => {
 });
 
 test("ipFilter: removeTempBan immediately lifts ban", async () => {
-  const { configureIPFilter, checkIP, tempBanIP, removeTempBan, resetIPFilter } = await import(
-    "../../open-sse/services/ipFilter.ts"
-  );
+  const { configureIPFilter, checkIP, tempBanIP, removeTempBan, resetIPFilter } =
+    await import("../../open-sse/services/ipFilter.ts");
 
   resetIPFilter();
   configureIPFilter({ enabled: true, mode: "blacklist" });
@@ -256,9 +243,8 @@ test("ipFilter: removeTempBan immediately lifts ban", async () => {
 });
 
 test("ipFilter: blacklist blocks listed IPs", async () => {
-  const { configureIPFilter, checkIP, addToBlacklist, resetIPFilter } = await import(
-    "../../open-sse/services/ipFilter.ts"
-  );
+  const { configureIPFilter, checkIP, addToBlacklist, resetIPFilter } =
+    await import("../../open-sse/services/ipFilter.ts");
 
   resetIPFilter();
   configureIPFilter({ enabled: true, mode: "blacklist" });
@@ -274,9 +260,8 @@ test("ipFilter: blacklist blocks listed IPs", async () => {
 });
 
 test("ipFilter: whitelist mode only allows listed IPs", async () => {
-  const { configureIPFilter, checkIP, addToWhitelist, resetIPFilter } = await import(
-    "../../open-sse/services/ipFilter.ts"
-  );
+  const { configureIPFilter, checkIP, addToWhitelist, resetIPFilter } =
+    await import("../../open-sse/services/ipFilter.ts");
 
   resetIPFilter();
   configureIPFilter({ enabled: true, mode: "whitelist" });
@@ -289,9 +274,8 @@ test("ipFilter: whitelist mode only allows listed IPs", async () => {
 });
 
 test("ipFilter: getIPFilterConfig reflects current state", async () => {
-  const { configureIPFilter, tempBanIP, getIPFilterConfig, resetIPFilter } = await import(
-    "../../open-sse/services/ipFilter.ts"
-  );
+  const { configureIPFilter, tempBanIP, getIPFilterConfig, resetIPFilter } =
+    await import("../../open-sse/services/ipFilter.ts");
 
   resetIPFilter();
   configureIPFilter({ enabled: true, mode: "whitelist", whitelist: ["10.0.0.1"] });
@@ -309,9 +293,8 @@ test("ipFilter: getIPFilterConfig reflects current state", async () => {
 // ─── circuitBreaker: creation and stale breaker cleanup ──────────────────────
 
 test("circuitBreaker: getCircuitBreaker creates and returns breaker", async () => {
-  const { getCircuitBreaker, resetAllCircuitBreakers } = await import(
-    "../../src/shared/utils/circuitBreaker.ts"
-  );
+  const { getCircuitBreaker, resetAllCircuitBreakers } =
+    await import("../../src/shared/utils/circuitBreaker.ts");
 
   resetAllCircuitBreakers();
 
@@ -325,9 +308,8 @@ test("circuitBreaker: getCircuitBreaker creates and returns breaker", async () =
 });
 
 test("circuitBreaker: getCircuitBreaker returns same instance for same name", async () => {
-  const { getCircuitBreaker, resetAllCircuitBreakers } = await import(
-    "../../src/shared/utils/circuitBreaker.ts"
-  );
+  const { getCircuitBreaker, resetAllCircuitBreakers } =
+    await import("../../src/shared/utils/circuitBreaker.ts");
 
   resetAllCircuitBreakers();
 
@@ -339,9 +321,8 @@ test("circuitBreaker: getCircuitBreaker returns same instance for same name", as
 });
 
 test("circuitBreaker: breaker transitions CLOSED -> OPEN after threshold failures", async () => {
-  const { getCircuitBreaker, resetAllCircuitBreakers } = await import(
-    "../../src/shared/utils/circuitBreaker.ts"
-  );
+  const { getCircuitBreaker, resetAllCircuitBreakers } =
+    await import("../../src/shared/utils/circuitBreaker.ts");
 
   resetAllCircuitBreakers();
 
@@ -361,18 +342,16 @@ test("circuitBreaker: breaker transitions CLOSED -> OPEN after threshold failure
   assert.equal(breaker.state, "OPEN");
 
   // Should reject while open
-  await assert.rejects(
-    () => breaker.execute(async () => "ok"),
-    { name: "CircuitBreakerOpenError" }
-  );
+  await assert.rejects(() => breaker.execute(async () => "ok"), {
+    name: "CircuitBreakerOpenError",
+  });
 
   resetAllCircuitBreakers();
 });
 
 test("circuitBreaker: canExecute returns correct value per state", async () => {
-  const { getCircuitBreaker, resetAllCircuitBreakers } = await import(
-    "../../src/shared/utils/circuitBreaker.ts"
-  );
+  const { getCircuitBreaker, resetAllCircuitBreakers } =
+    await import("../../src/shared/utils/circuitBreaker.ts");
 
   resetAllCircuitBreakers();
 
@@ -397,9 +376,8 @@ test("circuitBreaker: canExecute returns correct value per state", async () => {
 });
 
 test("circuitBreaker: getStatus returns expected shape", async () => {
-  const { getCircuitBreaker, resetAllCircuitBreakers } = await import(
-    "../../src/shared/utils/circuitBreaker.ts"
-  );
+  const { getCircuitBreaker, resetAllCircuitBreakers } =
+    await import("../../src/shared/utils/circuitBreaker.ts");
 
   resetAllCircuitBreakers();
 
@@ -416,9 +394,8 @@ test("circuitBreaker: getStatus returns expected shape", async () => {
 });
 
 test("circuitBreaker: reset returns breaker to CLOSED", async () => {
-  const { getCircuitBreaker, resetAllCircuitBreakers } = await import(
-    "../../src/shared/utils/circuitBreaker.ts"
-  );
+  const { getCircuitBreaker, resetAllCircuitBreakers } =
+    await import("../../src/shared/utils/circuitBreaker.ts");
 
   resetAllCircuitBreakers();
 

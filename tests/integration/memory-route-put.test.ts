@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 /**
  * Integration tests — PUT /api/memory/[id]
  * Tests: 200 happy path, 400 invalid body, 404 not found, 401 unauth, error sanitization.

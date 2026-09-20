@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { DefaultExecutor } from "./default.ts";
 import type { ProviderCredentials } from "./base.ts";
 import { stripTrailingSlashes } from "../utils/urlSanitize.ts";

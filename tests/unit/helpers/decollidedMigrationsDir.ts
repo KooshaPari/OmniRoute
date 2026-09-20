@@ -1,3 +1,4 @@
+// oxlint-disable rules-of-hooks
 /**
  * Test-only workaround for the inherited base-red "Migration version collision
  * detected" on release/v3.8.50 (originally the `134_ccr_blocks.sql` +

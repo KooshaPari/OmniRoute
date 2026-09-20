@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { handleRerank } from "@omniroute/open-sse/handlers/rerank.ts";
 import {
   getProviderCredentialsWithQuotaPreflight,

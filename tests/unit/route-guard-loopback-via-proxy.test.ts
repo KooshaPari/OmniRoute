@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Security regression: when OmniRoute itself runs behind an external reverse
  * proxy (nginx / Caddy / Cloudflare Tunnel), `req.socket.remoteAddress` is the
@@ -43,10 +44,7 @@ test("resolveStampedViaProxy: rejects forged / un-tokened values", () => {
 
 test("classifyStampedPeerLocality: loopback socket WITHOUT a proxy stamp stays loopback", () => {
   // Local CLI / dashboard hit — the normal happy path.
-  assert.equal(
-    classifyStampedPeerLocality(`${TOK}|127.0.0.1`, null, TOK),
-    "loopback"
-  );
+  assert.equal(classifyStampedPeerLocality(`${TOK}|127.0.0.1`, null, TOK), "loopback");
   assert.equal(classifyStampedPeerLocality(`${TOK}|::1`, null, TOK), "loopback");
 });
 
@@ -60,35 +58,20 @@ test("classifyStampedPeerLocality: loopback socket WITH a proxy stamp is REMOTE 
     "remote",
     "loopback socket + via-proxy stamp must NOT be classified as local"
   );
-  assert.equal(
-    classifyStampedPeerLocality(`${TOK}|::1`, `${TOK}|1`, TOK),
-    "remote"
-  );
-  assert.equal(
-    classifyStampedPeerLocality(`${TOK}|::ffff:127.0.0.1`, `${TOK}|1`, TOK),
-    "remote"
-  );
+  assert.equal(classifyStampedPeerLocality(`${TOK}|::1`, `${TOK}|1`, TOK), "remote");
+  assert.equal(classifyStampedPeerLocality(`${TOK}|::ffff:127.0.0.1`, `${TOK}|1`, TOK), "remote");
 });
 
 test("classifyStampedPeerLocality: private-LAN socket WITH a proxy stamp is still REMOTE", () => {
   // Caddy/nginx running on a LAN box in front of OmniRoute. We do not know how
   // the proxy is exposed (it could be tunneled to the public internet), so any
   // proxy hop downgrades locality to remote.
-  assert.equal(
-    classifyStampedPeerLocality(`${TOK}|192.168.0.15`, `${TOK}|1`, TOK),
-    "remote"
-  );
+  assert.equal(classifyStampedPeerLocality(`${TOK}|192.168.0.15`, `${TOK}|1`, TOK), "remote");
 });
 
 test("classifyStampedPeerLocality: public-IP socket is remote regardless of stamp", () => {
-  assert.equal(
-    classifyStampedPeerLocality(`${TOK}|8.8.8.8`, null, TOK),
-    "remote"
-  );
-  assert.equal(
-    classifyStampedPeerLocality(`${TOK}|8.8.8.8`, `${TOK}|1`, TOK),
-    "remote"
-  );
+  assert.equal(classifyStampedPeerLocality(`${TOK}|8.8.8.8`, null, TOK), "remote");
+  assert.equal(classifyStampedPeerLocality(`${TOK}|8.8.8.8`, `${TOK}|1`, TOK), "remote");
 });
 
 test("classifyStampedPeerLocality: missing / forged peer stamp fails closed to remote", () => {

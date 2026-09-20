@@ -9,12 +9,12 @@ lastUpdated: 2026-07-23
 - **Tracking issue:** [#8075](https://github.com/diegosouzapw/OmniRoute/issues/8075)
 - **Snapshot revision:** `9a3b605f3420ae3ab08bd93d6443034f03a1bcbc`
 - **Scanned-corpus SHA-256:** `72334620a7a18a42bcede1643fb2fdf95da6eae9ffa66a891ae14ed633ad43f6`
-- **Cel:** Zmierz aktualne linie cięcia warstwy persystencji przed zaproponowaniem interfejsów repozytoriów
-- **Wpływ na runtime:** Brak; ten dokument i jego skrypt audytu nie zmieniają zachowania bazy danych
+- **Purpose:** Measure the current persistence cut lines before proposing repository interfaces
+- **Runtime impact:** None; this document and its audit script do not change database behavior
 
-## Jak odtworzyć
+## How to reproduce
 
-Z katalogu głównego repozytorium:
+From the repository root:
 
 ```bash
 node scripts/check/audit-sqlite-coupling.mjs
@@ -22,44 +22,44 @@ node scripts/check/audit-sqlite-coupling.mjs --json
 node --test scripts/check/audit-sqlite-coupling.test.mjs
 ```
 
-Skrypt odczytuje śledzone pliki z Gita, skanuje źródła inne niż testowe w `src/`, `open-sse/`,
-`electron/` i `bin/` oraz skanuje SQL migracji w `src/lib/db/migrations/`. Wyklucza
-drzewo testów najwyższego poziomu, współlokalizowane katalogi testów, pliki źródłowe test/spec oraz ścieżki poza tymi
-skonfigurowanymi korzeniami źródeł (w tym dokumentację i skrypty).
+The script reads tracked files from Git, scans non-test source under `src/`, `open-sse/`,
+and `bin/`, and scans migration SQL under `src/lib/db/migrations/`. It excludes the
+top-level test tree, co-located test directories, test/spec source files, and paths outside those
+configured source roots (including documentation and scripts).
 
-Skrypt odmawia uruchomienia, jeśli śledzone pliki w tych korzeniach źródeł różnią się od `HEAD`. Raportuje
-zarówno rewizję narzędzia audytu, jak i SHA-256 nad uporządkowanym korpusem ścieżka/treść. Powyższy snapshot
-został wykonany z wymienionej rewizji źródeł; ten PR zmienia wyłącznie wykluczone ścieżki dokumentacji i skryptów,
-więc ponowne uruchomienie z czystej gałęzi PR daje ten sam digest korpusu.
+The script refuses to run if tracked files in those source roots differ from `HEAD`. It reports
+both the audit-tool revision and a SHA-256 over the ordered path/content corpus. The snapshot above
+was taken from the listed source revision; this PR changes only excluded documentation and script
+paths, so rerunning from the clean PR branch produces the same corpus digest.
 
-To jest **inwentaryzacja leksykalna**, a nie semantyczna analiza TypeScript lub SQL:
+This is a **lexical inventory**, not a TypeScript or SQL semantic analysis:
 
-- liczby to wystąpienia zdefiniowanych wzorców, a nie liczby odrębnych instrukcji SQL;
-- wzorce wywołań adaptera i bezpośredniego singletona najpierw maskują komentarze i treści literałów;
-- treści literałów szablonowych, w tym osadzone wyrażenia, są wykluczone z tych zliczeń
-  składni kodu;
-- lekki masker nie jest parserem JavaScript, więc nietypowa składnia literałów wyrażeń regularnych
-  może nadal wymagać ręcznego przeglądu;
-- komentarze i literały łańcuchowe mogą wnosić wkład do zliczeń sygnałów dialektu, które celowo przeszukują
-  surowy tekst pod kątem osadzonego SQL;
-- dopasowanie `.prepare()` poza `src/lib/db/` to trop do przeglądu, a nie dowód, że wywołanie należy przenieść;
-- wywołania ukryte za inaczej nazwaną nakładką mogą nie być zliczane;
-- liczby plików są deduplikowane, natomiast liczby wystąpień — nie.
+- counts are occurrences of defined patterns, not counts of distinct SQL statements;
+- adapter-call and direct-singleton patterns mask comments and literal contents first;
+- template-literal contents, including embedded expressions, are excluded from those code-syntax
+  counts;
+- the lightweight masker is not a JavaScript parser, so unusual regular-expression literal syntax
+  can still require manual review;
+- comments and string literals can contribute to dialect-signal counts, which intentionally search
+  raw text for embedded SQL;
+- a `.prepare()` match outside `src/lib/db/` is a review lead, not proof that the call should move;
+- calls hidden behind a differently named wrapper may not be counted;
+- file counts are deduplicated, while occurrence counts are not.
 
-Wyjście JSON obejmuje każdą pasującą ścieżkę, dzięki czemu recenzenci mogą sprawdzić lub przeklasyfikować poszczególne
-wyniki zamiast opierać się wyłącznie na sumach.
+The JSON output includes every matching path so reviewers can inspect or reclassify individual
+results rather than trusting totals alone.
 
-## Zakres snapshota
+## Snapshot scope
 
-W zapisanej rewizji skrypt przeskanował:
+At the recorded revision, the script scanned:
 
-- 3 830 śledzonych plików źródłowych innych niż testowe;
-- 129 plików SQL migracji.
+- 3,830 tracked non-test source files;
+- 129 migration SQL files.
 
-Liczba plików źródłowych jest celowo szeroka, ponieważ celem jest znalezienie sprzężenia persystencji, które
-wyszło poza nominalny katalog bazy danych, w tym kod CLI oraz proxy/runtime.
+The source-file count is intentionally broad because the goal is to find persistence coupling that
+has escaped the nominal database directory, including CLI and proxy/runtime code.
 
-## Sygnały granic
+## Boundary signals
 
 | Signal                                                                           | Files | Occurrences |
 | -------------------------------------------------------------------------------- | ----: | ----------: |
@@ -67,23 +67,23 @@ wyszło poza nominalny katalog bazy danych, w tym kod CLI oraz proxy/runtime.
 | `localDb` import consumers                                                       |   211 |           — |
 | `SqliteAdapter` type consumers outside comments/literals and `src/lib/db/`       |     3 |           — |
 
-Barrel `localDb` już daje wielu wywołującym szew funkcji domenowych, ale
-`src/lib/localDb.ts` pozostaje warstwą re-eksportu, a nie kontraktem backendu. 45 bezpośrednich
-konsumentów singletona to najczytelniejszy pierwszy zestaw do przeglądu, ponieważ omijają ten logiczny szew i
-trzymają bezpośrednio uchwyt o kształcie adaptera.
+The `localDb` barrel already gives many callers a domain-function seam, but
+`src/lib/localDb.ts` remains a re-export layer rather than a backend contract. The 45 direct
+singleton consumers are the clearest first review set because they bypass that logical seam and
+hold an adapter-shaped handle directly.
 
-Trzy pliki źródłowe inne niż testowe poza `src/lib/db/`, które w składni kodu wspominają typ `SqliteAdapter`,
-to:
+The three non-test source files outside `src/lib/db/` that mention the `SqliteAdapter` type in code
+syntax are:
 
 - `src/app/api/db-backups/import/route.ts`;
 - `src/lib/compliance/index.ts`;
 - `src/lib/compliance/noLog.ts`.
 
-To nie są równoważne zadania migracyjne. Import kopii zapasowej jest specyficzny dla możliwości; persystencja
-compliance może być przenośnym stanem domenowym. Przyszła granica powinna je sklasyfikować, a nie
-przenosić wszystkie trzy mechanicznie.
+These are not equivalent migration tasks. Backup import is capability-specific; compliance
+persistence may be portable domain state. The future boundary should classify them rather than
+moving all three mechanically.
 
-## Składnia wywołań o kształcie adaptera
+## Adapter-shaped call syntax
 
 | Signal            | Occurrences | Files | Outside `src/lib/db/` occurrences | Outside files |
 | ----------------- | ----------: | ----: | --------------------------------: | ------------: |
@@ -95,11 +95,11 @@ przenosić wszystkie trzy mechanicznie.
 | `.checkpoint()`   |           0 |     0 |                                 0 |             0 |
 | `lastInsertRowid` |          15 |     7 |                                 1 |             1 |
 
-Ta tabela pokazuje, dlaczego `SqliteAdapter` jest warstwą zgodności runtime SQLite, a nie przenośną
-abstrakcją backendu. Jego synchroniczny kształt instrukcji i transakcji jest szeroko używany, a część
-tego kształtu jest widoczna poza nominalną warstwą bazy danych.
+This table shows why `SqliteAdapter` is a SQLite runtime compatibility layer rather than a portable
+backend abstraction. Its synchronous statement and transaction shape is widely used, and some of
+that shape is visible outside the nominal database layer.
 
-Główni bezpośredni konsumenci `getDbInstance()` poza `src/lib/db/` w tej rewizji to:
+The top direct `getDbInstance()` consumers outside `src/lib/db/` at this revision are:
 
 | File                                               | Occurrences |
 | -------------------------------------------------- | ----------: |
@@ -116,11 +116,11 @@ Główni bezpośredni konsumenci `getDbInstance()` poza `src/lib/db/` w tej rewi
 | `src/lib/skills/registry.ts`                       |           5 |
 | `src/lib/usage/usageHistory.ts`                    |           5 |
 
-Lista obejmuje konfigurację control-plane, dane usage/audit, cache, wyszukiwanie memory/vector, skills,
-gamification oraz wsparcie CLI/provider. Jeden generyczny adapter SQL utrwaliłby ten rozrzut;
-repozytoria domenowe dają sposób na jego redukcję plaster po plasterku.
+The list spans control-plane configuration, usage/audit data, cache, memory/vector search, skills,
+gamification, and CLI/provider support. A single generic SQL adapter would preserve this spread;
+domain repositories provide a way to reduce it slice by slice.
 
-## Sygnały dialektu SQLite i cyklu życia
+## SQLite dialect and lifecycle signals
 
 | Signal                | Occurrences | Files |
 | --------------------- | ----------: | ----: |
@@ -136,91 +136,91 @@ repozytoria domenowe dają sposób na jego redukcję plaster po plasterku.
 | `vec0`                |           7 |     1 |
 | `last_insert_rowid()` |           1 |     1 |
 
-Te wartości to sygnały tekstowe i obejmują komentarze, jeśli występują. Są przydatne do lokalizowania
-pracy nad przenośnością, a nie do szacowania nakładu implementacji przez mnożenie.
+These values are text signals and include comments where present. They are useful for locating
+portability work, not for estimating implementation effort by multiplication.
 
-Zweryfikowane obszary wysokiego sprzężenia obejmują:
+Verified high-coupling areas include:
 
-- `src/lib/db/core.ts`: cykl życia singletona, ścieżki plików SQLite, checkpoint WAL, recovery, schemat,
-  kompaktowanie i tworzenie kopii zapasowych;
-- `src/lib/db/migrationRunner.ts`: wykonywanie ponumerowanych migracji SQL, `sqlite_master`,
-  `PRAGMA table_info`, zachowanie transakcji oraz opcjonalna obsługa FTS5;
-- `src/lib/db/optimizationSettings.ts`: ustawienia page/cache, auto-vacuum, przejścia WAL oraz
+- `src/lib/db/core.ts`: singleton lifecycle, SQLite file paths, WAL checkpoint, recovery, schema,
+  compaction, and backup creation;
+- `src/lib/db/migrationRunner.ts`: numbered SQL migration execution, `sqlite_master`,
+  `PRAGMA table_info`, transaction behavior, and optional FTS5 handling;
+- `src/lib/db/optimizationSettings.ts`: page/cache settings, auto-vacuum, WAL transitions, and
   `VACUUM`;
-- `src/lib/db/backup.ts`: cykl życia kopii zapasowej i przywracania bazy danych;
-- `src/lib/db/schemaColumns.ts`: introspekcja schematu SQLite i kolumny zgodności;
-- `src/lib/memory/vectorStore.ts` oraz `src/lib/memory/retrieval.ts`: zachowanie `vec0` i FTS5;
-- `src/lib/db/adapters/`: implementacje zgodności dla obsługiwanych runtime'ów SQLite.
+- `src/lib/db/backup.ts`: database backup and restore lifecycle;
+- `src/lib/db/schemaColumns.ts`: SQLite schema introspection and compatibility columns;
+- `src/lib/memory/vectorStore.ts` and `src/lib/memory/retrieval.ts`: `vec0` and FTS5 behavior;
+- `src/lib/db/adapters/`: compatibility implementations for the supported SQLite runtimes.
 
-Tych obszarów nie należy forsować przez interfejs repozytorium najniższego wspólnego mianownika. Potrzebują
-wyraźnych możliwości SQLite albo osobnych implementacji backendu.
+These areas should not be forced through a lowest-common-denominator repository interface. They
+need explicit SQLite capabilities or separate backend implementations.
 
-## Sprzężenie migracji
+## Migration coupling
 
-Snapshot zawiera 129 śledzonych plików SQL migracji. `src/lib/db/migrationRunner.ts` robi więcej
-niż wykonywanie uporządkowanych plików: posiada odkrywanie migracji, historię wersji, bezpieczeństwo duplikatów wersji,
-sondy schematu, sprawdzenia możliwości FTS5, bezpieczeństwo przed migracją oraz wykonywanie transakcji SQLite.
+The snapshot contains 129 tracked migration SQL files. `src/lib/db/migrationRunner.ts` does more
+than execute ordered files: it owns migration discovery, version history, duplicate-version safety,
+schema probes, FTS5 capability checks, pre-migration safety, and SQLite transaction execution.
 
-W konsekwencji:
+Consequently:
 
-- inny dialekt SQL nie może bezpiecznie ponownie użyć plików migracji bez zmian;
-- zewnętrzne backendy potrzebują własnej implementacji migracji i historii schematu;
-- logiczne kamienie milowe migracji mogą być współdzielone, ale fizyczny SQL i sondy możliwości pozostają
-  specyficzne dla backendu;
-- praca multi-replica wymaga własności migracji lub blokad, zanim zewnętrzny backend zostanie
-  uznany za gotowy.
+- another SQL dialect cannot safely reuse the migration files unchanged;
+- external backends need their own migration implementation and schema history;
+- logical migration milestones may be shared, but physical SQL and capability probes remain
+  backend-specific;
+- multi-replica operation requires migration ownership or locking before an external backend is
+  considered ready.
 
-## Rekomendowane linie cięcia
+## Recommended cut lines
 
-### 1. Zachowaj nienaruszoną zgodność runtime SQLite
+### 1. Keep SQLite runtime compatibility intact
 
-Nie zastępuj `SqliteAdapter` ani kaskady driverów w pierwszym PR dotyczącym repozytoriów. Zachowaj odzyskiwanie plików,
-WAL, backup, optymalizację, FTS5 i zachowanie wektorów za bieżącą implementacją SQLite.
+Do not replace `SqliteAdapter` or the driver cascade in the first repository PR. Keep file recovery,
+WAL, backup, optimization, FTS5, and vector behavior behind the current SQLite implementation.
 
-### 2. Zacznij od bezpośrednich konsumentów singletona
+### 2. Start with direct singleton consumers
 
-Użyj listy 45 plików bezpośrednich konsumentów jako początkowej kolejki przeglądu. Sklasyfikuj każdy plik jako:
+Use the 45-file direct-consumer list as the initial review queue. Classify each file as:
 
-- przenośny stan domenowy;
-- konserwację lub wyszukiwanie specyficzne dla backendu;
-- stan lokalny dla procesu lub możliwy do odbudowy;
-- dostęp legacy, który powinien wywoływać istniejący moduł domenowy.
+- portable domain state;
+- backend-specific maintenance or search;
+- process-local or rebuildable state;
+- legacy access that should call an existing domain module.
 
-Klasyfikacja musi poprzedzać projekt interfejsu. Samo pojawienie się ścieżki w inwentaryzacji nie jest
-nakazem utworzenia repozytorium.
+Classification must precede interface design. A path appearing in the inventory is not, by itself,
+a mandate to create a repository.
 
-### 3. Najpierw udowodnij repozytoria na SQLite
+### 3. Prove repositories with SQLite first
 
-Dla jednej ograniczonej domeny:
+For one bounded domain:
 
-1. zdefiniuj operacje repozytorium zorientowane na zachowanie;
-2. zaadaptuj bieżące zapytania SQLite za tym repozytorium;
-3. uruchom testy zgodności zachowania i transakcji względem SQLite;
-4. zmigruj wywołujących bez zmiany domyślnego runtime;
-5. dopiero potem zaimplementuj to samo repozytorium dla zewnętrznego backendu.
+1. define behavior-oriented repository operations;
+2. adapt current SQLite queries behind that repository;
+3. run behavior and transaction conformance tests against SQLite;
+4. migrate callers without changing the default runtime;
+5. only then implement the same repository for an external backend.
 
-### 4. Oddziel przenośny stan control-plane od danych specyficznych dla możliwości
+### 4. Separate portable control-plane state from capability-specific data
 
-Połączenia providerów, klucze API, combos i konfiguracja routingu są kandydatami na pierwszy
-przenośny plaster, z zastrzeżeniem zatwierdzenia przez maintainerów i przeglądu ownership tabel. Wyszukiwanie wektorowe memory,
-backup/odzyskiwanie plików SQLite oraz optymalizacja bazy danych to słabe pierwsze plastry, ponieważ ich zachowanie
-jest celowo specyficzne dla SQLite.
+Provider connections, API keys, combos, and routing configuration are candidates for the first
+portable slice, subject to maintainer approval and a table-ownership review. Memory vector search,
+SQLite file backup/recovery, and database optimization are poor first slices because their behavior
+is deliberately SQLite-specific.
 
-### 5. Traktuj usage, quota, affinity i audit jako późniejszy plaster koordynacji
+### 5. Treat usage, quota, affinity, and audit as a later coordination slice
 
-Te domeny mają semantykę współbieżności i wolumenu wykraczającą poza CRUD. Ich kontrakty repozytoriów powinny
-być projektowane razem z testami transakcji multi-replica, lease, retencji i trybów awarii, a nie
-kopiowane mechanicznie z bieżącego SQL.
+These domains have concurrency and volume semantics beyond CRUD. Their repository contracts should
+be designed together with multi-replica transaction, lease, retention, and failure-mode tests rather
+than copied mechanically from current SQL.
 
-## Czego ta inwentaryzacja nie rozstrzyga
+## What this inventory does not decide
 
-Ta inwentaryzacja nie:
+This inventory does not:
 
-- zatwierdza wsparcia PostgreSQL ani MySQL;
-- definiuje interfejsów TypeScript repozytoriów;
-- wybiera pierwszej tabeli ani domeny do migracji;
-- twierdzi, że każde dopasowanie leksykalne jest defektem;
-- twierdzi, że obecne granice modułów są nieskuteczne;
-- zmienia SQLite, migracji, backupu, wyszukiwania ani zachowania runtime.
+- approve PostgreSQL or MySQL support;
+- define repository TypeScript interfaces;
+- choose the first table or domain to migrate;
+- claim every lexical match is a defect;
+- claim the current module boundaries are ineffective;
+- change SQLite, migrations, backup, search, or runtime behavior.
 
-Jej celem jest uczynienie kolejnej dyskusji projektowej opartej na dowodach i odtwarzalnej.
+Its purpose is to make the next design discussion evidence-based and reproducible.

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 // @vitest-environment jsdom
 /**
  * CursorAgentNudge (Cursor renewal plan, Task 5) — dismissible dashboard

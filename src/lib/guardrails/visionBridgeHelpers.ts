@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Vision Bridge helper functions for image processing.
  */

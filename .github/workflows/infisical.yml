@@ -10,7 +10,7 @@ on:
   push:
     branches: [main, master]
     paths:
-      - '.github/workflows/infisical.yml'
+      - ".github/workflows/infisical.yml"
   pull_request:
 
 # FIX (W9.06, fork patch 2026-09-02): explicit least-privilege default.
@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
 
       - name: Install Infisical CLI
         run: |

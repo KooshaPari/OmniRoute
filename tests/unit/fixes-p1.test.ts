@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
 // This test constructs or exercises a real better-sqlite3-backed SQLite database.
 // better-sqlite3 is a native addon; production and CI load it normally, but some

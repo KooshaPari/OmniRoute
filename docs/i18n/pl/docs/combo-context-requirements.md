@@ -70,15 +70,15 @@ Gdy ustawiono `minContextWindow`:
 
 **Tryb lenient** (domyślny):
 
-- ✅ Uwzględnia modele z kontekstem >= minContextWindow
-- ✅ Uwzględnia modele z nieznanymi limitami kontekstu
-- ❌ Wyklucza modele z kontekstem < minContextWindow
+- Uwzględnia modele z kontekstem >= minContextWindow
+- Uwzględnia modele z nieznanymi limitami kontekstu
+- Wyklucza modele z kontekstem < minContextWindow
 
 **Tryb strict**:
 
-- ✅ Uwzględnia modele z kontekstem >= minContextWindow
-- ❌ Wyklucza modele z nieznanymi limitami kontekstu
-- ❌ Wyklucza modele z kontekstem < minContextWindow
+- Uwzględnia modele z kontekstem >= minContextWindow
+- Wyklucza modele z nieznanymi limitami kontekstu
+- Wyklucza modele z kontekstem < minContextWindow
 
 ### Logika sortowania
 
@@ -215,7 +215,7 @@ npm test tests/unit/combo/context-requirements-integration.test.ts
 - Walidacja schematu: 6 testów
 - Logika filtrowania: 6 testów
 - Integracja: 5 testów
-- **Razem**: 17/17 przechodzi ✅
+- **Razem**: 17/17 przechodzi
 
 ## Rozwiązywanie problemów
 

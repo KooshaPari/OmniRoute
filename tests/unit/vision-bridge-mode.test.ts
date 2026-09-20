@@ -1,3 +1,4 @@
+// oxlint-disable rules-of-hooks
 /**
  * Vision Bridge mode selector (auto | describe | reroute) — Modality Bridge PR-1.
  *

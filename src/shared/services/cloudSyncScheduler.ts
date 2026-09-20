@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { isCloudEnabled } from "@/lib/db/settings";
 import { getRuntimePorts } from "@/lib/runtime/ports";

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tests for task-aware combo routing (port of upstream PR #2045).
  *

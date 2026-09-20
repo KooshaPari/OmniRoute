@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * db/registeredKeys.ts — Registered Keys Provisioning (#464)
  *

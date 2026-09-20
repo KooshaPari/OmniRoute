@@ -3341,16 +3341,6 @@
         }
       }
     },
-    "docs/guides/ELECTRON_GUIDE.md": {
-      "source_hash": "da2cd2f3c2ad22b07a7bda3392f7d1751c5c27d411589f1f0e85cb53436d9bcf",
-      "locales": {
-        "pl": {
-          "source_hash": "da2cd2f3c2ad22b07a7bda3392f7d1751c5c27d411589f1f0e85cb53436d9bcf",
-          "target_hash": "cafe657b070b5d128aafd2a5176d127a7dd635d20826550078aec576ef276b6d",
-          "updated_at": "2026-09-08T12:07:54.727Z"
-        }
-      }
-    },
     "docs/guides/FEATURES.md": {
       "source_hash": "5b14486669589d4fec3b175db4588425139a37d2d06b4f771775deb2385a1546",
       "locales": {

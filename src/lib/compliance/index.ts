@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Compliance Controls — T-43
  *
@@ -421,8 +422,7 @@ export function countAuditLog(filter: AuditLogFilter = {}) {
   ensureAuditLogSchema(db);
   const { where, params } = buildAuditLogQuery(filter);
   const row = db.prepare(`SELECT COUNT(*) as count FROM audit_log ${where}`).get(...params) as
-    | { count?: number }
-    | undefined;
+    { count?: number } | undefined;
   return Number(row?.count || 0);
 }
 

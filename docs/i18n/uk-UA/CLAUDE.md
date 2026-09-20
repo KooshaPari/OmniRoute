@@ -1,6 +1,6 @@
 # CLAUDE.md (Українська)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇬🇷 [el](../el/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇪🇪 [et](../et/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇪 [ga](../ga/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇷 [hr](../hr/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇱🇹 [lt](../lt/CLAUDE.md) · 🇱🇻 [lv](../lv/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇲🇹 [mt](../mt/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇮 [sl](../sl/CLAUDE.md) · 🇷🇸 [sr](../sr/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md) · 🇹🇼 [zh-TW](../zh-TW/CLAUDE.md)
+**Languages:** [English](../../../CLAUDE.md) · [ar](../ar/CLAUDE.md) · [az](../az/CLAUDE.md) · [bg](../bg/CLAUDE.md) · [bn](../bn/CLAUDE.md) · [cs](../cs/CLAUDE.md) · [da](../da/CLAUDE.md) · [de](../de/CLAUDE.md) · [el](../el/CLAUDE.md) · [es](../es/CLAUDE.md) · [et](../et/CLAUDE.md) · [fa](../fa/CLAUDE.md) · [fi](../fi/CLAUDE.md) · [fr](../fr/CLAUDE.md) · [ga](../ga/CLAUDE.md) · [gu](../gu/CLAUDE.md) · [he](../he/CLAUDE.md) · [hi](../hi/CLAUDE.md) · [hr](../hr/CLAUDE.md) · [hu](../hu/CLAUDE.md) · [id](../id/CLAUDE.md) · [it](../it/CLAUDE.md) · [ja](../ja/CLAUDE.md) · [ko](../ko/CLAUDE.md) · [lt](../lt/CLAUDE.md) · [lv](../lv/CLAUDE.md) · [mr](../mr/CLAUDE.md) · [ms](../ms/CLAUDE.md) · [mt](../mt/CLAUDE.md) · [nl](../nl/CLAUDE.md) · [no](../no/CLAUDE.md) · [phi](../phi/CLAUDE.md) · [pl](../pl/CLAUDE.md) · [pt](../pt/CLAUDE.md) · [pt-BR](../pt-BR/CLAUDE.md) · [ro](../ro/CLAUDE.md) · [ru](../ru/CLAUDE.md) · [sk](../sk/CLAUDE.md) · [sl](../sl/CLAUDE.md) · [sr](../sr/CLAUDE.md) · [sv](../sv/CLAUDE.md) · [sw](../sw/CLAUDE.md) · [ta](../ta/CLAUDE.md) · [te](../te/CLAUDE.md) · [th](../th/CLAUDE.md) · [tr](../tr/CLAUDE.md) · [ur](../ur/CLAUDE.md) · [vi](../vi/CLAUDE.md) · [zh-CN](../zh-CN/CLAUDE.md) · [zh-TW](../zh-TW/CLAUDE.md)
 
 ---
 
@@ -56,357 +56,68 @@ npm run test:all
 | Навички        | `src/lib/skills/`       | Розширювана структура навичок                                             |
 | Пам'ять        | `src/lib/memory/`       | Постійна розмовна пам'ять                                                 |
 
-Монорепозиторій: `src/` (додаток Next.js 16), `open-sse/` (робочий простір стрімінгового движка), `electron/` (десктопний додаток), `tests/`, `bin/` (точка входу CLI).
+Монорепозиторій: `src/` (додаток Next.js 16), `open-sse/` (робочий простір стрімінгового движка), `apps/desktop/` (десктопний додаток), `tests/`, `bin/` (точка входу CLI).
 
 ---
 
-## Конвеєр запитів
-
-```
-Клієнт → /v1/chat/completions (маршрут Next.js)
-  → CORS → валідація Zod → автентифікація? → перевірка політики → захист від ін'єкцій запитів
-  → handleChatCore() [open-sse/handlers/chatCore.ts]
-    → перевірка кешу → обмеження швидкості → комбіноване маршрутизування?
-      → resolveComboTargets() → handleSingleModel() для кожної цілі
-    → translateRequest() → getExecutor() → executor.execute()
-      → fetch() upstream → повторна спроба з затримкою
-    → переклад відповіді → SSE потік або JSON
-    → Якщо Responses API: responsesTransformer.ts TransformStream
-```
-
-API маршрути дотримуються послідовного шаблону: `Маршрут → попередня перевірка CORS → валідація тіла Zod → необов'язкова автентифікація (extractApiKey/isValidApiKey) → забезпечення політики API ключа → делегування обробника (open-sse)`. Немає глобального проміжного програмного забезпечення Next.js — перехоплення є специфічним для маршруту.
-
-**Combo routing** (`open-sse/services/combo.ts`): 19 public strategies (priority, weighted, fill-first, round-robin, p2c, random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp, context-optimized, cache-optimized, context-relay, fusion, pipeline). Each target calls `handleSingleModel()`, which wraps `handleChatCore()` with per-target error handling and circuit-breaker checks. See `docs/routing/AUTO-COMBO.md` for the 13-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
-
----
-
-## Стан виконання стійкості
-
-OmniRoute має три пов'язані, але різні механізми тимчасових збоїв. Тримайте їх
-обсяг окремим під час налагодження поведінки маршрутизації. Дивіться
-[діаграму стійкості з 3 шарів](./docs/diagrams/exported/resilience-3layers.svg)
-(джерело: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
-для швидкого огляду.
-
-### Вимикач постачальника
-
-**Обсяг**: весь постачальник, наприклад, `glm`, `openai`, `anthropic`.
-
-**Мета**: зупинити надсилання трафіку до постачальника, який постійно зазнає збоїв на
-рівні upstream/service, щоб один нездоровий постачальник не сповільнював кожен запит.
-
-**Впровадження**:
-
-- Основний клас: `src/shared/utils/circuitBreaker.ts`
-- Проводка воріт/виконання чату: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
-- API стану виконання: `src/app/api/monitoring/health/route.ts`
-- Спільні обгортки: `open-sse/services/accountFallback.ts`
-- Таблиця збереженого стану: `domain_circuit_breakers`
-
-**Стан**:
-
-- `CLOSED`: нормальний трафік дозволено.
-- `OPEN`: постачальник тимчасово заблокований; викликачі отримують відповідь про відкритий вимикач постачальника
-  або комбіноване маршрутизування пропускає до іншої цілі.
-- `HALF_OPEN`: час скидання закінчився; дозволити запит на перевірку. Успіх закриває
-  вимикач, невдача знову його відкриває.
-
-**За замовчуванням** (`open-sse/config/constants.ts`):
-
-- Постачальники OAuth: поріг `3`, час скидання `60s`.
-- Постачальники API-ключів: поріг `5`, час скидання `30s`.
-- Локальні постачальники: поріг `2`, час скидання `15s`.
-
-Тільки статуси збоїв на рівні постачальника повинні спрацьовувати вимикач постачальника:
-
-```ts
-(408, 500, 502, 503, 504);
-```
-
-Не спрацьовуйте вимикач всього постачальника для нормальних помилок облікового запису/ключа/моделі, таких як більшість
-`401`, `403`, або `429` випадків. Вони зазвичай належать до охолодження з'єднання або блокування моделі. Загальний помилковий API-ключ `403` повинен бути відновлювальним, якщо він не класифікований
-як термінальна помилка постачальника/облікового запису.
-
-Вимикач використовує ліниве відновлення, а не фоновий таймер. Коли `OPEN` закінчується, читання, такі
-як `getStatus()`, `canExecute()`, і `getRetryAfterMs()`, оновлюють стан до
-`HALF_OPEN`, щоб інформаційні панелі та будівельники кандидатів на комбінацію не продовжували виключати
-вичерпаний постачальник назавжди.
-
-### Охолодження з'єднання
-
-**Обсяг**: одне з'єднання/обліковий запис/ключ постачальника.
-
-**Мета**: тимчасово пропустити один поганий ключ/обліковий запис, дозволяючи іншим з'єднанням для
-того ж постачальника продовжувати обслуговувати запити.
-
-**Впровадження**:
-
-- Шлях запису/оновлення: `src/sse/services/auth.ts::markAccountUnavailable()`
-- Вибір/фільтрація облікового запису: `src/sse/services/auth.ts::getProviderCredentials...`
-- Обчислення охолодження: `open-sse/services/accountFallback.ts::checkFallbackError()`
-- Налаштування: `src/lib/resilience/settings.ts`
-
-Важливі поля на з'єднаннях постачальника:
-
-```ts
-rateLimitedUntil;
-testStatus: "unavailable";
-lastError;
-lastErrorType;
-errorCode;
-backoffLevel;
-```
-
-Під час вибору облікового запису з'єднання пропускається, поки:
-
-```ts
-new Date(rateLimitedUntil).getTime() > Date.now();
-```
-
-Охолодження також є лінивими: коли `rateLimitedUntil` у минулому, з'єднання знову стає
-придатним. При успішному використанні `clearAccountError()` очищає `testStatus`,
-`rateLimitedUntil`, поля помилок і `backoffLevel`.
-
-Поведінка охолодження з'єднання за замовчуванням:
-
-- Базове охолодження OAuth: `5s`.
-- Базове охолодження API-ключа: `3s`.
-- API-ключ `429` повинен надавати перевагу підказкам повторної спроби upstream (`Retry-After`, заголовки скидання або
-  текст скидання, що підлягає парсингу), коли це можливо.
-- Повторні відновлювальні збої використовують експоненціальне охолодження:
-
-```ts
-baseCooldownMs * 2 ** failureIndex;
-```
-
-Захист від "громадського стада" запобігає одночасним збоям на одному з'єднанні від
-повторного подовження охолодження або подвоєння `backoffLevel`.
-
-Термінальні стани не є охолодженнями. `banned`, `expired`, і `credits_exhausted` призначені залишатися недоступними, поки не зміняться облікові дані/налаштування або оператор не скине їх. Не перезаписуйте термінальні стани тимчасовим станом охолодження.
-
-### Блокування моделі
-
-**Обсяг**: постачальник + з'єднання + модель.
-
-**Мета**: уникнути відключення цілого з'єднання, коли лише одна модель недоступна або
-обмежена за квотою для цього з'єднання.
-
-Приклади:
-
-- Постачальники за квотою на модель, які повертають `429`.
-- Локальні постачальники, які повертають `404` для однієї відсутньої моделі.
-- Помилки дозволу режиму/моделі, специфічні для постачальника, такі як вибрані режими Grok.
-
-Блокування моделі живе в `open-sse/services/accountFallback.ts` і дозволяє тому ж
-з'єднанню продовжувати обслуговувати інші моделі.
-
-### Рекомендації щодо налагодження
-
-- Якщо всі ключі для постачальника пропущені, перевірте як стан вимикача постачальника, так і
-  `rateLimitedUntil`/`testStatus` кожного з'єднання.
-- Якщо постачальник здається постійно виключеним після вікна скидання, перевірте, чи код
-  читає сирий `state`, а не використовує `getStatus()`/`canExecute()`.
-- Якщо один ключ постачальника зазнає невдачі, але інші повинні працювати, надайте перевагу охолодженню з'єднання над
-  вимикачем постачальника.
-- Якщо лише одна модель зазнає невдачі, надайте перевагу блокуванню моделі над охолодженням з'єднання.
-- Якщо стан повинен самовідновитися, він повинен мати майбутню мітку часу/тайм-аут скидання та шлях читання, який оновлює вичерпаний стан. Постійні статуси вимагають ручних змін облікових даних або конфігурацій.
-
-## Ключові Конвенції
-
-### Стиль Коду
-
-- **2 пробіли**, крапки з комою, подвійні лапки, ширина 100 символів, коми в кінці es5 (забезпечується lint-staged через Prettier)
-- **Імпорти**: зовнішні → внутрішні (`@/`, `@omniroute/open-sse`) → відносні
-- **Іменування**: файли=camelCase/kebab, компоненти=PascalCase, константи=UPPER_SNAKE
-- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = помилка скрізь; `no-explicit-any` = попередження в `open-sse/` та `tests/`
-- **TypeScript**: `strict: false`, ціль ES2022, модуль esnext, розв'язання бандлера. Вибирайте явні типи.
-
-### База Даних
-
-- **Завжди** проходьте через доменні модулі `src/lib/db/` — **ніколи** не пишіть сирий SQL в маршрутах або обробниках
-- **Ніколи** не додавайте логіку в `src/lib/localDb.ts` (тільки шар повторного експорту)
-- **Ніколи** не імпортуйте з `localDb.ts` через барель — імпортуйте конкретні модулі `db/` замість цього
-- Синглтон БД: `getDbInstance()` з `src/lib/db/core.ts` (журналювання WAL)
-- Міграції: `src/lib/db/migrations/` — версійовані SQL файли, ідемпотентні, виконуються в транзакціях
-
-### Обробка Помилок
-
-- try/catch з конкретними типами помилок, логування з контекстом pino
-- Ніколи не приховуйте помилки в потоках SSE — використовуйте сигнали скасування для очищення
-- Повертайте правильні коди статусу HTTP (4xx/5xx)
-
-### Безпека
-
-- **Ніколи** не використовуйте `eval()`, `new Function()`, або неявний eval
-- Валідируйте всі введення за допомогою схем Zod
-- Шифруйте облікові дані в спокої (AES-256-GCM)
-- Список заголовків заборони: `src/shared/constants/upstreamHeaders.ts` — підтримуйте очищення, схеми Zod та юніт-тести в узгодженості під час редагування
-- **Публічні облікові дані** (Gemini/Antigravity/Windsurf-стиль OAuth client_id/secret + ключі Firebase Web, отримані з публічних CLI): **МУСТ** бути вбудовані через `resolvePublicCred()` з `open-sse/utils/publicCreds.ts` — **ніколи** як рядкові літерали. Дивіться `docs/security/PUBLIC_CREDS.md` для обов'язкового шаблону.
-- **Відповіді на помилки** (HTTP / SSE / виконавця / обробник MCP): **МУСТ** проходити через `buildErrorBody()` або `sanitizeErrorMessage()` з `open-sse/utils/error.ts` — **ніколи** не вставляйте сирі `err.stack` або `err.message` в тіло відповіді. Дивіться `docs/security/ERROR_SANITIZATION.md`.
-- **Команди оболонки, побудовані з змінних**: при виклику `exec()`/`spawn()` зі скриптом, який потребує значень під час виконання, передавайте їх через опцію `env` (автоматично екрановані оболонкою) — **ніколи** не вставляйте неперевірені/зовнішні шляхи в тіло скрипта. Посилання: `src/mitm/cert/install.ts::updateNssDatabases`.
-- **Бібліотеки, що забезпечують безпеку за замовчуванням** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): віддавайте перевагу Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink над власними реалізаціями щоразу, коли додаєте нові поверхні, чутливі до безпеки.
-
----
-
-## Загальні Сценарії Модифікацій
-
-### Додавання Нового Провайдера
-
-1. Зареєструйте в `src/shared/constants/providers.ts` (валідовано Zod під час завантаження)
-2. Додайте виконавця в `open-sse/executors/`, якщо потрібна власна логіка (розширте `BaseExecutor`)
-3. Додайте перекладача в `open-sse/translator/`, якщо формат не OpenAI
-4. Додайте конфігурацію OAuth в `src/lib/oauth/constants/oauth.ts`, якщо на основі OAuth — якщо публічний client_id/secret постачається з upstream CLI, вбудуйте через `resolvePublicCred()` (див. `docs/security/PUBLIC_CREDS.md`), **ніколи** як літерал
-5. Зареєструйте моделі в `open-sse/config/providerRegistry.ts`
-6. Напишіть тести в `tests/unit/` (включіть перевірку форми publicCreds, якщо ви додали новий вбудований за замовчуванням)
-
-### Додавання Нового API Маршруту
-
-1. Створіть каталог під `src/app/api/v1/your-route/`
-2. Створіть `route.ts` з обробниками `GET`/`POST`
-3. Дотримуйтесь шаблону: CORS → валідація тіла Zod → необов'язкова авторизація → делегування обробника
-4. Обробник йде в `open-sse/handlers/` (імпортуйте звідти, а не вбудовано)
-5. Відповіді на помилки використовують `buildErrorBody()` / `errorResponse()` з `open-sse/utils/error.ts` (автоматично очищені — ніколи не вставляйте `err.stack` або `err.message` сирими в тіло). Дивіться `docs/security/ERROR_SANITIZATION.md`.
-6. Додайте тести — включаючи принаймні одну перевірку, що відповіді на помилки не витікають стек-трас (`!body.error.message.includes("at /")`)
-
-### Додавання Нового Модуля БД
-
-1. Створіть `src/lib/db/yourModule.ts` — імпортуйте `getDbInstance` з `./core.ts`
-2. Експортуйте функції CRUD для ваших доменних таблиць
-3. Додайте міграцію в `src/lib/db/migrations/`, якщо потрібні нові таблиці
-4. Повторно експортуйте з `src/lib/localDb.ts` (додайте лише до списку повторного експорту)
-5. Напишіть тести
-
-### Додавання Нового Інструмента MCP
-
-1. Додайте визначення інструмента в `open-sse/mcp-server/tools/` з схемою введення Zod + асинхронним обробником
-2. Зареєструйте в наборі інструментів (підключено через `createMcpServer()`)
-3. Призначте відповідним сферам
-4. Напишіть тести (виклик інструмента записується в таблицю `mcp_audit`)
-
-### Додавання Нового Навику A2A
-
-1. Створіть навик в `src/lib/a2a/skills/` (вже існує 5: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
-2. Навик отримує контекст завдання (повідомлення, метадані) → повертає структурований результат
-3. Зареєструйте в `A2A_SKILL_HANDLERS` в `src/lib/a2a/taskExecution.ts`
-4. Відкрийте в `src/app/.well-known/agent.json/route.ts` (Агентська картка)
-5. Напишіть тести в `tests/unit/`
-6. Документуйте в `docs/frameworks/A2A-SERVER.md` таблиці навиків
-
-### Додавання Нового Хмарного Агента
-
-1. Створіть клас агента в `src/lib/cloudAgent/agents/`, розширюючи `CloudAgentBase` (вже існує 3: codex-cloud, devin, jules)
-2. Реалізуйте `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
-3. Зареєструйте в `src/lib/cloudAgent/registry.ts`
-4. Додайте обробку OAuth/облікових даних, якщо потрібно (`src/lib/oauth/providers/`)
-5. Тести + документуйте в `docs/frameworks/CLOUD_AGENT.md`
-
-### Додавання Нового Обмеження / Eval / Навику / Події Вебхука
-
-- Обмеження: `src/lib/guardrails/` → документація: `docs/security/GUARDRAILS.md`
-- Eval набір: `src/lib/evals/` → документація: `docs/frameworks/EVALS.md`
-- Навик (пісочниця): `src/lib/skills/` → документація: `docs/frameworks/SKILLS.md`
-- Подія вебхука: `src/lib/webhookDispatcher.ts` → документація: `docs/frameworks/WEBHOOKS.md`
-
-## Документація посилань
-
-Для будь-яких нетривіальних змін спочатку прочитайте відповідний глибокий аналіз:
-
-| Область                                           | Документ                                                          |
-| ------------------------------------------------- | ----------------------------------------------------------------- |
-| Навігація репозиторієм                            | `docs/architecture/REPOSITORY_MAP.md`                             |
-| Архітектура                                       | `docs/architecture/ARCHITECTURE.md`                               |
-| Довідник з інженерії                              | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
-| Авто-комбо (9-факторне оцінювання, 14 стратегій)  | `docs/routing/AUTO-COMBO.md`                                      |
-| Стійкість (3 механізми)                           | `docs/architecture/RESILIENCE_GUIDE.md`                           |
-| Відтворення міркувань                             | `docs/routing/REASONING_REPLAY.md`                                |
-| Рамки навичок                                     | `docs/frameworks/SKILLS.md`                                       |
-| Система пам'яті (FTS5 + Qdrant)                   | `docs/frameworks/MEMORY.md`                                       |
-| Хмарні агенти                                     | `docs/frameworks/CLOUD_AGENT.md`                                  |
-| Охоронні механізми (PII / ін'єкція / бачення)     | `docs/security/GUARDRAILS.md`                                     |
-| Публічні облікові дані (Gemini/тощо)              | `docs/security/PUBLIC_CREDS.md`                                   |
-| Санітаризація повідомлень про помилки             | `docs/security/ERROR_SANITIZATION.md`                             |
-| Оцінки                                            | `docs/frameworks/EVALS.md`                                        |
-| Відповідність / аудит                             | `docs/security/COMPLIANCE.md`                                     |
-| Вебхуки                                           | `docs/frameworks/WEBHOOKS.md`                                     |
-| Конвеєр авторизації                               | `docs/architecture/AUTHZ_GUIDE.md`                                |
-| Схованість (TLS / відбиток)                       | `docs/security/STEALTH_GUIDE.md`                                  |
-| Протоколи агентів (A2A / ACP / Cloud)             | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
-| MCP сервер                                        | `docs/frameworks/MCP-SERVER.md`                                   |
-| A2A сервер                                        | `docs/frameworks/A2A-SERVER.md`                                   |
-| Довідник API + OpenAPI                            | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
-| Каталог постачальників (автоматично згенерований) | `docs/reference/PROVIDER_REFERENCE.md`                            |
-| Процес випуску                                    | `docs/ops/RELEASE_CHECKLIST.md`                                   |
-
-## Тестування
-
-| Що                      | Команда                                                               |
-| ----------------------- | --------------------------------------------------------------------- |
-| Юніт-тести              | `npm run test:unit`                                                   |
-| Одиночний файл          | `node --import tsx/esm --test tests/unit/file.test.ts`                |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                 |
-| E2E (Playwright)        | `npm run test:e2e`                                                    |
-| Протокол E2E (MCP+A2A)  | `npm run test:protocols:e2e`                                          |
-| Екосистема              | `npm run test:ecosystem`                                              |
-| Поріг покриття          | `npm run test:coverage` (75/75/75/70 — оператори/рядки/функції/гілки) |
-| Звіт про покриття       | `npm run coverage:report`                                             |
-
-**Правило PR**: Якщо ви змінюєте код у продакшені в `src/`, `open-sse/`, `electron/` або `bin/`, ви повинні включити або оновити тести в тому ж PR.
-
-**Перевага рівня тестування**: юніт спочатку → інтеграція (багатомодульний або стан БД) → e2e (тільки UI/робочий процес). Кодуйте відтворення помилок як автоматизовані тести перед або разом з виправленням.
-
-**Політика покриття Copilot**: Коли PR змінює код у продакшені і покриття нижче 75% (оператори/рядки/функції) або 70% (гілки), не просто звітуйте — додайте або оновіть тести, повторно запустіть поріг покриття, а потім попросіть підтвердження. Включіть виконані команди, змінені файли тестів та остаточний результат покриття в звіт PR.
-
----
-
-## Git Workflow
-
-```bash
-# Ніколи не комітіть безпосередньо в main
-git checkout -b feat/your-feature
-git commit -m "feat: опишіть вашу зміну"
-git push -u origin feat/your-feature
-```
-
-**Префікси гілок**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
-
-**Формат коміту** (Conventional Commits): `feat(db): додати circuit breaker` — області: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`
-
-**Хуки Husky**:
-
-- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
-- **pre-push**: `npm run test:unit`
-
----
-
-## Середовище
-
-- **Час виконання**: Node.js ≥20.20.2 <21 |
-  | ≥22.22.2 <23 |
-  | ≥24 <25, ES Modules
-- **TypeScript**: 5.9+, target ES2022, module esnext, resolution bundler
-- **Псевдоніми шляхів**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
-- **Порт за замовчуванням**: 20128 (API + панель управління на одному порту)
-- **Директорія даних**: `DATA_DIR` змінна середовища, за замовчуванням `~/.omniroute/`
-- **Ключові змінні середовища**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
-- Налаштування: `cp .env.example .env`, а потім згенеруйте `JWT_SECRET` (`openssl rand -base64 48`) та `API_KEY_SECRET` (`openssl rand -hex 32`)
-
----
-
-## Жорсткі правила
-
-1. Ніколи не комітіть секрети або облікові дані
-2. Ніколи не додавайте логіку в `localDb.ts`
-3. Ніколи не використовуйте `eval()` / `new Function()` / неявний eval
-4. Ніколи не комітіть безпосередньо в `main`
-5. Ніколи не пишіть сирий SQL в маршрутах — використовуйте модулі `src/lib/db/`
-6. Ніколи не приховуйте помилки в потоках SSE
-7. Завжди перевіряйте введення за допомогою схем Zod
-8. Завжди включайте тести при зміні коду в продакшені
-9. Покриття повинно залишатися ≥75% (оператори, рядки, функції) / ≥70% (гілки). Поточне виміряне: ~82%.
-10. Ніколи не обходьте хуки Husky (`--no-verify`, `--no-gpg-sign`) без явного схвалення оператора.
-11. Ніколи не вбудовуйте публічні upstream OAuth client_id/secret або Firebase Web ключі як рядкові літерали — завжди проходьте через `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`). Дивіться `docs/security/PUBLIC_CREDS.md`.
-12. Ніколи не повертайте сирий `err.stack` / `err.message` в HTTP / SSE / відповіді виконавця — завжди маршрутизуйте через `buildErrorBody()` або `sanitizeErrorMessage()` (`open-sse/utils/error.ts`). Дивіться `docs/security/ERROR_SANITIZATION.md`.
-13. Ніколи не вставляйте зовнішні шляхи або значення часу виконання в shell-скрипти, передані в `exec()`/`spawn()` — передавайте через опцію `env`. Посилання: `src/mitm/cert/install.ts::updateNssDatabases`.
-14. Ніколи не ігноруйте сповіщення CodeQL / Secret-Scanning без (a) попередньої перевірки документації шаблонів вище, щоб побачити, чи застосовується допоміжний засіб, і (b) запису технічного обґрунтування в коментарі про відхилення. Прецедент: `js/stack-trace-exposure`, піднятий на викликах, які вже маршрутизуються через `sanitizeErrorMessage()`, є відомим обмеженням CodeQL (кастомні санітайзери не розпізнаються) — відхиляйте як `false positive`, посилаючись на `docs/security/ERROR_SANITIZATION.md`.
-15. Ніколи не відкривайте маршрути, які запускають дочірні процеси (`/api/mcp/`, `/api/cli-tools/runtime/`), без класифікації `isLocalOnlyPath()` в `src/server/authz/routeGuard.ts`. Контроль зворотного зв'язку відбувається безумовно перед будь-якою перевіркою автентифікації — витік JWT через тунель не може викликати запуск процесу. Дивіться `docs/security/ROUTE_GUARD_TIERS.md`.
-16. Ніколи не включайте трейлери `Co-Authored-By`, які приписують авторство AI-помічнику, LLM або обліковому запису автоматизації (наприклад, імена, що містять "Claude", "GPT", "Copilot", "Bot"; листи на `anthropic.com` / `openai.com` / адресах `noreply.github.com`, що належать ботам). Такі трейлери спрямовують атрибуцію коміту до облікового запису бота в GitHub, приховуючи справжнього автора (`diegosouzapw`) в історії PR. Людські співавтори — включаючи авторів upstream PR і репортерів issues, які портуються в OmniRoute — МОЖУТЬ і ПОВИННІ бути зазначені стандартними трейлерами `Co-authored-by: Name <email>`; робочі процеси upstream-port (`/port-upstream-features`, `/port-upstream-issues`) залежать від цього.
+## Worktree isolation — Claude Code specifics
+
+The full mandatory worktree protocol (base-branch confirmation, `.claude/worktrees/` canonical
+path, `cp -al` node_modules, teardown rules) is in `AGENTS.md` → Git Workflow → "Worktree
+isolation". Claude-Code-specific points:
+
+- Confirm the base branch with the operator via `AskUserQuestion` (Hard Rule #19) unless they
+  already told you.
+- Prefer the native `EnterWorktree` tool — it already creates worktrees under
+  `.claude/worktrees/` (the canonical path). Create the worktree with the documented `git
+worktree add` command, then call `EnterWorktree` with its `path`.
+
+## Cross-session safety — Claude Code specifics
+
+Hard Rules #19/#21/#22 (in `AGENTS.md`) govern parallel sessions. Operational reminders for this
+harness:
+
+- **Replicate the `git stash` ban verbatim in the prompt of every subagent that touches git**
+  (Agent tool / Workflow scripts) — subagents do not inherit this file, and the recorded
+  recurrence of the stash incident came through a subagent.
+- Before merging or pushing to any PR you did not create _this session_, run `git worktree list`
+  and re-check `gh pr view <N> --json state,headRefOid` (Hard Rule #22b).
+- End every session with the main checkout on the branch it started on.
+
+## Superpowers / planning artifacts — path overrides
+
+The `_tasks/` convention is defined in `AGENTS.md` → "Planning & Research Artifacts". The
+superpowers skills ship with defaults that point at `docs/…` — those defaults are **overridden
+here**. When a superpowers skill announces a path like "saved to `docs/superpowers/plans/…`",
+rewrite it to the `_tasks/…` equivalent before writing:
+
+| Artifact (skill)                   | Default (do NOT use)      | Save here instead                                             |
+| ---------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| Plans (`writing-plans`)            | `docs/superpowers/plans/` | `_tasks/superpowers/plans/YYYY-MM-DD-<feature>.md`            |
+| Specs / design (`brainstorming`)   | `docs/superpowers/specs/` | `_tasks/superpowers/specs/YYYY-MM-DD-<topic>-design.md`       |
+| Research (`deep-research`, ad-hoc) | `docs/research/`          | `_tasks/research/…`                                           |
+| Hand-offs (`/handoff`)             | —                         | `_tasks/hands-off/<YYYY-MM-DD>_<branch>_v<versão>_sess-<id>/` |
+
+Commit those artifacts inside the `_tasks/` repo (`git -C _tasks …`), never in the main repo.
+
+## Scratch / temporary files — use `_artifacts/`, not `/tmp`
+
+This project overrides the harness's default session scratchpad (`/tmp/claude-*/…`). Write
+temporary/working files — exports, generated zips, one-off intermediate outputs, anything you'd
+otherwise put in `/tmp` — to `/home/diegosouzapw/dev/proxys/OmniRoute/_artifacts/` instead.
+
+- `_artifacts/` is a root `_*` path: already gitignored (`AGENTS.md` → "Root `_*` paths"), lives
+  on disk only, never tracked.
+- Reason: keeping scratch output inside the project (vs `/tmp`) makes it trivial for the operator
+  to find and delete everything temporary in one place, instead of hunting across ephemeral
+  session-specific `/tmp` directories that vanish or accumulate untracked.
+- Do **not** confuse this with `_tasks/` (Hard Rule #23, its own private git repo for durable
+  plans/specs/research/hand-offs) — `_artifacts/` is for disposable working files only, nothing
+  here needs to survive or be versioned.
+
+## Base-green before opening PRs
+
+Before cutting a branch or opening a PR, run the base-green check (`AGENTS.md` → Git Workflow →
+"Base-green check"; project skills reference it as `.agents/skills/_shared/base-green.md`). A PR
+opened while the base tip is red must carry ` base-red inherited: #<issue>` in its body. To
+drain an accumulated red state (base tip + red PRs), use the `/sweep-reds` skill.

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Cursor to OpenAI Response Translator
  * CursorExecutor already emits OpenAI format - this is a passthrough

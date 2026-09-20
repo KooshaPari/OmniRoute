@@ -24,7 +24,7 @@ sudo chmod +x /opt/omniroute-ops/runner-janitor.sh
 Co robi co 30 min: czyści pozostałości temp runnerów starsze niż 24h, alarmuje przy
 ≥85% zajętości dysku root oraz gdy liczba procesów `Runner.Listener` przekracza sufit runnerów
 (domyślnie 4, regulowany własnym środowiskiem skryptu). Alerty trafiają do `/var/log/runner-janitor.log`
-z niezerowym kodem wyjścia (szukaj `⚠`).
+z niezerowym kodem wyjścia (szukaj ``).
 
 ## Zasady operacyjne
 

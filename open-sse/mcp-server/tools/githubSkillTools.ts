@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * githubSkillTools.ts — MCP tools for GitHub agent skill discovery and import.
  *

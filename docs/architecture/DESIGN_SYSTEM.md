@@ -40,21 +40,21 @@ This document is the analysis and the plan.
 
 ## 3. Current state — what's already aligned vs. what's not
 
-### 3.1 Colors — already unified ✅
+### 3.1 Colors — already unified
 
 Every brand color and surface already matches the site **by value** (only the names differ — dashboard prefixes with `--color-`). Verified in `src/app/globals.css:30-128`:
 
-| Concept                    | Site token (`tokens.css`)                   | Dashboard token (`globals.css`) | Match        |
-| -------------------------- | ------------------------------------------- | ------------------------------- | ------------ |
-| primary                    | `--primary #e54d5e`                         | `--color-primary #e54d5e`       | ✅           |
-| primary-hover              | `--primary-hover #c93d4e`                   | `--color-primary-hover #c93d4e` | ✅           |
-| accent                     | `--accent #6366f1`                          | `--color-accent #6366f1`        | ✅           |
-| accent-2                   | `--accent-2 #8b5cf6`                        | `--color-accent-hover #8b5cf6`  | ✅ (renamed) |
-| accent-3                   | `--accent-3 #a855f7`                        | `--color-accent-light #a855f7`  | ✅ (renamed) |
-| success / warning / error  | `#22c55e / #f59e0b / #ef4444`               | identical                       | ✅           |
-| traffic lights             | `#ff5f56 / #ffbd2e / #27c93f`               | identical                       | ✅           |
-| dark bg / surface / border | `#0b0e14 / #161b22 / rgba(255,255,255,.08)` | identical                       | ✅           |
-| light bg / surface / text  | `#f9f9fb / #fff / #1a1a2e`                  | identical                       | ✅           |
+| Concept                    | Site token (`tokens.css`)                   | Dashboard token (`globals.css`) | Match     |
+| -------------------------- | ------------------------------------------- | ------------------------------- | --------- |
+| primary                    | `--primary #e54d5e`                         | `--color-primary #e54d5e`       |           |
+| primary-hover              | `--primary-hover #c93d4e`                   | `--color-primary-hover #c93d4e` |           |
+| accent                     | `--accent #6366f1`                          | `--color-accent #6366f1`        |           |
+| accent-2                   | `--accent-2 #8b5cf6`                        | `--color-accent-hover #8b5cf6`  | (renamed) |
+| accent-3                   | `--accent-3 #a855f7`                        | `--color-accent-light #a855f7`  | (renamed) |
+| success / warning / error  | `#22c55e / #f59e0b / #ef4444`               | identical                       |           |
+| traffic lights             | `#ff5f56 / #ffbd2e / #27c93f`               | identical                       |           |
+| dark bg / surface / border | `#0b0e14 / #161b22 / rgba(255,255,255,.08)` | identical                       |           |
+| light bg / surface / text  | `#f9f9fb / #fff / #1a1a2e`                  | identical                       |           |
 
 **Conclusion:** there is no color migration to do. The identity is already shared; we are _finishing_ it, not rebuilding it.
 
@@ -62,10 +62,10 @@ Every brand color and surface already matches the site **by value** (only the na
 
 | Gap                     | Site has                                                                       | Dashboard                                                | Action                 |
 | ----------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------- | ---------------------- |
-| **Grid wallpaper**      | `body::before` graph-paper, `--grid-line`, `--grid-size 32px`, `--section-alt` | **✅ added (Phase 1)**                                   | **Part A**             |
+| **Grid wallpaper**      | `body::before` graph-paper, `--grid-line`, `--grid-size 32px`, `--section-alt` | ** added (Phase 1)**                                     | **Part A**             |
 | **Radius scale**        | `--radius 14px`, `--radius-sm 9px`                                             | `--radius 14px` added; `-sm` + component repoint pending | **Part B / Phase 2**   |
-| **Brand gradient**      | `--grad-brand 135deg primary→accent-3`                                         | **✅ token added (Phase 1)**; consumed in Phase 2        | **Part B**             |
-| **Nested surface**      | `--surface-2 #1c2230`                                                          | **✅ added (Phase 1)**                                   | **Part B**             |
+| **Brand gradient**      | `--grad-brand 135deg primary→accent-3`                                         | ** token added (Phase 1)**; consumed in Phase 2          | **Part B**             |
+| **Nested surface**      | `--surface-2 #1c2230`                                                          | ** added (Phase 1)**                                     | **Part B**             |
 | **Mono font**           | `--font-mono` (ui-monospace stack)                                             | pending (Phase 4, with consumers)                        | **Part B**             |
 | **`text-muted` (dark)** | `#8b8b9e`                                                                      | `#a1a1aa` (zinc-400)                                     | reconcile — **Part B** |
 
@@ -73,7 +73,7 @@ Every brand color and surface already matches the site **by value** (only the na
 
 - **Tailwind v4, CSS-first** (no `tailwind.config.*`). Tokens are defined in `:root`/`.dark` and exposed to utilities via `@theme inline` (`globals.css:130-179`).
 - **Dark via `.dark` class** on `<html>` (`@custom-variant dark` at `globals.css:22`), toggled by a custom Zustand store (`src/store/themeStore.ts`), default theme = `system` (`src/shared/constants/appConfig.ts:11`). The site uses `html[data-theme="light"]` instead — **the mechanisms differ but never meet** (separate origins), so no conflict. We keep the dashboard's `.dark` mechanism.
-- **Runtime primary override** exists (`themeStore.ts:85-97`, presets in `COLOR_THEMES`) — users can swap `--color-primary`. Any new token (gradient, etc.) that references `--color-primary` inherits those overrides for free. ✅
+- **Runtime primary override** exists (`themeStore.ts:85-97`, presets in `COLOR_THEMES`) — users can swap `--color-primary`. Any new token (gradient, etc.) that references `--color-primary` inherits those overrides for free.
 - **Tailwind v4 reserved radius names:** `--radius-sm/md/lg/...` back the `rounded-*` utilities. Redefining them retroactively changes every existing `rounded-*` (e.g. `rounded-sm` is used in 12 files). So the small-radius value and component repoint are deliberately deferred to Phase 2, where consumers change together.
 
 ---
@@ -173,7 +173,7 @@ Custom components (no shadcn/Radix), Tailwind v4, semantic tokens **mostly** ado
 | C3  | **Tables**                             | `DataTable.tsx:122-176`, `logTableStyles.ts`, `globals.css:405-414`                                                      | 100% inline hardcoded rgba + non-existent vars; migrate to tokens, retire divergent styles                          | 3     |
 | C4  | **Centralize status colors**           | `flow/edgeStyles.ts`, `TokenHealthBadge.tsx`, `DegradationBadge.tsx`, `ProviderCascadeNode.tsx`, `Badge.tsx` + 5 helpers | 6+ copies of the same hex → one module off `--color-success/warning/error`                                          | 3     |
 | C5  | **Card border**                        | `Card.tsx:39`                                                                                                            | `border-white/5` → brand `/8`                                                                                       | 2     |
-| C6  | **Focus ring reconcile** ✅ DONE       | `globals.css` `--focus-ring` (accent) vs form controls' `ring-primary/30`                                                | unified on **accent (violet)** to match the global ring + disambiguate from the red error ring; error stays red     | 4     |
+| C6  | **Focus ring reconcile** DONE          | `globals.css` `--focus-ring` (accent) vs form controls' `ring-primary/30`                                                | unified on **accent (violet)** to match the global ring + disambiguate from the red error ring; error stays red     | 4     |
 | C7  | **Add `Checkbox` + `Textarea`**        | raw `<input>`/`<textarea>` w/ inline `accentColor:#6366f1`                                                               | token-driven primitives                                                                                             | 4     |
 | C8  | **Hardcoded-hex sweep**                | `ConsoleLogViewer.tsx:240`, `ComboLiveStudio.tsx:306`, Modal dots, ~14 chart files                                       | literals → tokens                                                                                                   | 4     |
 | C9  | **`cn()` → clsx + tailwind-merge**     | `src/shared/utils/cn.ts`                                                                                                 | conflicting classes stack; needed for C1 overrides                                                                  | 2     |
@@ -186,8 +186,8 @@ Custom components (no shadcn/Radix), Tailwind v4, semantic tokens **mostly** ado
 
 - **Phase 1 — Grid + identity tokens (THIS PR).** `globals.css` grid + `--surface-2`/`--grad-brand`/`--radius` tokens; `body::before` wallpaper; remove the `bg-bg` blocker; static guard test. Low risk, reversible in one commit.
 - **Phase 2 — Primitives (C1, C2, C5) — DONE in this PR.** Semantic radius utilities `rounded-card` (14px) / `rounded-control` (9px) added via `@theme` (custom names, so the default `rounded-sm/md/lg/xl` stay untouched — no 400-file blast); Card/Modal → 14px, Button/Input/Select → 9px; Button primary → `--grad-brand` (red→violet) + new `accent` variant; Card borders → the `border-border` token (0.08). **Deferred:** `cn()`→tailwind-merge (C9) needs new deps; the ad-hoc `rounded-lg` sweep (326 files) is left as-is since the primitives carry the bulk of the surface.
-- **Phase 3 — Status colors + tables (C3, C4) — DONE in this PR.** ✅ **C4** (`src/shared/constants/statusColors.ts` — `STATUS_HEX` single source; `flow/edgeStyles.ts` + `TokenHealthBadge` repointed, faithful/same hex). ✅ **`--font-mono`** token. ✅ **C3 (DataTable)** — replaced every inline rgba + the dead `var(--bg-table-header)` / `var(--text-secondary)` fallbacks with a `--table-*` token set (`--table-header-bg/-row-zebra/-row-hover/-cell-border/-row-selected`) whose **dark values exactly equal the old hardcoded rgba** (dark byte-identical) and whose light values fix the previously-always-dark light theme. Header border → `--color-border`, secondary text → `--color-text-muted`. **Wants a visual pass before merge.** (Not touched: `logTableStyles.ts` and the legacy Ant `.ant-table` rules — separate, lower priority.)
-- **Phase 4 — Cleanup (C6, C7, C9 done; C8 pending).** ✅ **C9** `cn()` → `twMerge(clsx(...))` (clsx + tailwind-merge added as deps) — a caller's `className` now correctly _replaces_ a primitive's conflicting class instead of stacking. ✅ **C7** new `Checkbox` + `Textarea` primitives (token-driven, exported from the barrel; additive — adoption of the 32 raw checkboxes / 41 raw textareas can follow incrementally). ✅ **C6** focus-ring reconcile — the form controls (`Input`/`Select`/`Textarea`/`Toggle`/`Checkbox`) now focus on the **accent (violet)** ring to match the global `--focus-ring` and to stop colliding with the red error ring; the red error state is unchanged. ⏳ **C8 hex-sweep is NOT a blind find/replace** — confirmed offenders that are _intentional_ and must stay: `ConsoleLogViewer.tsx:240` (always-dark terminal), `TokenHealthBadge` popover, ReactFlow SVG strokes. Only migrate hex genuinely meant to be theme-aware.
+- **Phase 3 — Status colors + tables (C3, C4) — DONE in this PR.** **C4** (`src/shared/constants/statusColors.ts` — `STATUS_HEX` single source; `flow/edgeStyles.ts` + `TokenHealthBadge` repointed, faithful/same hex). **`--font-mono`** token. **C3 (DataTable)** — replaced every inline rgba + the dead `var(--bg-table-header)` / `var(--text-secondary)` fallbacks with a `--table-*` token set (`--table-header-bg/-row-zebra/-row-hover/-cell-border/-row-selected`) whose **dark values exactly equal the old hardcoded rgba** (dark byte-identical) and whose light values fix the previously-always-dark light theme. Header border → `--color-border`, secondary text → `--color-text-muted`. **Wants a visual pass before merge.** (Not touched: `logTableStyles.ts` and the legacy Ant `.ant-table` rules — separate, lower priority.)
+- **Phase 4 — Cleanup (C6, C7, C9 done; C8 pending).** **C9** `cn()` → `twMerge(clsx(...))` (clsx + tailwind-merge added as deps) — a caller's `className` now correctly _replaces_ a primitive's conflicting class instead of stacking. **C7** new `Checkbox` + `Textarea` primitives (token-driven, exported from the barrel; additive — adoption of the 32 raw checkboxes / 41 raw textareas can follow incrementally). **C6** focus-ring reconcile — the form controls (`Input`/`Select`/`Textarea`/`Toggle`/`Checkbox`) now focus on the **accent (violet)** ring to match the global `--focus-ring` and to stop colliding with the red error ring; the red error state is unchanged. **C8 hex-sweep is NOT a blind find/replace** — confirmed offenders that are _intentional_ and must stay: `ConsoleLogViewer.tsx:240` (always-dark terminal), `TokenHealthBadge` popover, ReactFlow SVG strokes. Only migrate hex genuinely meant to be theme-aware.
 
 Each phase: `npm run lint` + `npm run typecheck:core` + a visual pass.
 
@@ -198,12 +198,12 @@ Each phase: `npm run lint` + `npm run typecheck:core` + a visual pass.
 - **D1 — Button primary:** keep red→red or switch to **red→violet `--grad-brand`**? Rec: **red→violet** (Phase 2).
 - **D2 — Grid line color:** **neutral** (site style) — chosen — vs brand-red. Size **32px** (shrunk ~30% from the original 46px on owner feedback — 46px cells read too large on the dashboard layout).
 - **D3 — Chrome vibrancy:** sidebar/header **solid** — chosen.
-- **D4 — Auth/login grid:** ✅ **DONE (Phase 5)** — opaque `bg-bg` removed from every standalone full-screen wrapper (not just login), so the grid shows on all screens. See §4.6.
+- **D4 — Auth/login grid:** **DONE (Phase 5)** — opaque `bg-bg` removed from every standalone full-screen wrapper (not just login), so the grid shows on all screens. See §4.6.
 - **D5 — Landing page:** leave animated splash as-is. Chosen.
 - **D6 — Radius 14/9 product-wide:** Rec: yes (Phase 2).
 - **D7 — Phase 1 ships first:** Chosen.
-- **D8 — Layout width (Phase 5):** the dashboard content shell was capped at `max-w-7xl` (1280px), centering with wide empty side gutters on large monitors. ✅ **DONE** — raised to a fluid `max-w-[3840px]` (true 4K): content now follows the viewport up to ~4K and only centers beyond it (`DashboardLayout.tsx`). Deliberately-narrow pages stay narrow by design (`ProviderOnboardingWizard` max-w-5xl, `Rtk`/`CavemanContextPageClient` max-w-6xl).
-- **D9 — Opaque data tables (Phase 6):** with the dashboard content area now transparent (so the grid wallpaper shows through, Phase 5), data tables whose container was _not_ an opaque surface let the grid bleed through their transparent even-rows / low-alpha zebra. ✅ **DONE** — every card-less table now paints `bg-surface` (or, for the `<DataTable>` primitive, `background: var(--color-surface)` on its scroll container). Fixed: `DataTable` (primitive), `ProxyLogger`/`RequestLoggerV2` (their `<Card>` `bg-black/5 dark:bg-black/20` tint was winning over the Card's `bg-surface` via tailwind-merge → ~95% transparent), `BatchListTab`/`FilesListTab`/`CacheEntriesTab`/`ReasoningCacheTab`/`cache page`/`FreePoolTab`/`ModelMappingTable`/`HeaderTable`, plus the two CSS-grid "tables" in the cache views (`bg-surface/35` → `bg-surface`). Tables already inside a `<Card>`/Modal were verified opaque and deliberately left untouched (bg-surface there is a redundant no-op). The grid itself needed **no change** — dashboard `body::before` is byte-identical to the site (`--grid-size: 32px`); any "bigger grid" seen on a running instance is a stale pre-`#4143` build, not code. Guarded by `tests/unit/design-grid-background.test.ts` (Phase 6 block).
+- **D8 — Layout width (Phase 5):** the dashboard content shell was capped at `max-w-7xl` (1280px), centering with wide empty side gutters on large monitors. **DONE** — raised to a fluid `max-w-[3840px]` (true 4K): content now follows the viewport up to ~4K and only centers beyond it (`DashboardLayout.tsx`). Deliberately-narrow pages stay narrow by design (`ProviderOnboardingWizard` max-w-5xl, `Rtk`/`CavemanContextPageClient` max-w-6xl).
+- **D9 — Opaque data tables (Phase 6):** with the dashboard content area now transparent (so the grid wallpaper shows through, Phase 5), data tables whose container was _not_ an opaque surface let the grid bleed through their transparent even-rows / low-alpha zebra. **DONE** — every card-less table now paints `bg-surface` (or, for the `<DataTable>` primitive, `background: var(--color-surface)` on its scroll container). Fixed: `DataTable` (primitive), `ProxyLogger`/`RequestLoggerV2` (their `<Card>` `bg-black/5 dark:bg-black/20` tint was winning over the Card's `bg-surface` via tailwind-merge → ~95% transparent), `BatchListTab`/`FilesListTab`/`CacheEntriesTab`/`ReasoningCacheTab`/`cache page`/`FreePoolTab`/`ModelMappingTable`/`HeaderTable`, plus the two CSS-grid "tables" in the cache views (`bg-surface/35` → `bg-surface`). Tables already inside a `<Card>`/Modal were verified opaque and deliberately left untouched (bg-surface there is a redundant no-op). The grid itself needed **no change** — dashboard `body::before` is byte-identical to the site (`--grid-size: 32px`); any "bigger grid" seen on a running instance is a stale pre-`#4143` build, not code. Guarded by `tests/unit/design-grid-background.test.ts` (Phase 6 block).
 
 ---
 

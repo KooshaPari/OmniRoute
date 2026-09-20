@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -79,7 +80,12 @@ test("CloudflareAIExecutor.transformRequest preserves plain-string content", () 
     model: "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     messages: [{ role: "user", content: "hi" }],
   };
-  const out = executor.transformRequest("@cf/meta/llama-3.3-70b-instruct-fp8-fast", body, true, {} as any);
+  const out = executor.transformRequest(
+    "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    body,
+    true,
+    {} as any
+  );
   assert.deepEqual((out as any).messages, [{ role: "user", content: "hi" }]);
 });
 

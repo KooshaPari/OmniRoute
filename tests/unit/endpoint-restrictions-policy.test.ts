@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Unit tests for API key endpoint restriction enforcement through enforceApiKeyPolicy.
  *

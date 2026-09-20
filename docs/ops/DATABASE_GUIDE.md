@@ -124,10 +124,10 @@ OmniRoute has **110 top-level TypeScript files** in `src/lib/db/`. Below is a sa
 A core architectural rule: **modules don't access each other's tables directly**. To work with another module's data, import the function from that module.
 
 ```ts
-// ❌ WRONG: direct SQL from another module
+// WRONG: direct SQL from another module
 db.prepare("SELECT * FROM provider_connections").all();
 
-// ✅ RIGHT: use the providers module function
+// RIGHT: use the providers module function
 import { listProviders } from "@/lib/db/providers";
 const providers = await listProviders();
 ```

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Audit: every built-in auto-combo template must resolve to SOME spec or variant
  * (not an empty object that produces a full unfiltered pool).

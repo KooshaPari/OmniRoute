@@ -3,13 +3,15 @@ permissions:
   contents: read
 on:
   workflow_dispatch: {}
-  schedule: [{cron: '0 8 * * 1'}]
+  schedule: [{ cron: "0 8 * * 1" }]
 jobs:
   verify:
     runs-on: ubuntu-latest
-    permissions: {id-token: write, contents: read}
+    permissions: { id-token: write, contents: read }
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
       - run: |
           echo "OIDC identity check:"
           echo "  issuer: $(gh auth status --show-token 2>&1 | head -1 || echo 'dev-mode')"

@@ -10,6 +10,7 @@
 
 OmniRoute is primarily a server-side AI gateway with a web dashboard.
 Users want to:
+
 1. Check usage/quota on the go
 2. Switch routing combos from mobile
 3. Receive push notifications for quota limits
@@ -22,12 +23,14 @@ Continue with the existing Next.js dashboard. The dashboard is already responsiv
 Add PWA support (already partially configured) for offline-capable usage.
 
 **Pros:**
+
 - No native development cost
 - Single codebase
 - PWA installable on iOS and Android
 - Push notifications via Web Push API
 
 **Cons:**
+
 - Limited access to device APIs
 - No App Store presence
 
@@ -36,11 +39,13 @@ Add PWA support (already partially configured) for offline-capable usage.
 Use React Native WebView to wrap the existing dashboard with native enhancements.
 
 **Pros:**
+
 - Native push notifications
 - App Store presence
 - Biometric auth
 
 **Cons:**
+
 - Separate build pipeline
 - Maintenance overhead
 - ~2 month sprint
@@ -50,11 +55,13 @@ Use React Native WebView to wrap the existing dashboard with native enhancements
 Swift + Kotlin native apps.
 
 **Pros:**
+
 - Full device API access
 - Best UX
 - App Store discoverability
 
 **Cons:**
+
 - 2 separate codebases
 - 6+ month development
 - High maintenance cost
@@ -66,8 +73,8 @@ Re-evaluate for native in v5.0 based on user adoption.
 
 ## Implementation Plan
 
-1. ✅ Responsive dashboard (existing)
-2. ✅ PWA manifest (existing)
+1. Responsive dashboard (existing)
+2. PWA manifest (existing)
 3. [ ] Add service worker for offline access
 4. [ ] Add Web Push notification support
 5. [ ] Add mobile-specific layouts for key flows

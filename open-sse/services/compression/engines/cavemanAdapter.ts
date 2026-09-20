@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { applyLiteCompression } from "../lite.ts";
 import { cavemanCompress } from "../caveman.ts";
 import { compressAggressive } from "../aggressive.ts";

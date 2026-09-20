@@ -17,7 +17,7 @@ lastUpdated: 2026-06-28
 OmniRoute/
 ├── src/                  # Next.js 16 application (UI + API routes + libs + domain + server)
 ├── open-sse/             # Streaming engine workspace (handlers, executors, translator, MCP server)
-├── electron/             # Desktop wrapper (Electron 41 + electron-builder 26.10)
+├── apps/                 # App workspaces: `web/` (frontend), `bff/` (API boundary), `desktop/` (Tauri 2 shell)
 ├── bin/                  # CLI entry point and command handlers
 ├── scripts/              # Build, check, sync, and one-off scripts
 ├── docs/                 # Public documentation (you are here)
@@ -296,17 +296,20 @@ open-sse/
 
 ---
 
-## `electron/` — Desktop Wrapper
+## `apps/desktop/` — Desktop Shell (Tauri 2)
 
-| File             | Purpose                                                                           |
-| ---------------- | --------------------------------------------------------------------------------- |
-| `main.js`        | Electron main process (BrowserWindow, embedded Next.js server, tray, auto-update) |
-| `preload.js`     | IPC bridge (contextBridge → `window.omniroute`)                                   |
-| `package.json`   | electron-builder config + Electron 41 + electron-builder 26.10 deps               |
-| `assets/`        | App icons (Windows .ico, macOS .icns, Linux .png)                                 |
-| `dist-electron/` | Build output (gitignored)                                                         |
-| `types.d.ts`     | Type declarations for renderer bridge                                             |
-| `README.md`      | Internal Electron README (see also `docs/guides/ELECTRON_GUIDE.md`)               |
+| File                        | Purpose                                                                 |
+| --------------------------- | ----------------------------------------------------------------------- |
+| `src-tauri/main.rs`         | Tauri entry point (window, embedded SPA via custom-protocol)            |
+| `src-tauri/lifecycle.rs`    | Desktop lifecycle and readiness                                         |
+| `src-tauri/commands.rs`     | Typed runtime commands                                                  |
+| `src-tauri/tauri.conf.json` | App config: product name, version, CSP, window, bundle                  |
+| `src-tauri/capabilities/`   | Tauri capability grants                                                 |
+| `tests/`                    | Desktop shell tests (gitignored build output under `src-tauri/target/`) |
+| `README.md`                 | Internal desktop README (see also `docs/guides/DESKTOP_GUIDE.md`)       |
+
+> The former `electron/` workspace (Electron 41 + electron-builder) was removed
+> 2026-09-17 per the ZERO-electron decision; see `docs/guides/DESKTOP_GUIDE.md`.
 
 ---
 
@@ -365,8 +368,7 @@ open-sse/
 | `run-protocol-clients-tests.mjs`    | MCP/A2A E2E runner                                                         |
 | `run-ecosystem-tests.mjs`           | Ecosystem (provider integration) tests                                     |
 | `test-report-summary.mjs`           | Generate coverage summary markdown                                         |
-| `smoke-electron-packaged.mjs`       | Smoke-test packaged Electron build                                         |
-| `native-binary-compat.mjs`          | Validate native deps (`better-sqlite3`) match Electron's Node              |
+| `native-binary-compat.mjs`          | Validate native deps (`better-sqlite3`) match the bundled Node runtime     |
 | `validate-pack-artifact.ts`         | Validate npm pack output                                                   |
 | `responses-ws-proxy.mjs`            | WebSocket bridge for Codex Responses API                                   |
 | `v1-ws-bridge.mjs`                  | WebSocket bridge for `/api/v1/ws` endpoint                                 |
@@ -389,7 +391,7 @@ open-sse/
 | `USER_GUIDE.md`             | End-user manual (setup, models, combos, CLIs, audio, etc.)                            |
 | `API_REFERENCE.md`          | API endpoint reference with auth model                                                |
 | `openapi.yaml`              | OpenAPI 3.0 spec (121 paths)                                                          |
-| `SETUP_GUIDE.md`            | Install methods (npm, npx, Docker, Electron, Termux, source)                          |
+| `SETUP_GUIDE.md`            | Install methods (npm, npx, Docker, Tauri desktop, Termux, source)                     |
 | `ENVIRONMENT.md`            | All env vars (~800 documented, ~3,050 lines `.env.example`)                           |
 | `TROUBLESHOOTING.md`        | Common errors + v3.8.0 known issues                                                   |
 | `RELEASE_CHECKLIST.md`      | Full release flow (skills, husky, conventional commits, deploy)                       |
@@ -402,24 +404,24 @@ open-sse/
 
 ### Subsystem deep-dives
 
-| Doc                        | Purpose                                                              |
-| -------------------------- | -------------------------------------------------------------------- |
-| `MCP-SERVER.md`            | MCP server: 110 tools, 3 transports, 33 scopes, REST endpoints       |
-| `A2A-SERVER.md`            | A2A v0.3: JSON-RPC, 6 skills, REST helpers, agent card               |
-| `AGENT_PROTOCOLS_GUIDE.md` | Unified guide: A2A vs ACP vs Cloud Agents                            |
-| `CLOUD_AGENT.md`           | Codex Cloud / Devin / Jules orchestration                            |
-| `SKILLS.md`                | Skills framework (built-in + marketplace + SkillsSH + sandbox)       |
-| `RADAR.md`                 | Radar free-model catalog overlay (`RADAR_ENABLED`, off by default)   |
-| `MEMORY.md`                | Memory system (SQLite FTS5 + Qdrant)                                 |
-| `EVALS.md`                 | Eval framework (suites, runs, rubrics)                               |
-| `GUARDRAILS.md`            | PII masker, prompt injection, vision bridge                          |
-| `COMPLIANCE.md`            | Audit log, retention, noLog opt-out                                  |
-| `WEBHOOKS.md`              | HMAC-signed webhook delivery                                         |
-| `REASONING_REPLAY.md`      | Hybrid memory/SQLite cache for `reasoning_content`                   |
-| `AUTHZ_GUIDE.md`           | Authorization pipeline (`classify` → `policies` → `enforce`)         |
-| `RESILIENCE_GUIDE.md`      | Circuit breaker + cooldown + model lockout                           |
-| `docs/security/STEALTH_GUIDE.md` (git only)         | TLS fingerprinting (JA3/JA4), Claude Code CCH, MITM cert             |
-| `AUTO-COMBO.md`            | Auto Combo engine (16-factor scoring, 6 mode packs, virtual factory) |
+| Doc                                         | Purpose                                                              |
+| ------------------------------------------- | -------------------------------------------------------------------- |
+| `MCP-SERVER.md`                             | MCP server: 110 tools, 3 transports, 33 scopes, REST endpoints       |
+| `A2A-SERVER.md`                             | A2A v0.3: JSON-RPC, 6 skills, REST helpers, agent card               |
+| `AGENT_PROTOCOLS_GUIDE.md`                  | Unified guide: A2A vs ACP vs Cloud Agents                            |
+| `CLOUD_AGENT.md`                            | Codex Cloud / Devin / Jules orchestration                            |
+| `SKILLS.md`                                 | Skills framework (built-in + marketplace + SkillsSH + sandbox)       |
+| `RADAR.md`                                  | Radar free-model catalog overlay (`RADAR_ENABLED`, off by default)   |
+| `MEMORY.md`                                 | Memory system (SQLite FTS5 + Qdrant)                                 |
+| `EVALS.md`                                  | Eval framework (suites, runs, rubrics)                               |
+| `GUARDRAILS.md`                             | PII masker, prompt injection, vision bridge                          |
+| `COMPLIANCE.md`                             | Audit log, retention, noLog opt-out                                  |
+| `WEBHOOKS.md`                               | HMAC-signed webhook delivery                                         |
+| `REASONING_REPLAY.md`                       | Hybrid memory/SQLite cache for `reasoning_content`                   |
+| `AUTHZ_GUIDE.md`                            | Authorization pipeline (`classify` → `policies` → `enforce`)         |
+| `RESILIENCE_GUIDE.md`                       | Circuit breaker + cooldown + model lockout                           |
+| `docs/security/STEALTH_GUIDE.md` (git only) | TLS fingerprinting (JA3/JA4), Claude Code CCH, MITM cert             |
+| `AUTO-COMBO.md`                             | Auto Combo engine (16-factor scoring, 6 mode packs, virtual factory) |
 
 ### Compression
 
@@ -433,16 +435,16 @@ open-sse/
 
 ### Deployment
 
-| Doc                          | Purpose                                                           |
-| ---------------------------- | ----------------------------------------------------------------- |
-| `DOCKER_GUIDE.md`            | Docker build, profiles (base/cli/host/cliproxyapi), Redis sidecar |
-| `VM_DEPLOYMENT_GUIDE.md`     | Generic VM/VPS deployment (Ubuntu/Debian + nginx + systemd)       |
-| `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io deployment (currently Chinese-only)                        |
-| `TERMUX_GUIDE.md`            | Android headless via Termux                                       |
-| `PWA_GUIDE.md`               | Progressive Web App install + service worker                      |
-| `ELECTRON_GUIDE.md`          | Desktop app build + sign + distribute                             |
-| `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                            |
-| `PROXY_GUIDE.md`             | 4-level outbound proxy + 1proxy marketplace                       |
+| Doc                          | Purpose                                                                      |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `DOCKER_GUIDE.md`            | Docker build, profiles (base/cli/host/cliproxyapi), Redis sidecar            |
+| `VM_DEPLOYMENT_GUIDE.md`     | Generic VM/VPS deployment (Ubuntu/Debian + nginx + systemd)                  |
+| `FLY_IO_DEPLOYMENT_GUIDE.md` | Fly.io deployment (currently Chinese-only)                                   |
+| `TERMUX_GUIDE.md`            | Android headless via Termux                                                  |
+| `PWA_GUIDE.md`               | Progressive Web App install + service worker                                 |
+| `ELECTRON_GUIDE.md`          | REMOVED 2026-09-17 (ZERO-electron); replaced by `DESKTOP_GUIDE.md` (Tauri 2) |
+| `TUNNELS_GUIDE.md`           | Cloudflared + ngrok + Tailscale Funnel                                       |
+| `PROXY_GUIDE.md`             | 4-level outbound proxy + 1proxy marketplace                                  |
 
 ### Subdirectories
 

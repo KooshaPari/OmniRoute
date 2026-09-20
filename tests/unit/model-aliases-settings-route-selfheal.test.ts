@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Regression test: GET /api/settings/model-aliases self-heals when the
  * webpack-bundled module instance used by this route was not hydrated at

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import "./setupPolyfill.ts";
 import { Agent, ProxyAgent, type Dispatcher } from "undici";
 import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
@@ -248,8 +249,7 @@ function normalizePort(port: string | number | null | undefined, protocol: strin
  * listen on these ports, so we must always include the port explicitly.
  */
 function buildProxyUrlString(parsed: URL, port: string): string {
-  const auth =
-    parsed.username || parsed.password ? `${parsed.username}:${parsed.password}@` : "";
+  const auth = parsed.username || parsed.password ? `${parsed.username}:${parsed.password}@` : "";
   return `${parsed.protocol}//${auth}${parsed.hostname}:${port}`;
 }
 

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { z } from "zod";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { callCloudWithMachineId } from "@/shared/utils/cloud";

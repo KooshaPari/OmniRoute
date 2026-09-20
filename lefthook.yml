@@ -7,7 +7,7 @@
 # This file is the first half of that fix.
 #
 # We invoke everything via `bun` (or `bunx`) so the polyglot monorepo
-# (TypeScript sub-packages under open-sse/, electron/, @omniroute/*) does not
+# (TypeScript sub-packages under open-sse/, @omniroute/*) does not
 # require a root package.json. Workspace package.json files are still consulted
 # where they exist (eslint / prettier).
 #

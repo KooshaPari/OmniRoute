@@ -1,0 +1,6 @@
+{
+  "scan": "filesystem",
+  "target": "src/app/",
+  "count": 715,
+  "detail": "route files found"
+}

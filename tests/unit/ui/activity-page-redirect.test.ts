@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Verifies that the logs/activity page calls permanentRedirect("/dashboard/activity").
  * We mock next/navigation so no Next.js runtime is needed.
@@ -36,18 +37,9 @@ const PAGE_PATH = resolve(
 
 test("logs/activity/page.tsx contains permanentRedirect('/dashboard/activity')", () => {
   const src = readFileSync(PAGE_PATH, "utf-8");
-  assert.ok(
-    src.includes("permanentRedirect"),
-    "page.tsx must call permanentRedirect"
-  );
-  assert.ok(
-    src.includes("/dashboard/activity"),
-    "page.tsx must redirect to /dashboard/activity"
-  );
-  assert.ok(
-    src.includes(`from "next/navigation"`),
-    "page.tsx must import from next/navigation"
-  );
+  assert.ok(src.includes("permanentRedirect"), "page.tsx must call permanentRedirect");
+  assert.ok(src.includes("/dashboard/activity"), "page.tsx must redirect to /dashboard/activity");
+  assert.ok(src.includes(`from "next/navigation"`), "page.tsx must import from next/navigation");
 });
 
 test("logs/activity/page.tsx does NOT import AuditLogTab anymore", () => {

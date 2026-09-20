@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { gotoDashboardRoute } from "./helpers/dashboardAuth";
 

@@ -29,9 +29,7 @@ const MAX_UPLOAD_MB_CEILING = 4096;
  * via `OMNIROUTE_DB_IMPORT_MAX_MB`. Invalid / out-of-range values fall back to the 100 MB
  * default and are clamped to a 4 GB ceiling.
  */
-export function resolveMaxUploadSizeBytes(
-  env: NodeJS.ProcessEnv = process.env
-): number {
+export function resolveMaxUploadSizeBytes(env: NodeJS.ProcessEnv = process.env): number {
   const raw = env.OMNIROUTE_DB_IMPORT_MAX_MB;
   const parsed = raw === undefined ? NaN : Number(raw);
   const mb =
@@ -122,7 +120,7 @@ export async function POST(request: Request) {
 
     // Validate SQLite integrity.
     // Use the resilient driver factory (better-sqlite3 → node:sqlite → sql.js) rather than
-    // a direct `better-sqlite3` import: in the packaged Electron app that native module is
+    // a direct `better-sqlite3` import: in the packaged desktop app that native module is
     // absent from the standalone server's node_modules, so a hard import crashes the route
     // with "Cannot find module 'better-sqlite3'" even though node:sqlite is available (#3025).
     let testDb: SqliteAdapter | null = null;

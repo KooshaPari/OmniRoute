@@ -9,14 +9,14 @@
 Roll back when ANY of the following is true and is traceable to a release
 that just shipped (within 24h):
 
-| Signal | Likely cause | Decision |
-|---|---|---|
-| `/healthz` 5xx spike (>5% in 10min) | image boots, route handler panics | **ROLLBACK** |
-| `npm install @kooshapari/omniroute@<v>` fails or `npm view` returns the wrong version | registry push raced (W9.05 / W9.10 class) | **ROLLBACK** |
-| Security advisory lands on a dep we just bumped | W9.10 gate false-negative | **ROLLBACK +** pin via `npm-shrinkwrap` |
-| `docker pull kooshapari/omniroute:<v>` returns 404 | manifest push failure | **Re-publish, do not roll back** |
-| Trivy CRITICAL gate red on a published image | W9.10 false-negative on Debian base | **ROLLBACK** |
-| Maintainer reports breaking change in upstream `diegosouzapw/OmniRoute` `main` | rebase race | **Hotfix, do not roll back** |
+| Signal                                                                                | Likely cause                              | Decision                                |
+| ------------------------------------------------------------------------------------- | ----------------------------------------- | --------------------------------------- |
+| `/healthz` 5xx spike (>5% in 10min)                                                   | image boots, route handler panics         | **ROLLBACK**                            |
+| `npm install @kooshapari/omniroute@<v>` fails or `npm view` returns the wrong version | registry push raced (W9.05 / W9.10 class) | **ROLLBACK**                            |
+| Security advisory lands on a dep we just bumped                                       | W9.10 gate false-negative                 | **ROLLBACK +** pin via `npm-shrinkwrap` |
+| `docker pull kooshapari/omniroute:<v>` returns 404                                    | manifest push failure                     | **Re-publish, do not roll back**        |
+| Trivy CRITICAL gate red on a published image                                          | W9.10 false-negative on Debian base       | **ROLLBACK**                            |
+| Maintainer reports breaking change in upstream `diegosouzapw/OmniRoute` `main`        | rebase race                               | **Hotfix, do not roll back**            |
 
 **Rule of thumb:** if a `latest` install is broken for 5+ users, you roll back.
 If a `next` install is broken, you do not — `next` is by definition unstable.
@@ -36,9 +36,9 @@ If a `next` install is broken, you do not — `next` is by definition unstable.
    (or just look at the failed run's title).
 
 3. **Decide the path:**
-   - *Roll back* (this doc): the version on the wire is broken; you need a
+   - _Roll back_ (this doc): the version on the wire is broken; you need a
      good version back in its slot.
-   - *Hotfix*: ship a new patch release. Use the W9.23 patch-release workflow
+   - _Hotfix_: ship a new patch release. Use the W9.23 patch-release workflow
      with `revert` commits.
 
 ## Path A: Rollback (npm + Docker + GH Release)
@@ -107,7 +107,7 @@ docker run --rm kooshapari/omniroute:latest --version
 
 ### 6. Communicate
 
-- Edit the broken GH Release body to add a `> ⛔ ROLLED BACK at <UTC> — use v<GOOD_VERSION>` banner.
+- Edit the broken GH Release body to add a `> ROLLED BACK at <UTC> — use v<GOOD_VERSION>` banner.
 - Post a thread in `#releases` (or the project's chat) with: broken version, good version, root cause, ETA for the fix.
 - File an incident under `docs/incidents/<DATE>-<BROKEN_VERSION>.md` (template in `docs/incidents/TEMPLATE.md`).
 

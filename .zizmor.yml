@@ -11,7 +11,7 @@
 #
 # MOTIVATION (2026-03 incident): the trivy-action/LiteLLM supply-chain attack
 # exploited exactly the kind of pull_request_target misconfiguration that zizmor
-# detects statically. OmniRoute's npm/Docker/Electron publish workflows are high-
+# detects statically. OmniRoute's npm/Docker publish workflows are high-
 # value targets that warrant proactive audit.
 #
 # BASELINE STRATEGY: this file starts with an EMPTY ignores list. As zizmor is
@@ -76,14 +76,13 @@ rules:
     # zizmor's cache-poisoning audit flags `actions/setup-node` (cache: npm) and
     # `actions/cache` steps that populate a cache which a later artifact-publishing
     # job could consume — the attack is: a fork PR seeds a poisoned cache that a
-    # trusted publish run then restores and ships. None of the four entries below
+    # trusted publish run then restores and ships. None of the three entries below
     # are exploitable in that way:
     #
-    #   • electron-release.yml / npm-publish.yml — PUBLISH workflows that trigger
-    #     ONLY on trusted events: `push: tags v*` + `workflow_dispatch` (electron)
-    #     and `release: [released]` + `workflow_dispatch` + `workflow_call`
-    #     (npm). They NEVER run on a `pull_request` from a fork, so an untrusted
-    #     ref can never populate the npm/node_modules cache they restore. The
+    #   • npm-publish.yml — a PUBLISH workflow that triggers ONLY on trusted
+    #     events: `release: [released]` + `workflow_dispatch` + `workflow_call`.
+    #     It NEVER runs on a `pull_request` from a fork, so an untrusted
+    #     ref can never populate the npm/node_modules cache it restores. The
     #     cache key is `hashFiles('package-lock.json')` / `runner.os-node-…`, a
     #     first-party, lockfile-pinned key on trusted events.
     #
@@ -98,7 +97,15 @@ rules:
     # Accepted risk (first-party caching on trusted/isolated events), re-review at
     # the next release cycle (added 2026-06-16).
     ignore:
-      - electron-release.yml
       - npm-publish.yml
       - opencode-plugin-ci.yml
       - opencode-provider-ci.yml
+
+  artipacked:
+    # wiki-sync.yml syncs docs to the GitHub wiki via `git push` (L65) using the
+    # checkout's persisted credential — the push target is the wiki remote of the
+    # same repository, guarded by `permissions: contents: write` on the job.
+    # persist-credentials: false would break the push (no credential left to push with).
+    # Accepted risk (same-repo wiki push, operator-controlled schedule), added 2026-09-19.
+    ignore:
+      - wiki-sync.yml

@@ -1,6 +1,6 @@
 // Login-shell PATH resolution (#3321).
 //
-// macOS GUI / Electron apps do NOT inherit the user's interactive shell PATH: a packaged
+// macOS GUI apps do NOT inherit the user's interactive shell PATH: a packaged
 // app launched from Finder/Dock gets the truncated GUI PATH (/usr/bin:/bin:/usr/sbin:/sbin),
 // missing Homebrew (/opt/homebrew/bin), nvm/volta shims, ~/.local/bin, etc. So any CLI
 // detection (`which`, `command -v`) or CLI spawn run from that process can't find tools
@@ -60,7 +60,8 @@ export interface LoginShellPathOptions {
 export function getLoginShellPath(opts: LoginShellPathOptions = {}): string | null {
   const platform = opts.platform ?? process.platform;
   if (platform !== "darwin" && platform !== "linux") return null;
-  const shell = opts.shell || process.env.SHELL || (platform === "darwin" ? "/bin/zsh" : "/bin/bash");
+  const shell =
+    opts.shell || process.env.SHELL || (platform === "darwin" ? "/bin/zsh" : "/bin/bash");
   if (!/^[\w./-]+$/.test(shell)) return null;
   const run =
     opts.runShell ||

@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // Port of upstream decolua/9router#820 by @hiepau1231.
 // MiniMax exposes a Claude-compatible endpoint but rejects Anthropic's
 // extended `output_config` parameter (used to steer reasoning effort and

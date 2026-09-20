@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Unit tests for bin/aliasResolver.mjs — the ESM resolver hook that fixes
  * `Cannot find package '@/shared'` when OmniRoute is installed globally

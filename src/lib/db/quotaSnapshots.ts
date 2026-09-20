@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { getDbInstance, rowToCamel } from "./core";
 import type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 import {

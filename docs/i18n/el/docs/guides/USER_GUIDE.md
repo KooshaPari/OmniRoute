@@ -1,6 +1,6 @@
 # USER_GUIDE (Ελληνικά)
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
+**Languages:** [English](../../../../guides/USER_GUIDE.md) · [ar](../../../ar/docs/guides/USER_GUIDE.md) · [az](../../../az/docs/guides/USER_GUIDE.md) · [bg](../../../bg/docs/guides/USER_GUIDE.md) · [bn](../../../bn/docs/guides/USER_GUIDE.md) · [cs](../../../cs/docs/guides/USER_GUIDE.md) · [da](../../../da/docs/guides/USER_GUIDE.md) · [de](../../../de/docs/guides/USER_GUIDE.md) · [es](../../../es/docs/guides/USER_GUIDE.md) · [et](../../../et/docs/guides/USER_GUIDE.md) · [fa](../../../fa/docs/guides/USER_GUIDE.md) · [fi](../../../fi/docs/guides/USER_GUIDE.md) · [fr](../../../fr/docs/guides/USER_GUIDE.md) · [ga](../../../ga/docs/guides/USER_GUIDE.md) · [gu](../../../gu/docs/guides/USER_GUIDE.md) · [he](../../../he/docs/guides/USER_GUIDE.md) · [hi](../../../hi/docs/guides/USER_GUIDE.md) · [hr](../../../hr/docs/guides/USER_GUIDE.md) · [hu](../../../hu/docs/guides/USER_GUIDE.md) · [id](../../../id/docs/guides/USER_GUIDE.md) · [it](../../../it/docs/guides/USER_GUIDE.md) · [ja](../../../ja/docs/guides/USER_GUIDE.md) · [ko](../../../ko/docs/guides/USER_GUIDE.md) · [lt](../../../lt/docs/guides/USER_GUIDE.md) · [lv](../../../lv/docs/guides/USER_GUIDE.md) · [mr](../../../mr/docs/guides/USER_GUIDE.md) · [ms](../../../ms/docs/guides/USER_GUIDE.md) · [mt](../../../mt/docs/guides/USER_GUIDE.md) · [nl](../../../nl/docs/guides/USER_GUIDE.md) · [no](../../../no/docs/guides/USER_GUIDE.md) · [phi](../../../phi/docs/guides/USER_GUIDE.md) · [pl](../../../pl/docs/guides/USER_GUIDE.md) · [pt](../../../pt/docs/guides/USER_GUIDE.md) · [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · [ro](../../../ro/docs/guides/USER_GUIDE.md) · [ru](../../../ru/docs/guides/USER_GUIDE.md) · [sk](../../../sk/docs/guides/USER_GUIDE.md) · [sl](../../../sl/docs/guides/USER_GUIDE.md) · [sr](../../../sr/docs/guides/USER_GUIDE.md) · [sv](../../../sv/docs/guides/USER_GUIDE.md) · [sw](../../../sw/docs/guides/USER_GUIDE.md) · [ta](../../../ta/docs/guides/USER_GUIDE.md) · [te](../../../te/docs/guides/USER_GUIDE.md) · [th](../../../th/docs/guides/USER_GUIDE.md) · [tr](../../../tr/docs/guides/USER_GUIDE.md) · [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · [ur](../../../ur/docs/guides/USER_GUIDE.md) · [vi](../../../vi/docs/guides/USER_GUIDE.md) · [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
 
 ---
 
@@ -11,132 +11,126 @@ version: 3.8.40
 lastUpdated: 2026-06-28
 ---
 
-# Οδηγός Χρήστη
+## Table of Contents
 
-🌐 **Languages:** 🇺🇸 [English](../../../../guides/USER_GUIDE.md) · 🇸🇦 [ar](../../../ar/docs/guides/USER_GUIDE.md) · 🇦🇿 [az](../../../az/docs/guides/USER_GUIDE.md) · 🇧🇬 [bg](../../../bg/docs/guides/USER_GUIDE.md) · 🇧🇩 [bn](../../../bn/docs/guides/USER_GUIDE.md) · 🇨🇿 [cs](../../../cs/docs/guides/USER_GUIDE.md) · 🇩🇰 [da](../../../da/docs/guides/USER_GUIDE.md) · 🇩🇪 [de](../../../de/docs/guides/USER_GUIDE.md) · 🇪🇸 [es](../../../es/docs/guides/USER_GUIDE.md) · 🇪🇪 [et](../../../et/docs/guides/USER_GUIDE.md) · 🇮🇷 [fa](../../../fa/docs/guides/USER_GUIDE.md) · 🇫🇮 [fi](../../../fi/docs/guides/USER_GUIDE.md) · 🇫🇷 [fr](../../../fr/docs/guides/USER_GUIDE.md) · 🇮🇪 [ga](../../../ga/docs/guides/USER_GUIDE.md) · 🇮🇳 [gu](../../../gu/docs/guides/USER_GUIDE.md) · 🇮🇱 [he](../../../he/docs/guides/USER_GUIDE.md) · 🇮🇳 [hi](../../../hi/docs/guides/USER_GUIDE.md) · 🇭🇷 [hr](../../../hr/docs/guides/USER_GUIDE.md) · 🇭🇺 [hu](../../../hu/docs/guides/USER_GUIDE.md) · 🇮🇩 [id](../../../id/docs/guides/USER_GUIDE.md) · 🇮🇹 [it](../../../it/docs/guides/USER_GUIDE.md) · 🇯🇵 [ja](../../../ja/docs/guides/USER_GUIDE.md) · 🇰🇷 [ko](../../../ko/docs/guides/USER_GUIDE.md) · 🇱🇹 [lt](../../../lt/docs/guides/USER_GUIDE.md) · 🇱🇻 [lv](../../../lv/docs/guides/USER_GUIDE.md) · 🇮🇳 [mr](../../../mr/docs/guides/USER_GUIDE.md) · 🇲🇾 [ms](../../../ms/docs/guides/USER_GUIDE.md) · 🇲🇹 [mt](../../../mt/docs/guides/USER_GUIDE.md) · 🇳🇱 [nl](../../../nl/docs/guides/USER_GUIDE.md) · 🇳🇴 [no](../../../no/docs/guides/USER_GUIDE.md) · 🇵🇭 [phi](../../../phi/docs/guides/USER_GUIDE.md) · 🇵🇱 [pl](../../../pl/docs/guides/USER_GUIDE.md) · 🇵🇹 [pt](../../../pt/docs/guides/USER_GUIDE.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/guides/USER_GUIDE.md) · 🇷🇴 [ro](../../../ro/docs/guides/USER_GUIDE.md) · 🇷🇺 [ru](../../../ru/docs/guides/USER_GUIDE.md) · 🇸🇰 [sk](../../../sk/docs/guides/USER_GUIDE.md) · 🇸🇮 [sl](../../../sl/docs/guides/USER_GUIDE.md) · 🇷🇸 [sr](../../../sr/docs/guides/USER_GUIDE.md) · 🇸🇪 [sv](../../../sv/docs/guides/USER_GUIDE.md) · 🇰🇪 [sw](../../../sw/docs/guides/USER_GUIDE.md) · 🇮🇳 [ta](../../../ta/docs/guides/USER_GUIDE.md) · 🇮🇳 [te](../../../te/docs/guides/USER_GUIDE.md) · 🇹🇭 [th](../../../th/docs/guides/USER_GUIDE.md) · 🇹🇷 [tr](../../../tr/docs/guides/USER_GUIDE.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/guides/USER_GUIDE.md) · 🇵🇰 [ur](../../../ur/docs/guides/USER_GUIDE.md) · 🇻🇳 [vi](../../../vi/docs/guides/USER_GUIDE.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/guides/USER_GUIDE.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/guides/USER_GUIDE.md)
-
-Πλήρης οδηγός για τη ρύθμιση παρόχων, τη δημιουργία συνδυασμών, την ενσωμάτωση εργαλείων CLI και την ανάπτυξη του OmniRoute.
-
----
-
-## Πίνακας Περιεχομένων
-
-- [Τιμολόγηση με μια ματιά](#-pricing-at-a-glance)
-- [Περιπτώσεις Χρήσης](#-use-cases)
-- [Ρύθμιση Παρόχου](#-provider-setup)
-- [Ενσωμάτωση CLI](#-cli-integration)
-- [Ανάπτυξη](#-deployment)
-- [Διαθέσιμα Μοντέλα](#-available-models)
-- [Προηγμένες Λειτουργίες](#-advanced-features)
-- [Αυτόματη Δρομολόγηση (Μηδενική διαμόρφωση)](#-auto-routing-zero-config)
-- [Ενσωμάτωση MCP & A2A](#-mcp--a2a-integration)
-- [Σύστημα Δεξιοτήτων](#-skills-system)
-- [Σύστημα Μνήμης](#-memory-system)
+- [Pricing at a Glance](#-pricing-at-a-glance)
+- [Use Cases](#-use-cases)
+- [Provider Setup](#-provider-setup)
+- [CLI Integration](#-cli-integration)
+- [Deployment](#-deployment)
+- [Available Models](#-available-models)
+- [Advanced Features](#-advanced-features)
+- [Auto-Routing (Zero-config)](#-auto-routing-zero-config)
+- [MCP & A2A Integration](#-mcp--a2a-integration)
+- [Skills System](#-skills-system)
+- [Memory System](#-memory-system)
 - [Webhooks](#-webhooks)
-- [Πράκτορες Cloud](#-cloud-agents)
-- [Διαχείριση μέσω Κώδικα](#-programmatic-management)
-- [Εσωτερικό CLI](#-internal-cli)
-- [Εφαρμογή Επιφάνειας Εργασίας (Electron)](#-desktop-application-electron)
+- [Cloud Agents](#-cloud-agents)
+- [Programmatic Management](#-programmatic-management)
+- [Internal CLI](#-internal-cli)
+- [Desktop Application (Tauri 2)](#-desktop-application-tauri-2)
 
 ---
 
-## 💰 Τιμολόγηση με μια Ματιά
+## Pricing at a Glance
 
-| Επίπεδο           | Πάροχος           | Κόστος            | Επαναφορά Ορίου      | Κατάλληλο Για                  |
-| ----------------- | ----------------- | ----------------- | -------------------- | ------------------------------ |
-| **💳 ΣΥΝΔΡΟΜΗ**   | Claude Code (Pro) | $20/μήνα          | 5ω + εβδομαδιαία     | Ήδη συνδρομητές                |
-|                   | Codex (Plus/Pro)  | $20-200/μήνα      | 5ω + εβδομαδιαία     | Χρήστες OpenAI                 |
-|                   | GitHub Copilot    | $10-19/μήνα       | Μηνιαία              | Χρήστες GitHub                 |
-| **🔑 ΚΛΕΙΔΊ API** | DeepSeek          | Πληρωμή ανά χρήση | Καμία                | Φθηνή λογική                   |
-|                   | Groq              | Πληρωμή ανά χρήση | Καμία                | Εξαιρετικά γρήγορο inference   |
-|                   | xAI (Grok)        | Πληρωμή ανά χρήση | Καμία                | Λογική Grok 4                  |
-|                   | Mistral           | Πληρωμή ανά χρήση | Καμία                | Μοντέλα φιλοξενούμενα στην ΕΕ  |
-|                   | Perplexity        | Πληρωμή ανά χρήση | Καμία                | Ενισχυμένο με αναζήτηση        |
-|                   | Together AI       | Πληρωμή ανά χρήση | Καμία                | Μοντέλα ανοιχτού κώδικα        |
-|                   | Fireworks AI      | Πληρωμή ανά χρήση | Καμία                | Γρήγορες εικόνες FLUX          |
-|                   | Cerebras          | Πληρωμή ανά χρήση | Καμία                | Ταχύτητα wafer-scale           |
-|                   | Cohere            | Πληρωμή ανά χρήση | Καμία                | Command R+ RAG                 |
-|                   | NVIDIA NIM        | Πληρωμή ανά χρήση | Καμία                | Μοντέλα επιχειρήσεων           |
-|                   | Baidu Qianfan     | Πληρωμή ανά χρήση | Καμία                | Μοντέλα ERNIE                  |
-| **💰 ΦΘΗΝΟ**      | GLM-4.7           | $0.6/1M           | Καθημερινά 10πμ      | Οικονομικό εφεδρικό            |
-|                   | MiniMax M2.1      | $0.2/1M           | Κύλιση 5 ωρών        | Φθηνότερη επιλογή              |
-|                   | Kimi K2           | $9/μήνα σταθερό   | 10M tokens/μήνα      | Προβλέψιμο κόστος              |
-| **🆓 ΔΩΡΕΑΝ**     | Qoder             | $0                | Ισχύουν όρια παρόχου | Επαλήθευση τρέχοντος καταλόγου |
-|                   | Kiro              | $0                | ~50 credits/μήνα     | Claude δωρεάν                  |
+| Tier              | Provider          | Cost        | Quota Reset           | Best For               |
+| ----------------- | ----------------- | ----------- | --------------------- | ---------------------- |
+| ** SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly           | Already subscribed     |
+|                   | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly           | OpenAI users           |
+|                   | GitHub Copilot    | $10-19/mo   | Monthly               | GitHub users           |
+| ** API KEY**      | DeepSeek          | Pay per use | None                  | Cheap reasoning        |
+|                   | Groq              | Pay per use | None                  | Ultra-fast inference   |
+|                   | xAI (Grok)        | Pay per use | None                  | Grok 4 reasoning       |
+|                   | Mistral           | Pay per use | None                  | EU-hosted models       |
+|                   | Perplexity        | Pay per use | None                  | Search-augmented       |
+|                   | Together AI       | Pay per use | None                  | Open-source models     |
+|                   | Fireworks AI      | Pay per use | None                  | Fast FLUX images       |
+|                   | Cerebras          | Pay per use | None                  | Wafer-scale speed      |
+|                   | Cohere            | Pay per use | None                  | Command R+ RAG         |
+|                   | NVIDIA NIM        | Pay per use | None                  | Enterprise models      |
+|                   | Baidu Qianfan     | Pay per use | None                  | ERNIE models           |
+| ** CHEAP**        | GLM-4.7           | $0.6/1M     | Daily 10AM            | Budget backup          |
+|                   | MiniMax M2.1      | $0.2/1M     | 5-hour rolling        | Cheapest option        |
+|                   | Kimi K2           | $9/mo flat  | 10M tokens/mo         | Predictable cost       |
+| ** FREE**         | Qoder             | $0          | Provider limits apply | Verify current catalog |
+|                   | Kiro              | $0          | ~50 credits/mo        | Claude free            |
 
 ---
 
-## 🎯 Περιπτώσεις Χρήσης
+## Use Cases
 
-### Περίπτωση 1: «Έχω συνδρομή Claude Pro»
+### Case 1: "I have Claude Pro subscription"
 
-**Πρόβλημα:** Το όριο λήγει αναξιοποίητο, περιορισμοί ρυθμού κατά την έντονη κωδικοποίηση
+**Problem:** Quota expires unused, rate limits during heavy coding
 
 ```
 Combo: "maximize-claude"
-  1. cc/claude-opus-4-7        # (πλήρης αξιοποίηση συνδρομής)
-  2. glm/glm-4.7               # (φθηνό εφεδρικό όταν εξαντληθεί το όριο)
-  3. if/qwen3.8-max-preview       # (δωρεάν εφεδρικό έκτακτης ανάγκης)
+  1. cc/claude-opus-4-7        (use subscription fully)
+  2. glm/glm-4.7               (cheap backup when quota out)
+  3. if/qwen3.8-max-preview       (free emergency fallback)
 
-Μηνιαίο κόστος: $20 (συνδρομή) + ~$5 (εφεδρικό) = $25 συνολικά
-αντί για: $20 + χτύπημα ορίων = απογοήτευση
+Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
+vs. $20 + hitting limits = frustration
 ```
 
-### Περίπτωση 2: «Θέλω μηδενικό κόστος»
+### Case 2: "I want zero cost"
 
-**Πρόβλημα:** Δεν μπορώ να αντέξω συνδρομές, χρειάζομαι αξιόπιστη AI κωδικοποίηση
+**Problem:** Can't afford subscriptions, need reliable AI coding
 
 ```
 Combo: "zero-cost"
-  1. if/kimi-k2.7-code          # (καταχωρημένη δωρεάν πρόσβαση· ενδέχεται να ισχύουν όρια ρυθμού)
-  2. kr/qwen3-coder-next        # (δωρεάν εφεδρικό Kiro)
+  1. if/kimi-k2.7-code          (listed free access; rate limits may apply)
+  2. kr/qwen3-coder-next        (Kiro free fallback)
 
-Μηνιαίο κόστος: $0
-Ποιότητα: επαληθεύστε το μοντέλο, τα όρια, την ιδιωτικότητα και το SLA για τον φόρτο εργασίας σας
+Monthly cost: $0
+Quality: verify the model, limits, privacy, and SLA for your workload
 ```
 
-### Περίπτωση 3: «Χρειάζομαι κωδικοποίηση 24/7, χωρίς διακοπές»
+### Case 3: "I need 24/7 coding, no interruptions"
 
-**Πρόβλημα:** Προθεσμίες, δεν αντέχω διακοπή λειτουργίας
+**Problem:** Deadlines, can't afford downtime
 
 ```
 Combo: "always-on"
-  1. cc/claude-opus-4-7        # (καλύτερη ποιότητα)
-  2. cx/gpt-5.5                # (δεύτερη συνδρομή)
-  3. glm/glm-4.7               # (φθηνό, επαναφορά καθημερινά)
-  4. minimax/MiniMax-M2.1      # (φθηνότατο, επαναφορά 5ω)
-  5. if/deepseek-v4-flash       # (καταχωρημένη δωρεάν πρόσβαση· ενδέχεται να ισχύουν όρια ρυθμού)
+  1. cc/claude-opus-4-7        (best quality)
+  2. cx/gpt-5.5                (second subscription)
+  3. glm/glm-4.7               (cheap, resets daily)
+  4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
+  5. if/deepseek-v4-flash       (listed free access; rate limits may apply)
 
-Αποτέλεσμα: 5 επίπεδα εφεδρικών διευρύνουν την ανθεκτικότητα· η διαθεσιμότητα upstream δεν εγγυάται
-Μηνιαίο κόστος: $20-200 (συνδρομές) + $10-20 (εφεδρικό)
+Result: 5 fallback layers broaden resilience; upstream availability is not guaranteed
+Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 ```
 
-### Περίπτωση 4: «Θέλω ΔΩΡΕΑΝ AI στο OpenClaw»
+### Case 4: "I want FREE AI in OpenClaw"
 
-**Πρόβλημα:** Χρειάζομαι AI βοηθό σε εφαρμογές μηνυμάτων, εντελώς δωρεάν
+**Problem:** Need AI assistant in messaging apps, completely free
 
 ```
 Combo: "openclaw-free"
-  1. if/qwen3.8-max-preview     # (καταχωρημένη δωρεάν πρόσβαση· ενδέχεται να ισχύουν όρια ρυθμού)
-  2. if/deepseek-v4-flash       # (καταχωρημένη δωρεάν πρόσβαση· ενδέχεται να ισχύουν όρια ρυθμού)
-  3. if/kimi-k2.7-code          # (καταχωρημένη δωρεάν πρόσβαση· ενδέχεται να ισχύουν όρια ρυθμού)
+  1. if/qwen3.8-max-preview     (listed free access; rate limits may apply)
+  2. if/deepseek-v4-flash       (listed free access; rate limits may apply)
+  3. if/kimi-k2.7-code          (listed free access; rate limits may apply)
 
-Μηνιαίο κόστος: $0
-Πρόσβαση μέσω: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
+Monthly cost: $0
+Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 ```
 
 ---
 
-## 📖 Ρύθμιση Παρόχων
+## Provider Setup
 
-### 🔐 Πάροχοι Συνδρομής
+To bulk-add API-key connections from a CSV or JSON file, use **Dashboard → Providers → Import from file**. Columns are positional (`provider,name,apiKey,baseUrl,priority`); `provider` must already exist as a managed provider or a compatible node. See [Import providers from a CSV or JSON file](../providers/CSV-IMPORT.md).
+
+### Subscription Providers
 
 #### Claude Code (Pro/Max)
 
 ```bash
 Dashboard → Providers → Connect Claude Code
 → OAuth login → Auto token refresh
-→ Παρακολούθηση ορίου 5 ωρών + εβδομαδιαίου ορίου
+→ 5-hour + weekly quota tracking
 
 Models:
   cc/claude-opus-4-7
@@ -144,18 +138,18 @@ Models:
   cc/claude-haiku-4-5-20251001
 ```
 
-**Χρήσιμη Συμβουλή:** Χρησιμοποιήστε το Opus για σύνθετες εργασίες, το Sonnet για ταχύτητα. Το OmniRoute παρακολουθεί το όριο ανά μοντέλο!
+**Pro Tip:** Use Opus for complex tasks, Sonnet for speed. OmniRoute tracks quota per model!
 
-Οι διαδρομές συμβατές με Claude και Claude Code διατηρούν τη σκέψη `max` για τα μοντέλα
-Opus και Sonnet. Τα μοντέλα Haiku δεν δέχονται το επίπεδο προσπάθειας `max`, οπότε το
-OmniRoute υποβαθμίζει αυτό το αίτημα σε υψηλό προϋπολογισμό σκέψης πριν το αποστείλει.
+Claude and Claude Code-compatible routes preserve `max` thinking effort for Opus and Sonnet
+models. Haiku models do not accept the `max` effort tier, so OmniRoute downgrades that
+request to a high thinking budget before sending it upstream.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
 Dashboard → Providers → Connect Codex
 → OAuth login (port 1455)
-→ Επαναφορά ορίου ανά 5 ώρες + εβδομαδιαία επαναφορά
+→ 5-hour + weekly reset
 
 Models:
   cx/gpt-5.5
@@ -169,7 +163,7 @@ Models:
 ```bash
 Dashboard → Providers → Connect GitHub
 → OAuth via GitHub
-→ Μηνιαία επαναφορά (1η του μήνα)
+→ Monthly reset (1st of month)
 
 Models:
   gh/gpt-5.5
@@ -179,97 +173,97 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Οικονομικοί Πάροχοι
+### Cheap Providers
 
-#### GLM-4.7 (Ημερήσια επαναφορά, $0.6/1M)
+#### GLM-4.7 (Daily reset, $0.6/1M)
 
-1. Εγγραφή: [Zhipu AI](https://open.bigmodel.cn)
-2. Αποκτήστε κλειδί API από το Coding Plan
+1. Sign up: [Zhipu AI](https://open.bigmodel.cn)
+2. Get API key from Coding Plan
 3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
 
-**Χρήση:** `glm/glm-4.7` — **Χρήσιμη Συμβουλή:** Το Coding Plan προσφέρει 3× όριο με 1/7 του κόστους! Επαναφορά καθημερινά στις 10:00 π.μ.
+**Use:** `glm/glm-4.7` — **Pro Tip:** Coding Plan offers 3× quota at 1/7 cost! Reset daily 10:00 AM.
 
-#### MiniMax M2.1 (Επαναφορά ανά 5ω, $0.20/1M)
+#### MiniMax M2.1 (5h reset, $0.20/1M)
 
-1. Εγγραφή: [MiniMax](https://www.minimax.io)
-2. Αποκτήστε κλειδί API → Dashboard → Add API Key
+1. Sign up: [MiniMax](https://www.minimax.io)
+2. Get API key → Dashboard → Add API Key
 
-**Χρήση:** `minimax/MiniMax-M2.1` — **Χρήσιμη Συμβουλή:** Η φθηνότερη επιλογή για μεγάλο πλαίσιο (1M tokens)!
+**Use:** `minimax/MiniMax-M2.1` — **Pro Tip:** Cheapest option for long context (1M tokens)!
 
-#### Kimi K2 ($9/μήνα σταθερά)
+#### Kimi K2 ($9/month flat)
 
-1. Συνδρομή: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Αποκτήστε κλειδί API → Dashboard → Add API Key
+1. Subscribe: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
+2. Get API key → Dashboard → Add API Key
 
-**Χρήση:** `kimi/kimi-k2.5` — **Χρήσιμη Συμβουλή:** Σταθερά $9/μήνα για 10M tokens = αποτελεσματικό κόστος $0.90/1M!
+**Use:** `kimi/kimi-k2.5` — **Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
 
 #### Baidu Qianfan / ERNIE
 
-1. Εγγραφή: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Δημιουργήστε κλειδί Qianfan API → Dashboard → Add API Key: Provider: `qianfan`
+1. Sign up: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
+2. Create a Qianfan API key → Dashboard → Add API Key: Provider: `qianfan`
 
-**Χρήση:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, ή άλλο αναγνωριστικό μοντέλου συμβατό με OpenAI από το Qianfan.
+**Use:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, or another Qianfan OpenAI-compatible model ID.
 
-### 🆓 ΔΩΡΕΑΝ Πάροχοι
+### FREE Providers
 
-Οι δωρεάν πάροχοι χωρίς πιστοποίηση διαθέτουν έναν διακόπτη δίπλα στο **No authentication required** στη σελίδα του παρόχου τους.
-Απενεργοποιώντας τον απενεργοποιείτε τον πάροχο, τον αφαιρείτε από τις προβολές Providers configured/compact, και
-αφαιρείτε τα μοντέλα του από το `/v1/models`.
+No-auth free providers have a switch beside **No authentication required** on their provider page.
+Turning it off disables that provider, removes it from Providers configured/compact views, and
+removes its models from `/v1/models`.
 
-#### Qoder (9 ΔΩΡΕΑΝ μοντέλα)
+#### Qoder (9 FREE models)
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Η πρόσβαση υπόκειται στα τρέχοντα όρια του παρόχου
+Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
 
 Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude ΔΩΡΕΑΝ)
+#### Kiro (Claude FREE)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID ή Google/GitHub → ~50 credits/μήνα
+Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → ~50 credits/month
 
 Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---
 
-## 🎨 Συνδυασμοί
+## Combos
 
-Μπορείτε να αναδιατάξετε τις κάρτες συνδυασμών απευθείας στο **Dashboard → Combos** σύροντας τη λαβή κάθε κάρτας. Η σειρά αποθηκεύεται στο SQLite και αποκαθίσταται κατά την επαναφόρτωση.
+You can reorder combo cards directly in **Dashboard → Combos** by dragging the handle on each card. The order is stored in SQLite and restored on reload.
 
-### Παράδειγμα 1: Μεγιστοποίηση Συνδρομής → Οικονομικό Εφεδρικό
+### Example 1: Maximize Subscription → Cheap Backup
 
 ```
 Dashboard → Combos → Create New
 
 Name: premium-coding
 Models:
-  1. cc/claude-opus-4-7 (Κύριο συνδρομής)
-  2. glm/glm-4.7 (Οικονομικό εφεδρικό, $0.6/1M)
-  3. minimax/MiniMax-M2.7 (Φθηνότερη εναλλακτική, $0.3/1M)
+  1. cc/claude-opus-4-7 (Subscription primary)
+  2. glm/glm-4.7 (Cheap backup, $0.6/1M)
+  3. minimax/MiniMax-M2.7 (Cheapest fallback, $0.3/1M)
 
 Use in CLI: premium-coding
 ```
 
-### Παράδειγμα 2: Μόνο Δωρεάν (Μηδενικό Κόστος)
+### Example 2: Free-Only (Zero Cost)
 
 ```
 Name: free-combo
 Models:
-  1. if/kimi-k2.7-code (Καταχωρισμένη δωρεάν πρόσβαση· ενδέχεται να ισχύουν όρια παρόχου)
-  2. kr/qwen3-coder-next (Δωρεάν εφεδρικό Kiro)
+  1. if/kimi-k2.7-code (listed free access; provider limits may apply)
+  2. kr/qwen3-coder-next (Kiro free fallback)
 
-Cost: αναφέρεται ως $0 αυτή τη στιγμή· οι όροι και η διαθεσιμότητα ενδέχεται να αλλάξουν
+Cost: currently listed as $0; terms and availability may change
 ```
 
 ---
 
-## 🔧 Ενσωμάτωση CLI
+## CLI Integration
 
 ### Cursor IDE
 
-**Χρήση του Cursor ως πελάτη OmniRoute** (δρομολόγηση συνομιλίας Cursor μέσω OmniRoute):
+**Using Cursor as an OmniRoute client** (route Cursor chat through OmniRoute):
 
 ```
 Settings → Models → Advanced:
@@ -278,13 +272,13 @@ Settings → Models → Advanced:
   Model: cc/claude-opus-4-7
 ```
 
-**Χρήση του OmniRoute ως παροχέα Cursor** (το OmniRoute καλεί το Cursor ανάντη): προτιμήστε
-**Dashboard → Providers → Cursor → Login with Cursor**. Σε Docker, δείτε
+**Using OmniRoute as a Cursor provider** (OmniRoute calls Cursor upstream): prefer
+**Dashboard → Providers → Cursor → Login with Cursor**. In Docker, see
 [`docs/providers/CURSOR-DOCKER.md`](../providers/CURSOR-DOCKER.md).
 
 ### Claude Code
 
-Επεξεργαστείτε το `~/.claude/settings.json`:
+Edit `~/.claude/settings.json`:
 
 ```json
 {
@@ -295,7 +289,7 @@ Settings → Models → Advanced:
 }
 ```
 
-Χρησιμοποιήστε εδώ το συμβατό με Claude ριζικό endpoint. Μην προσθέτετε `/v1` στο `ANTHROPIC_BASE_URL`.
+Use the Claude-compatible root endpoint here. Do not append `/v1` to `ANTHROPIC_BASE_URL`.
 
 ### Codex CLI
 
@@ -307,7 +301,7 @@ codex "your prompt"
 
 ### OpenClaw
 
-Επεξεργαστείτε το `~/.openclaw/openclaw.json`:
+Edit `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -329,7 +323,7 @@ codex "your prompt"
 }
 ```
 
-**Ή χρησιμοποιήστε το Dashboard:** CLI Tools → OpenClaw → Auto-config
+**Or use Dashboard:** CLI Tools → OpenClaw → Auto-config
 
 ### Cline / Continue / RooCode
 
@@ -342,82 +336,82 @@ Model: cc/claude-opus-4-7
 
 ---
 
-## 🚀 Ανάπτυξη
+## Deployment
 
-### Καθολική εγκατάσταση npm (Προτεινόμενη)
+### Global npm install (Recommended)
 
 ```bash
 npm install -g omniroute
 
-# Δημιουργία καταλόγου ρυθμίσεων
+# Create config directory
 mkdir -p ~/.omniroute
 
-# Δημιουργία αρχείου .env (δείτε .env.example)
+# Create .env file (see .env.example)
 cp .env.example ~/.omniroute/.env
 
-# Εκκίνηση διακομιστή
+# Start server
 omniroute
-# Ή με προσαρμοσμένη θύρα:
+# Or with custom port:
 omniroute --port 3000
 ```
 
-Το CLI φορτώνει αυτόματα το `.env` από `~/.omniroute/.env` ή `./.env`.
+The CLI automatically loads `.env` from `~/.omniroute/.env` or `./.env`.
 
-### Λειτουργία δίσκου συστήματος (Tray)
+### Tray mode
 
-Εκκινήστε το OmniRoute στο δίσκο συστήματος:
+Start OmniRoute in the system tray:
 
 ```bash
 omniroute serve --tray
 ```
 
-Η εντολή επιστρέφει μετά την ετοιμότητα του διακομιστή και του δίσκου.
+The command returns after the server and tray are ready.
 
-Ο διακομιστής συνεχίζει χωρίς το τερματικό.
+The server continues without the terminal.
 
-Η λειτουργία δίσκου υποστηρίζει macOS, Windows και γραφικές συνεδρίες Linux. Η λειτουργία δίσκου δεν ανοίγει αυτόματα το dashboard.
+Tray mode supports macOS, Windows, and graphical Linux sessions. Tray mode does not open the dashboard automatically.
 
-Χρησιμοποιήστε το μενού δίσκου για αυτές τις ενέργειες:
+Use the tray menu for these actions:
 
-- Άνοιγμα του dashboard.
-- Άνοιγμα του `/dashboard/logs`.
-- Αλλαγή αυτόματης εκκίνησης.
-- Διακοπή του OmniRoute.
+- Open the dashboard.
+- Open `/dashboard/logs`.
+- Change auto-start.
+- Stop OmniRoute.
 
-Μη συνδυάζετε το `--tray` με αυτές τις επιλογές:
+Do not combine `--tray` with these options:
 
 - `--daemon`
 - `--log`
 - `--no-recovery`
 
-Αυτές οι λειτουργίες απαιτούν διαφορετική ιδιοκτησία διεργασίας.
+These modes require different process ownership.
 
-Ενεργοποιήστε την εκκίνηση κατά την επόμενη σύνδεση στο μηχάνημα:
+Enable startup at the next machine login:
 
 ```bash
 omniroute autostart enable
 ```
 
-Η αυτόματη εκκίνηση χρησιμοποιεί λειτουργία δίσκου σε macOS, Windows και γραφικές συνεδρίες Linux. Το headless Linux χρησιμοποιεί την υπάρχουσα υπηρεσία χρήστη systemd.
+Auto-start uses tray mode on macOS, Windows, and graphical Linux sessions. Headless Linux uses the existing systemd user service.
 
-Απενεργοποιήστε την εκκίνηση κατά τη σύνδεση:
+Disable startup at login:
 
 ```bash
 omniroute autostart disable
 ```
 
-### Απεγκατάσταση
+### Uninstalling
 
-Όταν δεν χρειάζεστε πλέον το OmniRoute, παρέχουμε δύο γρήγορα σενάρια για καθαρή αφαίρεση:
+When you no longer need OmniRoute, we provide two quick scripts for a clean removal:
 
-| Εντολή                   | Ενέργεια                                                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `npm run uninstall`      | Αφαιρεί την εφαρμογή συστήματος αλλά **διατηρεί τη βάση δεδομένων και τις ρυθμίσεις σας** στο `~/.omniroute`. |
-| `npm run uninstall:full` | Αφαιρεί την εφαρμογή ΚΑΙ **διαγράφει μόνιμα όλες τις ρυθμίσεις, τα κλειδιά και τις βάσεις δεδομένων**.        |
+| Command                  | Action                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `npm run uninstall`      | Removes the system app but **keeps your DB and configurations** in `~/.omniroute`.  |
+| `npm run uninstall:full` | Removes the app AND permanently **erases all configurations, keys, and databases**. |
 
-> Σημείωση: Για να εκτελέσετε αυτές τις εντολές, μεταβείτε στον φάκελο του έργου OmniRoute (εάν το κλωνοποιήσατε) και εκτελέστε τες. Εναλλακτικά, εάν είναι εγκατεστημένο καθολικά, μπορείτε απλώς να εκτελέσετε `npm uninstall -g omniroute`.
+> Note: To run these commands, navigate to the OmniRoute project folder (if you cloned it) and run them. Alternatively, if globally installed, you can simply run `npm uninstall -g omniroute`.
 
-### Ανάπτυξη σε VPS
+### VPS Deployment
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -433,25 +427,25 @@ export NEXT_PUBLIC_BASE_URL="http://localhost:20128"
 export API_KEY_SECRET="endpoint-proxy-api-key-secret"
 
 npm run start
-# Ή: pm2 start npm --name omniroute -- start
+# Or: pm2 start npm --name omniroute -- start
 ```
 
-### Ανάπτυξη με PM2 (Χαμηλή Μνήμη)
+### PM2 Deployment (Low Memory)
 
-Για διακομιστές με περιορισμένη RAM, χρησιμοποιήστε την επιλογή ορίου μνήμης:
+For servers with limited RAM, use the memory limit option:
 
 ```bash
-# Με όριο 512MB (προεπιλογή)
+# With 512MB limit (default)
 pm2 start npm --name omniroute -- start
 
-# Ή με προσαρμοσμένο όριο μνήμης
+# Or with custom memory limit
 OMNIROUTE_MEMORY_MB=512 pm2 start npm --name omniroute -- start
 
-# Ή χρησιμοποιώντας το ecosystem.config.js
+# Or using ecosystem.config.js
 pm2 start ecosystem.config.js
 ```
 
-Δημιουργήστε το `ecosystem.config.js`:
+Create `ecosystem.config.js`:
 
 ```javascript
 module.exports = {
@@ -476,21 +470,21 @@ module.exports = {
 ### Docker
 
 ```bash
-# Κατασκευή εικόνας (προεπιλογή = runner-cli με προεγκατεστημένα codex/claude/droid)
+# Build image (default = runner-cli with codex/claude/droid preinstalled)
 docker build -t omniroute:cli .
 
-# Φορητή λειτουργία (προτεινόμενη)
+# Portable mode (recommended)
 docker run -d --name omniroute -p 20128:20128 --env-file ./.env -v omniroute-data:/app/data omniroute:cli
 ```
 
-Για λειτουργία ενσωματωμένη στον κεντρικό υπολογιστή με δυαδικά αρχεία CLI, δείτε την ενότητα Docker στην κύρια τεκμηρίωση.
+For host-integrated mode with CLI binaries, see the Docker section in the main docs.
 
 ### Void Linux (xbps-src)
 
-Οι χρήστες Void Linux μπορούν να δημιουργήσουν πακέτο και να εγκαταστήσουν το OmniRoute εγγενώς χρησιμοποιώντας το πλαίσιο cross-compilation `xbps-src`. Αυτό αυτοματοποιεί τη μεμονωμένη κατασκευή Node.js μαζί με τις απαιτούμενες εγγενείς συνδέσεις `better-sqlite3`.
+Void Linux users can package and install OmniRoute natively using the `xbps-src` cross-compilation framework. This automates the Node.js standalone build along with the required `better-sqlite3` native bindings.
 
 <details>
-<summary><b>Προβολή προτύπου xbps-src</b></summary>
+<summary><b>View xbps-src template</b></summary>
 
 ```bash
 # Template file for 'omniroute'
@@ -514,7 +508,7 @@ export npm_config_fund=false
 export npm_config_audit=false
 
 do_build() {
-	# Καθορισμός αρχιτεκτονικής CPU στόχου για node-gyp
+	# Determine target CPU arch for node-gyp
 	local _gyp_arch
 	case "$XBPS_TARGET_MACHINE" in
 		aarch64*) _gyp_arch=arm64 ;;
@@ -523,29 +517,29 @@ do_build() {
 		*) _gyp_arch=x64 ;;
 	esac
 
-	# 1) Εγκατάσταση όλων των εξαρτήσεων – παράλειψη scripts
+	# 1) Install all deps – skip scripts
 	NODE_ENV=development npm ci --ignore-scripts
 
-	# 2) Κατασκευή του μεμονωμένου bundle Next.js
+	# 2) Build the Next.js standalone bundle
 	npm run build
 
-	# 3) Αντιγραφή στατικών στοιχείων στο standalone
+	# 3) Copy static assets into standalone
 	cp -r .next/static .next/standalone/.next/static
 	[ -d public ] && cp -r public .next/standalone/public || true
 
-	# 4) Μεταγλώττιση εγγενούς σύνδεσης better-sqlite3
+	# 4) Compile better-sqlite3 native binding
 	local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
 	(cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
 
-	# 5) Τοποθέτηση της μεταγλωττισμένης σύνδεσης στο standalone bundle
+	# 5) Place the compiled binding into the standalone bundle
 	local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
 	mkdir -p "$_bs3_release"
 	cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
 
-	# 6) Αφαίρεση πακέτων sharp ειδικών αρχιτεκτονικής
+	# 6) Remove arch-specific sharp bundles
 	rm -rf .next/standalone/node_modules/@img
 
-	# 7) Αντιγραφή εξαρτήσεων runtime pino που παραλείπει η στατική ανάλυση του Next.js:
+	# 7) Copy pino runtime deps omitted by Next.js static analysis:
 	for _mod in pino-abstract-transport split2 process-warning; do
 		cp -r "node_modules/$_mod" .next/standalone/node_modules/
 	done
@@ -559,7 +553,7 @@ do_install() {
 	vmkdir usr/lib/omniroute/.next
 	vcopy .next/standalone/. usr/lib/omniroute/.next/standalone
 
-	# Αποτροπή αφαίρεσης κενών καταλόγων δρομολογητή Next.js app από το hook μετά την εγκατάσταση
+	# Prevent removal of empty Next.js app router dirs by the post-install hook
 	for _d in \
 		.next/standalone/.next/server/app/dashboard \
 		.next/standalone/.next/server/app/dashboard/settings \
@@ -585,122 +579,123 @@ post_install() {
 
 </details>
 
-### Μεταβλητές Περιβάλλοντος
+### Environment Variables
 
-| Μεταβλητή                               | Προεπιλογή                           | Περιγραφή                                                                                                                                                               |
-| --------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | Μυστικό υπογραφής JWT (**αλλάξτε σε παραγωγή**)                                                                                                                         |
-| `INITIAL_PASSWORD`                      | `CHANGEME`                           | Κωδικός πρόσβασης πρώτης σύνδεσης                                                                                                                                       |
-| `DATA_DIR`                              | `~/.omniroute`                       | Κατάλογος δεδομένων (db, χρήση, αρχεία καταγραφής)                                                                                                                      |
-| `PORT`                                  | προεπιλογή framework                 | Θύρα υπηρεσίας (`20128` στα παραδείγματα)                                                                                                                               |
-| `HOSTNAME`                              | προεπιλογή framework                 | Κεντρικός υπολογιστής δέσμευσης (Docker προεπιλέγει `0.0.0.0`)                                                                                                          |
-| `NODE_ENV`                              | προεπιλογή runtime                   | Ορίστε `production` για ανάπτυξη                                                                                                                                        |
-| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | Δημόσιο βασικό URL που εμφανίζεται στο dashboard και εκτίθεται στον διακομιστή (αντικαθιστά το παλαιό `BASE_URL`)                                                       |
-| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Βασικό URL endpoint συγχρονισμού cloud (αντικαθιστά το παλαιό `CLOUD_URL`)                                                                                              |
-| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | Μυστικό HMAC για τα παραγόμενα κλειδιά API                                                                                                                              |
-| `REQUIRE_API_KEY`                       | `false`                              | Επιβολή κλειδιού API Bearer στο `/v1/*`                                                                                                                                 |
-| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Επιτρέπει σε πιστοποιημένους χρήστες dashboard να αποκαλύπτουν πλήρεις αποθηκευμένες τιμές κλειδιών API κατ' απαίτηση                                                   |
-| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Συχνότητα ανανέωσης από τον διακομιστή για δεδομένα Ορίων Παροχέα σε προσωρινή αποθήκευση· τα κουμπιά ανανέωσης UI εξακολουθούν να ενεργοποιούν χειροκίνητο συγχρονισμό |
-| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Απενεργοποίηση αυτόματων στιγμιοτύπων SQLite πριν από εγγραφές/εισαγωγή/επαναφορά· τα χειροκίνητα αντίγραφα ασφαλείας εξακολουθούν να λειτουργούν                       |
-| `APP_LOG_TO_FILE`                       | `true`                               | Ενεργοποιεί την εξαγωγή αρχείων καταγραφής εφαρμογής και ελέγχου στο δίσκο                                                                                              |
-| `AUTH_COOKIE_SECURE`                    | `false`                              | Επιβολή cookie ταυτοποίησης `Secure` (πίσω από αντίστροφο διακομιστή μεσολάβησης HTTPS)                                                                                 |
-| `CLOUDFLARED_BIN`                       | μη ορισμένο                          | Χρήση υπάρχοντος δυαδικού `cloudflared` αντί για διαχειριζόμενη λήψη                                                                                                    |
-| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | Μεταφορά για διαχειριζόμενα Quick Tunnels (`http2`, `quic` ή `auto`)                                                                                                    |
-| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Όριο heap Node.js σε MB                                                                                                                                                 |
-| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | Μέγιστες καταχωρήσεις προσωρινής αποθήκευσης prompt                                                                                                                     |
-| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | Μέγιστες καταχωρήσεις σημασιολογικής προσωρινής αποθήκευσης                                                                                                             |
+| Variable                                | Default                              | Description                                                                                               |
+| --------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)                                                             |
+| `INITIAL_PASSWORD`                      | `CHANGEME`                           | First login password                                                                                      |
+| `DATA_DIR`                              | `~/.omniroute`                       | Data directory (db, usage, logs)                                                                          |
+| `PORT`                                  | framework default                    | Service port (`20128` in examples)                                                                        |
+| `HOSTNAME`                              | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                                                                  |
+| `NODE_ENV`                              | runtime default                      | Set `production` for deploy                                                                               |
+| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | Public base URL surfaced to the dashboard and exposed to the server (replaces legacy `BASE_URL`)          |
+| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Cloud sync endpoint base URL (replaces legacy `CLOUD_URL`)                                                |
+| `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                                        |
+| `REQUIRE_API_KEY`                       | `false`                              | Enforce Bearer API key on `/v1/*`                                                                         |
+| `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow authenticated dashboard users to reveal full stored API key values on demand                        |
+| `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`                                 | Server-side refresh cadence for cached Provider Limits data; UI refresh buttons still trigger manual sync |
+| `DISABLE_SQLITE_AUTO_BACKUP`            | `false`                              | Disable automatic SQLite snapshots before writes/import/restore; manual backups still work                |
+| `APP_LOG_TO_FILE`                       | `true`                               | Enables application and audit log output to disk                                                          |
+| `AUTH_COOKIE_SECURE`                    | `false`                              | Force `Secure` auth cookie (behind HTTPS reverse proxy)                                                   |
+| `CLOUDFLARED_BIN`                       | unset                                | Use an existing `cloudflared` binary instead of managed download                                          |
+| `CLOUDFLARED_PROTOCOL`                  | `http2`                              | Transport for managed Quick Tunnels (`http2`, `quic`, or `auto`)                                          |
+| `OMNIROUTE_MEMORY_MB`                   | `512`                                | Node.js heap limit in MB                                                                                  |
+| `PROMPT_CACHE_MAX_SIZE`                 | `50`                                 | Max prompt cache entries                                                                                  |
+| `SEMANTIC_CACHE_MAX_SIZE`               | `100`                                | Max semantic cache entries                                                                                |
 
-Για την πλήρη αναφορά μεταβλητών περιβάλλοντος, δείτε το [README](../README.md).
+For the full environment variable reference, see the [README](../README.md).
 
 ---
 
-## 📊 Διαθέσιμα Μοντέλα
+## Available Models
 
 <details>
-<summary><b>Προβολή όλων των διαθέσιμων μοντέλων</b></summary>
+<summary><b>View all available models</b></summary>
 
-> Η παρακάτω λίστα έχει συνταχθεί από το `open-sse/config/providerRegistry.ts` για την έκδοση v3.8.0. Τα καταλόγοι cloud (Gemini, OpenRouter κ.λπ.) συγχρονίζονται δυναμικά — για τον πλήρη ζωντανό κατάλογο ανοίξτε **Πίνακας Ελέγχου → Πάροχοι → [πάροχος] → Διαθέσιμα Μοντέλα** ή καλέστε `GET /api/models/catalog`.
+> The list below is curated from `open-sse/config/providerRegistry.ts` for v3.8.0. Cloud catalogs (Gemini, OpenRouter, etc.) are synced dynamically — for the full live catalog open **Dashboard → Providers → [provider] → Available Models** or call `GET /api/models/catalog`.
 >
-> Εάν η ενσωματωμένη λίστα ενός παρόχου έχει αποκλίνει, χρησιμοποιήστε **Εισαγωγή από /models** σε αυτή τη σελίδα (ή ενεργοποιήστε **Αυτόματο Συγχρονισμό**) για να αντλήσετε τον ζωντανό upstream κατάλογο. Αυτό επαληθεύτηκε στην έκδοση v3.8.50 για το LLM7.io (`gemini-3.1-flash-lite`) και το UncloseAI (`solidrust/Hermes-3-Llama-3.1-8B-AWQ`)· η ανώνυμη πρόσβαση στο Pollinations παρέμεινε περιορισμένη από upstream κατά τη διάρκεια της ίδιας δοκιμής.
+> If a provider's built-in list has drifted, use **Import from /models** on that page (or enable **Auto-Sync**) to pull the live upstream catalog. This was verified in v3.8.50 for LLM7.io (`gemini-3.1-flash-lite`) and UncloseAI (`solidrust/Hermes-3-Llama-3.1-8B-AWQ`); Pollinations anonymous access remained upstream-limited during the same test pass.
 
 **Claude Code (`cc/`)** — Pro/Max OAuth: `cc/claude-opus-4-8`, `cc/claude-opus-4-7`, `cc/claude-opus-4-6`, `cc/claude-opus-4-5-20251101`, `cc/claude-sonnet-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
-**Codex (`cx/`)** — Plus/Pro OAuth: `cx/gpt-5.5` (+ επίπεδα προσπάθειας: `gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`), `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`
+**Codex (`cx/`)** — Plus/Pro OAuth: `cx/gpt-5.5` (+ effort tiers: `gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`), `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`
 
 **GitHub Copilot (`gh/`)** — OAuth: `gh/gpt-5.5`, `gh/gpt-5.4`, `gh/gpt-5.4-mini`, `gh/gpt-5-mini`, `gh/gpt-5.3-codex`, `gh/claude-opus-4.7`, `gh/claude-opus-4.6`, `gh/claude-opus-4-5-20251101`, `gh/claude-sonnet-4.6`, `gh/claude-sonnet-4.5`, `gh/claude-haiku-4.5`, `gh/gemini-3.1-pro-preview`, `gh/gemini-3-flash-preview`, `gh/oswe-vscode-prime`
 
-**Kiro (`kr/`)** — ΔΩΡΕΑΝ OAuth: χρησιμοποιήστε τον ζωντανό κατάλογο που εμφανίζεται στο **Πίνακας Ελέγχου → Πάροχοι → Kiro → Διαθέσιμα Μοντέλα**. Η διαθεσιμότητα εξαρτάται από τον λογαριασμό και το πλάνο.
+**Kiro (`kr/`)** — FREE OAuth: use the live catalog shown under **Dashboard → Providers → Kiro → Available Models**. Availability depends on the account and plan.
 
-**Qoder (`if/`)** — ΔΩΡΕΑΝ OAuth: `if/qwen3.8-max-preview`, `if/qwen3.7-max`, `if/qwen3.7-plus`, `if/kimi-k3`, `if/kimi-k2.7-code`, `if/glm-5.2`, `if/deepseek-v4-pro`, `if/deepseek-v4-flash`, `if/minimax-m3`
+**Qoder (`if/`)** — FREE OAuth: `if/qwen3.8-max-preview`, `if/qwen3.7-max`, `if/qwen3.7-plus`, `if/kimi-k3`, `if/kimi-k2.7-code`, `if/glm-5.2`, `if/deepseek-v4-pro`, `if/deepseek-v4-flash`, `if/minimax-m3`
 
-**GLM (`glm/`, `glm-cn/`, `zai/`, `glmt/`)** — $0,2–0,6/1M: `glm/glm-5.1`, `glm/glm-5`, `glm/glm-5-turbo`, `glm/glm-4.7`, `glm/glm-4.7-flash`, `glm/glm-4.6`, `glm/glm-4.6v`, `glm/glm-4.5`, `glm/glm-4.5v`, `glm/glm-4.5-air`
+**GLM (`glm/`, `glm-cn/`, `zai/`, `glmt/`)** — $0.2–0.6/1M: `glm/glm-5.1`, `glm/glm-5`, `glm/glm-5-turbo`, `glm/glm-4.7`, `glm/glm-4.7-flash`, `glm/glm-4.6`, `glm/glm-4.6v`, `glm/glm-4.5`, `glm/glm-4.5v`, `glm/glm-4.5-air`
 
-**MiniMax (`minimax/`, `minimax-cn/`)** — $0,2/1M: `minimax/MiniMax-M2.7`, `minimax/MiniMax-M2.7-highspeed`, `minimax/MiniMax-M2.5`, `minimax/MiniMax-M2.5-highspeed`
+**MiniMax (`minimax/`, `minimax-cn/`)** — $0.2/1M: `minimax/MiniMax-M2.7`, `minimax/MiniMax-M2.7-highspeed`, `minimax/MiniMax-M2.5`, `minimax/MiniMax-M2.5-highspeed`
 
-**Kimi (`kimi/`, `kimi-coding/`, `kimi-coding-apikey/`)** — $9/μήνα κατ' αποκοπή ή ανά χρήση: `kimi/kimi-k2.6`, `kimi/kimi-k2.5`
+**Kimi (`kimi/`, `kimi-coding/`, `kimi-coding-apikey/`)** — $9/mo flat or per-use: `kimi/kimi-k2.6`, `kimi/kimi-k2.5`
 
-**DeepSeek (`ds/`)** — Κλειδί API: `ds/deepseek-v4-pro`, `ds/deepseek-v4-flash`
+**DeepSeek (`ds/`)** — API key: `ds/deepseek-v4-pro`, `ds/deepseek-v4-flash`
 
-**Groq (`groq/`)** — Εξαιρετικά γρήγορο: `groq/llama-3.3-70b-versatile`, `groq/meta-llama/llama-4-maverick-17b-128e-instruct`, `groq/qwen/qwen3-32b`, `groq/openai/gpt-oss-120b`
+**Groq (`groq/`)** — Ultra-fast: `groq/llama-3.3-70b-versatile`, `groq/meta-llama/llama-4-maverick-17b-128e-instruct`, `groq/qwen/qwen3-32b`, `groq/openai/gpt-oss-120b`
 
 **xAI (`xai/`)** — Grok native: `xai/grok-4.3`, `xai/grok-4.20-multi-agent-0309`, `xai/grok-4.20-0309-reasoning`, `xai/grok-4.20-0309-non-reasoning`
 
-**Mistral (`mistral/`)** — Φιλοξενείται στην ΕΕ: `mistral/mistral-large-latest`, `mistral/mistral-medium-3-5`, `mistral/mistral-small-latest`, `mistral/devstral-latest`, `mistral/codestral-latest`
+**Mistral (`mistral/`)** — EU-hosted: `mistral/mistral-large-latest`, `mistral/mistral-medium-3-5`, `mistral/mistral-small-latest`, `mistral/devstral-latest`, `mistral/codestral-latest`
 
-**Perplexity (`pplx/`)** — Ενισχυμένο με αναζήτηση: `pplx/sonar-deep-research`, `pplx/sonar-reasoning-pro`, `pplx/sonar-pro`, `pplx/sonar`
+**Perplexity (`pplx/`)** — Search-augmented: `pplx/sonar-deep-research`, `pplx/sonar-reasoning-pro`, `pplx/sonar-pro`, `pplx/sonar`
 
-**Together AI (`together/`)** — Ανοιχτού κώδικα: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo-Free` (δωρεάν), `together/meta-llama/Llama-Vision-Free`, `together/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-Free`, `together/deepseek-ai/DeepSeek-R1`, `together/Qwen/Qwen3-235B-A22B`, `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`
+**Together AI (`together/`)** — Open-source: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo-Free` (free), `together/meta-llama/Llama-Vision-Free`, `together/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-Free`, `together/deepseek-ai/DeepSeek-R1`, `together/Qwen/Qwen3-235B-A22B`, `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`
 
-**Fireworks AI (`fireworks/`)** — Γρήγορη εκτέλεση: `fireworks/accounts/fireworks/models/kimi-k2p6`, `fireworks/accounts/fireworks/models/minimax-m2p7`, `fireworks/accounts/fireworks/models/qwen3p6-plus`, `fireworks/accounts/fireworks/models/glm-5p1`, `fireworks/accounts/fireworks/models/deepseek-v4-pro`
+**Fireworks AI (`fireworks/`)** — Fast inference: `fireworks/accounts/fireworks/models/kimi-k2p6`, `fireworks/accounts/fireworks/models/minimax-m2p7`, `fireworks/accounts/fireworks/models/qwen3p6-plus`, `fireworks/accounts/fireworks/models/glm-5p1`, `fireworks/accounts/fireworks/models/deepseek-v4-pro`
 
 **Cerebras (`cerebras/`)** — Wafer-scale: `cerebras/zai-glm-4.7`, `cerebras/gpt-oss-120b`
 
-**Cohere (`cohere/`)** — Εστιασμένο σε RAG: `cohere/command-a-reasoning-08-2025`, `cohere/command-a-vision-07-2025`, `cohere/command-a-03-2025`, `cohere/command-r-08-2024`
+**Cohere (`cohere/`)** — RAG-focused: `cohere/command-a-reasoning-08-2025`, `cohere/command-a-vision-07-2025`, `cohere/command-a-03-2025`, `cohere/command-r-08-2024`
 
-**NVIDIA NIM (`nvidia/`)** — Επιχειρησιακό: `nvidia/z-ai/glm-5.1`, `nvidia/minimaxai/minimax-m2.7`, `nvidia/google/gemma-4-31b-it`, `nvidia/mistralai/mistral-small-4-119b-2603`, `nvidia/mistralai/mistral-large-3-675b-instruct-2512`, `nvidia/qwen/qwen3.5-397b-a17b`, `nvidia/deepseek-ai/deepseek-v4-pro`, `nvidia/openai/gpt-oss-120b`, `nvidia/nvidia/nemotron-3-super-120b-a12b`
+**NVIDIA NIM (`nvidia/`)** — Enterprise: `nvidia/z-ai/glm-5.1`, `nvidia/minimaxai/minimax-m2.7`, `nvidia/google/gemma-4-31b-it`, `nvidia/mistralai/mistral-small-4-119b-2603`, `nvidia/mistralai/mistral-large-3-675b-instruct-2512`, `nvidia/qwen/qwen3.5-397b-a17b`, `nvidia/deepseek-ai/deepseek-v4-pro`, `nvidia/openai/gpt-oss-120b`, `nvidia/nvidia/nemotron-3-super-120b-a12b`
 
 **Baidu Qianfan (`qianfan/`)** — ERNIE: `qianfan/ernie-5.1`, `qianfan/ernie-5.0-thinking-latest`, `qianfan/ernie-x1.1`
 
 **Ollama Cloud (`ollama-cloud/`)**: `ollama-cloud/deepseek-v4-pro`, `ollama-cloud/deepseek-v4-flash`, `ollama-cloud/kimi-k2.6`, `ollama-cloud/glm-5.1`, `ollama-cloud/minimax-m2.7`, `ollama-cloud/gemma4:31b`, `ollama-cloud/qwen3.5:397b`
 
-**Gemini (Google Cloud `gemini/`)**: Συγχρονίζεται ζωντανά ανά κλειδί API από την Google — δεν υπάρχει στατική λίστα. Συνδέστε ένα κλειδί στο **Πίνακας Ελέγχου → Πάροχοι** και στη συνέχεια χρησιμοποιήστε **Διαθέσιμα Μοντέλα** για να εισαγάγετε τον τρέχοντα κατάλογο (π.χ. `gemini/gemini-3-pro`, `gemini/gemini-3-flash`).
+**Gemini (Google Cloud `gemini/`)**: Synced live per API key from Google — no static list. Connect a key in **Dashboard → Providers** then use **Available Models** to import the current catalog (e.g. `gemini/gemini-3-pro`, `gemini/gemini-3-flash`).
 
-**Άλλοι συμβατοί πάροχοι** (επιλεγμένοι): `cohere`, `databricks`, `snowflake`, `together`, `vertex`, `alibaba`, `alibaba-cn`, `bedrock` (μέσω `aws-bedrock`), `azure-ai`, `openrouter` (κατάλογος passthrough), `siliconflow`, `hyperbolic`, `huggingface`, `featherless-ai`, `cloudflare-ai`, `scaleway`, `deepinfra`, `vercel-ai-gateway`, `bazaarlink`, `friendliai`, `nous-research`, `reka`, `volcengine`, `ai21`, `gigachat`. Ο καθένας διατηρεί τη δική του λίστα μοντέλων στο `providerRegistry.ts` και μπορεί να συγχρονιστεί αυτόματα όταν ο πάροχος εκθέτει ένα endpoint `/models`.
+**Other compatible providers** (selected): `cohere`, `databricks`, `snowflake`, `together`, `vertex`, `alibaba`, `alibaba-cn`, `bedrock` (via `aws-bedrock`), `azure-ai`, `openrouter` (passthrough catalog), `siliconflow`, `hyperbolic`, `huggingface`, `featherless-ai`, `cloudflare-ai`, `scaleway`, `deepinfra`, `vercel-ai-gateway`, `bazaarlink`, `friendliai`, `nous-research`, `reka`, `volcengine`, `ai21`, `gigachat`. Each maintains its own model list in `providerRegistry.ts` and can be auto-synced when the provider exposes a `/models` endpoint.
 
-**Σημείωση για τα αναγνωριστικά μοντέλων:** Το OmniRoute χρησιμοποιεί τα native αναγνωριστικά του παρόχου (`claude-opus-4-8`, `gpt-5.5`, `glm-5.1`, `MiniMax-M2.7`, `kimi-k2.5`, `grok-4.20-0309-reasoning`). Ορισμένα αναγνωριστικά περιλαμβάνουν εκδόσεις με τελείες επειδή έτσι τα αναμένει το upstream API. Εάν ένα μοντέλο δεν εμφανίζεται παραπάνω, εκτελέστε `omniroute models --search <term>` ή χτυπήστε `GET /api/models/catalog` για να επιβεβαιώσετε τη διαθεσιμότητα.
+**Note on model IDs:** OmniRoute uses provider-native IDs (`claude-opus-4-8`, `gpt-5.5`, `glm-5.1`, `MiniMax-M2.7`, `kimi-k2.5`, `grok-4.20-0309-reasoning`). Some IDs include dotted versions because that is how the upstream API expects them. If a model is not listed above, run `omniroute models --search <term>` or hit `GET /api/models/catalog` to confirm availability.
 
 </details>
 
 ---
 
-## 🧩 Προηγμένες Λειτουργίες
+## Advanced Features
 
-### Προσαρμοσμένα Μοντέλα
+### Custom Models
 
-Προσθέστε οποιοδήποτε αναγνωριστικό μοντέλου σε οποιονδήποτε πάροχο χωρίς να περιμένετε ενημέρωση της εφαρμογής:
+Add any model ID to any provider without waiting for an app update:
 
 ```bash
-# Μέσω API
+# Via API
 curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
-# Λίστα: curl http://localhost:20128/api/provider-models?provider=openai
-# Αφαίρεση: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
+# List: curl http://localhost:20128/api/provider-models?provider=openai
+# Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
-Ή χρησιμοποιήστε το Dashboard: **Providers → [Provider] → Custom Models**.
+Or use Dashboard: **Providers → [Provider] → Custom Models**.
 
-Σημειώσεις:
+Notes:
 
-- Οι πάροχοι OpenRouter και OpenAI/Anthropic-compatible διαχειρίζονται μόνο από τα **Available Models**. Η χειροκίνητη προσθήκη, εισαγωγή και αυτόματος συγχρονισμός καταλήγουν στην ίδια λίστα διαθέσιμων μοντέλων, οπότε δεν υπάρχει ξεχωριστή ενότητα Custom Models για αυτούς τους παρόχους.
-- Η ενότητα **Custom Models** προορίζεται για παρόχους που δεν εκθέτουν διαχειριζόμενες εισαγωγές διαθέσιμων μοντέλων.
+- OpenRouter and OpenAI/Anthropic-compatible providers are managed from **Available Models** only. Manual add, import, and auto-sync all land in the same available-model list, so there is no separate Custom Models section for those providers.
+- The **Custom Models** section is intended for providers that do not expose managed available-model imports.
 
-### Αλυσίδωση OmniRoute Peers
+### Chaining OmniRoute Peers
 
-Ένα άλλο gateway OmniRoute μπορεί να προστεθεί ως πάροχος **Custom OpenAI-compatible**. Χρησιμοποιήστε τη βασική διεύθυνση URL `/v1` του peer και ένα αποκλειστικό κλειδί API ελάχιστων δικαιωμάτων που εκδίδεται από αυτό το peer.
+Another OmniRoute gateway can be added as a **Custom OpenAI-compatible** provider. Use the
+peer's `/v1` base URL and a dedicated, least-privilege API key issued by that peer.
 
-Για αμοιβαίες ή πολυ-hop αλυσίδες, ενεργοποιήστε την προαιρετική φρουρά βρόχου σε κάθε gateway:
+For reciprocal or multi-hop chains, enable the opt-in loop guard on every gateway:
 
 ```bash
 # gateway-a
@@ -716,18 +711,18 @@ OMNIROUTE_PEER_URLS=http://gateway-a:20128/v1
 OMNIROUTE_PEER_MAX_HOPS=4
 ```
 
-Μόνο τα αιτήματα που αποστέλλονται σε ρητά επιτρεπόμενη διεύθυνση URL peer λαμβάνουν την
-κεφαλίδα `X-OmniRoute-Peer-Trace`. Ένα gateway απορρίπτει ένα επαναλαμβανόμενο αναγνωριστικό instance ή εξαντλημένο hop
-budget με HTTP `508 Loop Detected`· οι κανονικοί upstream πάροχοι δεν λαμβάνουν μεταδεδομένα peer.
+Only requests sent to an explicitly allowlisted peer URL receive the
+`X-OmniRoute-Peer-Trace` header. A gateway rejects a repeated instance ID or exhausted hop
+budget with HTTP `508 Loop Detected`; ordinary upstream providers receive no peer metadata.
 
-Η αλυσίδωση peer δεν είναι αντιγραφή βάσης δεδομένων ή failover κεντρικού υπολογιστή. Κάθε gateway διατηρεί ανεξάρτητη
-κατάσταση SQLite, caches, μετρητές ρυθμού και συνεδρίες. Χρησιμοποιήστε ένα reverse proxy με έλεγχο υγείας ή client
-failover για διαθεσιμότητα active/passive ή active/active, και ποτέ μην τοποθετείτε μία βάση δεδομένων SQLite
-σε πολλαπλές ενεργές instances OmniRoute.
+Peer chaining is not database replication or host failover. Each gateway keeps independent
+SQLite state, caches, rate counters, and sessions. Use a health-checked reverse proxy or client
+failover for active/passive or active/active availability, and never mount one SQLite database
+into multiple running OmniRoute instances.
 
-### Αποκλειστικές Διαδρομές Παρόχων
+### Dedicated Provider Routes
 
-Δρομολογήστε αιτήματα απευθείας σε συγκεκριμένο πάροχο με επικύρωση μοντέλου:
+Route requests directly to a specific provider with model validation:
 
 ```bash
 POST http://localhost:20128/v1/providers/openai/chat/completions
@@ -735,137 +730,137 @@ POST http://localhost:20128/v1/providers/openai/embeddings
 POST http://localhost:20128/v1/providers/fireworks/images/generations
 ```
 
-Το πρόθεμα παρόχου προστίθεται αυτόματα αν λείπει. Μη αντιστοιχισμένα μοντέλα επιστρέφουν `400`.
+The provider prefix is auto-added if missing. Mismatched models return `400`.
 
-### Διαμόρφωση Διακομιστή Μεσολάβησης Δικτύου
+### Network Proxy Configuration
 
 ```bash
-# Ορισμός καθολικού proxy
+# Set global proxy
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
-# Proxy ανά πάροχο
+# Per-provider proxy
 curl -X PUT http://localhost:20128/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
-# Δοκιμή proxy
+# Test proxy
 curl -X POST http://localhost:20128/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
-**Προτεραιότητα:** Ανά κλειδί → Ανά συνδυασμό → Ανά πάροχο → Καθολική → Περιβάλλον.
+**Precedence:** Key-specific → Combo-specific → Provider-specific → Global → Environment.
 
-### API Καταλόγου Μοντέλων
+### Model Catalog API
 
 ```bash
 curl http://localhost:20128/api/models/catalog
 ```
 
-Επιστρέφει μοντέλα ομαδοποιημένα ανά πάροχο με τύπους (`chat`, `embedding`, `image`).
+Returns models grouped by provider with types (`chat`, `embedding`, `image`).
 
-### Συγχρονισμός Cloud
+### Cloud Sync
 
-- Συγχρονίστε παρόχους, συνδυασμούς και ρυθμίσεις σε όλες τις συσκευές
-- Αυτόματος συγχρονισμός στο παρασκήνιο με timeout + γρήγορη αποτυχία
-- Προτιμήστε `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` από την πλευρά του διακομιστή σε παραγωγικό περιβάλλον
+- Sync providers, combos, and settings across devices
+- Automatic background sync with timeout + fail-fast
+- Prefer server-side `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` in production
 
 ### Cloudflare Quick Tunnel
 
-- Διαθέσιμο στο **Dashboard → Endpoints** για Docker και άλλες αυτο-φιλοξενούμενες αναπτύξεις
-- Δημιουργεί μια προσωρινή διεύθυνση URL `https://*.trycloudflare.com` που προωθεί στο τρέχον OpenAI-compatible `/v1` endpoint σας
-- Η πρώτη ενεργοποίηση εγκαθιστά το `cloudflared` μόνο όταν χρειάζεται· οι επόμενες επανεκκινήσεις επαναχρησιμοποιούν το ίδιο διαχειριζόμενο δυαδικό αρχείο
-- Τα Quick Tunnels δεν αποκαθίστανται αυτόματα μετά από επανεκκίνηση OmniRoute ή container· ενεργοποιήστε τα ξανά από το dashboard όταν χρειάζεται
-- Οι διευθύνσεις URL tunnel είναι εφήμερες και αλλάζουν κάθε φορά που διακόπτετε/ξεκινάτε το tunnel
-- Τα διαχειριζόμενα Quick Tunnels χρησιμοποιούν από προεπιλογή μεταφορά HTTP/2 για να αποφύγουν θορυβώδεις προειδοποιήσεις buffer QUIC UDP σε περιορισμένα containers
-- Ορίστε `CLOUDFLARED_PROTOCOL=quic` ή `auto` αν θέλετε να παρακάμψετε την επιλογή διαχειριζόμενης μεταφοράς
-- Ορίστε `CLOUDFLARED_BIN` αν προτιμάτε να χρησιμοποιήσετε προεγκατεστημένο δυαδικό αρχείο `cloudflared` αντί της διαχειριζόμενης λήψης
-- Τα πάνελ Cloudflare Quick Tunnel, Tailscale Funnel και ngrok Tunnel μπορούν να εμφανιστούν ή να αποκρυφτούν στις **Ρυθμίσεις → Εμφάνιση**. Η απόκρυψη ενός πάνελ δεν διακόπτει ένα τρέχον tunnel.
+- Available in **Dashboard → Endpoints** for Docker and other self-hosted deployments
+- Creates a temporary `https://*.trycloudflare.com` URL that forwards to your current OpenAI-compatible `/v1` endpoint
+- First enable installs `cloudflared` only when needed; later restarts reuse the same managed binary
+- Quick Tunnels are not auto-restored after an OmniRoute or container restart; re-enable them from the dashboard when needed
+- Tunnel URLs are ephemeral and change every time you stop/start the tunnel
+- Managed Quick Tunnels default to HTTP/2 transport to avoid noisy QUIC UDP buffer warnings in constrained containers
+- Set `CLOUDFLARED_PROTOCOL=quic` or `auto` if you want to override the managed transport choice
+- Set `CLOUDFLARED_BIN` if you prefer using a preinstalled `cloudflared` binary instead of the managed download
+- Cloudflare Quick Tunnel, Tailscale Funnel, and ngrok Tunnel panels can be shown or hidden in **Settings → Appearance**. Hiding a panel does not stop a running tunnel.
 
-### Νοημοσύνη LLM Gateway (Φάση 9)
+### LLM Gateway Intelligence (Phase 9)
 
-- **Σημασιολογική Cache** — Αυτόματη αποθήκευση μη-streaming απαντήσεων με temperature=0 (παράκαμψη με `X-OmniRoute-No-Cache: true`)
-- **Idempotency Αιτημάτων** — Αφαίρεση διπλότυπων αιτημάτων εντός 5s μέσω κεφαλίδας `Idempotency-Key` ή `X-Request-Id`
-- **Παρακολούθηση Προόδου** — Προαιρετικά SSE `event: progress` events μέσω κεφαλίδας `X-OmniRoute-Progress: true`
-
----
-
-### Playground Μεταφραστή
-
-Πρόσβαση μέσω **Dashboard → Translator**. Αποσφαλματώστε και οπτικοποιήστε τον τρόπο με τον οποίο το OmniRoute μεταφράζει αιτήματα API μεταξύ παρόχων.
-
-| Λειτουργία       | Σκοπός                                                                                              |
-| ---------------- | --------------------------------------------------------------------------------------------------- |
-| **Playground**   | Επιλέξτε μορφές πηγής/στόχου, επικολλήστε ένα αίτημα και δείτε αμέσως τη μεταφρασμένη έξοδο         |
-| **Chat Tester**  | Αποστολή ζωντανών μηνυμάτων chat μέσω του proxy και επιθεώρηση του πλήρους κύκλου αίτησης/απόκρισης |
-| **Test Bench**   | Εκτελέστε δοκιμές παρτίδας σε πολλαπλούς συνδυασμούς μορφών για επαλήθευση ορθότητας μετάφρασης     |
-| **Live Monitor** | Παρακολουθήστε μεταφράσεις σε πραγματικό χρόνο καθώς τα αιτήματα διέρχονται από το proxy            |
-
-**Περιπτώσεις χρήσης:**
-
-- Αποσφαλμάτωση του λόγου αποτυχίας συγκεκριμένου συνδυασμού client/παρόχου
-- Επαλήθευση ότι τα thinking tags, οι κλήσεις εργαλείων και τα system prompts μεταφράζονται σωστά
-- Σύγκριση διαφορών μορφής μεταξύ μορφών OpenAI, Claude, Gemini και Responses API
+- **Semantic Cache** — Auto-caches non-streaming, temperature=0 responses (bypass with `X-OmniRoute-No-Cache: true`)
+- **Request Idempotency** — Deduplicates requests within 5s via `Idempotency-Key` or `X-Request-Id` header
+- **Progress Tracking** — Opt-in SSE `event: progress` events via `X-OmniRoute-Progress: true` header
 
 ---
 
-### Στρατηγικές Δρομολόγησης
+### Translator Playground
 
-Διαμόρφωση μέσω **Dashboard → Settings → Routing**. Το dashboard εκθέτει τις έξι πιο χρησιμοποιούμενες στρατηγικές· οι συνδυασμοί και ο auto-router υποστηρίζουν εσωτερικά ένα ευρύτερο σύνολο.
+Access via **Dashboard → Translator**. Debug and visualize how OmniRoute translates API requests between providers.
 
-**Στρατηγικές ορατές στο Dashboard (δρομολόγηση σε επίπεδο λογαριασμού):**
+| Mode             | Purpose                                                                                |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| **Playground**   | Select source/target formats, paste a request, and see the translated output instantly |
+| **Chat Tester**  | Send live chat messages through the proxy and inspect the full request/response cycle  |
+| **Test Bench**   | Run batch tests across multiple format combinations to verify translation correctness  |
+| **Live Monitor** | Watch real-time translations as requests flow through the proxy                        |
 
-| Στρατηγική                     | Περιγραφή                                                                                                                         |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Fill First**                 | Χρησιμοποιεί λογαριασμούς με σειρά προτεραιότητας — ο κύριος λογαριασμός χειρίζεται όλα τα αιτήματα έως ότου δεν είναι διαθέσιμος |
-| **Round Robin**                | Εναλλάσσεται μεταξύ όλων των λογαριασμών με ρυθμιζόμενο όριο sticky (προεπιλογή: 3 κλήσεις ανά λογαριασμό)                        |
-| **P2C (Power of Two Choices)** | Επιλέγει 2 τυχαίους λογαριασμούς και δρομολογεί στον πιο υγιή — εξισορροπεί το φορτίο με επίγνωση υγείας                          |
-| **Random**                     | Επιλέγει τυχαία έναν λογαριασμό για κάθε αίτημα χρησιμοποιώντας τον αλγόριθμο Fisher-Yates                                        |
-| **Least Used**                 | Δρομολογεί στον λογαριασμό με το παλαιότερο timestamp `lastUsedAt`, κατανέμοντας ομοιόμορφα την κίνηση                            |
-| **Cost Optimized**             | Δρομολογεί στον λογαριασμό με τη χαμηλότερη τιμή προτεραιότητας, βελτιστοποιώντας για τους φθηνότερους παρόχους                   |
+**Use cases:**
 
-**Προηγμένες στρατηγικές συνδυασμού και auto** (ρυθμιζόμενες ανά συνδυασμό ή μέσω προθεμάτων `auto/*` — δείτε [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
+- Debug why a specific client/provider combination fails
+- Verify that thinking tags, tool calls, and system prompts translate correctly
+- Compare format differences between OpenAI, Claude, Gemini, and Responses API formats
 
-- `priority` — αυστηρή σειρά, χωρίς ποτέ round-robin
-- `weighted` — αναλογική κατανομή κίνησης βάσει βαρών ανά μοντέλο
-- `fill-first` — εξάντληση του πρώτου μοντέλου μέχρι να φτάσουν τα όρια
+---
+
+### Routing Strategies
+
+Configure via **Dashboard → Settings → Routing**. The dashboard exposes the six most-used strategies; combos and the auto-router internally support a wider set.
+
+**Dashboard-visible strategies (account-level routing):**
+
+| Strategy                       | Description                                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| **Fill First**                 | Uses accounts in priority order — primary account handles all requests until unavailable         |
+| **Round Robin**                | Cycles through all accounts with a configurable sticky limit (default: 3 calls per account)      |
+| **P2C (Power of Two Choices)** | Picks 2 random accounts and routes to the healthier one — balances load with awareness of health |
+| **Random**                     | Randomly selects an account for each request using Fisher-Yates shuffle                          |
+| **Least Used**                 | Routes to the account with the oldest `lastUsedAt` timestamp, distributing traffic evenly        |
+| **Cost Optimized**             | Routes to the account with the lowest priority value, optimizing for lowest-cost providers       |
+
+**Advanced combo and auto strategies** (configurable per combo or via `auto/*` prefixes — see [AUTO-COMBO.md](../routing/AUTO-COMBO.md)):
+
+- `priority` — strict order, never round-robins
+- `weighted` — proportional traffic split by per-model weights
+- `fill-first` — drain the first model until limits hit
 - `round-robin` / `strict-random` / `random`
 - `p2c` (Power of Two Choices)
-- `least-used` και `cost-optimized`
-- `auto` — βαθμολογία-driven σε όλους τους υποψηφίους
-- `lkgp` (Last Known Good Provider) — καρφιτσώνει στον τελευταίο επιτυχή πάροχο, μετά εναλλάσσεται στους κανόνες
-- `context-optimized` — επιλέγει το μοντέλο με το μεγαλύτερο ελεύθερο παράθυρο context
-- `context-relay` — αλυσιδώνει μοντέλα μεγάλου context για επόμενες σειρές συνομιλίας
+- `least-used` and `cost-optimized`
+- `auto` — score-driven across all candidates
+- `lkgp` (Last Known Good Provider) — pins to the last successful provider, then falls back to rules
+- `context-optimized` — picks the model with the largest free context window
+- `context-relay` — chains long-context models for follow-up turns
 
-#### Εξωτερική Κεφαλίδα Sticky Session
+#### External Sticky Session Header
 
-Για εξωτερική συσχέτιση συνεδρίας (για παράδειγμα, agents Claude Code/Codex πίσω από reverse proxies), αποστείλετε:
+For external session affinity (for example, Claude Code/Codex agents behind reverse proxies), send:
 
 ```http
 X-Session-Id: your-session-key
 ```
 
-Το OmniRoute αποδέχεται επίσης `x_session_id` και επιστρέφει το ενεργό κλειδί συνεδρίας στο `X-OmniRoute-Session-Id`.
+OmniRoute also accepts `x_session_id` and returns the effective session key in `X-OmniRoute-Session-Id`.
 
-Αν χρησιμοποιείτε Nginx και αποστέλλετε κεφαλίδες με κάτω παύλα, ενεργοποιήστε:
+If you use Nginx and send underscore-form headers, enable:
 
 ```nginx
 underscores_in_headers on;
 ```
 
-#### Wildcard Ψευδώνυμα Μοντέλων
+#### Wildcard Model Aliases
 
-Δημιουργήστε wildcard μοτίβα για αναχαρτογράφηση ονομάτων μοντέλων:
+Create wildcard patterns to remap model names:
 
 ```
 Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
 Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
 ```
 
-Τα wildcards υποστηρίζουν `*` (οποιοιδήποτε χαρακτήρες) και `?` (μεμονωμένος χαρακτήρας).
+Wildcards support `*` (any characters) and `?` (single character).
 
-#### Αλυσίδες Εφεδρείας
+#### Fallback Chains
 
-Ορίστε καθολικές αλυσίδες εφεδρείας που εφαρμόζονται σε όλα τα αιτήματα:
+Define global fallback chains that apply across all requests:
 
 ```
 Chain: production-fallback
@@ -876,149 +871,149 @@ Chain: production-fallback
 
 ---
 
-### Ανθεκτικότητα & Circuit Breakers
+### Resilience & Circuit Breakers
 
-Διαμόρφωση μέσω **Dashboard → Settings → Resilience**.
+Configure via **Dashboard → Settings → Resilience**.
 
-Το OmniRoute υλοποιεί ανθεκτικότητα σε επίπεδο παρόχου με πέντε συστατικά:
+OmniRoute implements provider-level resilience with five components:
 
-1. **Ουρά Αιτημάτων & Pacing** — Διαμόρφωση αιτημάτων σε επίπεδο συστήματος:
-   - **Requests Per Minute (RPM)** — Μέγιστα αιτήματα ανά λεπτό ανά λογαριασμό
-   - **Min Time Between Requests** — Ελάχιστο διάστημα σε milliseconds μεταξύ αιτημάτων
-   - **Max Concurrent Requests** — Μέγιστα ταυτόχρονα αιτήματα ανά λογαριασμό
+1. **Request Queue & Pacing** — System-level request shaping:
+   - **Requests Per Minute (RPM)** — Maximum requests per minute per account
+   - **Min Time Between Requests** — Minimum gap in milliseconds between requests
+   - **Max Concurrent Requests** — Maximum simultaneous requests per account
 
-2. **Connection Cooldown** — Διαμόρφωση ανά τύπο auth για μεμονωμένη σύνδεση μετά από επαναλήψιμες αποτυχίες:
-   - **Base Cooldown** — Προεπιλεγμένο παράθυρο cooldown για επαναλήψιμες αποτυχίες upstream
-   - **Use Upstream Retry Hints** — Τιμά αυθεντικές υποδείξεις `Retry-After` ή reset όταν παρέχονται
-   - **Max Backoff Steps** — Μέγιστο επίπεδο εκθετικής αναδρομής για επαναλαμβανόμενες αποτυχίες
+2. **Connection Cooldown** — Per-auth-type configuration for a single connection after retryable failures:
+   - **Base Cooldown** — Default cooldown window for retryable upstream failures
+   - **Use Upstream Retry Hints** — Honors authoritative `Retry-After` or reset hints when provided
+   - **Max Backoff Steps** — Maximum exponential backoff level for repeated failures
 
-3. **Provider Circuit Breaker** — Παρακολουθεί αποτυχίες παρόχου από άκρο σε άκρο, σημειώνει έναν πάροχο ως υποβαθμισμένο στο ρυθμιζόμενο κατώφλι προειδοποίησης, και ανοίγει τον breaker όταν φτάσει το ρυθμιζόμενο κατώφλι αποτυχίας:
-   - **Degradation Threshold** — Διαδοχικές αποτυχίες παρόχου πριν την είσοδο σε `DEGRADED`
-   - **Failure Threshold** — Διαδοχικές αποτυχίες παρόχου πριν την είσοδο σε `OPEN`
-   - **Reset Timeout** — Χρονικό παράθυρο πριν δοκιμαστεί ξανά ο πάροχος
-   - **CLOSED** (Υγιής) — Τα αιτήματα ρέουν κανονικά
-   - **DEGRADED** — Τα αιτήματα εξακολουθούν να ρέουν ενώ παρακολουθούνται αυξημένες αποτυχίες
-   - **OPEN** — Ο πάροχος αποκλείεται προσωρινά μετά από επαναλαμβανόμενες αποτυχίες
-   - **HALF_OPEN** — Δοκιμή αν ο πάροχος έχει ανακάμψει
+3. **Provider Circuit Breaker** — Tracks end-to-end provider failures, marks a provider degraded at the configured warning threshold, and opens the breaker when the configured failure threshold is reached:
+   - **Degradation Threshold** — Consecutive provider failures before entering `DEGRADED`
+   - **Failure Threshold** — Consecutive provider failures before entering `OPEN`
+   - **Reset Timeout** — Time window before the provider is tested again
+   - **CLOSED** (Healthy) — Requests flow normally
+   - **DEGRADED** — Requests still flow while elevated failures are tracked
+   - **OPEN** — Provider is temporarily blocked after repeated failures
+   - **HALF_OPEN** — Testing if provider has recovered
 
-   Τα `429` rate limits εμβέλειας σύνδεσης παραμένουν στο **Connection Cooldown** και δεν μετράνε στον breaker παρόχου.
+   Connection-scoped `429` rate limits stay in **Connection Cooldown** and do not count toward the provider breaker.
 
-   Η κατάσταση runtime του provider breaker εμφανίζεται μόνο στο **Dashboard → Health**.
+   The provider breaker runtime state is shown on **Dashboard → Health** only.
 
-4. **Wait For Cooldown** — Αν κάθε υποψήφια σύνδεση βρίσκεται ήδη σε cooldown, το OmniRoute μπορεί να περιμένει το νωρίτερο cooldown και να επαναλάβει αυτόματα το ίδιο αίτημα client.
+4. **Wait For Cooldown** — If every candidate connection is already cooling down, OmniRoute can wait for the earliest cooldown and retry the same client request automatically.
 
-5. **Αυτόματη Ανίχνευση Rate Limit** — Όταν οι upstream πάροχοι επιστρέφουν ρητά παράθυρα αναμονής, αυτές οι υποδείξεις παρακάμπτουν το τοπικό connection cooldown όταν η ρύθμιση είναι ενεργοποιημένη.
+5. **Rate Limit Auto-Detection** — When upstream providers return explicit wait windows, those hints override the local connection cooldown when the setting is enabled.
 
-**Συμβουλή:** Χρησιμοποιήστε τη σελίδα **Health** για επιθεώρηση και επαναφορά ζωντανών provider breakers μετά από διακοπή. Η σελίδα Resilience αλλάζει μόνο τη διαμόρφωση.
+**Pro Tip:** Use the **Health** page to inspect and reset live provider breakers after an outage. The Resilience page only changes configuration.
 
 ---
 
-### Εξαγωγή / Εισαγωγή Βάσης Δεδομένων
+### Database Export / Import
 
-Διαχειριστείτε αντίγραφα ασφαλείας βάσης δεδομένων στο **Dashboard → Settings → System & Storage**.
+Manage database backups in **Dashboard → Settings → System & Storage**.
 
-| Ενέργεια                 | Περιγραφή                                                                                                                                                                          |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Export Database**      | Λήψη της τρέχουσας βάσης δεδομένων SQLite ως αρχείο `.sqlite`                                                                                                                      |
-| **Export All (.tar.gz)** | Λήψη πλήρους αρχείου backup που περιλαμβάνει: βάση δεδομένων, ρυθμίσεις, συνδυασμούς, συνδέσεις παρόχων (χωρίς διαπιστευτήρια), μεταδεδομένα κλειδιών API                          |
-| **Import Database**      | Ανεβάστε αρχείο `.sqlite` για αντικατάσταση της τρέχουσας βάσης δεδομένων. Αντίγραφο ασφαλείας πριν την εισαγωγή δημιουργείται αυτόματα εκτός αν `DISABLE_SQLITE_AUTO_BACKUP=true` |
+| Action                   | Description                                                                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Export Database**      | Downloads the current SQLite database as a `.sqlite` file                                                                                      |
+| **Export All (.tar.gz)** | Downloads a full backup archive including: database, settings, combos, provider connections (no credentials), API key metadata                 |
+| **Import Database**      | Upload a `.sqlite` file to replace the current database. A pre-import backup is automatically created unless `DISABLE_SQLITE_AUTO_BACKUP=true` |
 
 ```bash
-# API: Εξαγωγή βάσης δεδομένων
+# API: Export database
 curl -o backup.sqlite http://localhost:20128/api/db-backups/export
 
-# API: Εξαγωγή όλων (πλήρες αρχείο)
+# API: Export all (full archive)
 curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
 
-# API: Εισαγωγή βάσης δεδομένων
+# API: Import database
 curl -X POST http://localhost:20128/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
-**Επικύρωση Εισαγωγής:** Το εισαγόμενο αρχείο επικυρώνεται για ακεραιότητα (έλεγχος pragma SQLite), απαιτούμενους πίνακες (`provider_connections`, `provider_nodes`, `combos`, `api_keys`) και μέγεθος (μέγ. 100MB).
+**Import Validation:** The imported file is validated for integrity (SQLite pragma check), required tables (`provider_connections`, `provider_nodes`, `combos`, `api_keys`), and size (max 100MB).
 
-**Περιπτώσεις Χρήσης:**
+**Use Cases:**
 
-- Μετεγκατάσταση OmniRoute μεταξύ μηχανών
-- Δημιουργία εξωτερικών αντιγράφων ασφαλείας για ανάκτηση από καταστροφή
-- Κοινή χρήση διαμορφώσεων μεταξύ μελών ομάδας (εξαγωγή όλων → κοινή χρήση αρχείου)
-
----
-
-### Dashboard Ρυθμίσεων
-
-Η σελίδα ρυθμίσεων είναι οργανωμένη σε **7 καρτέλες** για εύκολη πλοήγηση:
-
-| Καρτέλα        | Περιεχόμενα                                                                                                                                                                       |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **General**    | Εργαλεία αποθήκευσης συστήματος, προεπιλεγμένη συμπεριφορά, ορατότητα tunnel Endpoint                                                                                             |
-| **Appearance** | Έλεγχοι θέματος (ανοιχτό/σκοτεινό/σύστημα), ορατότητα πλαϊνής μπάρας, εναλλαγές πάνελ για κάρτες tunnel Cloudflare/Tailscale/ngrok                                                |
-| **AI**         | Προϋπολογισμός thinking (passthrough / auto-strip / custom / adaptive — δείτε [THINKING_BUDGET.md](./THINKING_BUDGET.md)), καθολικό system prompt, στατιστικά prompt cache        |
-| **Security**   | Ρυθμίσεις σύνδεσης/κωδικού πρόσβασης, έλεγχος πρόσβασης IP, auth API για `/models`, αποκλεισμός παρόχων, φύλακας έγχυσης prompt                                                   |
-| **Routing**    | Καθολική στρατηγική δρομολόγησης (Fill First / Round Robin / P2C / Random / Least Used / Cost Optimized), wildcard ψευδώνυμα μοντέλων, αλυσίδες εφεδρείας, προεπιλογές συνδυασμών |
-| **Resilience** | Ουρά αιτημάτων, connection cooldown, διαμόρφωση provider breaker και συμπεριφορά wait-for-cooldown                                                                                |
-| **Advanced**   | Καθολική διαμόρφωση proxy (HTTP/SOCKS5), παρακάμψεις proxy ανά πάροχο                                                                                                             |
-
-Το General δεν επαναλαμβάνει πλέον αναγνώσιμες-μόνο σημειώσεις καταγραφής και cache. Οι ρυθμίσεις διατήρησης και
-βελτιστοποίησης βάσης δεδομένων αποθηκεύονται μέσω `/api/settings/database`· η χειροκίνητη εκκαθάριση cache χρησιμοποιεί
-`DELETE /api/cache`. Τα ανώτατα όρια γραμμών στους πίνακες αρχείων καταγραφής αιτημάτων και proxy ελέγχονται από
-`CALL_LOGS_TABLE_MAX_ROWS` και `PROXY_LOGS_TABLE_MAX_ROWS`.
+- Migrate OmniRoute between machines
+- Create external backups for disaster recovery
+- Share configurations between team members (export all → share archive)
 
 ---
 
-### Διαχείριση Κόστους & Προϋπολογισμού
+### Settings Dashboard
 
-Πρόσβαση μέσω **Dashboard → Costs**.
+The settings page is organized into **7 tabs** for easy navigation:
 
-| Καρτέλα     | Σκοπός                                                                                                                           |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Budget**  | Ορισμός ορίων δαπανών ανά κλειδί API με ημερήσιους/εβδομαδιαίους/μηνιαίους προϋπολογισμούς και παρακολούθηση σε πραγματικό χρόνο |
-| **Pricing** | Προβολή και επεξεργασία καταχωρήσεων τιμολόγησης μοντέλων — κόστος ανά 1K token εισόδου/εξόδου ανά πάροχο                        |
+| Tab            | Contents                                                                                                                                                  |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **General**    | System storage tools, default behavior, Endpoint tunnel visibility                                                                                        |
+| **Appearance** | Theme controls (light/dark/system), sidebar visibility, panel toggles for Cloudflare/Tailscale/ngrok tunnel cards                                         |
+| **AI**         | Thinking budget (passthrough / auto-strip / custom / adaptive — see [THINKING_BUDGET.md](./THINKING_BUDGET.md)), global system prompt, prompt cache stats |
+| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, Provider Blocking, prompt-injection guard                                             |
+| **Routing**    | Global routing strategy (Fill First / Round Robin / P2C / Random / Least Used / Cost Optimized), wildcard model aliases, fallback chains, combo defaults  |
+| **Resilience** | Request queue, connection cooldown, provider breaker config, and wait-for-cooldown behavior                                                               |
+| **Advanced**   | Global proxy configuration (HTTP/SOCKS5), per-provider proxy overrides                                                                                    |
+
+General no longer duplicates read-only logging and cache notes. Database retention and
+optimization settings are persisted through `/api/settings/database`; manual cache clearing uses
+`DELETE /api/cache`. Request and proxy log row caps are controlled by
+`CALL_LOGS_TABLE_MAX_ROWS` and `PROXY_LOGS_TABLE_MAX_ROWS`.
+
+---
+
+### Costs & Budget Management
+
+Access via **Dashboard → Costs**.
+
+| Tab         | Purpose                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------- |
+| **Budget**  | Set spending limits per API key with daily/weekly/monthly budgets and real-time tracking |
+| **Pricing** | View and edit model pricing entries — cost per 1K input/output tokens per provider       |
 
 ```bash
-# API: Ορισμός προϋπολογισμού
+# API: Set a budget
 curl -X POST http://localhost:20128/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
-# API: Λήψη τρέχουσας κατάστασης προϋπολογισμού
+# API: Get current budget status
 curl http://localhost:20128/api/usage/budget
 ```
 
-**Παρακολούθηση Κόστους:** Κάθε αίτημα καταγράφει χρήση tokens και υπολογίζει το κόστος χρησιμοποιώντας τον πίνακα τιμολόγησης. Δείτε αναλύσεις στο **Dashboard → Usage** ανά πάροχο, μοντέλο και κλειδί API.
+**Cost Tracking:** Every request logs token usage and calculates cost using the pricing table. View breakdowns in **Dashboard → Usage** by provider, model, and API key.
 
 ---
 
-### Μεταγραφή Ήχου
+### Audio Transcription
 
-Το OmniRoute υποστηρίζει μεταγραφή ήχου μέσω του OpenAI-compatible endpoint:
+OmniRoute supports audio transcription via the OpenAI-compatible endpoint:
 
 ```bash
 POST /v1/audio/transcriptions
 Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
-# Παράδειγμα με curl
+# Example with curl
 curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@audio.mp3" \
   -F "model=openai/whisper-1"
 ```
 
-Το `deepgram/nova-3` είναι η εγγενής διαδρομή Deepgram και χρειάζεται κλειδί API Deepgram.
-Αν έχει διαμορφωθεί μόνο το OpenRouter, χρησιμοποιήστε `openrouter/deepgram/nova-3`.
+`deepgram/nova-3` is the native Deepgram route and needs a Deepgram API key.
+If only OpenRouter is configured, use `openrouter/deepgram/nova-3`.
 
-Πάροχοι **Speech-to-Text (μεταγραφή)**:
+**Speech-to-Text (transcription)** providers:
 
 - `openai/` (whisper-compatible)
 - `groq/` (Groq Whisper Turbo)
-- `deepgram/` (οικογένεια Nova)
+- `deepgram/` (Nova family)
 - `assemblyai/`
 - `nvidia/` (Parakeet, Canary)
-- `huggingface/` (παραλλαγές whisper)
+- `huggingface/` (whisper variants)
 - `qwen/`
 
-Πάροχοι **Text-to-Speech (`POST /v1/audio/speech`)**:
+**Text-to-Speech (`POST /v1/audio/speech`)** providers:
 
 - `openai/` (tts-1, tts-1-hd)
 - `hyperbolic/`
@@ -1035,73 +1030,74 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
 - `coqui/`, `tortoise/`
 - `qwen/`
 
-Υποστηριζόμενες μορφές ήχου για μεταγραφή: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. Οι μορφές εξόδου TTS εξαρτώνται από τον πάροχο (mp3, wav, opus, pcm, mulaw).
+Supported audio formats for transcription: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. TTS output formats depend on the provider (mp3, wav, opus, pcm, mulaw).
 
 ---
 
-### Στρατηγικές Εξισορρόπησης Συνδυασμών
+### Combo Balancing Strategies
 
-Διαμορφώστε εξισορρόπηση ανά συνδυασμό στο **Dashboard → Combos → Create/Edit → Strategy**.
+Configure per-combo balancing in **Dashboard → Combos → Create/Edit → Strategy**.
 
-| Στρατηγική         | Περιγραφή                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------ |
-| **Round-Robin**    | Εναλλάσσεται διαδοχικά μεταξύ μοντέλων                                                     |
-| **Priority**       | Πάντα δοκιμάζει το πρώτο μοντέλο· εναλλάσσεται μόνο σε σφάλμα                              |
-| **Random**         | Επιλέγει τυχαίο μοντέλο από τον συνδυασμό για κάθε αίτημα                                  |
-| **Weighted**       | Δρομολογεί αναλογικά βάσει εκχωρημένων βαρών ανά μοντέλο                                   |
-| **Least-Used**     | Δρομολογεί στο μοντέλο με τα λιγότερα πρόσφατα αιτήματα (χρησιμοποιεί μετρικές συνδυασμού) |
-| **Cost-Optimized** | Δρομολογεί στο φθηνότερο διαθέσιμο μοντέλο (χρησιμοποιεί πίνακα τιμολόγησης)               |
+| Strategy           | Description                                                              |
+| ------------------ | ------------------------------------------------------------------------ |
+| **Round-Robin**    | Rotates through models sequentially                                      |
+| **Priority**       | Always tries the first model; falls back only on error                   |
+| **Random**         | Picks a random model from the combo for each request                     |
+| **Weighted**       | Routes proportionally based on assigned weights per model                |
+| **Least-Used**     | Routes to the model with the fewest recent requests (uses combo metrics) |
+| **Cost-Optimized** | Routes to the cheapest available model (uses pricing table)              |
 
-Οι καθολικές προεπιλογές συνδυασμών μπορούν να οριστούν στο **Dashboard → Settings → Routing → Combo Defaults**.
-Τα timeouts στόχου συνδυασμού κληρονομούν από προεπιλογή το τρέχον timeout αιτήματος. Χρησιμοποιήστε **Target timeout
-(seconds)** στις προεπιλογές συνδυασμού ή σε μεμονωμένο συνδυασμό μόνο όταν ένα μικρότερο όριο ανά στόχο πρέπει
-να προκαλεί ταχύτερη εφεδρεία.
+Global combo defaults can be set in **Dashboard → Settings → Routing → Combo Defaults**.
+Combo target timeouts inherit the current request timeout by default. Use **Target timeout
+(seconds)** on combo defaults or an individual combo only when a shorter per-target limit should
+trigger faster fallback.
 
-Οι βελτιστοποιήσεις συνδυασμού μηδενικής λανθάνουσας είναι προαιρετικές. Αφήστε τις **Zero-latency optimizations** απενεργοποιημένες για να
-αποτρέψετε αυτές τις λειτουργίες λανθάνουσας από το να αγωνίζονται με στόχους εφεδρείας, να παραλείπουν στόχους βάσει
-ιστορικού TTFT, ή να συμπιέζουν αιτήματα εφεδρείας· η ενεργοποίησή τους επιτρέπει διαμορφωμένο hedging, προβλεπτικές
-παραλείψεις TTFT και προληπτική συμπίεση εφεδρείας για να ανταλλάξει πιστότητα δρομολόγησης/αιτήματος με χαμηλότερη λανθάνουσα ουράς.
+Zero-latency combo optimizations are opt-in. Leave **Zero-latency optimizations** disabled to
+prevent these latency features from racing fallback targets, skipping targets based on TTFT
+history, or compressing fallback requests; enabling it allows configured hedging, predictive TTFT
+skips, and proactive fallback compression to trade routing/request fidelity for lower tail
+latency.
 
-Απενεργοποιήστε το **Reasoning token buffer** όταν οι upstream πάροχοι απαιτούν αυστηρά
-όρια `max_tokens` / `maxOutputTokens`. Όταν είναι ενεργοποιημένο, η δρομολόγηση συνδυασμού προσθέτει χώρο reasoning-model
-μόνο για μοντέλα με γνωστό ανώτατο όριο εξόδου και αφήνει το όριο token του client αμετάβλητο όταν η
-ασφαλής buffered τιμή θα υπερέβαινε αυτό το όριο. Αν το όριο του client είναι ήδη πάνω από γνωστό ανώτατο όριο,
-το OmniRoute το περιορίζει σε αυτό το ανώτατο όριο πριν αποστείλει το upstream αίτημα.
-
----
-
-### Dashboard Υγείας
-
-Πρόσβαση μέσω **Dashboard → Health**. Επισκόπηση υγείας συστήματος σε πραγματικό χρόνο με 6 κάρτες:
-
-| Κάρτα                 | Τι Εμφανίζει                                                              |
-| --------------------- | ------------------------------------------------------------------------- |
-| **System Status**     | Χρόνος λειτουργίας, έκδοση, χρήση μνήμης, κατάλογος δεδομένων             |
-| **Provider Health**   | Κατάσταση runtime καθολικού circuit breaker παρόχου                       |
-| **Rate Limits**       | Ενεργά connection cooldowns ανά λογαριασμό με υπολειπόμενο χρόνο          |
-| **Active Lockouts**   | Ενεργοί αποκλεισμοί εμβέλειας μοντέλου και προσωρινές εξαιρέσεις          |
-| **Signature Cache**   | Στατιστικά cache αφαίρεσης διπλότυπων (ενεργά κλειδιά, ποσοστό επιτυχίας) |
-| **Latency Telemetry** | Συγκέντρωση λανθάνουσας p50/p95/p99 ανά πάροχο                            |
-
-**Συμβουλή:** Η σελίδα Health ανανεώνεται αυτόματα κάθε 10 δευτερόλεπτα. Χρησιμοποιήστε την κάρτα circuit breaker για να εντοπίσετε ποιοι πάροχοι αντιμετωπίζουν προβλήματα.
+Disable **Reasoning token buffer** when upstream providers require strict
+`max_tokens` / `maxOutputTokens` limits. When enabled, combo routing only adds reasoning-model
+headroom for models with a known output cap and leaves the client token limit unchanged when the
+safe buffered value would exceed that cap. If the client limit is already above a known cap,
+OmniRoute clamps it down to that cap before sending the upstream request.
 
 ---
 
-## 🤖 Αυτόματη Δρομολόγηση (Χωρίς Ρύθμιση)
+### Health Dashboard
 
-Το OmniRoute διαθέτει έναν **αυτόματο δρομολογητή βαθμολογίας** που επιλέγει το καλύτερο μοντέλο για κάθε αίτημα από όλους τους συνδεδεμένους παρόχους — χωρίς συνδυασμό προς συντήρηση. Απλώς στείλτε το αίτημα με ένα από τα προθέματα `auto/*` και το OmniRoute θα συναρμολογήσει έναν εικονικό συνδυασμό εν κινήσει, βαθμολογώντας τους υποψηφίους βάσει καθυστέρησης, κόστους, ποσοστού επιτυχίας, καταλληλότητας πλαισίου, καταλληλότητας μοντέλου για την εργασία, πρόσφατων αποτυχιών, ορίου χρήσης και κατάστασης διακόπτη κυκλώματος.
+Access via **Dashboard → Health**. Real-time system health overview with 6 cards:
 
-| Πρόθεμα        | Βελτιστοποιεί για                                                                                                  |
-| -------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `auto`         | Ισορροπημένη προεπιλογή (καθυστέρηση × κόστος × ποσοστό επιτυχίας)                                                 |
-| `auto/coding`  | Εργασίες κώδικα: προτιμά Claude, GPT-5, GLM, Kimi, Qwen Coder, DeepSeek coders                                     |
-| `auto/cheap`   | Χαμηλότερο $/token, αποδέχεται υψηλότερη καθυστέρηση                                                               |
-| `auto/fast`    | Χαμηλότερη καθυστέρηση, αγνοεί το κόστος                                                                           |
-| `auto/offline` | Τοπικοί πάροχοι μόνο (Ollama, vLLM, llama.cpp) — χρήσιμο για απομονωμένες εγκαταστάσεις                            |
-| `auto/smart`   | Ποιότητα συλλογισμού πρώτα (Opus, GPT-5 xhigh, R1, GLM 5.1 reasoning)                                              |
-| `auto/lkgp`    | "Τελευταίος Γνωστός Καλός Πάροχος" — καρφιτσώνει στον τελευταίο επιτυχή πάροχο, έπειτα εφαρμόζει κανόνες εφεδρείας |
+| Card                  | What It Shows                                               |
+| --------------------- | ----------------------------------------------------------- |
+| **System Status**     | Uptime, version, memory usage, data directory               |
+| **Provider Health**   | Global provider circuit breaker runtime state               |
+| **Rate Limits**       | Active connection cooldowns per account with remaining time |
+| **Active Lockouts**   | Active model-scoped lockouts and temporary exclusions       |
+| **Signature Cache**   | Deduplication cache stats (active keys, hit rate)           |
+| **Latency Telemetry** | p50/p95/p99 latency aggregation per provider                |
 
-Παράδειγμα:
+**Pro Tip:** The Health page auto-refreshes every 10 seconds. Use the circuit breaker card to identify which providers are experiencing issues.
+
+---
+
+## Auto-Routing (Zero-config)
+
+OmniRoute ships with a **score-driven auto-router** that picks the best model for each request across every connected provider — no combo to maintain. Just send the request with one of the `auto/*` prefixes and OmniRoute will assemble a virtual combo on the fly, scoring candidates on latency, cost, success rate, context fit, model fitness for the task, recent failures, quota, and circuit-breaker state.
+
+| Prefix         | Optimizes for                                                                               |
+| -------------- | ------------------------------------------------------------------------------------------- |
+| `auto`         | Balanced default (latency × cost × success rate)                                            |
+| `auto/coding`  | Coding tasks: prefers Claude, GPT-5, GLM, Kimi, Qwen Coder, DeepSeek coders                 |
+| `auto/cheap`   | Lowest $/token, accepts higher latency                                                      |
+| `auto/fast`    | Lowest latency, ignores cost                                                                |
+| `auto/offline` | Local-only providers (Ollama, vLLM, llama.cpp) — useful for air-gapped setups               |
+| `auto/smart`   | Reasoning quality first (Opus, GPT-5 xhigh, R1, GLM 5.1 reasoning)                          |
+| `auto/lkgp`    | "Last Known Good Provider" — pins to the last successful provider, then falls back to rules |
+
+Example:
 
 ```bash
 curl -X POST http://localhost:20128/v1/chat/completions \
@@ -1114,23 +1110,23 @@ curl -X POST http://localhost:20128/v1/chat/completions \
   }'
 ```
 
-Ο αυτόματος δρομολογητής περιγράφεται πλήρως στο [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — συμπεριλαμβανομένου του τρόπου ρύθμισης βαρών βαθμολόγησης, αποκλεισμού παρόχων και επιθεώρησης αποφάσεων δρομολόγησης στο **Dashboard → Auto Combo**.
+The auto-router is fully described in [AUTO-COMBO.md](../routing/AUTO-COMBO.md) — including how to tune scoring weights, blacklist providers, and inspect routing decisions in **Dashboard → Auto Combo**.
 
 ---
 
-## 🔌 Ενσωμάτωση MCP & A2A
+## MCP & A2A Integration
 
-Το OmniRoute είναι ταυτόχρονα **διακομιστής MCP** (Model Context Protocol) και **διακομιστής A2A** (Agent-to-Agent JSON-RPC 2.0). Οποιοδήποτε IDE ή περιβάλλον εκτέλεσης πράκτορα που είναι συμβατό με MCP μπορεί να καλεί εργαλεία του OmniRoute απευθείας — χωρίς επιπλέον περιτύλιγμα.
+OmniRoute is both an **MCP server** (Model Context Protocol) and an **A2A server** (Agent-to-Agent JSON-RPC 2.0). Any MCP-compatible IDE or agent host can call OmniRoute tools directly — no extra wrapper required.
 
-### Μεταφορές MCP
+### MCP transports
 
 - **SSE**: `http://localhost:20128/api/mcp/sse`
 - **Streamable HTTP**: `http://localhost:20128/api/mcp/stream`
-- **stdio**: `omniroute --mcp` (για πρόσθετα IDE που προτιμούν stdio)
+- **stdio**: `omniroute --mcp` (for IDE plugins that prefer stdio)
 
-### Σύνδεση του Claude Desktop
+### Connect Claude Desktop
 
-Επεξεργαστείτε το `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) ή το αντίστοιχο αρχείο σε Windows/Linux:
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or the equivalent on Windows/Linux:
 
 ```json
 {
@@ -1143,176 +1139,168 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 }
 ```
 
-### Σύνδεση Cursor / Continue / VS Code MCP
+### Connect Cursor / Continue / VS Code MCP
 
-Χρησιμοποιήστε τη διεύθυνση SSE `http://localhost:20128/api/mcp/sse` και ένα κλειδί API Bearer που δημιουργήθηκε στο **Dashboard → API Keys**.
+Use the SSE URL `http://localhost:20128/api/mcp/sse` and a Bearer API key generated in **Dashboard → API Keys**.
 
-### Εμβέλειες
+### Scopes
 
-Το MCP ορίζει αυτήν τη στιγμή 32 ονομαστικές εμβέλειες. Κάθε κλειδί Bearer μπορεί να περιοριστεί σε συγκεκριμένες εμβέλειες — δείτε το [MCP-SERVER.md](../frameworks/MCP-SERVER.md) για το αυθεντικό ευρετήριο εμβελειών και εργαλείων, και το [A2A-SERVER.md](../frameworks/A2A-SERVER.md) για το σχήμα JSON-RPC.
-
----
-
-## 🧠 Σύστημα Δεξιοτήτων
-
-Το OmniRoute παρέχει ένα επεκτάσιμο **πλαίσιο δεξιοτήτων** (`src/lib/skills/`) ώστε οι agents και το endpoint A2A να μπορούν να εκτελούν εξειδικευμένες ρουτίνες (π.χ. `code-review`, `summarize`, `extract-facts`, `web-research`).
-
-- **Marketplace UI** — Περιήγηση και εγκατάσταση δεξιοτήτων από **Dashboard → Skills**
-- **Εμβέλειες ανά κλειδί** — Περιορισμός των κλειδιών API που μπορούν να καλούν συγκεκριμένες δεξιότητες
-- **Προσαρμοσμένες δεξιότητες** — Τοποθετήστε ένα αρχείο TypeScript στον φάκελο `src/lib/a2a/skills/`, καταχωρίστε το, και γίνεται αμέσως κλητό μέσω A2A
-
-Πλήρης αναφορά: [SKILLS.md](../frameworks/SKILLS.md).
+MCP currently defines 32 named scopes. Each Bearer key can be limited to specific scopes — see [MCP-SERVER.md](../frameworks/MCP-SERVER.md) for the authoritative scope and tool inventory and [A2A-SERVER.md](../frameworks/A2A-SERVER.md) for the JSON-RPC schema.
 
 ---
 
-## 💾 Σύστημα Μνήμης
+## Skills System
 
-Το OmniRoute διατηρεί **μακροπρόθεσμη συνομιλιακή μνήμη** με υβριδική ανάκτηση:
+OmniRoute exposes an extensible **skill framework** (`src/lib/skills/`) so agents and the A2A endpoint can run domain-specific routines (e.g. `code-review`, `summarize`, `extract-facts`, `web-research`).
 
-- **SQLite FTS5** για αναζήτηση με λέξεις-κλειδιά σε προηγούμενες συνομιλίες
-- **Qdrant vector store** (προαιρετικό) για σημασιολογική ανάκληση
-- **Αυτόματη εξαγωγή γεγονότων** — οντότητες, προτιμήσεις και αποφάσεις συνοψίζονται μετά από κάθε συνεδρία και αποθηκεύονται στον πίνακα `memory_facts`
-- Οι μνήμες εντοπίζονται ανά κλειδί API και ανά συνεδρία
+- **Marketplace UI** — Browse and install skills from **Dashboard → Skills**
+- **Per-key scopes** — Restrict which API keys can invoke which skills
+- **Custom skills** — Drop a TypeScript file in `src/lib/a2a/skills/`, register it, and it becomes immediately invocable over A2A
 
-Διαχειριστείτε τις μνήμες στο **Dashboard → Memory** (αναζήτηση, επεξεργασία, εξαγωγή, εκκαθάριση). Η επιφάνεια HTTP (`/api/memory/*`) επιτρέπει στους agents να ωθούν και να αναζητούν γεγονότα μέσω προγράμματος — δείτε [MEMORY.md](../frameworks/MEMORY.md).
-
----
-
-## 🔔 Webhooks
-
-Εγγραφείτε σε συμβάντα του OmniRoute για παρακολούθηση και αυτοματισμό σε πραγματικό χρόνο.
-
-- Δημιουργήστε ένα webhook στο **Dashboard → Webhooks** με URL προορισμού και μυστικό υπογραφής HMAC
-- Διαθέσιμα συμβάντα: `request.completed`, `request.failed`, `provider.unavailable`, `budget.exceeded`, `combo.switched`, `circuit_breaker.opened`, `circuit_breaker.closed`
-- Κάθε payload περιλαμβάνει `X-OmniRoute-Signature` (HMAC-SHA256) για επαλήθευση
-- Επαναλήψεις: 3 προσπάθειες με εκθετική καθυστέρηση, έπειτα ουρά νεκρών γραμμάτων
-
-Πλήρες σχήμα στο [WEBHOOKS.md](../frameworks/WEBHOOKS.md).
+Full reference: [SKILLS.md](../frameworks/SKILLS.md).
 
 ---
 
-## ☁️ Cloud Agents
+## Memory System
 
-Το OmniRoute ενσωματώνεται με cloud agents κωδικοποίησης (**OpenAI Codex Cloud**, **Devin**, **Jules**, **Antigravity**) ώστε να μπορείτε να αναθέτετε εργασίες μεγάλης διάρκειας από το ίδιο dashboard που διαχειρίζεται την τοπική σας δρομολόγηση.
+OmniRoute persists **long-term conversational memory** with hybrid retrieval:
 
-- Δημιουργήστε εργασίες στο **Dashboard → Cloud Agents** ή μέσω `POST /api/v1/agents/tasks`
-- Παρακολουθήστε κατάσταση, αρχεία καταγραφής και artifacts ανά εργασία
-- Χρησιμοποιήστε το δικό σας κλειδί API ανά πάροχο — τα διαπιστευτήρια δεν εγκαταλείπουν ποτέ την παρουσία του OmniRoute
+- **SQLite FTS5** for keyword search across past turns
+- **Qdrant vector store** (optional) for semantic recall
+- **Automatic fact extraction** — entities, preferences, and decisions are summarized after each session and stored in the `memory_facts` table
+- Memories are scoped per API key and per session
 
-Πλήρης αναφορά: [CLOUD_AGENT.md](../frameworks/CLOUD_AGENT.md).
+Manage memories in **Dashboard → Memory** (search, edit, export, purge). The HTTP surface (`/api/memory/*`) lets agents push and query facts programmatically — see [MEMORY.md](../frameworks/MEMORY.md).
 
 ---
 
-## 🛠️ Προγραμματιστική Διαχείριση
+## Webhooks
 
-Μπορείτε να διαχειριστείτε κάθε πόρο του OmniRoute (παρόχους, combos, κλειδιά, ρυθμίσεις) μέσω HTTP χρησιμοποιώντας ένα **Bearer κλειδί με την εμβέλεια `manage`**.
+Subscribe to OmniRoute events for real-time monitoring and automation.
 
-Δημιουργήστε το κλειδί στο **Dashboard → API Keys → New Key → Scope: manage**, και στη συνέχεια:
+- Create a webhook in **Dashboard → Webhooks** with target URL and HMAC signing secret
+- Available events: `request.completed`, `request.failed`, `provider.unavailable`, `budget.exceeded`, `combo.switched`, `circuit_breaker.opened`, `circuit_breaker.closed`
+- Every payload includes `X-OmniRoute-Signature` (HMAC-SHA256) for verification
+- Retries: 3 attempts with exponential backoff, then dead-letter queue
+
+Full schema in [WEBHOOKS.md](../frameworks/WEBHOOKS.md).
+
+---
+
+## Cloud Agents
+
+OmniRoute integrates with cloud coding agents (**OpenAI Codex Cloud**, **Devin**, **Jules**, **Antigravity**) so you can dispatch long-running tasks from the same dashboard that handles your local routing.
+
+- Create tasks in **Dashboard → Cloud Agents** or via `POST /api/v1/agents/tasks`
+- Track status, logs, and artifacts per task
+- Bring-your-own API key per provider — credentials never leave the OmniRoute instance
+
+Full reference: [CLOUD_AGENT.md](../frameworks/CLOUD_AGENT.md).
+
+---
+
+## Programmatic Management
+
+You can manage every OmniRoute resource (providers, combos, keys, settings) over HTTP using a **Bearer key with the `manage` scope**.
+
+Generate the key in **Dashboard → API Keys → New Key → Scope: manage**, then:
 
 ```bash
-# Λίστα παρόχων
+# List providers
 curl http://localhost:20128/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 
-# Προσθήκη σύνδεσης παρόχου
+# Add a provider connection
 curl -X POST http://localhost:20128/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "provider": "openai", "apiKey": "sk-...", "name": "main" }'
 
-# Δημιουργία combo
+# Create a combo
 curl -X POST http://localhost:20128/api/combos \
   -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "name": "premium", "strategy": "priority", "models": [{ "model": "cc/claude-opus-4-7" }, { "model": "glm/glm-5.1" }] }'
 
-# Λίστα/δημιουργία κλειδιών API
+# List/create API keys
 curl http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
 curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
   -d '{ "name": "ci-bot", "scopes": ["chat"] }'
 ```
 
-Δείτε το [API_REFERENCE.md](../reference/API_REFERENCE.md) για τον πλήρη κατάλογο endpoints και τα σχήματα αιτημάτων/αποκρίσεων.
+See [API_REFERENCE.md](../reference/API_REFERENCE.md) for the full endpoint catalog and request/response schemas.
 
 ---
 
-## 💻 Εσωτερικό CLI
+## Internal CLI
 
-Το OmniRoute διαθέτει ένα εσωτερικό CLI (`omniroute …`) για εγκατάσταση, διαγνωστικά και έλεγχο χρόνου εκτέλεσης. Αυτό είναι **ξεχωριστό από τη σελίδα "CLI Tools" στον πίνακα ελέγχου**, η οποία διαμορφώνει CLIs τρίτων (Claude Code, Cursor, Codex, Cline, …) ώστε να επικοινωνούν με το OmniRoute.
+OmniRoute ships an internal CLI (`omniroute …`) for setup, diagnostics, and runtime control. This is **separate from the "CLI Tools" page in the dashboard**, which configures third-party CLIs (Claude Code, Cursor, Codex, Cline, …) so they can talk to OmniRoute.
 
 ```bash
-omniroute setup                    # Διαδραστικός οδηγός (κωδικός πρόσβασης, πάροχοι, combos)
-omniroute setup --non-interactive  # Κατάλληλο για CI
-omniroute doctor                   # Διαγνωστικά υγείας (data dir, DB, πάροχοι, θύρες)
-omniroute providers available      # Λίστα υποστηριζόμενων παρόχων
-omniroute providers list           # Λίστα διαμορφωμένων συνδέσεων
-omniroute providers test <id>      # Δοκιμή σύνδεσης παρόχου σε πραγματικό χρόνο
-omniroute combos list              # Λίστα combos
-omniroute combos switch <name>     # Ορισμός προεπιλεγμένου combo
-omniroute models                   # Λίστα διαθέσιμων μοντέλων (--json, --search)
-omniroute keys add | list | remove # Διαχείριση κλειδιών API από το τερματικό
-omniroute backup                   # Στιγμιότυπο διαμόρφωσης + DB
-omniroute restore [<timestamp>]    # Επαναφορά από στιγμιότυπο
-omniroute health                   # Λεπτομερής υγεία (breakers, cache, μνήμη)
-omniroute quota                    # Χρήση ορίου παρόχου
-omniroute mcp status               # Κατάσταση διακομιστή MCP
-omniroute a2a status               # Κατάσταση διακομιστή A2A
-omniroute tunnel list|create|stop  # Tunnels Cloudflare/Tailscale/ngrok
-omniroute reset-password           # Επαναφορά κωδικού πρόσβασης διαχειριστή
-omniroute --mcp                    # Εκκίνηση διακομιστή MCP μέσω stdio
-omniroute --port 3000              # Εκκίνηση διακομιστή σε προσαρμοσμένη θύρα
+omniroute setup                    # Interactive wizard (password, providers, combos)
+omniroute setup --non-interactive  # CI-friendly
+omniroute doctor                   # Health diagnostics (data dir, DB, providers, ports)
+omniroute providers available      # List supported providers
+omniroute providers list           # List configured connections
+omniroute providers test <id>      # Live test a provider connection
+omniroute combos list              # List combos
+omniroute combos switch <name>     # Set default combo
+omniroute models                   # List available models (--json, --search)
+omniroute keys add | list | remove # Manage API keys from the terminal
+omniroute backup                   # Snapshot config + DB
+omniroute restore [<timestamp>]    # Restore from a snapshot
+omniroute health                   # Detailed health (breakers, cache, memory)
+omniroute quota                    # Provider quota usage
+omniroute mcp status               # MCP server status
+omniroute a2a status               # A2A server status
+omniroute tunnel list|create|stop  # Cloudflare/Tailscale/ngrok tunnels
+omniroute reset-password           # Reset the admin password
+omniroute --mcp                    # Start MCP server over stdio
+omniroute --port 3000              # Start the server on a custom port
 ```
 
-Συμβουλή: συνδυάστε το `omniroute doctor --json` με το εργαλείο παρακολούθησής σας για ειδοποιήσεις σε μη υγιείς συνδέσεις παρόχων.
+Tip: pair `omniroute doctor --json` with your monitoring tool to alert on unhealthy provider connections.
 
 ---
 
-## 🖥️ Εφαρμογή Desktop (Electron)
+## Desktop Application (Tauri 2)
 
-Το OmniRoute διατίθεται ως εγγενής εφαρμογή desktop για Windows, macOS και Linux.
+OmniRoute is available as a native desktop application for Windows, macOS, and Linux, built on Tauri 2 (Rust shell + system webview).
 
-### Εγκατάσταση
-
-```bash
-# Από τον κατάλογο electron:
-cd electron
-npm install
-
-# Λειτουργία ανάπτυξης (σύνδεση σε εκτελούμενο διακομιστή Next.js dev):
-npm run dev
-
-# Λειτουργία παραγωγής (χρησιμοποιεί standalone build):
-npm start
-```
-
-### Δημιουργία Εγκαταστατών
+### Development
 
 ```bash
-cd electron
-npm run build          # Τρέχουσα πλατφόρμα
-npm run build:win      # Windows (.exe NSIS)
-npm run build:mac      # macOS (.dmg universal)
-npm run build:linux    # Linux (.AppImage)
+# Rust shell + SvelteKit dev server (hot reload):
+cd apps/desktop/src-tauri
+cargo tauri dev
 ```
 
-Έξοδος → `electron/dist-electron/`
+### Building the App
 
-### Βασικά Χαρακτηριστικά
+```bash
+cd apps/desktop/src-tauri
+cargo tauri build          # Current platform
+```
 
-| Χαρακτηριστικό                      | Περιγραφή                                                              |
-| ----------------------------------- | ---------------------------------------------------------------------- |
-| **Ετοιμότητα Διακομιστή**           | Ελέγχει τον διακομιστή πριν εμφανίσει το παράθυρο (χωρίς κενή οθόνη)   |
-| **System Tray**                     | Ελαχιστοποίηση στο tray, αλλαγή θύρας, έξοδος από το μενού tray        |
-| **Διαχείριση Θύρας**                | Αλλαγή θύρας διακομιστή από το tray (επανεκκίνηση διακομιστή αυτόματα) |
-| **Πολιτική Ασφάλειας Περιεχομένου** | Περιοριστικό CSP μέσω επικεφαλίδων session                             |
-| **Μοναδική Παρουσία**               | Μόνο μία παρουσία εφαρμογής μπορεί να εκτελείται ταυτόχρονα            |
-| **Λειτουργία Εκτός Σύνδεσης**       | Ο ενσωματωμένος διακομιστής Next.js λειτουργεί χωρίς internet          |
+Output → `apps/desktop/src-tauri/target/release/bundle/` (`macos/OmniRoute.app`, platform bundles).
 
-### Μεταβλητές Περιβάλλοντος
+### Key Features
 
-| Μεταβλητή             | Προεπιλογή | Περιγραφή                       |
-| --------------------- | ---------- | ------------------------------- |
-| `OMNIROUTE_PORT`      | `20128`    | Θύρα διακομιστή                 |
-| `OMNIROUTE_MEMORY_MB` | `512`      | Όριο heap Node.js (64–16384 MB) |
+| Feature                     | Description                                          |
+| --------------------------- | ---------------------------------------------------- |
+| **Server Readiness**        | Polls server before showing window (no blank screen) |
+| **System Tray**             | Minimize to tray, change port, quit from tray menu   |
+| **Port Management**         | Change server port from tray (auto-restarts server)  |
+| **Content Security Policy** | Restrictive CSP in `tauri.conf.json`                 |
+| **Single Instance**         | Only one app instance can run at a time              |
+| **Offline Mode**            | Embedded SvelteKit frontend works without internet   |
+| **Embedded Frontend**       | SPA bundled into the binary via `custom-protocol`    |
 
-📖 Πλήρης τεκμηρίωση: [`electron/README.md`](../../electron/README.md)
+### Environment Variables
+
+| Variable              | Default | Description                      |
+| --------------------- | ------- | -------------------------------- |
+| `OMNIROUTE_PORT`      | `20128` | Server port                      |
+| `OMNIROUTE_MEMORY_MB` | `512`   | Node.js heap limit (64–16384 MB) |
+
+Full documentation: [`apps/desktop/README.md`](../../apps/desktop/README.md)

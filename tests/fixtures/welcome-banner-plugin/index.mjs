@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Welcome Banner Plugin — PoC
  *

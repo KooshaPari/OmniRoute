@@ -1,0 +1,27 @@
+{
+  "kind": "result",
+  "schema_version": "1.0.0",
+  "id": "R-I-15",
+  "instance_id": "I-15",
+  "criterion_id": "PEP-13-01-01",
+  "assignment_id": "OMNIR-SCREEN-001",
+  "epoch_id": "2026-09-15T05:50:00Z",
+  "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec",
+  "execution": "COMPLETED",
+  "verdict": "PASS",
+  "evidence_state": "CURRENT",
+  "review_status": "ACCEPTED",
+  "observed_at": "2026-09-15T06:17:10Z",
+  "expires_at": null,
+  "evidence_ids": ["E-001"],
+  "qualification_ids": ["Q-006"],
+  "evaluator_id": "jcode-agent",
+  "evaluator_digest": "sha256:afd4e2815e29587f752d20ce8b03532fdf5df224d047941adaac990f3148941d",
+  "observation": {
+    "summary": "Observability layer with structured logging and error tracking",
+    "assertions_executed": null,
+    "modality": "STRUCTURAL"
+  },
+  "supersedes": [],
+  "assignment_digest": "sha256:40547b1ef6399f9214ae4ea336952317469fbedce210da650efc86ce28c2bcb3"
+}

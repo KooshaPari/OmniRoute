@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 // #5903: Codex session affinity must win over a per-request reset-aware
 // re-scoring. The reset-aware combo strategy (open-sse/services/combo/quotaStrategies.ts)
 // recomputes its "winner" connection on every request and hands it to

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Core type definitions for omniroute.
  *

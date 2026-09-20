@@ -528,11 +528,11 @@ The routing engine has strict performance budgets:
 
 ## Anti-Patterns
 
-❌ **Synchronous DB calls in `combo.ts`** — pre-compute and cache
-❌ **Retry logic in handlers** — use `retry()` from resilience service
-❌ **Direct provider config access** — use `providerRegistry` getters
-❌ **Hardcoded fallback chains** — define in `modelFamilyFallback.ts`
-❌ **State mutations across concurrent requests** — use request-scoped context only
+**Synchronous DB calls in `combo.ts`** — pre-compute and cache
+**Retry logic in handlers** — use `retry()` from resilience service
+**Direct provider config access** — use `providerRegistry` getters
+**Hardcoded fallback chains** — define in `modelFamilyFallback.ts`
+**State mutations across concurrent requests** — use request-scoped context only
 
 ---
 

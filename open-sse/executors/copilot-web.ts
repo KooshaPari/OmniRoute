@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * CopilotWebExecutor — Microsoft Copilot Web Session Provider
  *

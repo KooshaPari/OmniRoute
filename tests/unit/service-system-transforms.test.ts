@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
@@ -16,7 +17,9 @@ describe("systemTransforms", () => {
     it("setSystemTransformsConfig updates config", () => {
       mod.resetSystemTransformsConfig();
       const before = mod.getSystemTransformsConfig();
-      mod.setSystemTransformsConfig({ providers: { testProvider: { enabled: true, pipeline: [] } } });
+      mod.setSystemTransformsConfig({
+        providers: { testProvider: { enabled: true, pipeline: [] } },
+      });
       const after = mod.getSystemTransformsConfig();
       assert.notEqual(after.providers.testProvider, undefined);
       mod.resetSystemTransformsConfig();

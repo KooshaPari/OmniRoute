@@ -1,3 +1,4 @@
+// oxlint-disable rules-of-hooks
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -12,9 +13,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const { writeCallArtifact } = await import("../../src/lib/usage/callLogArtifacts.ts");
-const { maybeEnrichCompletedDetail } = await import(
-  "../../src/lib/usage/completedRequestDetails.ts"
-);
+const { maybeEnrichCompletedDetail } =
+  await import("../../src/lib/usage/completedRequestDetails.ts");
 
 type PipelinePayloads = { providerResponse?: unknown; clientResponse?: unknown };
 

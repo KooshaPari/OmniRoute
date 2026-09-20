@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Rate Limit Manager — Adaptive rate limiting using Bottleneck
  *

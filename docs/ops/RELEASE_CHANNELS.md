@@ -12,15 +12,15 @@ This doc covers the **auto-release system**. For the manual release procedure se
 
 Six channels, in stability order. Each one is a separate `npm dist-tag`, a separate Docker tag, and a separate GitHub Release marked appropriately as prerelease.
 
-| Channel | Stability | Blocking CI gates | npm dist-tag | Docker tag | GitHub prerelease | Trigger |
-|---------|-----------|-------------------|--------------|------------|-------------------|---------|
-| `nightly` | 0 (most primitive) | `build` | `nightly` | `nightly` | yes | auto (24h OR ≥5k LOC) |
-| `canary` | 1 | + `unit`, `vitest`, `integration` | `canary` | `canary` | yes | auto-promote |
-| `alpha` | 2 | + `e2e`, `security` | `alpha` | `alpha` | yes | auto-promote |
-| `beta` | 3 | + `resilience`, `llm-security` | `beta` | `beta` | yes | auto-promote |
-| `rc` | 4 | + `chaos`, `fuzz`, `perf`, `load` | `next` | `rc` | yes | auto-promote |
-| `stable` | 5 | + `cross-platform`, `a11y`, `release-green` | `latest` | `latest` | no | auto-promote |
-| `lts-{n}` | past stable | `core` matrix only | `lts-{n}` | `lts-{n}` | no | manual cut |
+| Channel   | Stability          | Blocking CI gates                           | npm dist-tag | Docker tag | GitHub prerelease | Trigger               |
+| --------- | ------------------ | ------------------------------------------- | ------------ | ---------- | ----------------- | --------------------- |
+| `nightly` | 0 (most primitive) | `build`                                     | `nightly`    | `nightly`  | yes               | auto (24h OR ≥5k LOC) |
+| `canary`  | 1                  | + `unit`, `vitest`, `integration`           | `canary`     | `canary`   | yes               | auto-promote          |
+| `alpha`   | 2                  | + `e2e`, `security`                         | `alpha`      | `alpha`    | yes               | auto-promote          |
+| `beta`    | 3                  | + `resilience`, `llm-security`              | `beta`       | `beta`     | yes               | auto-promote          |
+| `rc`      | 4                  | + `chaos`, `fuzz`, `perf`, `load`           | `next`       | `rc`       | yes               | auto-promote          |
+| `stable`  | 5                  | + `cross-platform`, `a11y`, `release-green` | `latest`     | `latest`   | no                | auto-promote          |
+| `lts-{n}` | past stable        | `core` matrix only                          | `lts-{n}`    | `lts-{n}`  | no                | manual cut            |
 
 Canonical definition: [`config/release/channels.json`](../../config/release/channels.json). Runtime gate lookup: [`config/release/ci-matrix.json`](../../config/release/ci-matrix.json).
 
@@ -88,7 +88,7 @@ The walker stops at the **first channel whose blocking-gate list is incomplete**
 - Unit green, e2e red → publishes `canary`.
 - All green through `stable` → publishes `stable`.
 
-> **Note**: in practice the trigger only fires on a green build of `main` because `auto-release.yml` runs *after* the `ci.yml` build job has finished. If `main` is red, neither the time-based nor the diff-based trigger produces a release; the next push that turns green re-evaluates both conditions and fires.
+> **Note**: in practice the trigger only fires on a green build of `main` because `auto-release.yml` runs _after_ the `ci.yml` build job has finished. If `main` is red, neither the time-based nor the diff-based trigger produces a release; the next push that turns green re-evaluates both conditions and fires.
 
 ### 3. Publish
 
@@ -135,23 +135,23 @@ Runs `trigger-evaluator --dry-run` then `channel-resolver --dry-run` against syn
 
 ## CI matrix coverage
 
-| Gate | In PR (ci.yml) | Nightly | Weekly | On-demand | Channels that gate on it |
-|------|:---:|:---:|:---:|:---:|---------|
-| `build` | ✓ | ✓ | — | — | all |
-| `unit`, `vitest`, `integration` | ✓ | ✓ | — | — | canary+ |
-| `e2e`, `security` | ✓ | ✓ | — | — | alpha+ |
-| `release-green` | — | ✓ | — | ✓ | stable |
-| `resilience` (heap, chaos, k6-soak) | — | ✓ | — | — | beta+ |
-| `llm-security` (promptfoo, garak) | — | ✓ | — | — | beta+ |
-| `mutation` | — | ✓ | — | — | advisory |
-| `property` | — | ✓ | — | — | advisory |
-| `schemathesis` | — | ✓ | — | — | advisory |
-| `a11y` | — | ✓ | — | — | stable |
-| `chaos` | — | — | ✓ | — | rc+ |
-| `fuzz` | — | ✓ | ✓ | — | rc+ |
-| `perf` | — | — | ✓ | — | rc+ |
-| `load` (k6 smoke) | — | ✓ | — | — | rc+ |
-| `cross-platform` | — | — | — | ✓ | stable |
+| Gate                                | In PR (ci.yml) | Nightly | Weekly | On-demand | Channels that gate on it |
+| ----------------------------------- | :------------: | :-----: | :----: | :-------: | ------------------------ |
+| `build`                             |                |         |   —    |     —     | all                      |
+| `unit`, `vitest`, `integration`     |                |         |   —    |     —     | canary+                  |
+| `e2e`, `security`                   |                |         |   —    |     —     | alpha+                   |
+| `release-green`                     |       —        |         |   —    |           | stable                   |
+| `resilience` (heap, chaos, k6-soak) |       —        |         |   —    |     —     | beta+                    |
+| `llm-security` (promptfoo, garak)   |       —        |         |   —    |     —     | beta+                    |
+| `mutation`                          |       —        |         |   —    |     —     | advisory                 |
+| `property`                          |       —        |         |   —    |     —     | advisory                 |
+| `schemathesis`                      |       —        |         |   —    |     —     | advisory                 |
+| `a11y`                              |       —        |         |   —    |     —     | stable                   |
+| `chaos`                             |       —        |    —    |        |     —     | rc+                      |
+| `fuzz`                              |       —        |         |        |     —     | rc+                      |
+| `perf`                              |       —        |    —    |        |     —     | rc+                      |
+| `load` (k6 smoke)                   |       —        |         |   —    |     —     | rc+                      |
+| `cross-platform`                    |       —        |    —    |   —    |           | stable                   |
 
 ### Known gaps
 
@@ -160,14 +160,14 @@ Runs `trigger-evaluator --dry-run` then `channel-resolver --dry-run` against syn
 
 ## npm scripts
 
-| Script | Purpose |
-|--------|---------|
-| `npm run release:matrix` | Print gate-ID alignment between `channels.json` and `ci-matrix.json`. |
-| `npm run release:trigger` | Run the trigger evaluator with `--last-release-ts`, `--added-lines`, and `--removed-lines`. |
-| `npm run release:trigger:json` | Same, JSON output only (for piping). |
-| `npm run release:resolve` | Run channel resolver for a SHA. Reads `gh api .../check-runs` by default; pass `--check-runs file.json` or `--gate-status '{...}'` for offline runs. |
-| `npm run release:resolve:test` | Run resolver against a synthetic check-runs file. |
-| `npm run release:dry-run` | End-to-end dry run: trigger → resolve → print publish plan. |
+| Script                         | Purpose                                                                                                                                              |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run release:matrix`       | Print gate-ID alignment between `channels.json` and `ci-matrix.json`.                                                                                |
+| `npm run release:trigger`      | Run the trigger evaluator with `--last-release-ts`, `--added-lines`, and `--removed-lines`.                                                          |
+| `npm run release:trigger:json` | Same, JSON output only (for piping).                                                                                                                 |
+| `npm run release:resolve`      | Run channel resolver for a SHA. Reads `gh api .../check-runs` by default; pass `--check-runs file.json` or `--gate-status '{...}'` for offline runs. |
+| `npm run release:resolve:test` | Run resolver against a synthetic check-runs file.                                                                                                    |
+| `npm run release:dry-run`      | End-to-end dry run: trigger → resolve → print publish plan.                                                                                          |
 
 ## Adding a new channel
 

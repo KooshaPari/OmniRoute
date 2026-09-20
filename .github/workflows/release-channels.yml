@@ -44,9 +44,7 @@ on:
     - cron: "0 3 * * 0"
 
 permissions:
-  contents: write
-  id-token: write
-  packages: write
+  contents: read
 
 concurrency:
   group: release-channels-${{ github.ref }}
@@ -60,6 +58,10 @@ jobs:
     name: Promote to ${{ inputs.channel }}
     if: ${{ inputs.action == 'promote' }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
     outputs:
       version: ${{ steps.resolve.outputs.version }}
       resolved: ${{ steps.resolve.outputs.resolved }}
@@ -67,6 +69,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
+          persist-credentials: false
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -213,10 +216,14 @@ jobs:
     name: Retention cleanup
     if: ${{ inputs.action == 'cleanup' || github.event_name == 'schedule' }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
+          persist-credentials: false
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -386,10 +393,13 @@ jobs:
     name: Cut LTS branch
     if: ${{ inputs.action == 'lts-cut' }}
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
+          persist-credentials: false
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -405,11 +415,14 @@ jobs:
           fi
 
       - name: Create LTS branch from stable tag
+        env:
+          LTS_BRANCH: ${{ inputs.lts-branch }}
+          LTS_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          git checkout -b "${{ inputs.lts-branch }}" "v${{ inputs.version }}"
-          git push origin "${{ inputs.lts-branch }}"
-          echo "Created branch ${{ inputs.lts-branch }} from tag v${{ inputs.version }}"
+          git checkout -b "$LTS_BRANCH" "v$LTS_VERSION"
+          git push origin "$LTS_BRANCH"
+          echo "Created branch $LTS_BRANCH from tag v$LTS_VERSION"
 
       # The LTS branch's CI workflow is generated here, but it does NOT inline
       # any logic — it just calls the reusable workflow at

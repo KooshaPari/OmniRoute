@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Stream helper utilities for SSE processing.
  *
@@ -202,11 +203,7 @@ export function createSSEDataLineNormalizer(): SSEDataLineNormalizer {
         const normalizedLine = line.replace(CR_STRIP_RE, "");
         const trimmed = normalizedLine.trim();
 
-        if (
-          trimmed &&
-          SSE_FIELD_RE.test(trimmed) &&
-          hasSelfDescribingPendingDataPayload()
-        ) {
+        if (trimmed && SSE_FIELD_RE.test(trimmed) && hasSelfDescribingPendingDataPayload()) {
           flush(output);
         }
 
@@ -220,7 +217,9 @@ export function createSSEDataLineNormalizer(): SSEDataLineNormalizer {
   };
 }
 
-export function createSSEEventPrefixBuffer(options?: { forwardEvent?: boolean }): SSEEventPrefixBuffer {
+export function createSSEEventPrefixBuffer(options?: {
+  forwardEvent?: boolean;
+}): SSEEventPrefixBuffer {
   let lines: string[] = [];
   let emitted = false;
   // The `event:` line is only part of the SSE framing for protocols that define

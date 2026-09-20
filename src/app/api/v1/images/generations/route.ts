@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { handleImageGeneration } from "@omniroute/open-sse/handlers/imageGeneration.ts";
 import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {

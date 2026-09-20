@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -53,7 +54,10 @@ test("handleAudioTranslation rejects unsupported providers", async () => {
   const payload = (await response.json()) as any;
 
   assert.equal(response.status, 400);
-  assert.match(payload.error.message, /No translation provider found for model "unknown\/provider"/);
+  assert.match(
+    payload.error.message,
+    /No translation provider found for model "unknown\/provider"/
+  );
 });
 
 test("handleAudioTranslation dispatches OpenAI-compatible multipart requests and returns { text }", async () => {

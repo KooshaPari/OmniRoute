@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Integration tests — POST /api/memory/reindex
  * Tests: no force → {started:true, pending:N}, force=true marks all needs_reindex, 401 unauth.

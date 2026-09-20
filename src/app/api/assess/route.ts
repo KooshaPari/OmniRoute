@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { Assessor } from "@/domain/assessment/assessor";

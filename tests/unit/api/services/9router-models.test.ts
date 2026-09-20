@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tests for GET /api/services/9router/models
  *

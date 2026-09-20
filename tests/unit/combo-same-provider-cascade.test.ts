@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -53,12 +54,7 @@ test("combo hits a failing provider only once before falling back across same-pr
     name: "same-provider-cascade-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: [
-      "openai/o3-mini",
-      "openai/o1-mini",
-      "openai/gpt-4.1-mini",
-      "claude/claude-sonnet-4.6",
-    ],
+    models: ["openai/o3-mini", "openai/o1-mini", "openai/gpt-4.1-mini", "claude/claude-sonnet-4.6"],
   });
 
   let openaiCalls = 0;
@@ -81,10 +77,7 @@ test("combo hits a failing provider only once before falling back across same-pr
       });
     }
 
-    if (
-      apiKeyHeader === "sk-claude-cascade" ||
-      authHeader === "Bearer sk-claude-cascade"
-    ) {
+    if (apiKeyHeader === "sk-claude-cascade" || authHeader === "Bearer sk-claude-cascade") {
       claudeCalls += 1;
       return buildClaudeResponse("claude handled the fallback");
     }

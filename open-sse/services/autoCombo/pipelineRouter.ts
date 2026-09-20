@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Pipeline Router — Smart Auto-Pipeline Orchestrator
  *

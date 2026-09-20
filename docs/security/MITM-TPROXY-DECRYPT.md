@@ -25,7 +25,7 @@ exchange, and re-encrypts the request to the original destination.
 
 **Source:** `src/mitm/tproxy/`
 **API route:** `GET / POST / DELETE /api/tools/agent-bridge/tproxy`
-**Dashboard toggle:** Traffic Inspector → capture-modes toolbar → **"TPROXY Decrypt"** ⚠
+**Dashboard toggle:** Traffic Inspector → capture-modes toolbar → **"TPROXY Decrypt"**
 **See also:** [`docs/frameworks/TRAFFIC_INSPECTOR.md`](../frameworks/TRAFFIC_INSPECTOR.md),
 [`docs/frameworks/AGENTBRIDGE.md`](../frameworks/AGENTBRIDGE.md)
 
@@ -321,7 +321,7 @@ POST body or the defaults above.
 ## §9 Enabling from the Traffic Inspector
 
 1. Open the **Traffic Inspector** (`/dashboard/tools/traffic-inspector`).
-2. In the capture-modes toolbar, find the **"TPROXY Decrypt"** ⚠ button
+2. In the capture-modes toolbar, find the **"TPROXY Decrypt"** button
    (`src/app/(dashboard)/dashboard/tools/traffic-inspector/components/CaptureModesToolbar.tsx`).
    - If it is **disabled** with the tooltip "TPROXY decrypt requires Linux + root +
      the native addon", the native addon is unavailable on this host (non-Linux,

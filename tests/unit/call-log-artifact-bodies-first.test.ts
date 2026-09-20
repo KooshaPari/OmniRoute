@@ -1,3 +1,4 @@
+// oxlint-disable rules-of-hooks
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -10,9 +11,8 @@ useDecollidedMigrationsDir();
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-call-log-bodies-first-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
-const { writeCallArtifact, readCallArtifact, isSizeLimitOmissionMarker } = await import(
-  "../../src/lib/usage/callLogArtifacts.ts"
-);
+const { writeCallArtifact, readCallArtifact, isSizeLimitOmissionMarker } =
+  await import("../../src/lib/usage/callLogArtifacts.ts");
 
 const OMITTED = "[omitted: call log artifact size limit exceeded]";
 const PIPELINE_MARKER = {

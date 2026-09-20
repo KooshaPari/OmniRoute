@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Plugin manager — lifecycle management for plugins.
  *

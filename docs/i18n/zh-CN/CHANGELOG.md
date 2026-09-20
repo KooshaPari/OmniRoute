@@ -1,20 +1,19 @@
 # Changelog (中文 (简体))
 
-🌐 **Languages:** 🇺🇸 [English](../../../CHANGELOG.md) · 🇸🇦 [ar](../ar/CHANGELOG.md) · 🇦🇿 [az](../az/CHANGELOG.md) · 🇧🇬 [bg](../bg/CHANGELOG.md) · 🇧🇩 [bn](../bn/CHANGELOG.md) · 🇨🇿 [cs](../cs/CHANGELOG.md) · 🇩🇰 [da](../da/CHANGELOG.md) · 🇩🇪 [de](../de/CHANGELOG.md) · 🇬🇷 [el](../el/CHANGELOG.md) · 🇪🇸 [es](../es/CHANGELOG.md) · 🇪🇪 [et](../et/CHANGELOG.md) · 🇮🇷 [fa](../fa/CHANGELOG.md) · 🇫🇮 [fi](../fi/CHANGELOG.md) · 🇫🇷 [fr](../fr/CHANGELOG.md) · 🇮🇪 [ga](../ga/CHANGELOG.md) · 🇮🇳 [gu](../gu/CHANGELOG.md) · 🇮🇱 [he](../he/CHANGELOG.md) · 🇮🇳 [hi](../hi/CHANGELOG.md) · 🇭🇷 [hr](../hr/CHANGELOG.md) · 🇭🇺 [hu](../hu/CHANGELOG.md) · 🇮🇩 [id](../id/CHANGELOG.md) · 🇮🇹 [it](../it/CHANGELOG.md) · 🇯🇵 [ja](../ja/CHANGELOG.md) · 🇰🇷 [ko](../ko/CHANGELOG.md) · 🇱🇹 [lt](../lt/CHANGELOG.md) · 🇱🇻 [lv](../lv/CHANGELOG.md) · 🇮🇳 [mr](../mr/CHANGELOG.md) · 🇲🇾 [ms](../ms/CHANGELOG.md) · 🇲🇹 [mt](../mt/CHANGELOG.md) · 🇳🇱 [nl](../nl/CHANGELOG.md) · 🇳🇴 [no](../no/CHANGELOG.md) · 🇵🇭 [phi](../phi/CHANGELOG.md) · 🇵🇱 [pl](../pl/CHANGELOG.md) · 🇵🇹 [pt](../pt/CHANGELOG.md) · 🇧🇷 [pt-BR](../pt-BR/CHANGELOG.md) · 🇷🇴 [ro](../ro/CHANGELOG.md) · 🇷🇺 [ru](../ru/CHANGELOG.md) · 🇸🇰 [sk](../sk/CHANGELOG.md) · 🇸🇮 [sl](../sl/CHANGELOG.md) · 🇷🇸 [sr](../sr/CHANGELOG.md) · 🇸🇪 [sv](../sv/CHANGELOG.md) · 🇰🇪 [sw](../sw/CHANGELOG.md) · 🇮🇳 [ta](../ta/CHANGELOG.md) · 🇮🇳 [te](../te/CHANGELOG.md) · 🇹🇭 [th](../th/CHANGELOG.md) · 🇹🇷 [tr](../tr/CHANGELOG.md) · 🇺🇦 [uk-UA](../uk-UA/CHANGELOG.md) · 🇵🇰 [ur](../ur/CHANGELOG.md) · 🇻🇳 [vi](../vi/CHANGELOG.md) · 🇹🇼 [zh-TW](../zh-TW/CHANGELOG.md)
+**Languages:** [English](../../../CHANGELOG.md) · [ar](../ar/CHANGELOG.md) · [az](../az/CHANGELOG.md) · [bg](../bg/CHANGELOG.md) · [bn](../bn/CHANGELOG.md) · [cs](../cs/CHANGELOG.md) · [da](../da/CHANGELOG.md) · [de](../de/CHANGELOG.md) · [el](../el/CHANGELOG.md) · [es](../es/CHANGELOG.md) · [et](../et/CHANGELOG.md) · [fa](../fa/CHANGELOG.md) · [fi](../fi/CHANGELOG.md) · [fr](../fr/CHANGELOG.md) · [ga](../ga/CHANGELOG.md) · [gu](../gu/CHANGELOG.md) · [he](../he/CHANGELOG.md) · [hi](../hi/CHANGELOG.md) · [hr](../hr/CHANGELOG.md) · [hu](../hu/CHANGELOG.md) · [id](../id/CHANGELOG.md) · [it](../it/CHANGELOG.md) · [ja](../ja/CHANGELOG.md) · [ko](../ko/CHANGELOG.md) · [lt](../lt/CHANGELOG.md) · [lv](../lv/CHANGELOG.md) · [mr](../mr/CHANGELOG.md) · [ms](../ms/CHANGELOG.md) · [mt](../mt/CHANGELOG.md) · [nl](../nl/CHANGELOG.md) · [no](../no/CHANGELOG.md) · [phi](../phi/CHANGELOG.md) · [pl](../pl/CHANGELOG.md) · [pt](../pt/CHANGELOG.md) · [pt-BR](../pt-BR/CHANGELOG.md) · [ro](../ro/CHANGELOG.md) · [ru](../ru/CHANGELOG.md) · [sk](../sk/CHANGELOG.md) · [sl](../sl/CHANGELOG.md) · [sr](../sr/CHANGELOG.md) · [sv](../sv/CHANGELOG.md) · [sw](../sw/CHANGELOG.md) · [ta](../ta/CHANGELOG.md) · [te](../te/CHANGELOG.md) · [th](../th/CHANGELOG.md) · [tr](../tr/CHANGELOG.md) · [uk-UA](../uk-UA/CHANGELOG.md) · [ur](../ur/CHANGELOG.md) · [vi](../vi/CHANGELOG.md) · [zh-TW](../zh-TW/CHANGELOG.md)
 
----
 
-## [3.8.31] — 2026-06-20
+
 
 ## [3.8.51] — TBD
 
 _Living section — cycle opened at the v3.8.50 freeze (parallel-cycle model). Bullets are aggregated from `changelog.d/` fragments at each `/generate-release` phase._
 
-### ✨ New Features
+### New Features
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
-### 📝 Maintenance
+### Maintenance
 
 ---
 
@@ -22,43 +21,43 @@ _Living section — cycle opened at the v3.8.50 freeze (parallel-cycle model). B
 
 _Living section — regenerated 2026-08-12 from all cycle commits (cycle open `ed2db6cb19` → tip). Bullets carry the merged PR and its author; direct pushes listed separately._
 
-### 📊 Release by the numbers
+### Release by the numbers
 
 | | |
 | --- | ---: |
-| 👥 People who contributed | **248** |
-| 📝 Commits in the cycle | **1,714** |
-| 🔀 Pull requests referenced | **1,666** |
-| 📋 Changelog entries | **1,182** |
-| 🙌 Contributors credited in entries | **256** |
-| 🤖 Automated dependency commits | 22 |
+| People who contributed | **248** |
+| Commits in the cycle | **1,714** |
+| Pull requests referenced | **1,666** |
+| Changelog entries | **1,182** |
+| Contributors credited in entries | **256** |
+| Automated dependency commits | 22 |
 
 **Entries by type**
 
 | Type | Count |
 | --- | ---: |
-| 🐛 Fixes | 779 |
-| ✨ Features | 169 |
-| 📚 Docs | 29 |
-| 🧹 Chore | 27 |
-| 🧪 Tests | 15 |
-| ♻️ Refactor | 5 |
-| ⚡ Performance | 3 |
+| Fixes | 779 |
+| Features | 169 |
+| Docs | 29 |
+| Chore | 27 |
+| Tests | 15 |
+| Refactor | 5 |
+| Performance | 3 |
 | providers | 2 |
-| 🔒 Security | 2 |
-| ⚙️ CI | 2 |
+| Security | 2 |
+| CI | 2 |
 | deps | 2 |
 | maint | 2 |
 
-### 🏆 Top 25 contributors this cycle
+### Top 25 contributors this cycle
 
 _By commits in `ed2db6cb19..v3.8.50`, author identities consolidated via `.mailmap`. Bots excluded._
 
 | # | Contributor | Commits |
 | ---: | --- | ---: |
-| 🥇 | diegosouzapw | 738 |
-| 🥈 | backryun | 88 |
-| 🥉 | Dizzle | 66 |
+| | diegosouzapw | 738 |
+| | backryun | 88 |
+| | Dizzle | 66 |
 | 4 | Ravi Tharuma | 52 |
 | 5 | Markus Hartung | 48 |
 | 6 | Bob.Hou | 42 |
@@ -68,7 +67,7 @@ _By commits in `ed2db6cb19..v3.8.50`, author identities consolidated via `.mailm
 | 10 | Nguyen Thanh Dat | 23 |
 | 11 | Aman | 22 |
 | 12 | Will Gordon | 19 |
-| 13 | 小妍儿 ✨ | 17 |
+| 13 | 小妍儿 | 17 |
 | 14 | adevwithpurpose | 16 |
 | 15 | Andrew B. | 10 |
 | 16 | NOXX - Commiter | 10 |
@@ -83,7 +82,7 @@ _By commits in `ed2db6cb19..v3.8.50`, author identities consolidated via `.mailm
 | 25 | stanley | 7 |
 
 
-### ✨ New Features
+### New Features
 - **feat(search):** first-class X Search provider (`x-search`) on `POST /v1/search` and MCP `omniroute_x_search` using SuperGrok / xAI server-side `x_search`. Explicit provider or `search_type: "x"` only — never auto-selected for web. Reuses `xai-oauth` / `xao` / `xai` credentials. Not the X Developer Platform MCP. ([#10985](https://github.com/diegosouzapw/OmniRoute/issues/10985))
 - **feat(core):** add Layer A capability filter at router (#5696)
 - **feat(providers):** add DeepAI as paid API-key image provider ([#6671](https://github.com/diegosouzapw/OmniRoute/issues/6671))
@@ -289,7 +288,7 @@ _By commits in `ed2db6cb19..v3.8.50`, author identities consolidated via `.mailm
 - **feat(api):** list embeddings models from the configured providers ([#11249](https://github.com/diegosouzapw/OmniRoute/issues/11249)) and guided Qdrant memory configuration ([#11213](https://github.com/diegosouzapw/OmniRoute/issues/11213)) — thanks @rafacpti23
 - **feat(responses):** `previous_response_id` continuation is virtualized even when the upstream does not support it ([#10262](https://github.com/diegosouzapw/OmniRoute/issues/10262) — thanks @hartmark)
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **fix(build):** every route no longer answers HTTP 500 on artifacts built from the release tip ([#11343](https://github.com/diegosouzapw/OmniRoute/issues/11343)) — `next.config.mjs` aliased `better-sqlite3` to its build-time stub **unconditionally**, on the premise that `serverExternalPackages` still won at runtime. It does not: a Turbopack `resolveAlias` rewrites the request *before* the externals check, so the request stopped matching the `better-sqlite3` external entry and the stub was baked into the shipped bundle. The sync driver then failed with `r(...) is not a constructor`, fell through `node:sqlite` and sql.js, and the instrumentation hook aborted at boot. Same failure shape as [#6344](https://github.com/diegosouzapw/OmniRoute/issues/6344), so it gets the same treatment: the alias is opt-in via `OMNIROUTE_BETTER_SQLITE3_STUB=1` through the shared `scripts/build/better-sqlite3-stub-flag.mjs` helper — set it only on a build host that actually hits the SIGABRT build-worker teardown ([#10060](https://github.com/diegosouzapw/OmniRoute/issues/10060)); default builds externalize the real native addon. Regression guards: `tests/unit/better-sqlite3-stub-alias-11343.test.mjs` (5) and the env matrix in `tests/unit/next-config.test.ts`.
 - **security(search)**: block SSRF via `/v1/search` `provider_options.baseUrl` for the Firecrawl search provider — the client-controlled override is now validated as a public URL before it is used to build the server-side fetch target, so a caller with a valid API key can no longer redirect search requests at loopback, RFC1918, or cloud-metadata hosts — thanks @zmf963
@@ -993,7 +992,7 @@ _By commits in `ed2db6cb19..v3.8.50`, author identities consolidated via `.mailm
 - **fix(api):** hash API keys in the `/v1/models` catalog cache Map key so heap dumps cannot leak bearer tokens (`src/app/api/v1/models/catalogCache.ts`)
 - **fix(providers):** register live OpenRouter Gemini Embedding 2 ids (`google/gemini-embedding-2` and `google/gemini-embedding-2-preview`, 3072-d) in the curated embeddings catalog so `GET /v1/models` and `GET /v1/embeddings` list the ids that already serve — thanks @RaviTharuma
 - **fix(translator):** merge consecutive same-role contents in direct Claude to Gemini request translation to prevent upstream HTTP 400 errors
-- **fix(cli):** `omniroute update` now finds npm on Windows. It called `execFile("npm", …)` with no shell, and on Node ≥ 24 a `.cmd` wrapper cannot be spawned that way (nodejs/node#52554) — while a bare `npm` can also resolve to an extensionless shim `CreateProcess` refuses. The result was `✖ Could not check latest version. Is npm available?` in a terminal where `npm view omniroute version` worked fine, so the updater was unusable on Windows even though nothing was wrong with the install. This is the same class as #5379/#5542, which fixed the server-side calls; the CLI entry points were missed because they are plain `.mjs` and cannot import the TypeScript helper. `bin/cli/npm-exec.mjs` now states the same rule for them: `npm.cmd` plus a shell on win32, no shell anywhere else. Both npm lookups in `update.mjs` (version and changelog) pass a literal argv array, so enabling the shell cannot splice a runtime value into the command line — a test asserts that and fails if a future edit interpolates one. (#11335)
+- **fix(cli):** `omniroute update` now finds npm on Windows. It called `execFile("npm", …)` with no shell, and on Node ≥ 24 a `.cmd` wrapper cannot be spawned that way (nodejs/node#52554) — while a bare `npm` can also resolve to an extensionless shim `CreateProcess` refuses. The result was ` Could not check latest version. Is npm available?` in a terminal where `npm view omniroute version` worked fine, so the updater was unusable on Windows even though nothing was wrong with the install. This is the same class as #5379/#5542, which fixed the server-side calls; the CLI entry points were missed because they are plain `.mjs` and cannot import the TypeScript helper. `bin/cli/npm-exec.mjs` now states the same rule for them: `npm.cmd` plus a shell on win32, no shell anywhere else. Both npm lookups in `update.mjs` (version and changelog) pass a literal argv array, so enabling the shell cannot splice a runtime value into the command line — a test asserts that and fails if a future edit interpolates one. (#11335)
 - **fix(cline):** Preserve client-supplied Cline task IDs and omit the header when clients provide none, preventing request-scoped proxy IDs from being reported as tasks.
 - Hardened the Codex app-server transport after the post-merge security review of #11205: approval prompts from the app-server (its own command/file/permission execution — not the harness tool passthrough) are now auto-denied by default, with opt-in auto-approval via `providerSpecificData.codexAppServerAutoApprove` / `OMNIROUTE_CODEX_APPSERVER_AUTO_APPROVE`; the default codex sandbox changed from `danger-full-access` to `workspace-write` (override per connection or env); env-sourced capability tokens are now only sent to env-sourced URLs or operator-local hosts (loopback/RFC1918/link-local/ULA/localhost/single-label LAN names/*.local/*.ts.net/*.internal), so a connection's providerSpecificData URL can no longer exfiltrate the operator's env token; and the `/readyz` health probe no longer follows redirects while carrying the bearer token.
 - fix(codex): prefer `max_context_window` over the `context_window` pricing tier as the usable input limit in discovery, and raise the static Codex OAuth catalog to the same usable window so the conservative discovery merge no longer caps live values at the 272K pricing tier
@@ -1107,7 +1106,7 @@ _By commits in `ed2db6cb19..v3.8.50`, author identities consolidated via `.mailm
 - **fix(api):** `/v1/models` no longer blocks the stale response while it rebuilds the catalog ([#11551](https://github.com/diegosouzapw/OmniRoute/issues/11551)) — the route has been passing a `scheduleBackgroundRefresh` option since #10198, but the parameter had already been removed from `getUnifiedModelsResponse()`, so the object was silently dropped and the stale-while-revalidate rebuild still ran on a `setTimeout(..., 0)`. The builder is essentially synchronous under the App Router, so it pinned the event loop **before** the cached response was flushed — the [#8728](https://github.com/diegosouzapw/OmniRoute/pull/8728) guarantee did not actually exist for operators with large catalogs. `catalogCache` now schedules through `after()` (with a macrotask fallback outside a request scope) and the option is threaded end to end. The extra argument was invisible to CI because `typecheck:core` is a curated allowlist and `next.config.mjs` sets `ignoreBuildErrors: true`.
 - **fix(sse):** a universal handoff whose summary comes back unusable is no longer regenerated on every single model switch, which was burning paid quota on upstream calls whose answers were thrown away ([#11552](https://github.com/diegosouzapw/OmniRoute/issues/11552)) — nothing is persisted when the summary does not parse, so the next switch in the same session re-issued the same full-history summarization request and discarded it again, forever. With a switch-heavy combo strategy (weighted, random, round-robin, p2c) that landed on a large share of requests: measured at n=200, roughly **one request in four carried an extra discarded upstream call**, and that traffic skewed a weighted 70/30 combo to an observed 0.895 share for one provider even though the share actually delivered to the client was a correct 0.70. There is now an exponential back-off per (session, combo) — 5 min up to 1 h, cleared on the first successful handoff, capped at 500 tracked keys. A transient upstream failure is deliberately **not** tracked, so it still retries immediately. After the fix: 201 upstream calls for 200 requests, and the measured share matches the delivered one.
 
-### 📝 Maintenance
+### Maintenance
 
 - **refactor(providers):** removed the Puter provider (id `puter`, alias `pu`) entirely — registry entry, `PuterExecutor`, API-key preset, 33 free-catalog models, i18n auth hints and docs — at the request of Puter's owner, Nariman Jelveh. Migration 152 cleans up any locally stored Puter connections/keys/custom models; historical usage records are preserved.
 - **fix(types):** preserve the client response format contract while estimating usage for non-streaming responses (#8484)
@@ -1356,7 +1355,7 @@ _By commits in `ed2db6cb19..v3.8.50`, author identities consolidated via `.mailm
 - **chore(quality):** refreshed the combos-page ESLint suppressions after the manual-model restore ([#8875](https://github.com/diegosouzapw/OmniRoute/pull/8875)) — three `no-unused-vars` suppressions existed only because #8285 had deleted the JSX consuming that state; with the block back they are live again, and a stale suppression makes ESLint exit 2, which is what actually turned the Lint job red. The 7 `react-hooks/set-state-in-effect` plus 1 `react-hooks/immutability` errors in the same file are pre-existing (reproducible on the file's `091e2ba4da` content) and surfaced only because touching the file evicted it from the restored `.eslintcache`; they are frozen here and tracked separately rather than refactored mid-release.
 
 
-### 🙌 Contributors
+### Contributors
 
 Thanks to everyone whose work landed in v3.8.50:
 
@@ -1616,7 +1615,7 @@ Thanks to everyone whose work landed in v3.8.50:
 
 _Living section — regenerated 2026-07-19 from all 306 cycle commits (bump 2c62333b0 → tip). Bullets carry the merged PR and its author; direct pushes listed separately. Finalized at the v3.8.49 release._
 
-### ✨ New Features
+### New Features
 
 - **feat:** generalize ensureThinkingBudget to all providers + preserve server-side tool invocations on antigravity ([#6979](https://github.com/diegosouzapw/OmniRoute/pull/6979)) — thanks @rafaumeu
 - **feat(6922):** effort-tier aliases for glm-5.2 & mimo-v2.5 on opencode-go ([#6987](https://github.com/diegosouzapw/OmniRoute/pull/6987)) — thanks @rafaumeu
@@ -1905,7 +1904,7 @@ _Living section — regenerated 2026-07-19 from all 306 cycle commits (bump 2c62
 - **feat(quality):** temporary relax of complexity/file-size ratchets for v3.8.50-3.8.54 PREPARE phase ([#8767](https://github.com/diegosouzapw/OmniRoute/pull/8767))
 - **feat(db):** let the migration runner scan extra namespaced directories ([#8770](https://github.com/diegosouzapw/OmniRoute/pull/8770))
 - **feat(api):** prompt-cache health summary endpoint and analytics tab ([#8827](https://github.com/diegosouzapw/OmniRoute/pull/8827))
-### ⚡ Performance
+### Performance
 
 - **perf(db):** project columns + composite index in getProviderConnections ([#6918](https://github.com/diegosouzapw/OmniRoute/pull/6918)) — thanks @oyi77
 - **perf(db):** add jitter to stagger due-on-restart connections ([#6919](https://github.com/diegosouzapw/OmniRoute/pull/6919)) — thanks @oyi77
@@ -1920,7 +1919,7 @@ _Living section — regenerated 2026-07-19 from all 306 cycle commits (bump 2c62
 - **perf:** lazy provider init, P2C quota cache, structuredClone elimination, getSettings→getCachedSettings (batch 2) ([#7893](https://github.com/diegosouzapw/OmniRoute/pull/7893)) — thanks @oyi77
 - **perf(api):** singleflight version lookups ([#8301](https://github.com/diegosouzapw/OmniRoute/pull/8301)) — thanks @RaviTharuma
 - **perf(api):** skip the full catalog build for quota-exclusive keys ([#8771](https://github.com/diegosouzapw/OmniRoute/pull/8771))
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **fix:** add re-entrancy guard to token health check sweep ([#6917](https://github.com/diegosouzapw/OmniRoute/pull/6917)) — thanks @oyi77
 - **fix(grok):** strip reasoningEffort for grok cli models ([#6938](https://github.com/diegosouzapw/OmniRoute/pull/6938)) — thanks @CitrusIce
@@ -2293,7 +2292,7 @@ _Living section — regenerated 2026-07-19 from all 306 cycle commits (bump 2c62
 - fix(db): share one in-flight sql.js load across concurrent `preInitSqlJs()` callers to stop the boot-time thundering-herd re-decode of the whole database file (#6628)
 - fix(db): unwrap lone named-parameter objects before `sql.js` `stmt.bind()` so `@`/`:`/`$`-style named placeholders bind correctly instead of throwing "Wrong API use" (#6802)
 - **fix(db): break probe-failed/restore loop on large storage.sqlite** (#6632 — thanks @KooshaPari).
-- fix(ci): exclude check-test-masking.test.ts's own tautology fixtures from the diff-based test-masking gate and recognize `✗` in validate-release-green's failure-line detector (#6634)
+- fix(ci): exclude check-test-masking.test.ts's own tautology fixtures from the diff-based test-masking gate and recognize `` in validate-release-green's failure-line detector (#6634)
 - fix(routing): recognize Kimi-style "exceeded model token limit" 400 as context overflow so combo fallback continues to the next target (#6637)
 - **fix(cli):** Claude Code installed via WinGet is now detected on Windows (the WinGet install path was missing from the binary lookup) (#6647 — thanks @enjoyer-hub).
 - **fix(providers):** removed obsolete/defunct providers from the catalog (glhf, kluster, cablyai, inclusionai) (#6675 — thanks @backryun).
@@ -2748,7 +2747,7 @@ _Living section — regenerated 2026-07-19 from all 306 cycle commits (bump 2c62
 - **fix:** escape angle brackets in i18n messages to prevent next-intl INVALID_MESSAGE errors ([#8747](https://github.com/diegosouzapw/OmniRoute/pull/8747)) — thanks @SteeleHu
 - **fix(dashboard):** Request Logs detail no longer crashes on a structured error object — #7920 introduced `formatErrorForDisplay` for exactly this, but the combo-503 / cooldown checks added by #8213 read the raw field and called `.toLowerCase()` on it. Both paths now share the helper.
 - **fix(dashboard):** the logs detail modal stops reopening on first close again — #6830 fixed it by reading the deep-link id once, and the #8354 page rewrite regressed it by reading the live `searchParams` on every render, flipping the prop mid-session.
-### 📚 Docs
+### Docs
 
 - **docs(quality):** codify retry policy per runner + release-level drift rule (WS5.4/WS5.5) ([#7107](https://github.com/diegosouzapw/OmniRoute/pull/7107))
 - **docs(troubleshooting):** document Avast/AVG README.md false positive (#5946) ([#7295](https://github.com/diegosouzapw/OmniRoute/pull/7295))
@@ -2790,7 +2789,7 @@ _Living section — regenerated 2026-07-19 from all 306 cycle commits (bump 2c62
 - **docs(codex):** document session affinity and stream idle for long tasks ([#8709](https://github.com/diegosouzapw/OmniRoute/pull/8709)) — thanks @DinonowDev
 - **docs:** replace outdated Polish docs with translation from latest English ([#8823](https://github.com/diegosouzapw/OmniRoute/pull/8823)) — thanks @leszek3737
 - **docs:** restore the Polish API_REFERENCE removed by #8823 ([#8831](https://github.com/diegosouzapw/OmniRoute/pull/8831))
-### 🧪 Tests & Quality
+### Tests & Quality
 
 - **test(build):** derive pack-artifact closures for all npm-shipped entrypoints (#7065 class) ([#7081](https://github.com/diegosouzapw/OmniRoute/pull/7081))
 - **test(dashboard):** dedicated regression guard for #6815 density guarantee ([#7291](https://github.com/diegosouzapw/OmniRoute/pull/7291))
@@ -2807,7 +2806,7 @@ _Living section — regenerated 2026-07-19 from all 306 cycle commits (bump 2c62
 - **test(e2e):** contract test for the full provider journey ([#8444](https://github.com/diegosouzapw/OmniRoute/pull/8444)) — thanks @HoneyTyagii
 - **test(sse):** repair two base-red gates on release/v3.8.49 ([#8490](https://github.com/diegosouzapw/OmniRoute/pull/8490)) — thanks @backryun
 - **test(context):** isolate context-manager suite from local DATA_DIR ([#8596](https://github.com/diegosouzapw/OmniRoute/pull/8596)) — thanks @DinonowDev
-### 🔧 Chores / CI
+### Chores / CI
 
 - **chore(release):** gate the sync-back push on release-green --quick (WS0.3) ([#7083](https://github.com/diegosouzapw/OmniRoute/pull/7083))
 - **chore(ci):** gate hygiene — secrets baseline 0, semgrep drop, hadolint (WS6/D3 + WS1.7) ([#7099](https://github.com/diegosouzapw/OmniRoute/pull/7099))
@@ -2897,7 +2896,7 @@ _Living section — regenerated 2026-07-19 from all 306 cycle commits (bump 2c62
 - **refactor(sse):** use the shared ApiKeyMetadata in reasoningRouting instead of a local duck-type ([#8643](https://github.com/diegosouzapw/OmniRoute/pull/8643)) — thanks @backryun
 - **refactor(sse):** narrow three media-generation result unions ([#8645](https://github.com/diegosouzapw/OmniRoute/pull/8645)) — thanks @backryun
 - **refactor(sse):** declare the semantic-cache read path's parameters ([#8646](https://github.com/diegosouzapw/OmniRoute/pull/8646)) — thanks @backryun
-### 🔀 Other
+### Other
 
 - [needs-vps] fix(electron): materialize Turbopack hashed-module symlinks during packaging (#6724, #6594) ([#6794](https://github.com/diegosouzapw/OmniRoute/pull/6794)) — thanks @huohua-dev
 - [codex] Keep mode-pack weights consistent in auto fallback ranking ([#7008](https://github.com/diegosouzapw/OmniRoute/pull/7008)) — thanks @KooshaPari
@@ -2925,13 +2924,13 @@ _Living section — regenerated 2026-07-19 from all 306 cycle commits (bump 2c62
 - **refactor(antigravity):** align official clients and callable catalog ([#8013](https://github.com/diegosouzapw/OmniRoute/pull/8013)) — thanks @backryun
 - **refactor(compression):** extract resolveHeadroomDetail to keep dispatchCompression under the complexity gate ([#8058](https://github.com/diegosouzapw/OmniRoute/pull/8058))
 - **deps:** bump next from 16.2.10 to 16.2.11 ([#8235](https://github.com/diegosouzapw/OmniRoute/pull/8235)) — thanks @dependabot[bot]
-### 🩹 Direct release-branch fixes (no PR — authorized base-red sweep, 2026-07-18)
+### Direct release-branch fixes (no PR — authorized base-red sweep, 2026-07-18)
 
 - **fix(base-red):** full-suite realignment after the 102-PR merge campaign: two real production fixes (legacy `refresh_token` column healed before its index is created; `shouldSkipCloudSyncInitialization` no longer swaps its `(env, argv)` arguments) plus 13 test files, goldens, provider counts, and env docs realigned to the live-validated behavior of the merged PRs.
 - **chore(release-branch):** cycle maintenance pushed directly to `release/v3.8.49` with no PR of its own — 19 merge-train landings validated on the `.113` box, 14 quality-ratchet re-pins (file-size / complexity / cognitive) absorbing the drift of the merged batches, 8 base-red realignments (build, oauth, embeddings, security, mitm, combo, antigravity, router-eval), the `changelog.d` aggregation passes and the 42 i18n CHANGELOG mirrors.
 - **test(ui):** the `vitest:ui` suite was red across the whole cycle and nobody saw it — the job kept being cancelled by successive pushes, so a blocking gate never ran to completion. Root cause: #7935 instrumented ~180 shared/dashboard components with `next-intl` without updating the tests that mount them. Fixed at the shared setup (`tests/_setup/vitestUiPolyfills.ts`) with a translator backed by the real `en.json`, memoized per namespace so components whose `useCallback`/`useEffect` depend on `t` no longer loop; 15 test files realigned to the real strings. 194→198 files green.
 
-### 📝 Maintenance
+### Maintenance
 - **Merge-train script** (`scripts/release/merge-train.sh`): batch-validates N queued PRs as ONE merged result on the runner box — merges every queued PR into a throwaway worktree cut from the release tip, runs the fast-gates parity suite once, and prints the `--admin` evidence block per PR (merge-gates §7). Replaces O(N²) per-PR CI re-runs in merge-storms. Regression guard: `tests/unit/merge-train-plan.test.ts`. ([#6784](https://github.com/diegosouzapw/OmniRoute/pull/6784))
 - **release:** `list-uncovered-commits.mjs` now unions the CHANGELOG scan window with `changelog.d/` fragment refs (filename `<PR>-` prefix + every `#N` in the body), so a commit covered only by a fragment is no longer reported as an uncovered reconciliation gap ([#6857](https://github.com/diegosouzapw/OmniRoute/issues/6857) via [#6878](https://github.com/diegosouzapw/OmniRoute/pull/6878))
 - **chore(ci):** stop dependabot from proposing `typescript` majors — `typescript-eslint` pins a hard peer upper bound (`>=4.8.4 <6.1.0`), so a TS 7 bump violates the peer and takes the whole toolchain red at once. #7068 grouped it with 6 harmless dev bumps and blocked all of them. TS majors now migrate intentionally, in their own PR.
@@ -3034,7 +3033,7 @@ _Living section — regenerated 2026-07-19 from all 306 cycle commits (bump 2c62
 
 
 
-### 🙌 Contributors
+### Contributors
 
 Thanks to everyone whose work landed in v3.8.49:
 
@@ -3223,9 +3222,9 @@ Thanks to everyone whose work landed in v3.8.49:
 
 ## [3.8.48] — 2026-07-13
 
-> ⚠️ **Hotfix release.** The published npm package for 3.8.47 crashed on every boot ([#7065](https://github.com/diegosouzapw/OmniRoute/issues/7065)) and was deprecated — **3.8.48 is the first installable release of the v3.8.47 cycle**, so everything listed under [3.8.47] below ships here.
+> **Hotfix release.** The published npm package for 3.8.47 crashed on every boot ([#7065](https://github.com/diegosouzapw/OmniRoute/issues/7065)) and was deprecated — **3.8.48 is the first installable release of the v3.8.47 cycle**, so everything listed under [3.8.47] below ships here.
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - **fix(build):** ship `dist/head-response-guard.cjs` in the npm tarball — the prepublish prune allowlist lacked it, so every `omniroute` boot of the published 3.8.47 crashed with `ERR_MODULE_NOT_FOUND` (3rd occurrence of this class after tls-options/3.8.41); now allowlisted, enforced by `check:pack-artifact`, and guarded by a closure test that derives every `server-ws.mjs` sibling import ([#7065](https://github.com/diegosouzapw/OmniRoute/issues/7065), [#7040](https://github.com/diegosouzapw/OmniRoute/issues/7040))
 - **fix(build):** Electron Windows packaging — the better-sqlite3 Electron-ABI rebuild now spawns `npx.cmd` through a shell (Node's CVE-2024-27980 hardening made the shell-less spawn fail with `status null` on Windows runners, breaking the v3.8.47 desktop build)
@@ -3238,7 +3237,7 @@ Thanks to everyone whose work landed in v3.8.49:
 
 _Living section — bullets land here as PRs merge into `release/v3.8.47` (parallel-cycle model; cycle opened at the v3.8.46 release freeze). Finalized at the v3.8.47 release._
 
-### 📝 Maintenance
+### Maintenance
 
 - **chore(quality):** `validate-release-green --full-ci` reproduces the full `ci.yml` static gate set locally — the pre-flight now reads `ci.yml` itself and runs every `npm run check:*` from the `lint` / `quality-gate` / `quality-extended` / `docs-sync-strict` / `pr-test-policy` jobs (`--` ratchet flags preserved, `test-masking` against `GITHUB_BASE_REF=main`), skipping only the non-local `pr-evidence`/`codeql-ratchet`. Closes the gap where 11 static base-reds leaked to the v3.8.46 release PR in ~2h of layered CI. Also wired into `nightly-release-green` so a static base-red opens a tracking issue the night it lands. Regression guard: `tests/unit/validate-release-green.test.ts` (+5 `extractCiGates` cases).
 
@@ -3246,7 +3245,7 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 
 ## [3.8.46] — 2026-07-07
 
-### ✨ New Features
+### New Features
 
 - **feat(sse):** **hide paid-only models from `auto/*` routing** when `hidePaidModels` is on ([#6512](https://github.com/diegosouzapw/OmniRoute/issues/6512)) — follow-up to #6328/#6495. PR #6495 hid paid-only models from the `GET /v1/models` listing, but `auto/*` combos (`auto/best-coding`, `auto/glm`, …) could still pick a paid-only backend into their candidate pool → a 402/403 at request time. `createVirtualAutoCombo` now filters the candidate pool through the new pure `open-sse/services/autoCombo/paidModelFilter.ts` (`filterPaidOnlyCandidates`), applying the same free-model predicate #6495 uses in `catalog.ts` (`providerHasFreeModels(provider) && isFreeModel(provider, {id})`) whenever `settings.hidePaidModels === true`. Applied before the category/tier/family narrowing, so it covers every `auto/*` combo; an all-paid pool degrades to the existing graceful empty-pool path. **Opt-in — default OFF leaves the pool unchanged** (identity). Regression guard: `tests/unit/autoCombo/paid-model-filter-6512.test.ts` (4, incl. the default-off identity guard).
 - **feat(sse):** **provider-family auto combos** — `auto/glm`, `auto/minimax`, `auto/mimo`, `auto/zai`, `auto/gemma`, `auto/llama`, `auto/gemini` ([#6453](https://github.com/diegosouzapw/OmniRoute/issues/6453)) — new routable ids that materialize an on-demand virtual combo spanning whatever installed backends currently expose that model family, degrading gracefully as backends rotate. A new pure `open-sse/services/autoCombo/modelFamily.ts` (`detectModelFamily`) classifies by model-id prefix for six families; `zai` is instead resolved by provider id (z.ai's hosted API serves the same `glm-*` model ids as every other GLM backend, so `auto/zai` means "route to my z.ai backend specifically" vs `auto/glm`'s "any connected GLM backend"). Reuses the existing `createVirtualAutoCombo` on-demand materialization path (no DB writes) and the `/v1/models` catalog advertising loop. Regression guard: `tests/unit/autoCombo/provider-family-combos.test.ts` (11).
@@ -3271,7 +3270,7 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 - **feat(providers):** add **Requesty** as an OpenAI-compatible gateway provider (BYOK, base `https://router.requesty.ai/v1`, ~200 free requests/day) — wired through the shared OpenAI-compatible registry with full model passthrough (`open-sse/config/providers/registry/requesty/`, `src/shared/constants/providers/apikey/gateways.ts`). ([#6120](https://github.com/diegosouzapw/OmniRoute/issues/6120)) Regression guard: `tests/unit/requesty-provider.test.ts`. (thanks @chirag127)
 - **feat(dashboard):** add **configured-only / available-only filters** to the Free Provider Rankings page ([#6150](https://github.com/diegosouzapw/OmniRoute/issues/6150)) — hide providers you haven't configured, or whose connections are all rate-limited / out of quota, via server-side query params (`?configuredOnly` / `?availableOnly` on `GET /api/free-provider-rankings`) backed by a testable lib helper reusing the in-process connection state (no Redis). Both filters default off, so the default view is unchanged; this supersedes the earlier client-side "Configured Only" toggle (#6245) with an available-only dimension and unit-tested logic. Regression guard: `tests/unit/freeProviderRankings-filters.test.ts`.
 
-### 🔧 Bug Fixes
+### Bug Fixes
 
 - **fix(dashboard):** adding a second API key connection for the same provider no longer silently overwrites the first — the Add-API-key modal now derives a unique default connection name (`main`, then `main-2`, `main-3`, …) so the backend name-based upsert can't collide (#6499 — thanks @dilneiss).
 - **fix(compression):** the session-dedup engine now also deduplicates a large multi-line block repeated **within a single message** (intra-message dedup), not just across turns; the compression-preview API surfaces a `fallbackReason`, and the fusion panel reports how many models were rate-limited vs failed on total-panel failure (#6501 — thanks @chirag127).
@@ -3384,20 +3383,20 @@ _Living section — bullets land here as PRs merge into `release/v3.8.47` (paral
 - **fix(quality):** clear the cycle's 11 net-new ESLint errors and make `validate-release-green` suppressions-aware.
 - **fix(security):** proxy-pool `random` rotation now selects via `crypto.randomInt` instead of `Math.random` — silences the post-release CodeQL `js/insecure-randomness` alerts (#698/#699) that flagged `Math.random` flowing into the selected proxy's credentials. Load-balancing selection is not a secret, but the crypto source is unbiased and clears the alert at the origin (#6365 follow-up).
 
-### 📝 Maintenance
+### Maintenance
 
 - **i18n(it):** add 118 missing Italian (`it`) translations (net-additive — no existing keys dropped, valid JSON), improving Italian UI coverage. ([#6212](https://github.com/diegosouzapw/OmniRoute/pull/6212) — thanks @serverless83)
 - **chore(providers):** remove deprecated **MiMo V2** model entries from the catalogs (xiaomi-mimo, opencode-go, zenmux-free, audio TTS) — the upstream V2 line is superseded by MiMo V2.5; drops `mimo-v2-tts`, `mimo-v2-pro`, `mimo-v2-omni`, `mimo-v2-flash`, `mimo-v2-flash-free` and realigns the provider-catalog tests. ([#6248](https://github.com/diegosouzapw/OmniRoute/pull/6248) — thanks @backryun)
 - **chore(release):** ~50 commits on this branch are v3.8.45 pre-flight/hardening fixes and CI-perf work that landed here via the parallel-cycle sync-back (`sync-next-cycle.mjs`, Hard Rule #21) **after** the `v3.8.45` git tag was cut, and are already fully documented under the **[3.8.45]** section below — listed here only so the per-cycle commit-coverage check (`npm run release:uncovered`) doesn't flag them as gaps. Provider/catalog/UX/backend fixes: #6041, #6078, #6108, #6135, #6148, #6149, #6154, #6158, #6161, #6162, #6163, #6164, #6165, #6170, #6177, #6178, #6181, #6186, #6187, #6191, #6193, #6194, #6195, #6200, #6205, #6208, #6209, #6211, #6213, #6223, #6224, #6225, #6226, #6227, #6228, #6229, #6230, #6235, #6291, #6292. CI/release-pipeline work: #6167, #6203, #6214, #6215, #6218, #6273, #6275, #6283, #6284, #6285, #6300, #6305.
 - **chore(release):** additional zero-ref release-cycle plumbing on this branch, kept out of `release:uncovered` on purpose (no `#N` in the commit subject to cite): opening the v3.8.46 cycle, opening/closing the v3.8.45 cycle, the finalized [3.8.45] CHANGELOG i18n sync-back to 42 mirrors, the v3.8.45 cognitive/cyclomatic and file-size drift rebaselines, ESLint stale-suppression pruning (4,273 → 4,233), and clearing test-masking/docs-all pre-flight reds for v3.8.45.
 
-### ⚡ Performance & Infrastructure
+### Performance & Infrastructure
 
 - **perf(release-green):** the pre-flight validator (`scripts/quality/validate-release-green.mjs`) now runs its 4 slow suites (unit / vitest / integration / pack-artifact) **concurrently** via `Promise.all` — pre-flight wall time drops from ~the sum of the suites to ~the slowest one (~30min saved per round; Phase 0 was the nº1 bottleneck of the v3.8.45 release benchmark, 2h54 of 6h34 e2e). Guard: `tests/unit/validate-release-green.test.ts` ("runs the slow suites CONCURRENTLY"). ([#6319](https://github.com/diegosouzapw/OmniRoute/pull/6319))
 - **fix(ci):** `scripts/release/sync-next-cycle.mjs` — two defects found live in its first production run (v3.8.45 Phase 5): (1) the `git()` helper's default 1 MiB `maxBuffer` crashed with `ENOBUFS` on `git show origin/main:CHANGELOG.md` (the CHANGELOG alone is >1 MiB) — widened to 64 MiB; (2) the i18n resync only propagated the `[NEXT]` (TBD) section, leaving the just-shipped finalized section as "— TBD" in all 42 mirrors — it now also syncs `[prevVersion]` bounded by the heading below it (new exported pure helper `versionAfter`). Guards: +5 tests in `tests/unit/sync-next-cycle.test.ts` (8/8). ([#6327](https://github.com/diegosouzapw/OmniRoute/pull/6327))
 - **test(ci):** concurrency-sensitive flaky tests are **quarantined into a serial pass** (`tests/unit/serial/`, `--test-concurrency=1`, appended to every unit runner incl. sharded variants — the serial pass is sharded too so concurrent shard jobs never self-collide). Initial set: `glm-coding-plan-monthly-3580`, `quota-division-blocks`, `provider-health-autopilot`, `combo-health-autopilot` — the class behind the ~28min CI wedges/re-runs (two live 1h+ wedges cancelled during this PR's own validation). Discovery + TIA gates track the new glob; systemic root cause (async logger writing after teardown) tracked in [#6360](https://github.com/diegosouzapw/OmniRoute/issues/6360). Guard: `tests/unit/test-serial-quarantine.test.ts` (4). ([#6347](https://github.com/diegosouzapw/OmniRoute/pull/6347))
 
-### 🙌 Contributors
+### Contributors
 
 Thanks to everyone whose work landed in v3.8.46:
 
@@ -3454,7 +3453,7 @@ Thanks to everyone whose work landed in v3.8.46:
 
 ## [3.8.45] — 2026-07-06
 
-### ✨ New Features
+### New Features
 
 - **feat(providers):** add **Yuanbao (web)** as a cookie-session provider ([#6196](https://github.com/diegosouzapw/OmniRoute/issues/6196)) — `yuanbao-web` (Tencent Yuanbao, `yuanbao.tencent.com`) with cookie-only auth (`hy_user`/`hy_token` + public agent id), SSE→OpenAI translation incl. `reasoning_content`, exposing DeepSeek V3/R1 + Hunyuan / Hunyuan-T1. Regression guard: `tests/unit/providers-yuanbao-web.test.ts`. `together-web` was **deferred** (no verifiable web-session endpoint — needs a captured request) and `huggingchat-web` **dropped** (the existing `huggingchat` already is a web-cookie provider). (thanks @chirag127)
 - **feat(providers):** route the built-in **agentrouter** through the dynamic Claude-Code wire image ([#6056](https://github.com/diegosouzapw/OmniRoute/issues/6056)) — a small static allow-set (`CC_WIRE_IMAGE_BUILTINS` in `open-sse/services/ccWireImageBuiltins.ts`), consulted by `isClaudeCodeCompatible` / `isClaudeCodeCompatibleProvider` / `applyFingerprint`, makes agentrouter adopt the CC wire-image headers + fingerprint **while guarding the CC baseUrl/auth branches** so it keeps its own registry `baseUrl` and `x-api-key` auth. Regression guard: `tests/unit/agentrouter-cc-wire-image.test.ts` (asserts the wire image is applied AND agentrouter's baseUrl/auth are preserved). Live WAF-acceptance against agentrouter.org is a VPS validation follow-up (Hard Rule #18).
@@ -3466,7 +3465,7 @@ Thanks to everyone whose work landed in v3.8.46:
 - **feat(dashboard):** add **configured-only / available-only filters** to the Free Provider Rankings page ([#6150](https://github.com/diegosouzapw/OmniRoute/issues/6150)) — hide providers you haven't configured, or whose connections are all rate-limited / out of quota, via server-side query params (`?configuredOnly` / `?availableOnly` on `GET /api/free-provider-rankings`) backed by a testable lib helper reusing the in-process connection state (no Redis). Both filters default off, so the default view is unchanged; this supersedes the earlier client-side "Configured Only" toggle (#6245) with an available-only dimension and unit-tested logic. Regression guard: `tests/unit/freeProviderRankings-filters.test.ts`.
 - **feat(rankings):** add a **'Configured Only'** filter to the Free Provider Rankings page, so the table can be narrowed to just the providers you have configured connections for (with an empty-state hint when none are configured). New `en.json` keys and a pure filter helper covered by `tests/unit/free-provider-rankings-configured-filter.test.ts`. ([#6245](https://github.com/diegosouzapw/OmniRoute/pull/6245), closes [#6150](https://github.com/diegosouzapw/OmniRoute/issues/6150) — thanks @Iammilansoni)
 
-### 🔧 Bug Fixes
+### Bug Fixes
 
 - **fix(mitm):** the test suite and CI can never mutate the OS trust store again — `OMNIROUTE_SKIP_SYSTEM_TRUST=1` (set by the global test setup and all CI workflows) makes `installCert`/`uninstallCert`/`installTproxyCa` skip the privileged OS dispatch while preserving the #4546 environment-skip contract. Root cause of the self-hosted runner incident: a cert-flow integration test installed a 105-byte fake PEM into `/usr/local/share/ca-certificates`, breaking ALL system TLS on the VM. Regression guard: `tests/unit/system-trust-test-guard.test.ts`. ([#6310](https://github.com/diegosouzapw/OmniRoute/pull/6310))
 - **fix(security):** `/api/keys/{id}/devices` answers a clean method-first **405** for undocumented HTTP methods (e.g. the new `QUERY`) via a dedicated `http-method-guard` rule — the auth layer was answering 401 first, failing schemathesis's unsupported-methods check. Same pattern as the v3.8.44 TRACE fix. Regression guard: `tests/unit/dast-method-not-allowed.test.ts`.
@@ -3533,7 +3532,7 @@ Thanks to everyone whose work landed in v3.8.46:
 - **fix(services):** 9Router embed panel no longer 404s (optional catch-all route) and the supervisor probes the port before spawning to avoid raw EADDRINUSE ([#6205](https://github.com/diegosouzapw/OmniRoute/issues/6205)). Regression guards: `tests/unit/ninerouter-embed-port-6205.test.ts`, `tests/unit/services/ServiceSupervisor.test.ts`. (thanks @jonlwheat2-gif)
 - fix(mcp): forward the MCP request `extra` context through static tool loops so stdio callers keep their scope/identity ([#6178](https://github.com/diegosouzapw/OmniRoute/issues/6178))
 
-### ⚡ Performance & Infrastructure
+### Performance & Infrastructure
 
 - **perf(test):** test-suite loader quick wins ([#6214](https://github.com/diegosouzapw/OmniRoute/pull/6214)) — the 19 test scripts switch `--import tsx` → `--import tsx/esm` (the repo is pure ESM; the unused CJS hook cost ~1.3s per test process × 2,462 processes — CI fast-path unit shards dropped 14.8→7.5 min, −49%), tsx bumped to ^4.23.0 (tsx#809 startup-regression fix), **37 orphan `.test.mjs` files (224 cases) recovered** into the canonical glob (they matched no runner and never ran in any CI job; `check:test-discovery` now scans `.mjs` too), and ci.yml/quality.yml unit jobs now call the canonical npm script `test:unit:ci:shard` (single source of truth — closes two silent drifts: missing `setupPolyfill` import in CI and `memory/`+`usage/` dirs absent from the fast-path glob). `tests/unit/dashboard/**` keeps the full tsx hook in its own invocation (`@lobehub/icons` es/ build internally `require()`s ESM-syntax files).
 - **ci:** heavy-pipeline dedup ([#6215](https://github.com/diegosouzapw/OmniRoute/pull/6215)) — the release-PR pipeline ran the unit suite 4× per sync (95 jobs, 208 machine-min; the v3.8.44 cycle fired 123 such runs, 88 cancelled). Now: Node 24/26 compat matrices move to a daily `nightly-compat.yml` (−28%/run; resolves the active release branch, opens a tracking issue on failure), coverage is collected inside the unit shards themselves via c8/`NODE_V8_COVERAGE` (−18%/run; the Coverage Shard ×8 matrix is gone — nodejs/node's own CI pattern), the ~40-job per-language i18n matrix becomes 1 job (the account has 20 concurrent-job slots total), and heavy jobs skip **draft** PRs — paired with `/generate-release` now opening the living release PR as draft (flipped ready at the new Phase 0a.0a), killing the per-merge churn for the whole cycle. Validated by a full `workflow_dispatch` of the new pipeline: 35 jobs, 0 failures, 23 min, merged coverage 80.16% (> ratchet baseline).
@@ -3544,7 +3543,7 @@ Thanks to everyone whose work landed in v3.8.46:
 - **feat(docker):** the Docker image builds with Turbopack (`ENV OMNIROUTE_USE_TURBOPACK=1`) ([#6285](https://github.com/diegosouzapw/OmniRoute/pull/6285)) — the v3.8.27 ImportTracer panic ("unreachable: there must be a path to a root") does **not** reproduce on Next 16.2.9: amd64 (659 s) and arm64 (qemu) build clean, 0 panics, smoke health 200.
 - **ci:** opt-in **self-hosted VPS runners for the release window** ([#6284](https://github.com/diegosouzapw/OmniRoute/pull/6284)) — `scripts/vps/release-runner-up.sh`/`down.sh` manage the runner VM, and `build`/`test-unit`/`vitest` pick a dynamic `runs-on` gated by `vars.USE_VPS_RUNNER == 'true'` **and** own-origin (fork PRs never reach self-hosted runners). Wired into `/generate-release` (VM up at Phase 1, mandatory down at Phase 3).
 
-### 📝 Maintenance
+### Maintenance
 
 - **quality(release-green):** full pre-flight hardening for this release — the cycle's 11 net-new ESLint errors typed/fixed and `validate-release-green` made suppressions-aware with per-gate logs (`_artifacts/release-green/`) and a `--hermetic` mode; test-masking allowlist entries for the cycle's verified-legitimate assert reductions; stale ESLint suppressions pruned (4,273 → 4,233); the 7 net-new `as any` casts from #6292 typed; `githubSkillTools` MCP errors routed through `sanitizeErrorMessage()`; `combo-provider-cooldown-sibling` added to the Stryker tap set; executors/env docs count fixes.
 - **ci(quality):** merge-integrity fast-gates per PR — `check:changelog-integrity` (no base CHANGELOG bullet may vanish in the merge result — the auto-resolve "CHANGELOG-eat" pattern) and `check:agent-skills-sync` (generated SKILL.md ≡ catalog), blocking for own-origin branches and report-only for forks (Princípio Zero). ([#6300](https://github.com/diegosouzapw/OmniRoute/pull/6300))
@@ -3555,7 +3554,7 @@ Thanks to everyone whose work landed in v3.8.46:
 - **i18n(it):** add 118 missing Italian (`it`) translations (net-additive — no existing keys dropped, valid JSON), improving Italian UI coverage. ([#6212](https://github.com/diegosouzapw/OmniRoute/pull/6212) — thanks @serverless83)
 - **chore(providers):** remove deprecated **MiMo V2** model entries from the catalogs (xiaomi-mimo, opencode-go, zenmux-free, audio TTS) — the upstream V2 line is superseded by MiMo V2.5; drops `mimo-v2-tts`, `mimo-v2-pro`, `mimo-v2-omni`, `mimo-v2-flash`, `mimo-v2-flash-free` and realigns the provider-catalog tests. ([#6248](https://github.com/diegosouzapw/OmniRoute/pull/6248) — thanks @backryun)
 
-### 🙌 Contributors
+### Contributors
 
 Thanks to everyone whose work landed in v3.8.45:
 
@@ -3595,7 +3594,7 @@ Thanks to everyone whose work landed in v3.8.45:
 
 ## [3.8.44] — TBD
 
-### ✨ New Features
+### New Features
 
 - **feat(resilience):** throttle upstream quota fetches on the per-request preflight path ([#6009](https://github.com/diegosouzapw/OmniRoute/issues/6009)) — a new global min-interval gate (`open-sse/services/quotaFetchThrottle.ts`) spaces the actual network calls made by the Codex quota fetcher so that many accounts on one IP no longer fetch quota in the same second (which, per `router-for-me/CLIProxyAPI#2385`, can get a Codex OAuth token revoked). Complements the existing bulk-sync spacing (`PROVIDER_LIMITS_SYNC_SPACING_MS`) which already serialized the periodic provider-limits sync — this covers the concurrent combo/preflight path it didn't. Cache hits are never delayed; fail-open (only ever awaits a timer). Configurable via `OMNIROUTE_QUOTA_FETCH_MIN_INTERVAL_MS` (default 250ms, clamped 0..5000; `0` disables). Regression guard: `tests/unit/quota-fetch-throttle-6009.test.ts` (5). (thanks @powellnorma)
 - **feat(autoCombo):** add **per-request Auto-Combo controls** via two headers ([#6024](https://github.com/diegosouzapw/OmniRoute/issues/6024) / [#6025](https://github.com/diegosouzapw/OmniRoute/issues/6025) / [#6023](https://github.com/diegosouzapw/OmniRoute/issues/6023)) — `X-OmniRoute-Mode` steers an `auto` combo's scoring for a single request (friendly presets `fast`/`balanced`/`quality`/`cheap`/`reliable`/`offline` **or** a raw mode-pack name; `balanced` forces the default weights), and `X-OmniRoute-Budget` sets a hard per-request USD cost ceiling. Both override the combo's stored config only for the request that carries them; unknown/garbage values are ignored so the saved config is preserved. The resolvers are pure (`open-sse/services/autoCombo/requestControls.ts`) and feed the engine's existing `config.modePack` / `config.budgetCap` inputs — no engine changes. Regression guard: `tests/unit/auto-combo-request-controls-6024.test.ts` (5). (thanks @chirag127)
@@ -3646,7 +3645,7 @@ Thanks to everyone whose work landed in v3.8.45:
 - **feat(relay):** gate **Bifrost auto-routing** by the provider plugin manifest — only manifest-eligible providers reach the sidecar; ineligible/unknown providers fall back to the existing TS routing path with explicit reasons. Regression guards: 4 provider-plugin-manifest + 11 relay-routing-backend tests. ([#5870](https://github.com/diegosouzapw/OmniRoute/pull/5870) — thanks @KooshaPari)
 - **feat(providers):** wire **Claude Sonnet 5** end-to-end across the model pipeline — registries, `modelSpecs`, pricing (×3), cost, Sonnet-family fallback, 1M-context, and static models. ([#5833](https://github.com/diegosouzapw/OmniRoute/pull/5833) — thanks @ggiak)
 
-### 🔧 Bug Fixes
+### Bug Fixes
 
 - **dashboard (`/dashboard/system/proxy` 500 on every render):** `ProxyRegistryManager` called `useProxyBatchOperations(load)` before the `const load = useCallback(...)` declaration in the component body, so every server render threw a TDZ `ReferenceError: Cannot access 'load' before initialization` and the whole proxy page 500'd (#5918 regression, caught by the release-PR e2e smoke — the PR→release fast-gates never render pages). The hook block now sits after the `load` declaration. Regression guard: `tests/unit/ui/ProxyRegistryManager-tdz-render.test.tsx` (SSR renderToString — the exact crash mode).
 
@@ -3718,7 +3717,7 @@ Thanks to everyone whose work landed in v3.8.45:
 - **fix(embeddings):** forward the connection-level proxy configuration to embedding requests — `src/lib/embeddings/service.ts` previously ignored a connection's configured proxy when making embedding calls, so proxy-only network setups leaked embedding traffic outside the proxy. Regression guard: `tests/unit/embeddings-proxy-forwarding.test.ts`. ([#5975](https://github.com/diegosouzapw/OmniRoute/pull/5975))
 - **fix(resilience):** parse `Retry-After` from a 429's JSON body for cooldown calculation, not just the HTTP header — a new `retryAfterJson.ts` helper extracts a retry-after hint from common JSON error-body shapes and `accountFallback.ts`'s cooldown path now prefers it when the header is absent. Regression guard: `tests/unit/account-fallback-retry-after-json.test.ts`. (Includes #6013's retry-after-json extraction.) ([#5974](https://github.com/diegosouzapw/OmniRoute/pull/5974) — thanks @KooshaPari)
 
-### 📝 Maintenance
+### Maintenance
 
 - **release close (release-PR one-pass CI sweep):** restore Zod validation on the provider-scoped chat route with a `.passthrough()` schema that keeps #5907's relaxed semantics (t06 route-validation gate); point `/api/keys/{id}/devices`' 401 response at the management error envelope in `docs/openapi.yaml` (Schemathesis schema-conformance); rebaseline `i18nUiCoverage.pct` 77.5→76.8 (~1352 new en.json UI keys from the cycle await the async translation workflow — same shape as the v3.8.39 rebaseline); dismiss 2 CodeQL `js/incomplete-url-substring-sanitization` false positives on unit-test asserts (v3.8.35 precedent).
 
@@ -3739,7 +3738,7 @@ Thanks to everyone whose work landed in v3.8.45:
 - **chore (quality/CI housekeeping):** rebaseline residual ESLint/cognitive-complexity/file-size drift accumulated over the v3.8.44 cycle, move orphaned executor tests to a top-level location so a runner actually collects them, harden the release pipeline with a test-masking pre-flight gate plus contributors/uncovered helpers, and make the `pr-evidence` FAIL output tell the author to push (a body edit alone does not re-run the gate). ([#5926](https://github.com/diegosouzapw/OmniRoute/pull/5926), [#5944](https://github.com/diegosouzapw/OmniRoute/pull/5944), [#5952](https://github.com/diegosouzapw/OmniRoute/pull/5952), [#6027](https://github.com/diegosouzapw/OmniRoute/pull/6027), [#5928](https://github.com/diegosouzapw/OmniRoute/pull/5928), plus a #5975-collateral test hardening pinning a seeded connection to direct egress in route-edge-coverage)
 - **docs (housekeeping):** normalize mixed-language documentation content, restore the OpenAPI coverage ratchet by documenting 9 newly-added routes, record Hard Rule #22 (cross-session safety — `git stash` + in-flight PR bans), and document the compression-engine's upstream sync policy for the RTK/Caveman engines. ([#6105](https://github.com/diegosouzapw/OmniRoute/pull/6105), [#5955](https://github.com/diegosouzapw/OmniRoute/pull/5955), [#5948](https://github.com/diegosouzapw/OmniRoute/pull/5948), plus docs-only commit 926b08aa8)
 
-### 🙌 Contributors
+### Contributors
 
 Thanks to everyone whose work landed in v3.8.44:
 
@@ -3786,7 +3785,7 @@ Thanks to everyone whose work landed in v3.8.44:
 
 ## [3.8.43] — 2026-07-02
 
-### ✨ 新功能
+### 新功能
 
 - **usage（配额百分比 + 服务商 USD 成本明细）：** `@@om-usage` 和 HTTP 用量端点现在以**剩余百分比**的形式报告个人 API 密钥配额（USD 金额不出现在命令输出中），服务商配额剩余量会根据配置的配额截断值进行缩放，使受保护预留部分显示为剩余 0%，配额仪表盘恢复了**服务商 USD 成本明细**功能（`/api/usage/provider-window-costs` + `ProviderUsdCostModal`，需管理认证）。同时支持**观测到的服务商配额重置**：检测到相同 `resetAt` 的重置事件（用量回落到重置基准线）时，优先采用此观测值而非陈旧的每周记录事件，用于服务商 USD 窗口和 API 密钥 USD 配额。新增 `src/lib/usage/providerWindowCosts.ts`。回归测试：`tests/unit/provider-window-costs.test.ts`、`tests/unit/internal-usage-command.test.ts`、`tests/unit/api-key-usage-limits.test.ts`、`tests/unit/lib/quota-reset-events.test.ts`。提取自 [#5863](https://github.com/diegosouzapw/OmniRoute/pull/5863)，由 [@Witroch4](https://github.com/Witroch4) 贡献。
 
@@ -3854,7 +3853,7 @@ Thanks to everyone whose work landed in v3.8.44:
 
 - **providers（CLI 配置文件自动同步）：** 可选 CLI 配置文件自动同步开关，包括 Claude Code 自动同步，使生成的 CLI 配置文件可以自动跟踪服务商变更。([#5755](https://github.com/diegosouzapw/OmniRoute/pull/5755) — 感谢 @diegosouzapw)
 
-### 🔧 问题修复
+### 问题修复
 
 - **fix(opencode)：** 停止在客户端未发送时伪造 `User-Agent: opencode/local` 和 `x-opencode-client: cli` 请求头 — executor 去重重构（[#5720](https://github.com/diegosouzapw/OmniRoute/pull/5720)）意外地重新引入了请求头伪造，违反了仅转发契约（发明 opencode 内部值有被上游拒绝的风险）。恢复为仅转发：仅当存在真实客户端来源时才发送这些请求头。回归测试：`tests/unit/opencode-executor.test.ts`。（感谢 @diegosouzapw）
 
@@ -4056,7 +4055,7 @@ Thanks to everyone whose work landed in v3.8.44:
 
 - **security（v3.8.15 加固后续）：** 落地 v3.8.15 安全审查中的 Seg2/Seg3/Seg4/Bug3 加固后续。([#5512](https://github.com/diegosouzapw/OmniRoute/pull/5512) — 感谢 @diegosouzapw)
 
-### 📝 维护
+### 维护
 
 - **docs（架构）：** 新增 `docs/architecture/ROUTER_BACKENDS.md` — 一份 ADR，确定路由引擎（`ts` 原生、`bifrost`、`cliproxy`、`9router`、VibeProxy-compatible）如何沿两个正交轴相互关联（生命周期：进程内 / 受监督 / 外部 vs. 中继选择后端），回答 [#5603](https://github.com/diegosouzapw/OmniRoute/issues/5603) 中提出的架构问题（后端接口模型、为什么 CLIProxy 生成进程、功能标志交换、可操作的路由契约错误）。ADR 描述的类型化路由器后端注册表将通过 [#5868](https://github.com/diegosouzapw/OmniRoute/pull/5868) 单独落地。([#5891](https://github.com/diegosouzapw/OmniRoute/pull/5891))
 
@@ -4074,7 +4073,7 @@ Thanks to everyone whose work landed in v3.8.44:
 
 - **refactor（oauth）：** 移除死旧版 OAuth 服务类。([#5838](https://github.com/diegosouzapw/OmniRoute/pull/5838) — 感谢 @diegosouzapw)
 
-### 🙌 贡献者
+### 贡献者
 
 感谢所有在 v3.8.43 中贡献的各位：
 
@@ -4118,7 +4117,7 @@ Thanks to everyone whose work landed in v3.8.44:
 
 ## [3.8.42] — 2026-06-30
 
-### ✨ 新功能
+### 新功能
 
 - **compression (pipeline):** 为级联压缩管线（T02 / Headroom H1）新增默认启用的**膨胀防护**。如果完全级联的引擎产生的输出实际上没有缩小——其 Token 数量 `>=` 原始值——则丢弃压缩结果，改为向上游发送原始请求，并在压缩统计中记录 `pipeline-inflation-guard` 警告。这通过构造保证了安全（唯一的回退是未修改的原始请求，始终是有效载荷），并补充了现有的可选每步 TV1 退出机制（后者控制步骤间的推进而非最终输出）。新增 `open-sse/services/compression/pipelineGuards.ts`；在同步和异步级联路径共享的单一 `finalizeStackedResult` 关键点接入。回归测试（含膨胀引擎集成测试）在 `tests/unit/compression-pipeline-inflation-guard.test.ts`。
 
@@ -4128,7 +4127,7 @@ Thanks to everyone whose work landed in v3.8.44:
 
 - **compression (RTK):** 将 **Gradle** 和 **.NET CLI（`dotnet`）** 添加到 RTK 工具输出过滤器目录。`gradle`/`gradlew` 和 `dotnet build|test|restore|publish` 的工具输出现在可被识别（通过命令和输出内容双重方式）并压缩：Gradle 守护进程/欢迎横幅和无效 `> Task … UP-TO-DATE/SKIPPED/FROM-CACHE` 行被丢弃，而 `BUILD SUCCESSFUL/FAILED`、"What went wrong" 和堆栈跟踪被保留；.NET 构建横幅、版权声明以及 `Determining projects to restore`/`Restored …` 等杂项被丢弃，而 `Build succeeded/FAILED`、`error CS####`/`warning CS####` 和测试摘要被保留。新增内置过滤器 `engines/rtk/filters/{gradle,dotnet}.json`（含由目录门控运行的内联测试），以及命令检测器中的 `gradle`/`dotnet` 条目。回归测试：`tests/unit/rtk-gradle-dotnet-filters.test.ts`。gaps v3.8.42 — T07/R9。
 
-### 🔧 问题修复
+### 问题修复
 
 - **providers (chatgpt-web):** 修复在 **Electron 桌面应用**上出现的 `502 ChatGPT sentinel failed: Digest method not supported`，该错误导致所有 `chatgpt-web/*` 请求失败。哨兵工作量证明原本使用原生 `createHash("sha3-512")` 进行哈希，但 Electron 的 Node 是基于 **BoringSSL 构建的，而 BoringSSL 未实现 SHA-3 系列算法**（electron/electron#30530），因此摘要计算在构造阶段就抛出异常——该服务商在桌面版本中完全不可用（在纯 Node/OpenSSL 环境下正常工作）。PoW 现在通过一个新的运行时可移植辅助函数（`open-sse/utils/sha3-512.ts`）来计算哈希，优先使用原生摘要，当原生 SHA-3 不可用时透明回退到无依赖的纯 JS Keccak-f[1600] 实现。回退方案已针对原生 `createHash("sha3-512")`（300 个随机输入）和已发布的 FIPS-202 已知答案向量进行了逐位验证。回归测试：`tests/unit/chatgpt-web-sha3-boringssl-5531.test.ts`。([#5531](https://github.com/diegosouzapw/OmniRoute/issues/5531))
 
@@ -4182,7 +4181,7 @@ Thanks to everyone whose work landed in v3.8.44:
 
 - **providers (longcat):** 更正 LongCat 免费层——**LongCat-2.0** 现已正式发布；一次性 1000 万 Token 推广活动（需 KYC）已在目录中正确反映，替换了过时的旧版测试条目。([#5508](https://github.com/diegosouzapw/OmniRoute/pull/5508) — 感谢 @backryun)
 
-### 📝 维护
+### 维护
 
 - **dashboard (refactor):** 将压缩设置标签页中重复的 caveman 开关整合到单一来源面板 (T11)，消除过时的不同步副本。([#5524](https://github.com/diegosouzapw/OmniRoute/pull/5524))
 
@@ -4210,11 +4209,11 @@ Thanks to everyone whose work landed in v3.8.44:
 
 ## [3.8.41] — 2026-06-29
 
-### ✨ 新功能
+### 新功能
 
 - **feat(relay): 可选择的中继后端（TS / Bifrost / `auto`）** — OpenAI 兼容的中继端点现在可以通过原生 Bifrost 边车路由其热路径，客户端无需更改 URL。`OMNIROUTE_RELAY_BACKEND` / `RELAY_ROUTING_BACKEND` = `ts | bifrost | auto`：默认使用现有的 TypeScript 中继；`auto` 在 `BIFROST_BASE_URL` 已设置（且 `BIFROST_ENABLED` ≠ `0`）时选择 Bifrost，并在边车不可达时自动回退到 TS；`bifrost` 保持严格的失败行为。认证、每 IP/Token 速率限制、提示注入检查和模型白名单仍在 Next 中继路由中于调度前运行（控制平面保留在应用内）；响应携带 `X-Routing-Backend` / `X-Routing-Fallback`。回归测试：`tests/unit/api/v1/relay-routing-backend.test.ts`、`tests/unit/api/v1/bifrost-sidecar.test.ts`。([#5315](https://github.com/diegosouzapw/OmniRoute/pull/5315), #5316 — 感谢 @KooshaPari)
 
-### 🔧 问题修复
+### 问题修复
 
 - **translator (claude):** 当 OpenAI→Claude 请求**仅**包含 `system`/`developer` 消息时，合成一个最小化的 `user` 轮次，使请求不再因 `[400]: messages: at least one message is required` 而失败。`openaiToClaudeRequest` 将所有 system/developer 轮次提升到 Claude 的顶层 `system` 字段并从 `messages` 中过滤掉；纯 system 输入（OpenCode 压缩/标题生成请求）会导致 `messages: []`，Messages API 会拒绝——在 OpenCode 中表现为丢失对话的任务中途 `stream error`。该防护仅在 `messages` 原本为空时触发（system 指令仍然驱动响应），因此非空请求不受影响。([#5342](https://github.com/diegosouzapw/OmniRoute/pull/5342) — 感谢 @wild-feather)
 - **providers (gemini):** 移除已退役的 Google AI Studio 模型 ID，并使目录与实际运行的 GenAI API 对齐（2026-06-29 根据官方弃用页面验证）。移除长期退役的 `gemini-1.5-pro`/`gemini-1.5-flash`、已关闭的 `gemini-2.0-flash`/`gemini-2.0-flash-lite` 和无效实验版；将 `gemini-3.1-flash-lite-preview` 重命名为 GA 版 `gemini-3.1-flash-lite`；将退役的 `text-embedding-004` 替换为实际运行中的 `gemini-embedding-001`/`gemini-embedding-2`；并添加优雅的 `modelDeprecation` 转发，使旧版/重命名的 ID 重定向到 GA 模型而非 404。原生 AI-Studio 直连的图像/视频/音乐注册有意不在本次范围内（需要实际的执行器工作；这些模型仍可通过 Antigravity/Vertex/聚合器访问）。([#5337](https://github.com/diegosouzapw/OmniRoute/pull/5337) — 感谢 @backryun)
@@ -4234,7 +4233,7 @@ Thanks to everyone whose work landed in v3.8.44:
 - **rerank:** `/v1/rerank` 不再以 `400 "Invalid rerank model"` 拒绝 SiliconFlow 和 DeepInfra 的 Qwen3-Reranker 模型，即使 `/v1/models` 已列出它们。模型 ID 解析器从来不是问题（它已经在第一个斜杠处分割，因此 `siliconflow/Qwen/Qwen3-Reranker-8B` 解析正确）——`siliconflow` 和 `deepinfra` 只是缺失了 rerank 服务商注册。已添加两者：SiliconFlow 作为 Cohere 兼容，DeepInfra 通过新的 `deepinfra` 适配器（模型在 URL 路径中 `POST /v1/inference/<model>`，`{queries,documents}` 请求，位置 `{scores}` 响应映射为 Cohere `results[]`）。回归测试：`tests/unit/rerank-providers-5332.test.ts`。([#5332](https://github.com/diegosouzapw/OmniRoute/issues/5332) — 感谢 @maikokan)
 - **authz/dashboard:** 当通过局域网 IP/非 localhost 主机访问仪表盘时，不再以 `403 INVALID_ORIGIN` 拒绝所有仪表盘变更操作。源绑定检查（#5278）只接受配置的 `*_PUBLIC_BASE_URL`（通常为 `http://localhost:20128`）加上内部的 `request.url` 源——而 Next.js standalone 报告的是绑定主机而非真实的 `Host`。因此在 `http://192.168.0.15:20128` 打开仪表盘会使浏览器的同源 `Origin` 无法匹配任何候选项，导致**所有** POST/PUT/DELETE（保存 API Key、保存服务商、测试连接）都失败，而 GET 仍能正常工作。两个修复：**(a)** 请求 `Host`（或受信任的 `X-Forwarded-Host`）现在被接受为有效的变更操作源，由两个独立检查控制——Token 标记的 socket 对端必须是 loopback/私有局域网**且** Host 本身也必须是 loopback/私有局域网 IP 字面量，因此 DNS 重绑定域名（分类为 `remote`）永远不能成为受信任的源，协议绑定到实际连接；(b) `INVALID_ORIGIN` 响应现在携带可操作的消息（设置 `OMNIROUTE_PUBLIC_BASE_URL`），仪表盘通过共享的 `extractApiErrorMessage` 辅助函数显示 API 错误 `.message`，而不是渲染原始错误对象。回归测试：`tests/unit/authz/public-origin.test.ts`（直接 LAN/loopback + DNS 重绑定防御）、`tests/unit/api-error-message-5340.test.ts`。([#5340](https://github.com/diegosouzapw/OmniRoute/issues/5340))
 
-### 📝 维护
+### 维护
 
 - **chore(dead-code):** 全仓库清理未使用的导出符号，并设置对应的死代码基线递增门禁 — 修剪了未使用的导出辅助函数、校验/设置/加密配置 Schema、工具/domain/静态常量/格式化辅助函数、运行时测试辅助函数、请求超时 fetch 包装器、event-bus、semantic-cache（维护 + 过期）、correlation-middleware、MCP-scope、service-registry、build-profile、api-key-format、authz-class、models.dev-context、embedding-cache、provider-limits-scheduler、search-validator、webhook-example、agent-skills-repo-URL 和 command-code-auth-cleanup 导出。纯死代码移除，由 `typecheck:core` 验证（无剩余引用点）——无行为变更。([#5321](https://github.com/diegosouzapw/OmniRoute/pull/5321), [#5322](https://github.com/diegosouzapw/OmniRoute/pull/5322), [#5324](https://github.com/diegosouzapw/OmniRoute/pull/5324), [#5325](https://github.com/diegosouzapw/OmniRoute/pull/5325), [#5328](https://github.com/diegosouzapw/OmniRoute/pull/5328), [#5329](https://github.com/diegosouzapw/OmniRoute/pull/5329), [#5330](https://github.com/diegosouzapw/OmniRoute/pull/5330), [#5331](https://github.com/diegosouzapw/OmniRoute/pull/5331), [#5333](https://github.com/diegosouzapw/OmniRoute/pull/5333), [#5334](https://github.com/diegosouzapw/OmniRoute/pull/5334), [#5335](https://github.com/diegosouzapw/OmniRoute/pull/5335), [#5336](https://github.com/diegosouzapw/OmniRoute/pull/5336), [#5338](https://github.com/diegosouzapw/OmniRoute/pull/5338), [#5339](https://github.com/diegosouzapw/OmniRoute/pull/5339), [#5353](https://github.com/diegosouzapw/OmniRoute/pull/5353), [#5354](https://github.com/diegosouzapw/OmniRoute/pull/5354), [#5355](https://github.com/diegosouzapw/OmniRoute/pull/5355), [#5356](https://github.com/diegosouzapw/OmniRoute/pull/5356), [#5357](https://github.com/diegosouzapw/OmniRoute/pull/5357), [#5359](https://github.com/diegosouzapw/OmniRoute/pull/5359), [#5362](https://github.com/diegosouzapw/OmniRoute/pull/5362) — 感谢 @JxnLexn / @diegosouzapw)
 
@@ -4248,14 +4247,14 @@ _In development — bullets added per PR; finalized at release._
 
 ## [3.8.39] — 2026-06-28
 
-### ✨ 新功能
+### 新功能
 
 - **feat(oauth): 远程 Antigravity 登录 —— 本地助手 + 粘贴凭证** — Antigravity（及其他 Google "原生/桌面" OAuth 服务商）使用 Google 的 `firstparty/nativeapp` 授权页面，只有当 loopback 重定向（`127.0.0.1:<port>`）可从授权浏览器访问时才释放认证码。在远程 VPS 安装中，该 loopback 存在于服务器上，因此授权页面永远挂起，从不发出认证码——"粘贴回调 URL"的退路方案无法使用（这是 Google 端的限制，上游 9router 同样存在）。新增 `omniroute login antigravity` CLI 助手在用户**本地**机器上运行 OAuth（127.0.0.1 可用），交换认证码，并打印一行 `omniroute-cred-v1.…` 凭证 blob；仪表盘的 Antigravity 连接 → 第 2 步字段现在接受该 blob（以及回调 URL），并通过新的 `paste-credentials` 操作持久化该连接（服务端引导，服务商白名单化，blob 中内嵌的服务商必须与路由匹配）。SSH 本地转发隧道作为零工具替代方案已被文档化。参见 [`docs/guides/REMOTE-MODE.md`](docs/guides/REMOTE-MODE.md)。([#5203](https://github.com/diegosouzapw/OmniRoute/pull/5203))
 - **feat(agent-bridge): 容器/无头环境下的优雅证书安装回退** — 当 MITM 根 CA 无法自动安装到系统信任存储时（Docker / 无头 / 无 sudo / 只读信任存储），Agent Bridge 不再在启动时以通用"Certificate install failed"硬失败。它现在以跳过模式启动，仪表盘展示平台特定的**手动安装指南**（加上 CA 下载链接），运维人员可以手动信任证书。([#4546](https://github.com/diegosouzapw/OmniRoute/issues/4546) — 感谢 @phuchptty)
 - **feat(compression): CCR 范围/grep/统计检索（ReDoS 安全、向后兼容）** — 为 `omniroute_ccr_retrieve` MCP 工具和 `/api/compression/retrieve` 端点扩展 `range`（字节/行切片）、`grep`（ReDoS 安全的字面量或有界模式匹配）和 `stats`（字节/行/词计数）参数，代理可以精确获取需要的切片或摘要。所有参数均可选——无参数时返回完整块，行为与现有行为逐字节相同；CCR 存储完全兼容。压缩路线图第六项。([#5187](https://github.com/diegosouzapw/OmniRoute/pull/5187))
 - **feat(compression): TOON 最优 N 候选编码器 + 编码器 A/B 对比表** — 将 `@toon-format/toon` 作为候选编码器通过最优 N 方案添加到 headroom 压缩引擎：每个提示同时运行 GCF 和 TOON，保留较短结果。压缩工作室中展示编码器 A/B 对比表（GCF/TOON/JSON——字节数和 cl100k Token）。压缩特性提取路线图第五项。([#5163](https://github.com/diegosouzapw/OmniRoute/pull/5163))
 
-### 🔧 问题修复
+### 问题修复
 
 - **fix(oauth): Antigravity 刷新不再因上游空响应将存储的 refresh_token 置空** — Google 的 OAuth Token 端点使用非轮换刷新 Token：刷新响应通常不包含 `refresh_token`，偶尔会返回空字符串。Antigravity 执行器的 `refreshCredentials` 使用了 `typeof tokens.refresh_token === "string" ? tokens.refresh_token : credentials.refreshToken`，而 `typeof "" === "string"` 为真，因此空字符串响应将有效 Token 覆盖为空——首次刷新即将其置空。现在将非字符串**或空值**视为缺失，保留存储的 Token，与规范的 `refreshGoogleToken`（`tokens.refresh_token || refreshToken`）语义一致。([#3850](https://github.com/diegosouzapw/OmniRoute/issues/3850) — 感谢 @3xa228148)
 - **fix(api): LAN/Tailscale 仪表盘访问——`ws:` CSP 方案、版本路由 GET 豁免、展示 combo 字段错误** — 从非 loopback 主机打开仪表盘时的三个故障：(1) CSP `connect-src` 仅对 loopback 源允许 `ws:` 方案，阻止了 LAN/Tailscale 客户端的实时 WebSocket 连接；现在允许裸 `ws:`（与已允许的 `wss:` 对称）；(2) `GET /api/system/version` 被 `LOCAL_ONLY_API_PREFIXES` 阻止——新增豁免白名单；(3) `COMBO_002` 校验错误现在在响应中包含首个 Zod 问题的字段和消息。([#5083](https://github.com/diegosouzapw/OmniRoute/issues/5083) — 感谢 @KooshaPari)
@@ -4285,7 +4284,7 @@ _In development — bullets added per PR; finalized at release._
 - **fix(request-logger): 永远不在压缩徽章中渲染负百分比** — 当每个提示 Token 都被压缩时（`totalIn = 0, compressed > 0`），压缩药丸徽章显示 `(-100%)`，因为徽章格式在百分比值前硬编码了前导 `-`。徽章现在在这种情况下省略负号，正确地将节省量表示为正向比例。([#5201](https://github.com/diegosouzapw/OmniRoute/pull/5201) — 感谢 @KooshaPari)
 - **fix(dashboard): 首页更新步骤警告图标使用 amber 色** — 首页更新步骤中的警告状态图标（`HomePageClient.tsx`）使用 `text-yellow-500`（Tailwind `#eab308`），在浅色背景上对比度很差（~1.9:1，低于 WCAG AA），且与同组件中所有同级元素使用的 `amber` 警告惯例不一致。切换为 `text-amber-500`——单行 `className` 变更，无行为变化。([#5176](https://github.com/diegosouzapw/OmniRoute/pull/5176))
 
-### 📝 维护
+### 维护
 
 - **test(combo): 确定性 context-relay 通用交接覆盖** — 覆盖 `context-relay` 中通用的（与服务商无关的）会话交接路径（`combo.ts:2099–2139`），该路径此前仅有定义顺序断言和一个 `TODO(phase-2)`。测试通过会话接缝（`x-session-id` → `relayOptions.sessionId` → `maybeGenerateUniversalHandoff`）驱动真实管线，无需实时基础设施。([#5168](https://github.com/diegosouzapw/OmniRoute/pull/5168))
 - **test(combo): 端到端 quota-share DRR 路由决策覆盖（矩阵对齐）** — 为 `quota-share` 策略添加缺失的 E2E 测试，通过进程内接缝驱动真实的 `handleChat` → chatCore → `selectQuotaShareTarget` → executor 管线，并断言分发的连接。DRR 选择器已有 29 个单元测试；此次补全了 E2E 缺口，使 quota-share 与 17 策略公开矩阵保持一致。([#5179](https://github.com/diegosouzapw/OmniRoute/pull/5179))
@@ -4301,7 +4300,7 @@ _In development — bullets added per PR; finalized at release._
 
 ## [3.8.38] — 2026-06-27
 
-### ✨ 新功能
+### 新功能
 
 - **feat(sidebar): 彩色菜单图标** — 侧边栏菜单图标现在以每项主题色渲染：已知项使用精选颜色（`SIDEBAR_ICON_ACCENTS`），再加上基于哈希的确定性回退方案（`getSidebarIconAccent`），使每项在会话间获得稳定、独特的颜色。([#3812](https://github.com/diegosouzapw/OmniRoute/pull/3812) — 感谢 @rafacpti23)
 - **feat(providers): 新增 Factory (factory.ai) 订阅网关服务商** — `factory`（Factory Droids 的托管网关）现已成为 OpenAI 兼容端点 `https://api.factory.ai/v1` 上的一级路由服务商，使用 Bearer apikey 认证；密钥从仪表盘连接中提供（而非环境变量）。([#5065](https://github.com/diegosouzapw/OmniRoute/pull/5065) — 感谢 @KooshaPari)
@@ -4324,7 +4323,7 @@ _In development — bullets added per PR; finalized at release._
 - **feat(mcp): Web 会话健壮性——Cookie 去重 + 浏览器池可观测性** — MCP Web 会话路径现在在（重新）加载会话时对 Cookie 进行去重（避免冲突的重复 `Cookie` 头），并为无头 Web 服务商暴露浏览器池可观测性（池大小 / 使用中 / 获取指标）。([#5121](https://github.com/diegosouzapw/OmniRoute/pull/5121)，基于 [#3368](https://github.com/diegosouzapw/OmniRoute/issues/3368))
 - **feat(compression): Ionizer 引擎——有损 JSON 数组采样，可通过 CCR 恢复** — 新的压缩引擎，将大型 JSON 数组下采样为代表性子集，并记录紧凑变更表示（CCR），以便可以重建被省略的行，在表格/数组密集型载荷上以精确性换取大幅 Token 减少。([#5148](https://github.com/diegosouzapw/OmniRoute/pull/5148))
 
-### 🔧 问题修复
+### 问题修复
 
 - **fix(proxy): 使 SOCKS5 握手超时可运维调整（`SOCKS_HANDSHAKE_TIMEOUT_MS`）** — 在针对同一住宅网关主机的高并发下，SOCKS5 连接握手可能超过硬编码的 10 秒，即使代理可达，也会表现为虚假的 `[Proxy Fast-Fail] Proxy unreachable`（池大小已可通过 `OMNIROUTE_PROXY_DISPATCHER_CONNECTIONS` 调整）。握手超时现在读取 `SOCKS_HANDSHAKE_TIMEOUT_MS`（默认值保持 `10000`，上限 `120000`），使高并发部署可以无需代码更改提高此值。对 #5109 的缓解措施（完整的 concurrency-100 崩溃仍需报告者的现场压力测试确认）。([#5109](https://github.com/diegosouzapw/OmniRoute/issues/5109))
 - **fix(api): 不区分大小写地解析 `GET /v1/models/{id}`** — 规范化模型 id 的客户端（如 OpenCode 请求 `minimax/minimax-m3` 查找标准目录条目 `minimax/MiniMax-M3`）会错过区分大小写的单模型查询，回退到显示 `context_length: 0`。`findModelById` 现在优先精确大小写匹配，回退到不区分大小写匹配，因此无论大小写如何都返回真实条目（及其上下文窗口）。([#5082](https://github.com/diegosouzapw/OmniRoute/issues/5082))
@@ -4371,11 +4370,11 @@ _In development — bullets added per PR; finalized at release._
 - **fix(sse): 为兼容客户端保留非流式推理字段** — 非流式响应现在保留上游推理字段（`reasoning` / `reasoning_content` 和 OpenRouter/Gemini `reasoning_details`），而不是在 `responseSanitizer` 中剥离它们，使渲染缓冲响应推理的客户端不再丢失推理内容。([#5155](https://github.com/diegosouzapw/OmniRoute/pull/5155) — 感谢 @rdself)
 - **fix(i18n): 添加缺失的英文 UI 标签** — 补全在仪表盘中以原始键名显示的未翻译英文字符串。([#5153](https://github.com/diegosouzapw/OmniRoute/pull/5153) — 感谢 @rdself)
 
-### 🔒 安全
+### 安全
 
 - **fix(security): 精确主机名的 Anthropic `baseUrl` 检查** — Anthropic base-URL 守卫使用了子串匹配，精心构造的主机可以部分满足条件；现在要求精确主机匹配（解决 CodeQL `js/incomplete-url-substring-sanitization` 告警 #674）。([#5130](https://github.com/diegosouzapw/OmniRoute/pull/5130))
 
-### 📝 维护
+### 维护
 
 - **refactor(store): 移除死代码中的旧版 store 模块** — 抢救性清理未使用的旧版 store 代码。([#5138](https://github.com/diegosouzapw/OmniRoute/pull/5138) — 感谢 @JxnLexn / @diegosouzapw)
 - **test(combo): 全部 17 策略的确定性路由决策矩阵** — 确定性 E2E 矩阵固定了每个 Combo 策略的路由决策。([#5146](https://github.com/diegosouzapw/OmniRoute/pull/5146))
@@ -4386,7 +4385,7 @@ _In development — bullets added per PR; finalized at release._
 
 ## [3.8.37] — 2026-06-26
 
-### ✨ 新功能
+### 新功能
 
 - **feat(providers):** 新增 DGrid AI 网关服务商 — OpenAI 兼容网关，位于 `api.dgrid.ai/v1`（别名 `dgrid`，API-key 认证，透传模型）。免费路由层（10 RPM / 100 RPD）；$5 终身充值将限制提升至 20 RPM / 1,000 RPD。([#4931](https://github.com/diegosouzapw/OmniRoute/pull/4931) — 感谢 @dgridOP)
 
@@ -4414,7 +4413,7 @@ _In development — bullets added per PR; finalized at release._
 
 - **feat(api):** 添加 `MiniMax-M3` 定价行（标准名称 + 小写别名），使新的 MiniMax 默认模型获得准确的每次请求成本核算，而非回退到零/默认费率。([#4814](https://github.com/diegosouzapw/OmniRoute/pull/4814) — 感谢 @octo-patch)
 
-### 🔧 问题修复
+### 问题修复
 
 - **fix(sse):** `response.completed` 中稠密、确定性的 `response.output` 排序 — 项目现在按其实际 `output_index` 排序（通过记录已发出的累加器 + 稳定排序），而不是从无序状态字典重建；`normalizeOutputIndex` 替换了脆弱的 `parseInt` 调用以实现稳健的索引转换；流中同一索引被替换的工具调用被排除在最终输出数组之外。([#4906](https://github.com/diegosouzapw/OmniRoute/pull/4906) — 感谢 @Marco9113)
 
@@ -4518,7 +4517,7 @@ _In development — bullets added per PR; finalized at release._
 
 - **fix(providers): 在兼容服务商 API-key 设置流程中要求设置默认模型。([#4641](https://github.com/diegosouzapw/OmniRoute/pull/4641) — 感谢 @arden1601)
 
-### 🔒 安全
+### 安全
 
 - **fix(auth):** 仅信任来自 loopback TCP 对端的转发头（`X-Forwarded-For` / `X-Real-IP`），使非 loopback 客户端无法伪造来源以绕过仅限本地路由的守卫。([#4689](https://github.com/diegosouzapw/OmniRoute/pull/4689) — 感谢 @Jordannst / @diegosouzapw)
 
@@ -4526,7 +4525,7 @@ _In development — bullets added per PR; finalized at release._
 
 - **fix(oauth):** 在路由守卫中将 `/api/oauth/cursor/auto-import` 分类为仅限本地路由，使需要 loopback 执行的进程启动端点无法通过隧道/泄漏的 JWT 访问（第 17 号硬规则）。([#5070](https://github.com/diegosouzapw/OmniRoute/pull/5070) — 感谢 @diegosouzapw)
 
-### 📝 维护
+### 维护
 
 - **chore(ci):** 加固发布流程 — 将质量递增门禁与覆盖率分片波动解耦（`if: !cancelled()` + `--allow-missing`），添加快速路径偏差门禁（`check:complexity`、`check:cognitive-complexity`、`check:pack-policy`、`check:build-scope`），并将默认构建堆内存提升至 8 GB。([#5054](https://github.com/diegosouzapw/OmniRoute/pull/5054) — 感谢 @diegosouzapw)
 
@@ -4542,7 +4541,7 @@ _In development — bullets added per PR; finalized at release._
 
 ## [3.8.36] — 2026-06-25
 
-### ✨ 新功能
+### 新功能
 
 **配额共享系统**
 
@@ -4580,7 +4579,7 @@ _In development — bullets added per PR; finalized at release._
 
 ---
 
-### 🔧 问题修复
+### 问题修复
 
 **翻译器**
 
@@ -4673,7 +4672,7 @@ _In development — bullets added per PR; finalized at release._
 
 ---
 
-### 🔒 安全
+### 安全
 
 - **fix(security):** 阻止通过 Deno/Vercel 中继上的 `x-relay-path` 头操纵绕过 SSRF 白名单。([#4899](https://github.com/diegosouzapw/OmniRoute/pull/4899))
 - **fix(security):** 固定图像获取 DNS 解析以防止 SSRF DNS 重新绑定攻击（GHSA-cmhj-wh2f-9cgx）。([#4634](https://github.com/diegosouzapw/OmniRoute/pull/4634))
@@ -4683,7 +4682,7 @@ _In development — bullets added per PR; finalized at release._
 
 ---
 
-### 📝 维护
+### 维护
 
 **God-file 分解（持续进行，#3501）**
 
@@ -4717,12 +4716,12 @@ _In development — bullets added per PR; finalized at release._
 
 ## [3.8.35] — 2026-06-23
 
-### ✨ 新功能
+### 新功能
 
 - **自适应上下文压缩（第四阶段）**：四层压缩升级通过堆叠式 PR 实现——**输出风格**注册表（`terse-prose` / `less-code` / `terse-cjk`）([#4694](https://github.com/diegosouzapw/OmniRoute/pull/4694) — 感谢 @diegosouzapw)，可选的 **SLM `ultra` 层级**（两级 LLMLingua 配合启发式容灾）([#4707](https://github.com/diegosouzapw/OmniRoute/pull/4707) — 感谢 @diegosouzapw)，**上下文预算自适应拨盘**（预留输出阶梯 + 下限）([#4716](https://github.com/diegosouzapw/OmniRoute/pull/4716) — 感谢 @diegosouzapw)，以及**离线评估工具集**（PII 门控语料库、自测评判器、黄金评分器、通过 `ModelClient` 接缝的真实管线运行器）([#4720](https://github.com/diegosouzapw/OmniRoute/pull/4720) — 感谢 @diegosouzapw)。四个层级共享同一 `CompressionRunTelemetry` 契约。
 - **Redoc 渲染的 API 文档**：合并后的 OpenAPI 规范现位于 `docs/openapi.yaml`，并作为交互式 Redoc 文档在 `/api/docs` 上提供。([#4781](https://github.com/diegosouzapw/OmniRoute/pull/4781) — 感谢 @KooshaPari / @diegosouzapw)
 
-### 🔧 问题修复
+### 问题修复
 
 - **db-backups**：通过 `OMNIROUTE_DB_IMPORT_MAX_MB`（默认 100 MB，上限 4 GB）使数据库导入大小上限可配置，以便恢复大于 100 MB 的备份；错误消息现在会指向该环境变量和 VACUUM（[#4757](https://github.com/diegosouzapw/OmniRoute/pull/4757) — 关闭 #4719，感谢 @diegosouzapw）。
 - **引导流程**：添加缺失的 `onboarding.tiers` 步骤标题翻译，使设置向导不再因 `MISSING_MESSAGE: onboarding.tiers` 而崩溃（[#4755](https://github.com/diegosouzapw/OmniRoute/pull/4755) — 关闭 #4698，感谢 @diegosouzapw）。
@@ -4733,7 +4732,7 @@ _In development — bullets added per PR; finalized at release._
 - **Tiers**：免认证服务商现在计为免费，免费层级过滤器返回空集合而非穿透到所有服务商（[#4753](https://github.com/diegosouzapw/OmniRoute/pull/4753) — 感谢 @megamen32 / @diegosouzapw）。
 - **Combos**：自动提升 `zeroLatencyOptimizationsEnabled`，使旧配置（3.8.33 之前的 `fallbackCompressionMode="lite"`）在首次 GUI 编辑时能正常往返（[#4774](https://github.com/diegosouzapw/OmniRoute/pull/4774) — 感谢 @KooshaPari / @diegosouzapw）。
 
-### 📝 维护
+### 维护
 
 - **chatCore (#3501)**：继续将 `executeProviderRequest` 和流式/非流式钩子增量分解为纯叶子模块——顶层辅助函数 + 6 个纯叶子（[#4571](https://github.com/diegosouzapw/OmniRoute/pull/4571)），`resolveExecutorWithProxy` + `getExecutionCredentials`（[#4646](https://github.com/diegosouzapw/OmniRoute/pull/4646)），Claude 消息转换（[#4708](https://github.com/diegosouzapw/OmniRoute/pull/4708)），`persistAttemptLogs`（[#4717](https://github.com/diegosouzapw/OmniRoute/pull/4717)），`stageTrace` + `compressionUsageReceipt`（[#4721](https://github.com/diegosouzapw/OmniRoute/pull/4721)），`prepareUpstreamBody`（[#4730](https://github.com/diegosouzapw/OmniRoute/pull/4730)），解析 + 非流式用量统计（[#4762](https://github.com/diegosouzapw/OmniRoute/pull/4762)），`recordContextEditingTelemetryHook`（[#4779](https://github.com/diegosouzapw/OmniRoute/pull/4779)），`scheduleQuotaShareConsumption`（[#4780](https://github.com/diegosouzapw/OmniRoute/pull/4780)），`emitRequestGamificationEvent`（[#4776](https://github.com/diegosouzapw/OmniRoute/pull/4776)），`runPluginOnResponseHook`（[#4782](https://github.com/diegosouzapw/OmniRoute/pull/4782)），`scheduleStreamingQuotaShareConsumption`（[#4784](https://github.com/diegosouzapw/OmniRoute/pull/4784)），`recordCompressionCacheStats`（[#4792](https://github.com/diegosouzapw/OmniRoute/pull/4792)），`writeCavemanOutputAnalytics`（[#4794](https://github.com/diegosouzapw/OmniRoute/pull/4794)），`recordStreamingUsageStats`（[#4791](https://github.com/diegosouzapw/OmniRoute/pull/4791)）和 `recordStreamingCost`（[#4790](https://github.com/diegosouzapw/OmniRoute/pull/4790)）。（感谢 @diegosouzapw）
 - **质量**：扩展 `check:release-green` 以在本地复现完整的发布 PR 门控集合（[#4758](https://github.com/diegosouzapw/OmniRoute/pull/4758) — 感谢 @diegosouzapw）。
@@ -4747,7 +4746,7 @@ _In development — bullets added per PR; finalized at release._
 
 ## [3.8.34] — 2026-06-23
 
-### ✨ 新功能
+### 新功能
 
 - **feat(executors): Microsoft 365 Copilot 纯帧封装 + 连接辅助** — 新增请求/响应帧封装和连接辅助，支持 `m365.cloud.microsoft/chat` 用于个人 M365 计划。([#4696](https://github.com/diegosouzapw/OmniRoute/pull/4696) — 感谢 @skyzea1 / @diegosouzapw)
 - **feat(compression): 按请求的 `x-omniroute-compression` 请求头（第 3 阶段）** — 请求头现在以最高优先级覆盖压缩方案（`请求头 > 路由 > profile > 自动触发 > 默认 > 关闭`），接受 `off` / `默认` / `引擎:<id>` / `<Combo>`。响应回显 `X-OmniRoute-Compression: <mode>; source=<source>`。([#4645](https://github.com/diegosouzapw/OmniRoute/pull/4645) — 感谢 @diegosouzapw)
@@ -4757,7 +4756,7 @@ _In development — bullets added per PR; finalized at release._
 - **feat(settings): 暴露流式恢复功能开关** — 在设置中展示流式恢复开关。([#4586](https://github.com/diegosouzapw/OmniRoute/pull/4586) — 感谢 @rdself)
 - **feat(providers): 自定义 API 密钥校验的可选模型 ID** — 自定义 API 密钥连接测试现在可指定用于校验密钥的模型 ID。([#4555](https://github.com/diegosouzapw/OmniRoute/pull/4555) — 感谢 @diegosouzapw)
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(db): 定时清理真正运行 + 查询指向正确的表（数据库膨胀 / OOM）** — `runAutoCleanup` 从未被调度，导致保留清理从未执行，表（`compression_analytics`、`usage_history` 等）无限增长成数 GB 的 SQLite 文件，推高 RSS。更糟糕的是，多个清理查询引用了错误的表名/列名（`call_logs.created_at`→`timestamp`、`compression_analytics.created_at`→`timestamp`、`mcp_audit_log`→`mcp_tool_audit`、`a2a_events`→`a2a_task_events`、`memory_entries`→`memories`），因此即使手动运行也静默无操作或报错。修复了五条查询以匹配真实 schema，新增 `cleanupProxyLogs`，并将 `startCleanupScheduler`（启动时 + 每 6 小时，删除后执行 VACUUM）接入 `server-init`，与现有的预算重置和推理缓存任务并列运行。([#4691](https://github.com/diegosouzapw/OmniRoute/pull/4691)，提取自 [#4428](https://github.com/diegosouzapw/OmniRoute/pull/4428) — 感谢 @oyi77 / @diegosouzapw)
 - **fix(routing): 自动 Combo 纳入所有 noAuth 模型 + 新增 reka-flash + 最佳免费模板** — 构建自动 Combo 时不再跳过 noAuth 服务商模型，注册 `reka-flash`，并新增 `best-free` Combo 模板。([#4621](https://github.com/diegosouzapw/OmniRoute/pull/4621) — 感谢 @oyi77)
@@ -4792,7 +4791,7 @@ _In development — bullets added per PR; finalized at release._
 - **fix(dashboard): Open Claw CLI 自动检测失败时显示手动配置引导** — 在 Open Claw CLI 卡片上自动检测失败时显示手动配置引导按钮。([#4562](https://github.com/diegosouzapw/OmniRoute/pull/4562) — 感谢 @diegosouzapw)
 - **fix(oauth): 更新 Qwen OAuth URL 从 `chat.qwen.ai` 到 `qwen.ai`** — 刷新 Qwen OAuth 端点（移植自 decolua/9router#683）。([#4561](https://github.com/diegosouzapw/OmniRoute/pull/4561) — 感谢 @diegosouzapw)
 
-### 📝 维护
+### 维护
 
 - **refactor(imageGeneration): 提取 8 个服务商系列到并列文件** — 将图像生成模块拆分为八个并列的按服务商文件，无行为变更。([#4609](https://github.com/diegosouzapw/OmniRoute/pull/4609) — 感谢 @KooshaPari)
 - **deps: 升级生产 + 开发依赖组；迁移 js-yaml 到 v5 (ESM)** — 依赖升级，外加 `js-yaml` v4→v5 迁移到纯 ESM 命名空间导入。([#4697](https://github.com/diegosouzapw/OmniRoute/pull/4697) — 感谢 @diegosouzapw)
@@ -4813,11 +4812,11 @@ _See English CHANGELOG for v3.8.32 details._
 
 ## [3.8.31] — 2026-06-20
 
-### ✨ 新功能
+### 新功能
 
 - **perf(dashboard): 组合 UI 叶子组件拆分、Next.js 配置调优、一键 Redis 和 Bifrost sidecar** — 交付了 #3932 讨论串中五个性能/UX 轨道中的四个：组合 控制台 页面被拆分为专注的叶子组件（更小的打包体积、更快的重载速度），`next.配置` 针对独立构建进行了调优，Redis 可一键配置，Bifrost sidecar 选项也已接入。（第五个轨道 — chatLogHelpers 提取 — 已在上游完成，因此移除。）([#4381](https://github.com/diegosouzapw/OmniRoute/pull/4381) — 感谢 @KooshaPari)
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(embeddings): NVIDIA NIM 非对称嵌入模型注入必需的 `input_type`** — NVIDIA NIM 非对称嵌入模型（如 `nvidia/nv-embedqa-e5-v5`）会拒绝没有 `input_type` 参数的请求，返回 `400 "'input_type' parameter is required"`，但 OmniRoute 仅在客户端提供 `input_type` 时才转发 — 因此调用方（以及不发送该字段的 OpenAI 风格 SDK）会遭遇硬性失败。嵌入注册表现在为 NVIDIA 非对���模型携带模型级默认值（`input_type: "query"`），嵌入处理器仅在客户端未发送时才会将模型默认参数注入上游请求体 — 客户端提供的 `input_type`（如 `"passage"`）将原样保留，而没有默认值的对称模型不受影响。([#4341](https://github.com/diegosouzapw/OmniRoute/pull/4341) — 感谢 @hydraromania)
 - **fix(api): 将已弃用的 Codex `[features].codex_hooks` 标志迁移到 `[features].hooks`** — Codex 将 `codex_hooks` 功能标志重命名为 `hooks`；最近的 Codex CLI 版本会忽略旧键并打印弃用通知。当 OmniRoute 重写现有的 `~/.codex/config.toml`（配置/重置 Codex 服务商）时，现在会通过重命名 `[features].codex_hooks` → `[features].hooks`（保留其值，绝不覆盖已存在的 `hooks`）并丢弃已弃用的键来保留用户意图。当该标志不存在时无操作。([#4342](https://github.com/diegosouzapw/OmniRoute/pull/4342) — 感谢 @Bian-Sh)
@@ -4838,14 +4837,14 @@ _See English CHANGELOG for v3.8.32 details._
 - **fix(api): 添加自定义模型时持久化 `max_input_tokens` / `max_output_tokens`** — `POST /api/provider-models` 静默丢弃了"添加自定义模型"表单中设置的每模型 token 限制：处理器解构了请求体的其余部分，但从未读取 `max_input_tokens` / `max_output_tokens`，且 `addCustomModel()` 没有对应参数，因此这些值在写入时被丢弃。DB 层（`inputTokenLimit` / `outputTokenLimit`）和 `/v1/models` 目录已经能对这些字段进行往返 — 只有写入路径缺失。验证 schema 现在接受这两个可选限制，处理器转发它们，`addCustomModel()` 持久化它们，使自定义模型的上下文/输出窗口能保留在目录中。([#4349](https://github.com/diegosouzapw/OmniRoute/pull/4349) — 感谢 @codename-zen)
 - **fix(plugin): OpenCode 静态目录插件为组合/原始模型键添加服务商 ID 前缀** — OpenCode 的静态目录读取器错误检测了 `omniroute` 服务商：以 `combo/MASTER` 形式发出的组合键被解析为服务商 `combo`（"No credentials for provider: omniroute"），而裸 `MASTER` 形式被误读为无法解析服务商的模型，混合的 `omniroute/MASTER` + 裸原始键被 OpenCode 的 schema 拒绝。插件现在为每个组合和原始模型键添加 `omniroute` 服务商 ID 前缀，显式发出服务商 ID，并丢弃旧的 `combo/` 前缀 — 因此静态目录读取器能检测到服务商，认证加载器返回正确的凭证（目录获取超时也已提高，使冷启动服务器不会发布空存根）。([#4384](https://github.com/diegosouzapw/OmniRoute/pull/4384) — 感谢 @herjarsa)
 
-### 🔒 安全
+### 安全
 
 - **fix(security): 将 OAuth 回调的 `postMessage` 限定为可信来源白名单** — `/callback` 处的 OAuth 回调此前在 opener 跨域时向 `window.opener.postMessage(…, "*")` 发送 `{ code, state, … }`，因此恶意页面如果以弹窗形式打开众所周知的回调 URI，就能接收 OAuth code/state 并以用户身份完成流程。通配符回退已被替换为遍历固定白名单（同源 + Codex 的 `localhost:1455` / `127.0.0.1:1455` loopback helper）；浏览器会静默丢弃向白名单外的任何 opener origin 发送的 `postMessage`。([#4372](https://github.com/diegosouzapw/OmniRoute/pull/4372) — 从 9router#998 移植，感谢 @aeonframework / @diegosouzapw)
 - **fix(mitm): 在 MITM 主机测试中使用精确主机匹配（CodeQL 误报）** — `tests/unit/mitm-tool-hosts.test.ts` 使用 `Array.includes(host)` 检查主机成员，CodeQL 的 `js/incomplete-url-substring-sanitization` 启发式规则将其误读为 `String.includes()` URL 子串清理测试（严重误报）。切换为 `.some((h) => h === host)` — 语义相同，且不会触发标志模式。([#4386](https://github.com/diegosouzapw/OmniRoute/pull/4386))
 
-### 📝 维护
+### 维护
 
-- **docs: 一次性功能文档补全（v3.8.20 → v3.8.30）** — 将所有自 v3.8.20 以来发布的面向用户功能与文档对齐：新增 README **✨ What's New** 章节；新增 [CLI 集成](docs/guides/CLI-INTEGRATIONS.md)、[MITM TPROXY 透明解密](docs/security/MITM-TPROXY-DECRYPT.md)和[代理 Anthropic 上下文编辑](docs/压缩/CONTEXT_EDITING.md)指南；刷新 AUTO-COMBO（`auto/<category>:<tier>` + Arena-ELO）、API_REFERENCE（`x-omniroute-no-memory`）、MEMORY（int8 量化，默认关闭）、RESILIENCE（模型锁定成功衰减）、RTK、AGENTBRIDGE、TRAFFIC_INSPECTOR、GUARDRAILS、CLOUD_AGENT、ENVIRONMENT；重新生成 PROVIDER_REFERENCE（231 服务商）并同步 README/CLAUDE/AGENTS 中的服务商数量。今后每次发版都会运行此项（generate-release 步骤 6b）。([#4391](https://github.com/diegosouzapw/OmniRoute/pull/4391))
+- **docs: 一次性功能文档补全（v3.8.20 → v3.8.30）** — 将所有自 v3.8.20 以来发布的面向用户功能与文档对齐：新增 README ** What's New** 章节；新增 [CLI 集成](docs/guides/CLI-INTEGRATIONS.md)、[MITM TPROXY 透明解密](docs/security/MITM-TPROXY-DECRYPT.md)和[代理 Anthropic 上下文编辑](docs/压缩/CONTEXT_EDITING.md)指南；刷新 AUTO-COMBO（`auto/<category>:<tier>` + Arena-ELO）、API_REFERENCE（`x-omniroute-no-memory`）、MEMORY（int8 量化，默认关闭）、RESILIENCE（模型锁定成功衰减）、RTK、AGENTBRIDGE、TRAFFIC_INSPECTOR、GUARDRAILS、CLOUD_AGENT、ENVIRONMENT；重新生成 PROVIDER_REFERENCE（231 服务商）并同步 README/CLAUDE/AGENTS 中的服务商数量。今后每次发版都会运行此项（generate-release 步骤 6b）。([#4391](https://github.com/diegosouzapw/OmniRoute/pull/4391))
 - **refactor(chatCore): 提取 `checkHeapPressureGuard` 叶子函数（巨型文件分解的开始）** — 分解 `chatCore.ts`（约 5127 行，最热路径 — 每个聊天请求都经过 `handleChatCore`）的第一步。`handleChatCore` 顶部的 V8 堆内存压力守卫（当 `heapUsed` 超过丢弃阈值时拒绝并返回 503）被移至一个独立、同目录的 `utils/heapPressure.ts::checkHeapPressureGuard(...)`，行为无变化。([#4371](https://github.com/diegosouzapw/OmniRoute/pull/4371) — 感谢 @diegosouzapw)
 - **refactor(combo): 在两个调度器中消除已耗尽目标跳过谓词的重复** — 字节完全相同的 `#1731`/`#1731v2` 预检查（跳过请求中已在服务商/连接上耗尽的目标）存在于两个组合调度器中；已提取为共享的 `Combo/comboPredicates.ts` 辅助函数。([#4362](https://github.com/diegosouzapw/OmniRoute/pull/4362) — 感谢 @diegosouzapw)
 - **refactor(combo): 在两个调度器中消除上游错误耗尽分类的重复** — 两个调度器都运行了几乎相同的错误后处理代码块，对上游错误进行分类并更新耗尽集合（`#1731` 服务商耗尽 / `#1731v2` 连接错误 / 瞬时速率限制）；已提取为共享的 `Combo/targetExhaustion.ts::applyComboTargetExhaustion(...)`。([#4366](https://github.com/diegosouzapw/OmniRoute/pull/4366) — 感谢 @diegosouzapw)
@@ -4858,7 +4857,7 @@ _See English CHANGELOG for v3.8.32 details._
 
 ## [3.8.30] — 2026-06-20
 
-### ✨ 新功能
+### 新功能
 
 - **feat(dashboard): 服务商页面的媒体类别 (media serviceKind) 筛选器** — `/dashboard/providers` 新增媒体类别筛选行（Image / Video / Music / Text→Speech / Speech→Text / Embedding），与现有的搜索、仅显示免费和"仅显示已配置"筛选器组合使用。类别归属从后端媒体注册表推导（即使服务商未声明 `serviceKinds`，只要它实际提供某种媒体服务就会被列出），确保 UI 与后端保持同步。([#4240](https://github.com/diegosouzapw/OmniRoute/issues/4240))
 - **feat(combo): 按步骤的账户允许列表 — 将轮询/加权步骤范围限定到服务商连接的子集** — Combo 模型步骤现在可以携带一等公民的账户允许列表，这样轮询（或加权）策略可以限定到服务商连接的一个选定子集（例如只选择 `foo1`+`foo2` 而不是 `foo1..foo4`），而无需为每个账户手动固定一个步骤。留空 = 使用全部活跃池（行为不变）。当步骤同时具有允许列表和标签路由时，两者取交集（最严格者胜）；单个固定账户仍然优先。Combo 构建器的 Precision 步骤编辑器新增可选的"限制到特定账户"选择器。([#3266](https://github.com/diegosouzapw/OmniRoute/issues/3266))
@@ -4873,11 +4872,11 @@ _See English CHANGELOG for v3.8.32 details._
 - **feat(mitm): 端到端翻译 Antigravity cloudcode 流量（Gap B）** — MITM 解密路径现在端到端翻译 Antigravity `cloudcode` 流量。([#4299](https://github.com/diegosouzapw/OmniRoute/pull/4299))
 - **feat(keys): 按 API 密钥的美元使用配额控制** — API 密钥现在可以携带美元消费配额，在达到阈值后限制其使用。([#4327](https://github.com/diegosouzapw/OmniRoute/pull/4327) — 感谢 @Witroch4)
 
-### 🔧 变更
+### 变更
 
 - **change(memory): 记忆功能现在默认关闭** — `DEFAULT_MEMORY_SETTINGS.enabled` 现在默认为 `false`。启用记忆功能会向**每个**聊天请求注入最多约 2,000 个 token 的检索上下文（该上下文会被计费），这对于新安装和拥有自己上下文的客户端来说是一个意外的默认行为。记忆功能现在需要显式选择启用：已启用它的安装保持不变；从未配置过的安装默认为关闭。设置 → 记忆面板现在在启用记忆功能时显示 token 成本警告。(PRD-2026-06-19-no-memory-header)
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(translator): Gemini 接受 HTTP/HTTPS 图片 URL（不再静默丢弃）** — OpenAI 风格的 `image_url` 部分，当 URL 为 `http://…` 或 `https://…` 时，到达 `convertOpenAIContentToParts`（OpenAI→Gemini 请求助手）后仅输出 `console.warn` 就被丢弃，因为 Gemini 的 `inlineData` 需要 base64 编码，而该助手是同步的（无法获取并编码）。然而 Gemini 的 `Part` 模式原生支持远程 URI 的 `fileData: { fileUri }` — 模型会自行获取资源。该助手现在生成 `fileData` 部分（`mimeType: "image/*"`，在上游获取时推断）而不是丢弃，因此传递 URL（而非 data: URI）的视觉请求现在可以完整到达 Gemini。`data:` URI 仍然通过 `inlineData` 不变处理；不支持的协议（如 `ftp:`）仍然跳过。(感谢 @East-rayyy)
 - **fix(security): OAuth 回调页面不再将 `code`/`state` 中继到通配符 `postMessage` 目标** — `/callback` 的 OAuth 回调在跨域打开窗口时（远程控制台 + 本地回环回调场景的容灾机制）将 `{ code, state, ... }` 发送到 `window.opener.postMessage(..., "*")`。因此，一个恶意的页面如果在已知的重定向 URI 的弹窗中打开回调 URL，就会收到 OAuth code+state，从而可以以用户身份完成 OAuth 流程。通配符容灾机制被替换为遍历固定的可信目标源允许列表（同源 + Codex 的回环助手 `localhost:1455` / `127.0.0.1:1455`）；浏览器对于源不在列表中的任何打开窗口静默丢弃消息。方法 2（`BroadcastChannel`）和方法 3（`localStorage`）— 已存在于页面中 — 在 COOP 切断打开窗口关系时仍然覆盖同源父窗口。(感谢 @aeonframework)
@@ -4917,12 +4916,12 @@ _See English CHANGELOG for v3.8.32 details._
 - **fix(cli): 使用 free-claude-code 模式加固 `launch`/`launch-codex`** — 启动器采用了从 free-claude-code 移植的加固启动模式。([#4278](https://github.com/diegosouzapw/OmniRoute/pull/4278))
 - **fix(compression): 端到端审计 — 修复整个压缩流程** — 对压缩管线进行全面扫描，修复 ultra/aggressive/lossless 边缘情况、无障碍锚点处理、语言检测和模式解耦。([#4323](https://github.com/diegosouzapw/OmniRoute/pull/4323))
 
-### 🧪 测试
+### 测试
 
 - **test: 对齐被合并 PR 遗留的两个红色测试** — 在并发合并后重新对齐 db-rules 分类计数（#4335）和 LMArena 分片 Cookie 元数据测试（#4271）。([#4346](https://github.com/diegosouzapw/OmniRoute/pull/4346))
 - **test(ci): 协调 release/v3.8.30 基线 + 测试漂移** — 协调发布分支上累积的质量基线和漂移测试。([#4276](https://github.com/diegosouzapw/OmniRoute/pull/4276))
 
-### 📝 维护
+### 维护
 
 - **refactor(combo): `ComboContext` + 提取 `phaseComboSetup`（巨文件拆分，阶段 1）** — 开始分解 Combo 巨文件，将 Combo 设置提取到上下文对象中，不触及调度/信号量逻辑。([#4326](https://github.com/diegosouzapw/OmniRoute/pull/4326))
 - **feat(quality): 限制测试文件大小 — 反膨胀第 1 层** — 冻结现有巨测试并将新测试文件限制在 800 行以内以阻止重新膨胀。([#4273](https://github.com/diegosouzapw/OmniRoute/pull/4273))
@@ -4938,11 +4937,11 @@ _See English CHANGELOG for v3.8.32 details._
 - **docs: 禁止在提交/PR/CHANGELOG 中使用 AI 生成页脚（硬规则 #16）** — 将禁止 AI 生成页脚和机器人共同作者尾注的规定编入规则。([#4328](https://github.com/diegosouzapw/OmniRoute/pull/4328))
 - **docs(design): 添加 OmniRoute 设计系统和视觉标识规范** — 添加设计系统 / 视觉标识规范文档。(感谢 @diegosouzapw)
 
-### 🔒 安全
+### 安全
 
 - **fix(sse): 加固 DuckDuckGo lite 抓取器清理逻辑（CodeQL）** — 关闭无密钥网页搜索抓取器中的四个 HIGH 级别 CodeQL 告警：`decodeEntities` 现在**最后**解析 `&amp;`，使已转义的实体（例如 `&amp;lt;`）作为字面文本保留而非被双重反转义（`js/double-escaping`）；`stripTags` 先解码实体，然后循环剥离标签直至不动点并丢弃任何尾部未闭合的 `<…`，使实体编码的标记如 `&lt;script&gt;` 永远无法以活动标签形式到达 LLM/客户端（`js/incomplete-multi-character-sanitization`）；搜索测试中的主机检查使用 `new URL().hostname` 相等性而非子字符串 `.includes`（`js/incomplete-url-substring-sanitization`）。([#4356](https://github.com/diegosouzapw/OmniRoute/pull/4356))
 
-### 🔧 依赖
+### 依赖
 
 - **fix(deps): 将 undici 升级到 7.28.0，dompurify 升级到 3.4.11（安全）** — 解决 undici SOCKS5-TLS / 缓存安全公告和 dompurify 安全公告。([#4306](https://github.com/diegosouzapw/OmniRoute/pull/4306))
 - **chore(deps): 将 actions/checkout 从 4 升级到 7** — CI checkout-action 更新。([#4297](https://github.com/diegosouzapw/OmniRoute/pull/4297))
@@ -4952,7 +4951,7 @@ _See English CHANGELOG for v3.8.32 details._
 
 ## [3.8.29] — 2026-06-19
 
-### ✨ 新功能
+### 新功能
 
 - **feat(cloud-agent): 通过官方 API 密钥 REST API 使用 Cursor Cloud Agent（无 IDE-OAuth 封禁风险）** — 新增 `cursor-cloud` 云代理，通过官方 REST API（`api.cursor.com`）驱动 Cursor 的后台/云代理，使用用户或服务账户 API 密钥进行认证 — 这是比复用 Cursor IDE 的 OAuth 会话（即现有的 `cursor` 服务商，带有封禁风险警告）更安全的第一方替代方案。实现为纯 REST 适配器，镜像 Devin/Jules 代理（`createTask`/`getStatus`/`sendMessage`/`listSources`），因此**不会**引入 `@cursor/sdk` 包及其各平台原生二进制文件（Cursor 的 SDK 本身只是此 REST API 的一个薄封装）。Cursor 的大写状态枚举（`CREATING`/`RUNNING`/`FINISHED`/`ERROR`）被显式映射到共享的 `CloudAgentStatus`，并且 `baseUrl` 可按凭证覆盖。凭证通过现有的 `cloud_agent_credentials` 表加密存储；无需 Schema 变更。([#4227](https://github.com/diegosouzapw/OmniRoute/issues/4227) — 感谢 @MRDGH2821)
 - **feat(routing): OpenRouter 风格 `auto/<category>:<tier>` 组合** — 自动路由现在支持带后缀的组合，将 _类别_（路由类型）与 _层级_（优化方式）分离：`auto/coding:fast`、`auto/coding:cheap`（别名 `:floor`）、`auto/coding:free`、`auto/coding:pro`、`auto/coding:reliable`，以及新的类别根 `auto/reasoning`、`auto/vision`、`auto/multimodal`。**层级**选择评分权重 — `:fast` → 快速发送，`:cheap`/`:floor` → 成本节省，`:reliable` → 新的可靠性优先方案（熔断器健康度 + 延迟稳定性）— 而 `:free`/`:pro` 按模型层级过滤候选池（`classifyTier`：免费层 vs. 高级模型）。**类别**按能力过滤候选池（`vision`/`multimodal` → 支持视觉的模型，`reasoning` → 推理/思考模型）。任何有效的 `auto/<category>:<tier>` 均可按需解析；精选集合在 `/v1/模型` 和控制台中展示。过滤采用故障开放策略 — 如果约束条件未匹配到任何已连接的模型，则使用完整候选池，确保路由永不中断。所有组合逻辑位于新的 `open-sse/services/autoCombo/suffixComposition.ts` 中；核心 Combo 评分器（`Combo.ts`）保持不变。#4235 的第二部分（高级账户层级权重为后续跟进）。([#4235](https://github.com/diegosouzapw/OmniRoute/issues/4235) — 感谢 @MRDGH2821)
@@ -5006,7 +5005,7 @@ _See English CHANGELOG for v3.8.32 details._
 - **feat(quality): Onda 2 变异门工具 — 射线分类器（T1）+ `mutationScore` 棘轮（T3）** — 新的变异测试工具：幸存者射线分类器和 `mutationScore` 棘轮。([#4234](https://github.com/diegosouzapw/OmniRoute/pull/4234))
 - **feat(ci): 接入 F2.4 压缩预算门棘轮** — 新增 CI 棘轮，防止压缩预算回退。([#4232](https://github.com/diegosouzapw/OmniRoute/pull/4232))
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(providers): qwen-web 模型发现现在列出实时目录而非空目录** — `qwen-web` cookie 服务商在 `PROVIDER_MODELS_CONFIG` 中没有条目，因此其模型发现页面返回空/过时的本地目录（路由顶部的 OAuth 容灾仅对 `服务商 === "qwen"` 生效，导致 `qwen-web` 落入无配置分支）。新增一个 `qwen-web` 条目，获取**公开**的 `https://chat.qwen.ai/api/v2/模型` 端点（无需认证请求头）并解析 `{ data: { data: [{ id, name, owned_by }] } }` 结构（带更扁平的 `{ data: [] }` 容灾）。这是 #3931 的问题 #3（由 @thezukiru 诊断）；问题 #1 — 校验器裸令牌误报 — 已在 #3958 中发布，问题 #2 — Qwen WAF 在流式传输端点的机器人检测导致空流 — 仍然是独立的上游/隐身问题。([#3931](https://github.com/diegosouzapw/OmniRoute/issues/3931) — 感谢 @thezukiru)
 - **fix(providers): ZenMux 模型发现现在列出实时目录（含免费模型）而非过时的 9 条目硬编码列表** — 添加 ZenMux 密钥校验正常，但连接随后显示 `API unavailable — using local catalog` 并缺少 ZenMux 宣传的免费模型（`z-ai/glm-5.2-free`、`moonshotai/kimi-k2.7-code-free`）。根本原因：`zenmux` 在注册表中带有正确的 `modelsUrl`，但是 — 与 #3976 之前的 `llm7`/`byteplus` 一样 — 它未被模型导入路由的任何实时获取分支分类（不是 `openai-compatible-*`、不是自托管、不在 `NAMED_OPENAI_STYLE_PROVIDERS` 中），因此路由从未探测上游 `/模型` 并落入注册表的硬编码 `模型[]`。将 `zenmux` 添加到 `NAMED_OPENAI_STYLE_PROVIDERS`，使路由探测 `https://zenmux.ai/api/v1/模型`（去掉 `/chat/completions` 的 `<baseUrl>/模型` 候选）并提供实时列表，仅在上游获取失败时回退到本地目录 — 导入永不中断。([#4202](https://github.com/diegosouzapw/OmniRoute/issues/4202) — 感谢 @mikmaneggahommie)
@@ -5043,7 +5042,7 @@ _See English CHANGELOG for v3.8.32 details._
 - **fix(free-tiers): 退役失效的 `hasFree` 层级，标题四舍五入为 ~1.6B，重新生成每服务商表格** — 从标题计算中移除失效的免费层级并重新生成每服务商免费层级表格。([#4142](https://github.com/diegosouzapw/OmniRoute/pull/4142))
 - **fix(free-tiers): 退役 4 个重新验证已失效的免费层级，标记 iflytek/sparkdesk ToS，澄清 monsterapi 一次性** — 移除四个确认已失效的免费层级并标注 ToS/一次性注意事项。([#4152](https://github.com/diegosouzapw/OmniRoute/pull/4152))
 
-### 🧪 测试
+### 测试
 
 - **test(sse): 通过请求捕获往返守卫 Antigravity `_toolNameMap` 伪装映射** — #4091 的后续：`createPreparedRequestLogger().body()`（#4153）中的通用捕获修复重新附加了请求检查器在通过 `JSON.parse(JSON.stringify(...))` 重建上游体时丢弃的不可枚举 `_toolNameMap`，但唯一的回归测试仅覆盖了原生 Claude OAuth 伪装（PascalCase 别名）。Antigravity 伪装不同 — `cloakAntigravityToolPayload` 为自定义工具添加 `_ide` 后缀（`workspace_read` → `workspace_read_ide`），保持原生工具不变，并单独返回反向映射 — 因此 `providerRequestLogging.ts` 或执行器的重构可能在不触发 Claude 测试的情况下静默重新破坏 Antigravity 工具调度。新增专用回归测试，驱动真实的 `cloakAntigravityToolPayload` 通过捕获往返，断言 `_ide` 反向映射存活、保持不可枚举（永不重新序列化到上游），并且全原生流量不产生伪映射（验证在移除 #4153 重新附加时失败）。无生产变更。([#4181](https://github.com/diegosouzapw/OmniRoute/issues/4181) — 感谢 @hertznsk)
 - **test(chatcore): 6 个叶函数的专用单元测试 + 接入 stryker mutate（QG v2 Fase 9 T5 Fase 3）** — 为 6 个 chatCore 叶辅助函数添加聚焦单元测试并将其纳入变异测试。([#4218](https://github.com/diegosouzapw/OmniRoute/pull/4218))
@@ -5053,7 +5052,7 @@ _See English CHANGELOG for v3.8.32 details._
 - **test(db,sse): 去抖动 db-backup + chatcore 流式传输时序断言** — 稳定两个时序敏感测试（即发即忘备份补全 + 流式传输竞态）。([#4132](https://github.com/diegosouzapw/OmniRoute/pull/4132))
 - **test: 对齐 v3.8.28 之后在 main 上浮现的过时集成测试** — 重新对齐 v3.8.28 合并后漂移的集成测试。([#4129](https://github.com/diegosouzapw/OmniRoute/pull/4129))
 
-### 📝 维护
+### 维护
 
 - **refactor(sse): 将 chatCore.ts 纯辅助函数拆分到 chatCore/ 模块（−561 LOC）** — 将纯辅助函数从 chatCore 上帝文件中提取到专用模块（Onda 3）。([#4159](https://github.com/diegosouzapw/OmniRoute/pull/4159))
 - **refactor(chatcore): 提取透传/请求头/遥测辅助函数（QG v2 Fase 9 T5 C2-C3-C5）** — 进一步 chatCore 分解。([#4188](https://github.com/diegosouzapw/OmniRoute/pull/4188))
@@ -5079,7 +5078,7 @@ _See English CHANGELOG for v3.8.32 details._
 - **docs(readme): 将 Acknowledgments 扩展为主题化、带星标的致谢大厅** — 重做 README 致谢部分。([#4195](https://github.com/diegosouzapw/OmniRoute/pull/4195))
 - **style(dashboard): 将标识网格单元格缩小 46px → 32px（约小 30%）** — 收紧标识网格密度。([#4143](https://github.com/diegosouzapw/OmniRoute/pull/4143))
 
-### 🔧 依赖
+### 依赖
 
 - **deps: 将生产组更新 5 项** — 例行生产依赖更新。([#4121](https://github.com/diegosouzapw/OmniRoute/pull/4121))
 - **chore(deps): 将 github/codeql-action 从 3 更新到 4** — CI action 更新。([#4120](https://github.com/diegosouzapw/OmniRoute/pull/4120))
@@ -5089,7 +5088,7 @@ _See English CHANGELOG for v3.8.32 details._
 
 ## [3.8.28] — 2026-06-17
 
-### ✨ 新功能
+### 新功能
 
 - **feat(providers): add OrcaRouter (OpenAI-compatible routing gateway)** — OrcaRouter 现已注册为 API-key 服务商。其自适应路由器以 `orcarouter/auto` 暴露（跨 150+ 上游模型的智能路由），以及精选旗舰模型系列（GPT-5.5、Gemini 3.5 Flash、Claude Opus 4.8、Grok 4.3、DeepSeek V4 Pro、MiniMax M2.7、Qwen3.7 Max）。已启用 `passthroughModels`，因此任何 OrcaRouter 模型 ID 均可使用。OpenAI 兼容端点（`https://api.orcarouter.ai/v1`），Bearer（`sk-orca-…`）认证 — 无需自定义 executor 或 translator。([#4070](https://github.com/diegosouzapw/OmniRoute/pull/4070) — 感谢 @jinhaosong-source)
 - **feat(providers): add Wafer AI (Anthropic-compatible, Bearer auth)** — Wafer AI 现已成为内置服务商，使用 Anthropic Messages 格式和 Bearer 认证，已注册其模型目录，开箱即用。([#4098](https://github.com/diegosouzapw/OmniRoute/pull/4098) — 感谢 @diegosouzapw)
@@ -5107,7 +5106,7 @@ _See English CHANGELOG for v3.8.32 details._
 - **feat(mitm): loop-guard self-check + verbosity control in `server.cjs` (Gaps 14+15)** — MITM 代理新增自引用循环防护（确保不会将自身流量代理到无限循环中），以及 `MITM_VERBOSE` 路由决策日志级别控制。([#4101](https://github.com/diegosouzapw/OmniRoute/pull/4101) — 感谢 @diegosouzapw)
 - **feat(agent-bridge): portable JSON import/export of config (Gap 4)** — Agent Bridge / MITM 配置现可导出并从便携 JSON 文件导入，方便备份工作设置或在机器间迁移。([#4094](https://github.com/diegosouzapw/OmniRoute/pull/4094) — 感谢 @diegosouzapw)
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(ws): start the LiveWS sidecar with `cwd` at the package root (global/systemd installs)** — 独立 LiveWS 启动器（`scripts/start-ws-server.mjs`）通过 `node --import tsx <self>` 重新启动自身，但未设置 `cwd`。当 WebSocket sidecar 从包目录外部启动时 — 例如全局 npm/homebrew 安装，或 `systemd`/`launchd` 单元从 `$HOME` 启动 — Node 无法解析 `tsx` 包（`ERR_MODULE_NOT_FOUND: Cannot find package 'tsx'`），即便在包目录下 `tsx` 也无法解析 tsconfig 的 `@/*` 路径别名（如 `@/types/databaseSettings`），导致 sidecar 无法启动。spawn 现在将 `cwd` 固定为包根目录（`scripts/` 的上级目录，`package.json` + `tsconfig.json` 所在位置），从而无论从何处启动，都能解析 `tsx` 和 `@/*` 别名。([#4055](https://github.com/diegosouzapw/OmniRoute/issues/4055) — 感谢 @Rahulsharma0810)
 - **fix(dashboard): Logs page auto-refresh now works in embedded/proxied dashboards** — 请求日志器曾将每次自动刷新 tick 依赖于静态的 `document.visibilityState === "visible"` 读取。那些报告永久非 `"visible"` 状态且从不触发 `visibilitychange` 事件的环境（Docker 控制台包装器、嵌入式 webview）会导致自动刷新完全冻结 — 只有手动刷新按钮有效，这是 3.8.24 无条件轮询的回归。暂停现在采用事件驱动和 fail-open 模式：轮询以启用状态启动，仅在真实的 `visibilitychange` → hidden 转换后才暂停（仍然保留对普通浏览器标签页的后台优化）。([#4054](https://github.com/diegosouzapw/OmniRoute/issues/4054) — 感谢 @tjengbudi)
@@ -5130,14 +5129,14 @@ _See English CHANGELOG for v3.8.32 details._
 - **fix(combo): detach the per-target listener from the shared hedge abort signal** — Combo hedging 将每个目标的监听器附加到共享的 abort 信号上但未分离，导致跨请求的监听器泄漏；监听器现在被分离。([#4116](https://github.com/diegosouzapw/OmniRoute/pull/4116) — 感谢 @artickc)
 - **fix(timers): unref background interval timers so they don't block clean shutdown** — 长时间运行的后台间隔定时器保持事件循环活跃，阻止了干净的进程退出；它们现在被 `unref` 了。([#4117](https://github.com/diegosouzapw/OmniRoute/pull/4117) — 感谢 @artickc)
 
-### ⚡ 性能优化
+### 性能优化
 
 - **perf(registry): precompute the model→provider index in `parseModelFromRegistry`** — 模型→服务商查找现在使用预计算索引，而非每次调用时扫描注册表。([#4110](https://github.com/diegosouzapw/OmniRoute/pull/4110) — 感谢 @artickc)
 - **perf(obfuscation): cache per-word regexes instead of recompiling every request** — 混淆阶段现在缓存每个单词的正则表达式，而非每次请求时重新编译。([#4109](https://github.com/diegosouzapw/OmniRoute/pull/4109) — 感谢 @artickc)
 - **perf(stream): use `structuredClone` instead of JSON round-trip for per-chunk reasoning split** — 每个 chunk 的推理分割现在使用 `structuredClone` 而非 `JSON.parse(JSON.stringify(...))`。([#4108](https://github.com/diegosouzapw/OmniRoute/pull/4108) — 感谢 @artickc)
 - **perf(gemini): cache the reasoning close-tag regex instead of recompiling per token** — Gemini 推理关闭标签的正则表达式现在只编译一次并复用，而非每个 token 都重新编译。([#4106](https://github.com/diegosouzapw/OmniRoute/pull/4106) — 感谢 @artickc)
 
-### 📝 维护
+### 维护
 
 - **ci(quality): flip the TIA impacted-unit-tests gate from advisory to blocking (Fase 9)** — the test-impact-analysis gate that runs the unit tests impacted by a diff 现在 blocking on PRs. ([#4069](https://github.com/diegosouzapw/OmniRoute/pull/4069) — 感谢 @diegosouzapw)
 - **ci(quality): dedup the doubly-run `check:docs-sync` + record the validated ROI backlog (Fase 9)** — `check:docs-sync` was running twice in CI; the duplicate was removed and the validated quality-gate ROI backlog recorded. ([#4099](https://github.com/diegosouzapw/OmniRoute/pull/4099) — 感谢 @diegosouzapw)
@@ -5149,7 +5148,7 @@ _See English CHANGELOG for v3.8.32 details._
 - **chore(docs): update the Discord invite link to a non-expiring one** — replaces the expiring Discord invite with a permanent link. ([#4067](https://github.com/diegosouzapw/OmniRoute/pull/4067) — 感谢 @diegosouzapw)
 - **chore(docs): document the new MITM env vars + reconcile the env-doc contract** — documents `MITM_IDLE_TIMEOUT_MS` and `MITM_VERBOSE` in `.env.example` + `ENVIRONMENT.md`, allowlists the framework-internal `TURBOPACK` and the Claude Code `ANTHROPIC_AUTH_TOKEN`, and relocates/prunes stale 服务商/guide docs. (thanks @diegosouzapw)
 
-### 🔧 依赖
+### 依赖
 
 - **deps: bump the development group with 10 updates** — routine dependabot dev-dependency bumps. ([#4051](https://github.com/diegosouzapw/OmniRoute/pull/4051))
 - **deps(electron): bump electron 42.4.0 → 42.4.1** — ([#4049](https://github.com/diegosouzapw/OmniRoute/pull/4049))
@@ -5163,7 +5162,7 @@ _See English CHANGELOG for v3.8.32 details._
 
 ## [3.8.27] — 2026-06-17
 
-### ✨ 新功能
+### 新功能
 
 - **feat(combos): 在导入界面宣传 Combo 能力（多模态/推理/缓存）** — 将 Combo 包导入客户端（LobeHub / OpenCode / VS Code，通过 `/v1/combos` 和 VS Code Combo 目录）后不再需要手动启用多模态/图像输入、推理和缓存。`projectCombo` 现在附加注册表派生的 `capabilities` 块，采用保守策略：仅当**所有**具体模型步骤均证明该能力时才声明 `multimodal`/`reasoning`（无法证明的嵌套 Combo 引用会丢弃这些能力，因为策略可能路由到任意成员），`caching` 反映 Combo 显式的上下文缓存保护设置（不会产生意外的提示缓存成本）。公开的 `/v1/combos` 默认映射 (#2300) 保持不变，除非调用者主动选择。([#3979](https://github.com/diegosouzapw/OmniRoute/issues/3979) — 感谢 @xenstar)
 - **feat(sse): 委托 Anthropic 上下文编辑支持 Claude (`clear_tool_uses`)** — Claude 请求现在可以将上下文裁剪卸载到 Anthropic 的服务端上下文管理 API（beta `context-management-2025-06-27`、`clear_tool_uses_20250919`），在上游而非本地修剪过期的工具调用轮次。该功能仅适用于 Claude（编辑在服务端执行）；多服务商上下文裁剪仍由本地压缩引擎处理。([#4021](https://github.com/diegosouzapw/OmniRoute/pull/4021) — 感谢 @diegosouzapw)
@@ -5178,7 +5177,7 @@ _See English CHANGELOG for v3.8.32 details._
 - **feat(dashboard): 侧边栏分组分隔符开关** — 控制台侧边栏现在可以开关分组分隔符，获得更简洁的导航布局。([#3971](https://github.com/diegosouzapw/OmniRoute/pull/3971) — 感谢 @rdself)
 - **feat(api): 本地 `@@om-usage` 命令支持缓存的按 key 用量** — API 客户端可发送恰好为 `@@om-usage` 的消息，在本地检索缓存的 Claude 风格用量数据，无需将 prompt 转发到上游服务商。由新的按 key 许可标志控制。([#4034](https://github.com/diegosouzapw/OmniRoute/pull/4034) — 感谢 @Witroch4)
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(opencode): 无论用户如何命名服务商，都将 OpenCode 会话 ID 转发到上游** — `OpencodeExecutor` 转发了 `x-opencode-会话/请求/project/client` 头，但 OpenCode CLI 仅在配置的 `providerID` **以** `"opencode"` 开头时才发送这些头。如果用户将 OmniRoute 添加为自定义服务商（如 `"omniroute"`），CLI 会发送 `x-会话-affinity` / `X-Session-Id`（两者携带相同的会话 ID），而执行器从未读取这些头——因此在实际的服务商命名场景下，会话元数据转发实际上是一段死代码。opencode 系列执行器现在回退到 `x-会话-affinity` / `X-Session-Id` 并映射到 `x-opencode-会话`（当客户端未直接发送该头时），使得对 `opencode.ai` 上游的会话连续性对任何服务商名称都有效（直接发送的 `x-opencode-会话` 仍然优先）。仅限于此执行器——通用 `DefaultExecutor` 故意**不**这样做，以避免将客户端会话 ID 泄漏到任意第三方上游。([#4022](https://github.com/diegosouzapw/OmniRoute/issues/4022) — 感谢 @pizzav-xyz)
 - **fix(guardrails): Vision Bridge 在 describe 调用失败时不再丢弃图像（Nvidia NIM "Image unavailable"）** — Vision Bridge 默认启用，并对 OmniRoute 无法从注册表证明其视觉能力的任何模型生效（`supportsVision !== true`，包括解析为 `null` 的未编目模型）。当每图像 describe 调用失败时（如未配置视觉模型），它用文字 `[Image N]: (unavailable)` 替换图像并丢弃原始 `image_url`——因此真正具有视觉能力的上游（Nvidia NIM）只收到文本并回答 "Image unavailable. Cannot provide description without visual data."。describe 失败不再具有破坏性：`replaceImageParts` 现在对失败图像接收 `null` 并**保留原始图像部分**，使上游仍能看到它（成功的 describe 仍用文本描述替换图像；`meta.descriptions` 可观测性不变）。([#4012](https://github.com/diegosouzapw/OmniRoute/issues/4012) — 感谢 @daniij)
@@ -5202,7 +5201,7 @@ _See English CHANGELOG for v3.8.32 details._
 - **fix(dashboard): 优化服务商配额卡片显示** — 服务商配额卡片布局经过优化，呈现更清晰的配额/用量��示。([#3969](https://github.com/diegosouzapw/OmniRoute/pull/3969) — 感谢 @rdself)
 - **fix(dashboard): 优化压缩设置、存储标签和侧边栏分组** — 打磨压缩设置 UI、澄清存储标签、整理侧边栏分组。([#4033](https://github.com/diegosouzapw/OmniRoute/pull/4033) — 感谢 @rdself)
 
-### 🔒 安全与加固
+### 安全与加固
 
 - **fix(security): 消除 combo `<omniModel>` 标签正则中的多项式 ReDoS** — `comboAgentMiddleware` 的缓存标签模式将标签包裹在无界换行运行中 (`(?:\n|\r)*`)，使 `.test()` / `.replace()` 在大量换行的输入上以 O(n²) 运行（CodeQL `js/polynomial-redos`）。检测模式现在仅匹配核心 `<omniModel>…</omniModel>`，全局剥离模式限制周围的换行运行，保持线性；检测/提取/多标签剥离行为不变。([#3982](https://github.com/diegosouzapw/OmniRoute/pull/3982) — 感谢 @diegosouzapw)
 - **ci(security): 加固工作流 — artipacked `persist-凭证`、缓存投毒、SC2086** — GitHub Actions 工作流针对 artipacked `persist-凭证` 泄漏和缓存投毒进行了加固，并修复了 shell 引用 (`SC2086`) 问题。([#3965](https://github.com/diegosouzapw/OmniRoute/pull/3965) — 感谢 @diegosouzapw)
@@ -5210,7 +5209,7 @@ _See English CHANGELOG for v3.8.32 details._
 - **chore(deps): dependabot 安全升级 + 移除未使用的 gray-matter** — 应用一批 Dependabot 安全升级，并从依赖树中移除未使用的 `gray-matter`。([#4036](https://github.com/diegosouzapw/OmniRoute/pull/4036) — 感谢 @diegosouzapw)
 - **chore(deps): 自动依赖升级** — Dependabot 升级了生产依赖组（13 个更新）、`vite`、`form-data` 和 `npm_and_yarn` 组。([#3915](https://github.com/diegosouzapw/OmniRoute/pull/3915), [#3942](https://github.com/diegosouzapw/OmniRoute/pull/3942), [#3943](https://github.com/diegosouzapw/OmniRoute/pull/3943), [#3944](https://github.com/diegosouzapw/OmniRoute/pull/3944) — 感谢 @dependabot)
 
-### 🧹 内部 / 质量 / 文档
+### 内部 / 质量 / 文档
 
 - **feat(ci): Quality Gate v2 — Onda 0 + Onda 1** — Quality Gate v2 计划的前两波：门控翻转、测试影响分析 (TIA)、SAST、DAST-smoke 和变异测试基础设施。([#4016](https://github.com/diegosouzapw/OmniRoute/pull/4016) — 感谢 @diegosouzapw)
 - **refactor: 将服务商注册表模块化为独立的服务商插件** — `providerRegistry.ts` 拆分为独立的按服务商插件模块（非堆叠）。后续修复恢复了迁移中丢失的 `byteplus` + `mimocode` 模块。([#3993](https://github.com/diegosouzapw/OmniRoute/pull/3993) — 感谢 @oyi77 / @diegosouzapw)
@@ -5229,14 +5228,14 @@ _See English CHANGELOG for v3.8.32 details._
 
 ## [3.8.26] — 2026-06-15
 
-### ✨ 新功能
+### 新功能
 
 - **feat(media): Vertex AI (Google) 语音合成、转录、音乐和视频生成** — Vertex AI 的 Google 媒体模型现在可通过动态发现进行路由：语音合成、音频转录、音乐生成和视频生成。([#3929](https://github.com/diegosouzapw/OmniRoute/pull/3929) — 感谢 @artickc)
 - **feat(glm): 添加 GLM-5.2 的 effort-tier 路由 (high/max)** — GLM-5.2 已注册 high/max effort-tier 路由。([#3885](https://github.com/diegosouzapw/OmniRoute/pull/3885) — 感谢 @dhaern)
 - **feat(combo): 添加粘性轮询目标限制** — 轮询 combo 可限制会话内保持 "粘性" 的目标数量 (`stickyRoundRobinLimit`)，在粘性和分散之间取得平衡。([#3846](https://github.com/diegosouzapw/OmniRoute/pull/3846) — 感谢 @adivekar-utexas)
 - **feat(openrouter): 连接预设** — OpenRouter 连接支持可重用预设（服务商路由/排序/量化偏好），添加连接时可选择。([#3878](https://github.com/diegosouzapw/OmniRoute/pull/3878) — 感谢 @rdself)
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(compression/memory): 停止记忆 + 压缩污染上游提示缓存** — 启用压缩和/或记忆时，对缓存服务商（Anthropic 系列）的请求在每个轮次上都错过提示缓存，导致成本倍增。两个根本原因：(1) 记忆注入将检索到的记忆（**因用户查询而异**）前置到消息数组的索引 0，使整个可缓存前缀在每个轮次上发生偏移；记忆现在在请求携带 `cache_control` 断点时，插入到最后一条用户消息之前，保持可缓存前缀（系统提示 + 先前轮次）字节稳定。(2) 由 `getCacheAwareStrategy()` 计算的缓存感知 `skipSystemPrompt` 标志被 `selectCompressionStrategy()` 丢弃（该函数只能返回模式），因此系统提示在缓存下仍可能被压缩；新的 `resolveCacheAwareConfig()` 现在强制为缓存请求开启 `preserveSystemPrompt`。([#3936](https://github.com/diegosouzapw/OmniRoute/pull/3936)，关闭 [#3890](https://github.com/diegosouzapw/OmniRoute/issues/3890) — 感谢 @xenstar / @diegosouzapw)
 - **fix(providers): 注册 BytePlus ModelArk 使 API key 可添加** — 添加 BytePlus (`ark-…`) key 时报 "invalid"。`byteplus` 存在于服务商目录 (`APIKEY_PROVIDERS`) 中但**从未在路由注册表中注册**，因此 key 验证回退到 `{ unsupported: true }` → HTTP 400 → UI 将所有 key 渲染为无效（且该服务商无法用于推理）。新增注册表条目，仿照现有 Volcengine Ark 服务商：OpenAI 兼容格式、基础 URL `https://ark.ap-southeast.bytepluses.com/api/v3`（区域 `ap-southeast-1`）、`Authorization: Bearer` 认证，使用目录中公告的模型（Seed 2.0、Kimi K2 Thinking、GLM 4.7、GPT-OSS-120B）作为种子。([#3935](https://github.com/diegosouzapw/OmniRoute/pull/3935)，关闭 [#3877](https://github.com/diegosouzapw/OmniRoute/issues/3877) — 感谢 @nikohd12 / @diegosouzapw)
@@ -5258,11 +5257,11 @@ _See English CHANGELOG for v3.8.32 details._
 - **fix(models): 修正 generate-models 别名查找** — 模型生成期间的别名解析已修正，使别名模型 ID 能解析到其规范条目。([#3870](https://github.com/diegosouzapw/OmniRoute/pull/3870) — 感谢 @YunyunZhai)
 - **fix(combo): 保护候选池防止空数组** — Combo 候选池选择在池解析为空数组时不再抛出异常。([#3871](https://github.com/diegosouzapw/OmniRoute/pull/3871) — 感谢 @YunyunZhai)
 
-### 🔒 安全与加固
+### 安全与加固
 
 - **fix(security): 升级 form-data + vite（2 个 HIGH），加固工作流模板注入并白名单守卫 `workflow_run`** — 两个 HIGH Dependabot 建议（`表单-data`、`vite`）已升级；GitHub Actions 工作流针对 `${{ }}` 模板注入进行了加固（不受信任的值现在通过 `env:` 传递）；受保护的 `workflow_run` 触发器已加入白名单。([#3949](https://github.com/diegosouzapw/OmniRoute/pull/3949) — 感谢 @diegosouzapw)
 
-### 🧹 内部 / 质量 / 文档
+### 内部 / 质量 / 文档
 
 - **fix(ci): 为 npm 发布任务授予 `contents: write` 权限以附加 SBOM** — v3.8.25 TokenPermissions 加固将 npm-publish `publish` 任务设为 `contents: read`，但其 "Attach SBOM to GitHub Release" 步骤 (`gh release upload`) 需要 `contents: write`，在 v3.8.25 发布中因 HTTP 403 失败（npm / GitHub Packages / opencode-插件 / Docker / Electron 均正常发布；仅 SBOM 附加失败 — v3.8.25 SBOM 已手动附加）。([#3874](https://github.com/diegosouzapw/OmniRoute/pull/3874) — 感谢 @diegosouzapw)
 - **ci(quality): 使 zizmor / gitleaks / OSV 扫描器功能可用 + 冻结建议基线** — 供应链扫描器现在实际执行（正确的安装 + 调用），并冻结建议基线，使新发现作为差异呈现。([#3947](https://github.com/diegosouzapw/OmniRoute/pull/3947) — 感谢 @diegosouzapw)
@@ -5288,7 +5287,7 @@ _See English CHANGELOG for v3.8.32 details._
 
 ## [3.8.25] — 2026-06-14
 
-### ✨ 新功能
+### 新功能
 
 - **feat(compression): 可插拔压缩引擎 + 异步管线 + Compression Studios** — 一个全新的提示-压缩子系统，支持可选择的引擎（Lite / Aggressive / Ultra）、接入聊天核心的异步压缩管线，以及用于检查和调优压缩的 "Compression Studios" 工具。 ([#3848](https://github.com/diegosouzapw/OmniRoute/pull/3848))
 - **feat(compression-ui): 统一压缩配置界面** — 新增 Compression Hub，包含每个引擎的子页面（Lite / Aggressive / Ultra）、组合编辑器、专用侧边栏入口以及默认开启的实时 WebSocket。 ([#3860](https://github.com/diegosouzapw/OmniRoute/pull/3860))
@@ -5298,7 +5297,7 @@ _See English CHANGELOG for v3.8.32 details._
 - **feat(mimocode): 多账户轮询的每账户代理** — 每个 mimocode 账户可通过其专属代理进行路由（按账户指纹通过 `runWithProxyContext` 解析），并配备 "分发代理" 界面辅助工具。 ([#3837](https://github.com/diegosouzapw/OmniRoute/pull/3837) — 感谢 @pizzav-xyz)
 - **feat(intelligence): 将 Arena ELO 同步作为功能开关暴露** — LM Arena ELO 排行榜同步现已可切换（`ARENA_ELO_SYNC_ENABLED`，DB 覆盖 + 环境变量容灾）。 ([#3821](https://github.com/diegosouzapw/OmniRoute/pull/3821) — 感谢 @rdself)
 
-### 🐛 问题修复
+### 问题修复
 
 - **test(oauth): 验证真实 gemini-cli / antigravity 分发路径的 refresh_token 保留** — #3679/#3766 回归测试使用了一个合成服务商，该服务商通过通用的 `tokenUrl` 路径进行路由，因此该修复从未针对实际 Google 系列服务商进行过验证——后者通过 `refreshGoogleToken()` 针对硬编码的 `OAUTH_ENDPOINTS.google.token` 进行分发。新增一个测试，通过真实的 `gemini-cli`/`antigravity` 路径驱动 `checkConnection`（将 Google 令牌端点重定向到返回 `invalid_grant` 的本地服务器），并断言 `refresh_token` 被保留（而非置空）——从而确认这些连接不会在刷新失败时被错误地销毁。 ([#3850](https://github.com/diegosouzapw/OmniRoute/issues/3850) — 感谢 @3xa228148)
 - **fix(oauth): 为 GitLab Duo 提供清晰的设置提示，而非 "Internal server error"** — 在没有注册 OAuth 客户端的情况下添加 GitLab Duo 连接，在添加连接步骤中会返回一个含糊的 `Internal server 错误`。当 `GITLAB_DUO_OAUTH_CLIENT_ID` 缺失时，`buildAuthUrl` **抛出异常**，路由将其吞并为通用 500 错误。现返回 `null`（与 Qoder 服务商行为一致），授权路由会显示可操作的提示：在 `https://gitlab.com/-/profile/applications` 注册 OAuth 应用，重定向 URI 为 `http://localhost:20128/callback`，权限范围为 `ai_features read_user`，然后设置 `GITLAB_DUO_OAUTH_CLIENT_ID`。 ([#3861](https://github.com/diegosouzapw/OmniRoute/issues/3861) — 感谢 @sidinsearch)
@@ -5329,12 +5328,12 @@ _See English CHANGELOG for v3.8.32 details._
 - **fix(ui): 使用垂直调整手柄扩展请求日志表** — 请求日志表现在显示约 10 行，并可垂直调整大小。 ([#3820](https://github.com/diegosouzapw/OmniRoute/pull/3820) — 感谢 @rafacpti23)
 - **fix(i18n): 翻译 37 个语言环境中缺失的 `embeddedServices` 键** — `embeddedServices` 字符串在 37 个语言环境中显示为 `__MISSING__`；现已翻译。 ([#3819](https://github.com/diegosouzapw/OmniRoute/pull/3819) — 感谢 @rafacpti23)
 
-### 🔒 安全与加固
+### 安全与加固
 
 - **fix(security): CCR 跨租户 IDOR — 按主体划分的作用域存储 + 有界内存** — 压缩 CCR 作用域存储此前在所有主体之间共享，允许跨租户读取；现已按主体划分作用域并设置内存边界。 ([#3859](https://github.com/diegosouzapw/OmniRoute/pull/3859))
 - **feat(supply-chain): 构建来源、SBOM、Trivy 扫描 & OpenSSF Scorecard（建议性）** — 添加了 npm 构建来源、CycloneDX SBOM、Trivy 镜像扫描和 OpenSSF Scorecard 工作流（Quality Gates Fase 8 · Bloco A，建议性）。 ([#3824](https://github.com/diegosouzapw/OmniRoute/pull/3824))
 
-### 🧹 内部 / 质量 / 文档
+### 内部 / 质量 / 文档
 
 - **将邮箱隐私控制合并到设置 → 外观** — 每个页面的邮箱隐私开关被替换为单一的全局开关。 ([#3822](https://github.com/diegosouzapw/OmniRoute/pull/3822) — 感谢 @rdself)
 - **docs(ui): 澄清路由设置文案（策略同步 + 粘性限制）** — ([#3843](https://github.com/diegosouzapw/OmniRoute/pull/3843) — 感谢 @adivekar-utexas)
@@ -5642,13 +5641,13 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.8.7] — 2026-05-29
 
-### ✨ 新功能
+### 新功能
 
 - **api (自助服务):** 新增 `GET /api/v1/me/status`，使委托 API key 可查看自身用量（已用 USD、预算百分比、token 总数）及可选的共享 Codex 账户配额，由迁移 `075_api_key_self_service_usage_scopes` 支持 (#2908 — 感谢 @guanbear)。
 - **analytics:** 在原始日志清理前将用量日志汇总到 `daily_usage_summary`，并通过 SQL `UNION` 查询原始和汇总数据，防止分析历史数据丢失 (#2904 — 感谢 @unitythemaker)。
 - **perf (内存):** 通过限制 11 个内存缓存、限制 SQLite 页面缓存、通过 Proxy 延迟加载服务商注册表以及优化 Next.js 启动时的数据库探测来降低服务器内存占用 (#2903 — 感谢 @soyelmismo)。
 
-### 🔧 问题修复
+### 问题修复
 
 - **token-accounting:** 对于 Anthropic Claude 流式传输，优先使用 `prompt_tokens` 而非兼容的 `input_tokens`，避免重复计算缓存 token (#2904 — 感谢 @unitythemaker)。
 
@@ -5662,13 +5661,13 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **log-export:** `GET /api/logs/export?type=proxy-logs` 返回原始 SQLite 行，其 IP 字段仍名为 `public_ip`（历史列名）。这与 `GET /api/usage/proxy-logs` 暴露的 `clientIp` 字段不同。这两个端点目前故意不一致，将在未来的迁移中对齐 (#2880)。
 
-### ✨ 新功能
+### 新功能
 
 - **usage:** 新增按 API key 的 token 限制，可按模型/服务商/全局设定，支持两级内联执行和内存缓存加速 (#2888 — 感谢 @mugnimaestra)。
 - **providers:** 审查 web cookie 服务商，修复 4 个缺失的注册表条目，并新增 DuckDuckGo AI Chat 服务商 (#2862 — 感谢 @oyi77)。
 - **compression:** 扩展 pt-BR 语言包，新增 34 条受 troglodita 项目启发的规则 (#2818 — 感谢 @leninejunior)。
 
-### 🔧 问题修复
+### 问题修复
 
 - **oauth:** 紧急修复 Windsurf 登录——移除已失效的 PKCE 流程、提升 import-token 方式，并解决 SQLite 绑定类型错误 (#2884 — 感谢 @yunaamelia)。
 - **models:** 清理非活跃连接中过期的同步可用模型，并安全地动态映射 Antigravity MITM 别名，避免循环引用 (#2886 — 感谢 @herjarsa)。
@@ -5687,7 +5686,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.8.6] — 2026-05-27
 
-### 🧹 维护
+### 维护
 
 - **gitignore:** 忽略 `.claude/settings.local.json`，防止每个用户的 Claude Code 权限被意外提交
 - **release:** 版本号提升和元数据同步 (package.json, package-lock.json, electron, open-sse, openapi.yaml)
@@ -5698,11 +5697,11 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.8.5] — 2026-05-26
 
-### 🔒 安全
+### 安全
 
 - **authz:** 未认证时将 `/home` 和 `/home/:path*` 重定向到 `/login` (#2712)
 
-### 🔧 问题修复
+### 问题修复
 
 - **mcp:** 打破 callLogs ↔ compliance 的 ESM 循环依赖，该循环导致打包后的 MCP 服务器在 Node.js 24 上死锁 (#2650)
 - **deepseek:** 在 Node 严格模式下保护 PoW 求解器 Web Worker 处理器 (#2724)
@@ -5723,9 +5722,9 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ---
 
-### ✨ 新功能
+### 新功能
 
-### 🔧 问题修复
+### 问题修复
 
 ---
 
@@ -5739,7 +5738,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.8.3] — 2026-05-24
 
-### ✨ 新功能
+### 新功能
 
 - **feat(combos):** 通用上下文交接，实现跨模型对话连续性 — 结构化 XML 摘要系统 (`<context_handoff>`)，在 Combo 路由切换模型时保持对话连续性并处理状态转移。([#2653](https://github.com/diegosouzapw/OmniRoute/pull/2653) — 感谢 @herjarsa)
 - **feat(docs):** 将 `/docs` 迁移到 Fumadocs MDX，支持嵌套路由 — 用 Fumadocs 替换自定义文档引擎，新增 `[...slug]` 通配路由、`/docs/api/搜索` 搜索 API、`source.配置.ts` 内容配置，以及 8 个文档分区的 `meta.json` 导航文件（`architecture/`、`压缩/`、`frameworks/`、`guides/`、`ops/`、`reference/`、`路由/`、`security/`）。包含 50+ 个 URL 重定向以确保向后兼容。([#2614](https://github.com/diegosouzapw/OmniRoute/pull/2614) — 感谢 @ovehbe)
@@ -5752,7 +5751,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **feat(adapta):** 集成 Adapta Org (`adapta-web`) 服务商，支持自动 Clerk 认证刷新和自定义引导教程弹窗。([#2643](https://github.com/diegosouzapw/OmniRoute/pull/2643) — 感谢 @df4p)
 - **feat(i18n):** 完成简体中文翻译 — 翻译 1220 个缺失 key，UI 覆盖率达 98.8%，零占位符。([#2655](https://github.com/diegosouzapw/OmniRoute/pull/2655) — 感谢 @L-aros)
 
-### 🔧 问题修复
+### 问题修复
 
 - **fix(settings):** Require Login modal Cancel button text and dismissal — modal now renders localized cancel label via the `common` namespace and closes correctly without modifying settings when cancelled. ([#2649](https://github.com/diegosouzapw/OmniRoute/pull/2649) — 感谢 @Chewji9875)
 - **fix(deepseek-web):** re-apply SSE parser, prompt format, and error handling fixes — handles all 3 DeepSeek SSE 流 formats (initial fragments, APPEND operations, bare string tokens), uses non-greedy regex for markdown image stripping, simplifies 提示 to single-turn, checks `json.code` before token extraction, and uses `accessToken` 容灾 for 会话 缓存 eviction on 认证 errors. ([#2616](https://github.com/diegosouzapw/OmniRoute/pull/2616) — 感谢 @ovehbe)
@@ -5772,7 +5771,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **fix(translator):** enable Claude extended thinking for Copilot Responses-API requests — handles reasoning 预算 and translations for Copilot. ([#2647](https://github.com/diegosouzapw/OmniRoute/pull/2647) — 感谢 @ivan-mezentsev)
 - **fix(tests):** remove duplicate assertion in schema coercion & fix(cli): ignore system vars in env check. (thanks @diegosouzapw)
 
-### 📝 维护
+### 维护
 
 - **chore(config):** ignore additional agent workflow command files (`.agents/commands/`). (thanks @diegosouzapw)
 - **chore(config):** ignore `memory-bank` and Cursor agent rules from tracking. (thanks @ovehbe)
@@ -5781,10 +5780,10 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.8.2] — 2026-05-22
 
-### ✨ 新功能
+### 新功能
 
 - **feat(@omniroute/opencode-plugin):** 模型显示名称中添加上游服务商后缀 — 在丰富名称后追加服务商标签（如 `Claude Opus 4.7 · Claude` vs `Claude Opus 4.7 · Kiro`），使 OC TUI 模型选择器能区分通过不同上游连接路由的同 ID 模型。默认开启，可通过 `features.providerTag: false` 关闭。([#2602](https://github.com/diegosouzapw/OmniRoute/pull/2602) — 感谢 @mrmm)
-- **feat(@omniroute/opencode-plugin):** 服务商标签改为前缀 + 交通灯压缩表情 — 服务商标签现在前置显示（`Claude - Claude Opus 4.7`）以改善 TUI 列分组，长标签智能缩写（`GitHub Models` → `GHM`）。压缩管线以表情渲染强度（🟢🟡🟠🔴）。([#2604](https://github.com/diegosouzapw/OmniRoute/pull/2604) — 感谢 @mrmm)
+- **feat(@omniroute/opencode-plugin):** 服务商标签改为前缀 + 交通灯压缩表情 — 服务商标签现在前置显示（`Claude - Claude Opus 4.7`）以改善 TUI 列分组，长标签智能缩写（`GitHub Models` → `GHM`）。压缩管线以表情渲染强度（）。([#2604](https://github.com/diegosouzapw/OmniRoute/pull/2604) — 感谢 @mrmm)
 - **feat(providers):** 新增 7 个免费层服务商（第一波）— Arcee AI、InclusionAI、Krutrim、Liquid AI、MonsterAPI、Nomic 和 Poolside 现已作为新的 API-key 服务商提供，包含服务商图标、模型规格和完整路由支持。([#2479](https://github.com/diegosouzapw/OmniRoute/pull/2479) — 感谢 @oyi77)
 - **feat(providers):** 新增 Astraflow 服务商支持，含全球 + 中国端点 — 新服务商提供双区域基础 URL，支持全球和中国大陆访问。([#2486](https://github.com/diegosouzapw/OmniRoute/pull/2486) — 感谢 @ucloudnb666)
 - **feat(providers):** 新增 `claude-web` 服务商 — 基于 Cookie 的 Claude Web 聊天访问，无需 OAuth。([#2476](https://github.com/diegosouzapw/OmniRoute/pull/2476) — 感谢 @oyi77)
@@ -5805,7 +5804,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **feat(providers):** 新增 api-airforce 免费服务商，含 55 个模型。([#2587](https://github.com/diegosouzapw/OmniRoute/pull/2587) — 感谢 @oyi77)
 - **feat(dashboard):** 可配置侧边栏 — 预设、拖拽排序、智能分组，以及新的设置 → 侧边栏页面。([#2581](https://github.com/diegosouzapw/OmniRoute/pull/2581) — 感谢 @Gi99lin)
 
-### 🔧 问题修复
+### 问题修复
 
 - **fix(validation):** 当 Gemini 基础 URL 已以 `/models` 结尾时不再追加第二个 `/models` — 使用默认基础 URL 的 Google AI Studio 连接此前验证请求会访问 `.../v1beta/models/models` 并返回 `404`。([#2545](https://github.com/diegosouzapw/OmniRoute/issues/2545))
 - **fix(cloudflare-ai):** 将 Workers AI (`cf/`) executor 的 OpenAI content-part 数组展平为纯字符串 — Workers AI 的 `/ai/v1/chat/completions` 会以 HTTP 400 拒绝 `content: [{type:"text",...}]`，现在文本部分会合并为字符串。([#2539](https://github.com/diegosouzapw/OmniRoute/issues/2539))
@@ -5880,7 +5879,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **fix(@omniroute/opencode-plugin):** 规范双胞胎去重 + 别名回退丰富 — `/v1/models` 以别名 (`cc/claude-opus-4-7`) 和规范名 (`claude/claude-opus-4-7`) 返回同一模型；现在丢弃约 75 个规范重复项，并通过别名索引回退拯救约 88 个原始 ID 行并附加正确服务商前缀。同时在静态目录中输出 `cost`、`release_date`、`modalities` 字段，并将服务商标签阈值提升到 12 字符（保留 `AssemblyAI`、`Antigravity` 全名）。([#2607](https://github.com/diegosouzapw/OmniRoute/pull/2607) — 感谢 @mrmm)
 - **fix(registry):** 为 HuggingFace（6 个模型）和 HackClub（3 个模型）填充空模型数组 + 将 Snowflake 占位 baseUrl 修复为 `{account}` 模板模式。([#2611](https://github.com/diegosouzapw/OmniRoute/pull/2611) — 感谢 @oyi77)
 
-### 🌐 Internationalization
+### Internationalization
 
 - **i18n(zh-CN):** 翻译 830 个缺失的 UI 字符串 — 将所有 `__MISSING__:` 占位符替换为正确的中文翻译。([#2523](https://github.com/diegosouzapw/OmniRoute/pull/2523) — 感谢 @InkshadeWoods)
 - **i18n(dashboard):** 添加缺失的仪表盘 key 并修复英文回退 — 缓存、caveman、costs、skills、memory 和 evals 页面中数百个硬编码英文字符串替换为 `t()` 调用。([#2500](https://github.com/diegosouzapw/OmniRoute/pull/2500) — 感谢 @Gi99lin)
@@ -5890,7 +5889,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **i18n(all):** 翻译 41 个语言包中的 freeTier 服务商字符串 — 将 `__MISSING__:Free Tier Providers` 占位符替换为 `common` 和 `服务商` 命名空间中的正确翻译。([#2609](https://github.com/diegosouzapw/OmniRoute/pull/2609) — 感谢 @leninejunior)
 - **i18n(pt-BR):** 消除全部 1270 个剩余 `__MISSING__` 标记 — 完成 41 个命名空间的 pt-BR 翻译，达��真正 100% 覆盖率。([#2610](https://github.com/diegosouzapw/OmniRoute/pull/2610) — 感谢 @leninejunior)
 
-### 📝 维护
+### 维护
 
 - **chore:** remove Akamai VPS deploy from release workflow and skills.
 - **chore(deps):** bump `actions/setup-node` from v4 to v6 + `randomBytes` security fix for cloud agent task IDs. ([#2589](https://github.com/diegosouzapw/OmniRoute/pull/2589))
@@ -5903,7 +5902,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.8.1] — 2026-05-21
 
-### ✨ 新功能
+### 新功能
 
 - **feat(settings):** 功能开关设置页面（卡片网格 + 数据库覆盖）— 完整实现了功能开关 UI 控制台，采用方案 A（卡片网格）搭配玻璃态设计，配备全局 `GET/PUT/DELETE` API 路由、Zod 校验、防抖搜索、分类筛选以及完整的 30+ 语言环境国际化支持。优先级解析为 数据库 > 环境变量 > 默认值。([#2457](https://github.com/diegosouzapw/OmniRoute/pull/2457))
 - **feat(db):** 多驱动 SQLite 抽象层 — 新增 `SqliteAdapter` 接口及 3 个具体适配器（`betterSqliteAdapter`、`nodeSqliteAdapter`、`sqljsAdapter`），以及级联 `better-sqlite3` → `node:sqlite` → `sql.js (WASM)` 的 `driverFactory`。使 OmniRoute 能够在任何 JavaScript 运行时（Node.js、Bun、Deno、Cloudflare Workers）上运行，无需原生二进制依赖。`better-sqlite3` 已移至 `optionalDependencies`。([#2447](https://github.com/diegosouzapw/OmniRoute/pull/2447))
@@ -5913,7 +5912,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **feat:** 增强 `extractBearer` 以支持 `x-api-key`，用于 Anthropic API 风格的认证。([#2436](https://github.com/diegosouzapw/OmniRoute/pull/2436) — 感谢 @thedtvn)
 - **feat(memory):** 将 `createMemory` 对接至 `upsertSemanticMemoryPoint`（Qdrant）。([#2439](https://github.com/diegosouzapw/OmniRoute/pull/2439) — 感谢 @NomenAK)
 
-### 🔧 问题修复 & 重构
+### 问题修复 & 重构
 
 - **fix(deepseek-web):** 将认证重写为 userToken Bearer + WASM PoW 求解器。([#2452](https://github.com/diegosouzapw/OmniRoute/pull/2452) — 感谢 @ovehbe)
 - **chore:** 更新 Node 依赖和运行时支持。([#2453](https://github.com/diegosouzapw/OmniRoute/pull/2453) — 感谢 @backryun)
@@ -5928,7 +5927,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **docs(agentrouter):** 推荐使用原生服务商作为简单路径 — 指南现在优先使用内置的 AgentRouter 服务商，而非手动 OpenAI 兼容配置。([#2429](https://github.com/diegosouzapw/OmniRoute/pull/2429) — 感谢 @leninejunior)
 - **feat(settings):** 在 设置 › AI 中展示 Codex 快速等级开关 — Codex 快速等级功能的配套 UI 开关。([#2440](https://github.com/diegosouzapw/OmniRoute/pull/2440) — 感谢 @NomenAK)
 
-### 🔒 安全修复
+### 安全修复
 
 - **fix(security):** 在 `plugin.mjs` 中将 `execSync` 字符串模板替换为 `spawnSync` 参数数组 — 消除通过恶意插件名称进行的 shell 命令注入。
 - **fix(security):** 将 Electron CSP `unsafe-eval` 的门控条件从 URL 子串匹配改为 `!app.isPackaged` — 此前会将 `unsafe-eval` 泄露到生产构建中；合并了重复的 `connect-src` 指令。
@@ -5943,7 +5942,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.8.0] — 2026-05-06
 
-### 🚀 发布后热修复与贡献 (2026-05-06 → 2026-05-20)
+### 发布后热修复与贡献 (2026-05-06 → 2026-05-20)
 
 #### 2026-05-20
 
@@ -6036,7 +6035,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **feat(batch):** global rate-limit header cache with 60s TTL + 24h retry window. ([#2299](https://github.com/diegosouzapw/OmniRoute/pull/2299) — 感谢 @hartmark)
 - **feat(cc-bridge):** config-driven per-provider system-block transform DSL. ([#2286](https://github.com/diegosouzapw/OmniRoute/pull/2286), closes #2260 — 感谢 @mrmm)
 - **feat(deepseek-web):** full DeepSeek web API executor with Keccak PoW solver. ([#2295](https://github.com/diegosouzapw/OmniRoute/pull/2295) — 感谢 @oyi77)
-- **feat(i18n):** add Azerbaijani (az / 🇦🇿) language support — new locale in `配置/i18n.json`, 42 total supported languages.
+- **feat(i18n):** add Azerbaijani (az / ) language support — new locale in `配置/i18n.json`, 42 total supported languages.
 - **build(deps):** bump `actions/checkout` from 4 to 6 in CI workflows. ([#2288](https://github.com/diegosouzapw/OmniRoute/pull/2288))
 
 #### 2026-05-17
@@ -6136,12 +6135,12 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 #### 2026-05-06 a 2026-05-07 (lançamento inicial v3.8.0)
 
 - **feat(zed):** Zed IDE Docker support — when OmniRoute runs in Docker and Zed is on the host, the Import flow now returns a 422 with `zedDockerEnvironment: true` and the 控制台 auto-expands a Manual Token Import 面板 (new `POST /api/服务商/zed/manual-import` 端点 with Zod validation). Includes Docker detection utility (`/.dockerenv` + cgroup heuristics) and a setup guide at [`docs/服务商/ZED-DOCKER.md`](docs/服务商/ZED-DOCKER.md). ([#2306])
-- **feat(workflow):** `/implement-features` gains pre-flight triage script (`scripts/features/feature-triage.mjs`) classifying open feature requests into 8 buckets — fresh issues (<14d) stay dormant to give the community time to react, engagement override (≥5 👍 or ≥3 unique non-bot commenters) absorbs early, already-delivered detection via merged PRs + CHANGELOG + git log closes issues with version + PR reference, stale `need_details/` (>30d) is closed politely, aged `defer/` (>90d) is re-evaluated, and externally-closed issues clean up `_ideia/` automatically. Idea files now carry a YAML frontmatter snapshot enabling incremental comment re-sync. 53 unit tests cover the new logic.
+- **feat(workflow):** `/implement-features` gains pre-flight triage script (`scripts/features/feature-triage.mjs`) classifying open feature requests into 8 buckets — fresh issues (<14d) stay dormant to give the community time to react, engagement override (≥5 or ≥3 unique non-bot commenters) absorbs early, already-delivered detection via merged PRs + CHANGELOG + git log closes issues with version + PR reference, stale `need_details/` (>30d) is closed politely, aged `defer/` (>90d) is re-evaluated, and externally-closed issues clean up `_ideia/` automatically. Idea files now carry a YAML frontmatter snapshot enabling incremental comment re-sync. 53 unit tests cover the new logic.
 - **feat(providers):** add GitHub Models as a free provider — GPT-5, o-series, DeepSeek-R1, Llama 4, Grok 3 with GitHub PAT auth and dynamic model fetch from `api.github.com`. ([#2344](https://github.com/diegosouzapw/OmniRoute/pull/2344) — 感谢 @oyi77)
 - **feat(providers):** add Hackclub AI as a free provider — 30+ models, no credit card required, optional API key auth with passthrough model support. ([#2339](https://github.com/diegosouzapw/OmniRoute/pull/2339) — 感谢 @oyi77)
 - **feat(providers):** add Microsoft Copilot Web executor — WebSocket-based provider translating OpenAI chat completions to Copilot's proprietary event protocol with per-token session pool isolation. ([#2340](https://github.com/diegosouzapw/OmniRoute/pull/2340) — 感谢 @oyi77)
 - **feat(routing):** LKGP stores last known good account `connectionId` alongside provider — Combo 路由 now prioritizes the exact 连接 that last succeeded, with graceful 服务商-level 容灾 for old records. ([#2338](https://github.com/diegosouzapw/OmniRoute/pull/2338) — 感谢 @oyi77)
-- **feat(i18n):** add Azerbaijani (az / 🇦🇿) language support — new locale in `配置/i18n.json` (source of truth), `src/i18n/messages/az.json` (UI strings), `docs/i18n/az/` (full documentation set), README language bar, docs i18n index, and both translation 管线 scripts (`generate-multilang.mjs`, `i18n_autotranslate.py`). Total supported languages: **42**.
+- **feat(i18n):** add Azerbaijani (az / ) language support — new locale in `配置/i18n.json` (source of truth), `src/i18n/messages/az.json` (UI strings), `docs/i18n/az/` (full documentation set), README language bar, docs i18n index, and both translation 管线 scripts (`generate-multilang.mjs`, `i18n_autotranslate.py`). Total supported languages: **42**.
 - **feat(limits):** per-window quota cutoffs across all providers with usage data — operators can set per-配额-window thresholds (e.g. `会话=95%, weekly=80%`) with cascading resolver (连接 → 服务商 默认 → global 98%) and zero-latency gate when nothing is configured. New 迁移 056, new `GET /api/服务商/配额-windows` 端点, and Dashboard › Limits cutoff modal. ([#2267](https://github.com/diegosouzapw/OmniRoute/pull/2267) — 感谢 @payne0420)
 - **feat(api-keys):** configurable default rate limits via `DEFAULT_RATE_LIMIT_PER_DAY` env var — replaces hardcoded 1000/day 容灾 with Zod-validated 配置 while preserving secure defaults for existing deployments. ([#2266](https://github.com/diegosouzapw/OmniRoute/pull/2266) — 感谢 @gleber)
 - **feat(authz):** `managementPolicy` accepts API keys with `manage` scope — enables headless/programmatic management (provisioning 服务商, setting rate limits) without a browser 会话. ([#2265](https://github.com/diegosouzapw/OmniRoute/pull/2265) — 感谢 @gleber)
@@ -6174,7 +6173,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **chore(npm):** [`@omniroute/opencode-provider@0.1.0`](https://www.npmjs.com/package/@omniroute/opencode-provider) published to npmjs.com under the new `@omniroute` org. Install with `npm install --save-dev @omniroute/opencode-provider`.
 - **BREAKING**: dropped Node 20.x support. Minimum Node version is now 22.22.2 (or 24.0.0+). Required because http-proxy-middleware 4.x requires `node >=22.15.0`. Users on Node 20 must upgrade — see [`package.json` engines 字段](package.json) and the README Node 徽章.
 
-### 🔒 安全
+### 安全
 
 - **fix(oauth/windsurf):** Windsurf Firebase token refresh now reads `WINDSURF_CONFIG.firebaseApiKey` instead of `process.env.WINDSURF_FIREBASE_API_KEY` directly.
 - **fix(kiro/translator):** assistant-first conversations no longer collide on a single `conversationId`.
@@ -6246,7 +6245,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **日常维护:** 收紧 `.claude/` gitignore 仅到运行时文件，并取消跟踪 `scheduled_tasks.lock`。
 - **文档:** 修复 270 个损坏的内部 markdown 链接。
 
-### 🏆 v3.8.0 名人堂 — 补充致谢（发布后）
+### v3.8.0 名人堂 — 补充致谢（发布后）
 
 以下贡献在 v3.8.0 初始版本之后落地，补充了下方 55+ 社区名人堂。更新统计：
 
@@ -6299,13 +6298,13 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - 引导向导新增"How It Works"分层导览步骤（Welcome 之后、Security 之前）
 - 首页控制台显示"Tier coverage"小组件（每层的已配置 + 活跃数量）
 
-### 🔒 安全
+### 安全
 
 - Hard Rule #15：可 spawn 的路由必须调用 `assertRouteAllowed(req)`（CLAUDE.md）
 - CLI Token 在非 loopback 主机上被拒绝，即使 HMAC 正确
 - `always` 保护的路由（shutdown、db export）无条件拒绝 CLI Token
 
-### 📝 文档
+### 文档
 
 - `docs/security/CLI_TOKEN.md`
 - `docs/security/ROUTE_GUARD_TIERS.md`
@@ -6316,13 +6315,13 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ---
 
-### 🔧 依赖
+### 依赖
 
 - **日常维护(依赖):** Node 依赖更新 — 将多个运行时和开发依赖升级至最新补丁/次版本。 ([#2259](https://github.com/diegosouzapw/OmniRoute/pull/2259) — 感谢 @backryun)
 
 ### 完整详情 — 发布功能与修复 (2026-05-06 至 2026-05-14)
 
-#### ✨ 新功能
+#### 新功能
 
 - **功能(服务商):** 新增 Command Code 服务商 (#2199 — 感谢 @ddarkr)
 - **功能(服务商):** 新增 ModelScope 服务商特定的 429 处理和重试逻辑 (#2202 — 感谢 @InkshadeWoods)
@@ -6369,7 +6368,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **功能(antigravity):** 支持 Antigravity 服务商的自定义 Google Cloud project ID (#2227 — 感谢 @nickwizard)
 - **功能(CLI):** CLI 集成套件 — 5 个新管理命令（`config`、`status`、`logs`、`update`、`provider`）、3 个 API 端点、6 个工具的配置生成器（Claude、Cline、Codex、Continue、KiloCode、OpenCode）、零配置 `auto/` 路由和 `@omniroute/opencode-provider` npm 包 (#2240 — 感谢 @oyi77)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(计费):** 使 `getPricingForModel` 完全大小写不敏感，确保自定义价格正确反映在新请求的成本计算中
 - **修复(gemini):** 防止当 `googleSearch` 工具存在时清理器丢弃 `functionDeclarations` (#2077)
@@ -6457,14 +6456,14 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **修复(API):** 校验模型冷却删除载荷
 - **修复(CI):** 串行运行覆盖率门禁，对齐容灾和思考检查，对齐云代码思考和模型目录测试
 
-### 🔒 安全
+### 安全
 
 - **修复(安全):** 修复 CodeQL 漏洞（ReDoS、密码学偏差、堆栈跟踪暴露和弱密码哈希）(#216, #215, #211, #208, #206, #210)
 - **修复(安全):** 清理 API 路由中的错误消息以防止堆栈跟踪暴露（CodeQL js/stack-trace-exposure）(#2209)
 - **修复(安全):** 修复核心压缩清理中的正则校验回溯路径 (#1990)
 - **修复(core):** 加固提示压缩边界情况的输入处理和稳定性
 
-### 📝 文档
+### 文档
 
 - **文档:** 在 README 中添加竞品对比营销表及 SEO/AEO 优化 (#2091)
 - **文档:** 刷新 v3.8.0 的服务商、模型目录和文档 (#2088)
@@ -6472,14 +6471,14 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **docs(env):** add `GITLAB_DUO_OAUTH_CLIENT_ID` to `.env.example` (#2031)
 - **docs:** add Brazilian WhatsApp group link to README (#2201 — 感谢 @rafacpti23)
 
-### 🔧 改进
+### 改进
 
 - **重构(执行器):** `BaseExecutor.execute()` 中的 `sanitizeReasoningEffortForProvider()` 钩子 — 对不支持的将 `xhigh`→`high` 降级，对 mistral/devstral 和 github claude 模型剥离 effort (#2162 — 感谢 @hachimed)
 - **重构(翻译器):** 从 Claude thinking 占位符注入中移除冗余的服务商守卫 — 适用于所有 `targetFormat === FORMATS.CLAUDE` 的请求体 (#2161 — 感谢 @JohnDoe-oss)
 - **重构(目录):** 移除 11 个 `.ts` 扩展名导入，消除所有 `as any` 断言，添加 `CustomModelEntry` 接口和 `ComboModelStep` 类型谓词，使用 `resolveCanonicalProviderId()` 规范化别名解析 (#2152 — 感谢 @herjarsa)
 - **功能(容灾):** `useUpstream429BreakerHints` 三态 PATCH 字段 — `true`/`false` 持久化，`null` 重置为 undefined（从 JSON 中省略）(#2146 tests — 感谢 @rafacpti23)
 
-### 🧹 日常维护
+### 日常维护
 
 - **日常维护(服务商):** 删除冗余的本地服务商图标资源，改用 `@lobehub/icons` Web 字体 (#1992)
 - **日常维护(服务商):** 移除已弃用模型 (#2033)
@@ -6498,9 +6497,9 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **构建(依赖):** 重新生成 `package-lock.json` 以匹配 `http-proxy-middleware` 4.x 升级 (#2228 — 感谢 @NomenAK)
 - **修复(requestLogger):** 将 tools 字段排除在数组截断之外以实现完整的调试可见性 (#2234 — 感谢 @NomenAK)
 
-### 🏆 v3.8.0 社区贡献者
+### v3.8.0 社区贡献者
 
-感谢所有 **55+ 社区贡献者**让 v3.8.0 成为可能！🎉
+感谢所有 **55+ 社区贡献者**让 v3.8.0 成为可能！
 
 | 贡献者                                                     | PR 数量 | 贡献内容                                                                                         |
 | :--------------------------------------------------------- | :-----: | :----------------------------------------------------------------------------------------------- |
@@ -6561,7 +6560,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.7.9] — 2026-05-03
 
-### ✨ 新功能
+### 新功能
 
 - **新功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **新功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -6588,7 +6587,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **新功能(usage):** DeepSeek V4 原生缓存 Token 提取 (#1930 — 感谢 @smartenok-ops)
 - **新功能(cost):** 增强成本格式化并添加 Codex GPT-5.5 定价支持 (#1944 — 感谢 @JxnLexn)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(auth):** 实现会话亲和性粘性路由逻辑
 - **修复(dashboard):** 从请求 origin 推导显示用 base URL，而非硬编码 localhost (#1960 — 感谢 @jeanfbrito)
@@ -6622,16 +6621,16 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **修复(auth):** 按连接级别的 OAuth 刷新互斥锁 (#1885 — 感谢 @smartenok-ops)
 - **修复(auth):** 压缩预览需要控制台管理权限
 
-### 🔄 更新
+### 更新
 
 - **维护(provider):** 添加 Reka 模型列表 (#1956 — 感谢 @backryun)
 - **维护(model):** 更新新模型，删除已弃用模型 (#1949 — 感谢 @backryun)
 
-### 📝 文档
+### 文档
 
 - **文档(compression):** 记录 RTK+Caveman 堆叠节省量范围
 
-### 🏆 发布归属与追溯致谢
+### 发布归属与追溯致谢
 
 - **@payne0420** (PR #1828 / #1839) — 实现了**速率限制看门狗**和环境变量覆盖功能。（此功能被手动回移植到 v3.7.8，导致 GitHub 自动发布说明中遗漏了作者的致谢）。
 
@@ -6639,7 +6638,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.7.8] — 2026-05-01
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -6653,7 +6652,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **新功能(providers):** 新增 muse-spark-web 服务商，支持多模型和推理功能 (#1843)
 - **新功能(1proxy):** 集成 1proxy 免费代理市场，支持控制台管理和新增 MCP 工具 (关闭 #1788) (#1847)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(codex):** 脱敏 Responses 重放状态以防止内部助手注释泄露 (#1868 — 感谢 @dhaern)
 - **修复(cli):** 添加基于捕获的 Gemini CLI 指纹 (#1866)
@@ -6670,7 +6669,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **修复(providers):** 正确映射和暴露 Upstage Embedding 和 Chat 模型目录 (#1855)
 - **修复(executor):** 为未知的注册表服务商在 DefaultExecutor 中应用正确的 urlSuffix 和自定义 authHeaders (���闭 #1846) (#1861)
 
-### 🛠️ 维护
+### 维护
 
 - **修复(workflow):** 在版本标签上构建 Docker 镜像 (#1838)
 
@@ -6678,7 +6677,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.7.7] — 2026-04-30
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -6692,7 +6691,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **压缩缓存与 MCP:** 新增缓存感知的策略调整，以及用于状态和配置的 MCP 工具 (#1758)
 - **分析自定义过滤器:** 新增自定义日期范围选择、API 密钥过滤和 NULL 密钥分析回填功能 (#1830)
 
-### 🐛 问题修复
+### 问题修复
 
 - **组合路由:** 修复 Gemini `-preview` 模型在组合路由中被错误规范化为标准名称导致 404 错误的问题 (#1834)
 - **Codex 原生透传:** 新增对 Cursor 5.5 向 `responses/compact` 端点发送 `messages` 数组的支持，防止上游因空请求而拒绝 (#1832)
@@ -6701,7 +6700,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **i18n 与语言包:** 修复 OpenCode baseUrl 语言占位符并新增 32 种语言的压缩相关 key
 - **启动稳定性:** 强化弹性集成服务的启动逻辑 (#9aa89b17)
 
-### 🛠️ 维护
+### 维护
 
 - **测试与文档:** 扩展测试套件，新增 61 个压缩管线单元/集成测试，并更新 `AGENTS.md`
 - **工作流:** 修复变更日志提取逻辑，准确捕获 GitHub 发布说明
@@ -6710,7 +6709,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.7.6] — 2026-04-30
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -6726,11 +6725,11 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **新功能(db):** 在启动时自动恢复探测失败的数据库以防止升级失败后数据丢失 (#1810)
 - **新功能(analytics):** 在分析控制台中添加基于成本的用量洞察和活跃度连续记录
 
-### 🔒 安全
+### 安全
 
 - **修复(security):** 解决 Codex 执行器正则表达式中的 ReDoS 漏洞 (#1797, #1789)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(stability):** 解决 Codex 输入校验、启用 Combo 断路器并修复损坏的单元测试 (#1804, #1805)
 - **修复(stability):** 在代理模态框中调用 `.trim()` 前安全地将输入转为字符串以避免数值字段崩溃 (#1825)
@@ -6742,12 +6741,12 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **修复(dashboard):** 修复 CostOverviewTab 中的 `loadPresets` ReferenceError
 - **修复(mitm):** 强制仅在 443 端口进行透明拦截
 
-### 🧹 维护
+### 维护
 
 - **维护(workflow):** 强制在 `/resolve-issues` 工作流编码前生成实现计划
 - **维护(release):** 将贡献者致谢扩展到整个项目历史的 155 个 PR
 
-### 🏆 社区贡献者致谢
+### 社区贡献者致谢
 
 我们发现在整个项目历史中（从项目创立到 v3.7.5），有 **155 个社区 PR** 被手动集成到发布分支中，但未通过 GitHub 正确合并，导致贡献者无法在其个人资料中获得合并荣誉。我们对此疏忽深表歉意，并已更新工作流程以确保此类情况不再发生。
 
@@ -6813,7 +6812,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.7.5] — 2026-04-29
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -6824,7 +6823,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **feat(tunnels):** 集成原生 ngrok 隧道支持，控制台 UI 保持一致 (#1753)
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(dashboard):** 添加手动「全部清除」按钮以终止活跃请求面板中卡住的长时间运行请求 (#1799)
 - **fix(schema):** 从可选工具参数中移除空字符串值以防止上游校验错误 (#1674)
@@ -6853,7 +6852,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **fix(claude):** 修复 claude-cli 使用 Gemini 服务商的支持 (#1779)
 - **test(reasoning-cache):** 使用 mkdtempSync 隔离 DB 状态以防止 401 中间件错误
 
-### 🛠️ 维护
+### 维护
 
 - **chore(docs):** 将 MseeP.ai 安全评估徽章添加到 README (#1727)
 - **chore(xiaomi):** 更新小米服务商模型列表 (#1759)
@@ -6865,7 +6864,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.7.4] — 2026-04-28
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -6879,11 +6878,11 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **feat(proxy):** 通过管道分隔符解析器实现批量代理导入，支持更新或创建（upsert）逻辑并带实时预览表格
 - **feat(pwa):** 添加全屏可安装 PWA，含 manifest、service worker 和跨平台应用图标 (#1728)
 
-### 🔒 安全
+### 安全
 
 - **security:** 将不安全的 `Math.random` 替换为 `crypto.getRandomValues` 用于兜底 UUID 生成，以解决 CodeQL CWE-338 发现 (#182)
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(cc-compatible):** 修复 CC 兼容中继格式和 UI 文案 (#1742)
 - **fix(codex):** 规范化 Codex 路由的最大推理 effort (#1744)
@@ -6898,7 +6897,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **fix(proxy):** 在 Undici 代理分发器中禁用 HTTP keep-alive 和流水线以防止「Socket hang up」轮换失败
 - **stream:** 正确识别 Antigravity/Gemini SSE 流中的 `thought` 和 `error` 块以防止过早的 502 超时 (#1725, #1705)
 
-### 🛠️ 维护
+### 维护
 
 - **workflow:** 将第 4 阶段发布监控说明添加到 `/generate-release` 工作流
 - **test:** 修复单元测试中的 TypeScript 编译错误以使 CI typecheck 流水线完全通过
@@ -6908,7 +6907,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.7.3] — 2026-04-28
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(claude):** 在注入前从 system 数组中移除现有计费头以防止 Anthropic 提示缓存未命中 — 堆叠的 `x-anthropic-billing-header` 块使前缀匹配失效，导致约 100% cache_create 而非 cache_read (#1712)
 - **fix(claude):** 在透传期间为非 Anthropic 的 Claude 兼容服务商移除 `output_config.format` — 第三方 Claude 端点（MiniMax、通过聚合器的 DeepSeek）拒绝结构化输出字段并返回 400 错误 (#1719)
@@ -6920,7 +6919,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **fix(migration):** 改进迁移运行器中的 Windows 文件 URL 路径解析 — 为 CI 构建的包添加直接 URL 路径提取和 `process.cwd()` 兜底，用于处理泄漏的构建时路径 (#1704)
 - **fix(ui):** 修复浅色模式活跃请求载荷弹窗 — 添加缺失的 `--color-card` 主题 Token，使用不透明的 `bg-surface` 替代半透明的 `bg-card/70`，添加背景模糊 (#1714)
 
-### 🔄 更新
+### 更新
 
 - **chore(image-models):** 刷新图像生成模型注册表 — 用 FLUX Kontext / FLUX.2 映射替换过时的 FLUX 别名，移除已弃用的 FLUX Redux/Depth/Canny 变体 (#1722)
 
@@ -6928,7 +6927,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.7.2] — 2026-04-28
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -6943,7 +6942,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **feat(codex):** 在受 Beta 控制的模型上启用原生 Codex WebSocket responses (#1658)
 - **feat(muse-spark-web):** 跨轮次继续同一 meta.ai 对话 (#1673)
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(responses):** 在流式增量累积中从工具调用可选参数中清理空字符串占位符以避免破坏严格客户端 (#1674)
 - **fix(codex):** 防止在无工具的裸聊天补全请求中出现非预期的协议泄漏和伪造指令 (#1686)
@@ -6982,14 +6981,14 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **fix(authz):** 恢复 clientApi 策略中的 `REQUIRE_API_KEY` 支持
 - **fix(auth):** 将兜底 API Key 格式与测试设置对齐
 
-### 🛠️ 维护
+### 维护
 
 - **build(prepublish):** 使 Next.js 构建打包器可配置（webpack/turbopack）
 - **ci:** 对齐 Sonar 分析范围
 - **ci:** 稳定发布分支检查
 - **ci:** 移除已过期的进阶安全扫描任务
 
-### 🧪 测试
+### 测试
 
 - **test:** 修复 plan3-p0.test.ts 中的 TypeScript 配置错误
 - **test:** 修复跨测试套件的隐式 any 类型
@@ -7004,7 +7003,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.7.1] — 2026-04-26
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7017,7 +7016,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **feat(cli):** 添加 `omniroute reset-encrypted-columns` 恢复命令 — 清空 `provider_connections` 中的加密凭据列 (`api_key`、`access_token`、`refresh_token`、`id_token`)，同时保留服务商元数据，为受 #1622 影响的用户提供干净的恢复路径而不丢失配置。
 - **feat(i18n):** 新增九种语言包（孟加拉语、波斯语、古吉拉特语、印尼语、马拉地语、斯瓦希里语、泰米尔语、泰卢固语、乌尔都语），将语言支持从 32 种扩展至 41 种。
 
-### 🐛 问题修复
+### 问题修复
 
 - **fix(rate-limit):** 为 GitHub Copilot 服务商添加单模型速率限制 — 某个模型（如 `gpt-5.1-codex-max`）返回 429 时不再锁定整个连接，与现有的 Gemini 单模型配额模式一致 (#1624 — 感谢 @slewis3600)。
 - **fix(cli-tools):** 保存 OmniRoute 设置时保留现有 OpenCode 配置（MCP 服务器、自定义服务商、注释）— 使用 `jsonc-parser` 进行保留树结构的编辑，而非破坏性的 JSON 往返序列化。修复 API Key 剪贴板复制使用原始密钥而非屏蔽占位符的问题。添加支持主题的 OpenCode 亮色/暗色 SVG Logo (#1626 — 感谢 @JasonLandbridge)。
@@ -7044,7 +7043,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **fix(transport):** 防止大型碎片化流式响应导致内存膨胀和数据库耗尽。在 `kiro.ts` 中实现 `ByteQueue` 用于零拷贝二进制累积，重构 `antigravity.ts` 实现增量 SSE 解析，并对流式请求日志和调用产物强制执行严格的 512KB 分层截断限制 (`MAX_CALL_LOG_ARTIFACT_BYTES`) (#1647)。
 - **chore(ci):** 更新构建环境依赖 — 将 Node 升级至 `24.15.0`，升级 `actions/checkout@v6`、`docker/build-push-action@v7`，将 `actions/setup-python` 固定到大版本标签 (#1646 — 感谢 @backryun)。
 
-### 📝 文档
+### 文档
 
 - **docs(env):** 将 `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` 添加到 `.env.example` 中，并为 LM Studio 及其他本地服务商使用场景提供说明文档 (#1623)。
 
@@ -7052,7 +7051,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.7.0] — 2026-04-26
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7101,7 +7100,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **feat(providers):** 注册 Codex 自动审查并扩展图标覆盖范围。
 - **feat(tunnels):** 添加 Tailscale 隧道管理路由和运行时辅助函数，用于安装、登录、守护进程启动、启用/禁用和健康检查。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7174,7 +7173,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **fix(security):** 加固管理 API 认证和 OpenAPI try-proxy 端点。
 - **fix(security):** 解决认证守卫路由的漏洞扫描发现。
 
-### ♻️ 重构
+### 重构
 
 - **refactor(fallback):** 使服务商故障阈值可通过 `PROVIDER_PROFILES` 配置而非硬编码常量，支持不同服务商类型的差异化故障容忍度。(#1449)
 - **refactor(resilience):** 统一代码库中的容灾控制，实现一致的熔断器和容灾行为。(#1449)
@@ -7182,7 +7181,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **refactor(security):** 通过切换为 `execFileSync` 加固备份归档创建，校验 ACP 代理 ID，扩展共享 CORS 处理。
 - **refactor(release):** 移除过时的代理工作流 playbook 和陈旧的编译产物 `src/lib/dataPaths.js`。(#1541)
 
-### 🧪 测试
+### 测试
 
 - **test(providers):** 为 AWS Polly SigV4 语音/校验、Azure OpenAI 部署发现、Lemonade 本地发现、服务商控制台分类、托管服务商目录行为和合并后的 `/v1/models` 别名元数据添加针对性覆盖率。
 - **test(catalog):** 为 Pollinations 文本模型、通过 Puter 的 Perplexity Sonar 和 NVIDIA 免费模型别名解析添加 v3.7.0 目录覆盖率。
@@ -7194,7 +7193,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **test(next):** 对齐 Next.js 独立构建的转译包期望。
 - **test(ci):** 修复因环境差异导致的仅 CI 环境测试失败 — 在集成测试中清除 `INITIAL_PASSWORD` 和 `JWT_SECRET`，为 guide-settings 测试处理 `XDG_CONFIG_HOME`。
 
-### 📚 Documentation
+### Documentation
 
 - **docs:** 使用截至 2026-04-24 的所有发布分支变更更新根变更日志，包括 PR #1544、#1555、#1551、#1550、#1548、#1547、#1541、#1538、#1536 和 #1527。
 - **docs:** 修复损坏的 README 和本地化文档链接。(#1536)
@@ -7202,12 +7201,12 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **docs:** 添加 Arch Linux AUR 安装说明以支持社区包。(#1478)
 - **docs(i18n):** 改进乌克兰语 (uk-UA) 翻译质量 — 为 README、SECURITY、A2A-SERVER、API_REFERENCE、AUTO-COMBO 和 USER_GUIDE 文档提供完整的乌克兰语翻译。修复拉丁/西里尔字母混用的拼写错误，翻译模型表条目，并标准化章节标题。
 
-### 🛠️ 维护
+### 维护
 
 - **chore:** 将 `.tmp/` 添加到 `.gitignore` 中以保持本地构建/测试产物不进入发布差异。#1538
 - **chore(release):** 阐明生成发布工作流的发布版本一致性规则和变更日志隔离规则。
 
-### 📦 Dependencies
+### Dependencies
 
 - **deps:** 更新开发依赖组，包含 4 项更新。(#1464)
 - **deps:** 更新生产依赖组，包含 4 项更新。(#1463)
@@ -7217,7 +7216,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.6.9] — 2026-04-19
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7237,7 +7236,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **feat(providers):** 从服务商注册表中动态推导 Claude CLI 模型默认值，以跟上上游 API 变更 (#1393)
 - **feat(core):** 实现持久化 API Key、备份修剪和 GPU 优化 (#1350, #1367, #1369)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7282,7 +7281,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **fix(security):** 解决 CodeQL 安全告警，包括安全原型绑定 (#151, #152, #154, #155-159)
 - **fix(tsc):** 静默 TypeScript 5.5+ 配置中的 `baseUrl` 弃用警告
 
-### 🧪 测试
+### 测试
 
 - **test(core):** 解决 typescript 严格性报错并修复 combo-routing-engine 测试回退
 - **test(core):** 解决所有单元测试文件中剩余的严格类型错误
@@ -7291,7 +7290,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **test(codex):** 修复 codex responses 的 store 断言
 - **test(cli):** 解决 Qoder 单元测试中的严格 null 检查
 
-### 🛠️ 维护
+### 维护
 
 - **chore:** 将基础设施与 docker postinstall 组件和辅助 CodeQL 分析规则同步
 - **chore:** 在 review-prs 工作流中强制执行贡献者致谢规则
@@ -7306,7 +7305,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.6.8] — 2026-04-17
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7336,13 +7335,13 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **feat(providers):** 扩展图像服务商注册表，支持包括 SD3.5、FLUX 和 DALL-E 3 HD 配置在内的扩展模型
 - **feat(combos):** 添加新路由策略并在 31 种语言上为代理功能部分提供完整的 i18n 支持
 
-### 🔒 安全
+### 安全
 
 - **security:** 解决 18 个 GitHub CodeQL 扫描告警，包括 ReDoS、净化不完整和错误的 HTML 过滤正则模式
 - **fix(auth):** 通过在 `/api/keys` 管理端点上强制执行 JWT 会话检查来堵住权限提升向量 (#1353)
 - **fix(providers):** 通过互斥 `getAccessToken` 解决 Codex Token 刷新竞态条件，防止 `refresh_token_reused` 的 Auth0 吊销
 
-### 🔧 维护 & Architecture
+### 维护 & Architecture
 
 - **refactor(core):** 拆分 CLI 运行器并解耦迁移引擎以增强可扩展性 (#1358)
 - **refactor(audit):** 将审计控制台从失效的内存 `configAudit` 存储重新连接到可用的 SQLite `audit_log` 表 — 331+ 个隐藏的合规条目现在在 `/dashboard/audit` 中可见
@@ -7350,7 +7349,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **ci:** 将 GitHub Actions CI node-version 原生升级为 Node.js 24
 - **fix(types):** 解决 `claudeCodeCompatible.ts`（类型谓词、`cache_control` 索引访问）和 `proxyFetch.ts`（`signal` 可空性）中的 TypeScript 编译错误
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7393,7 +7392,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.6.6] — 2026-04-15
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7424,7 +7423,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **feat(oauth):** 支持 `cursor-agent` CLI 作为原生 Cursor 凭据来源，与标准配置并列 (#1258)。
 - **feat(models):** 自定义和导入的模型现在正确合并到所有可用全局服务商的过滤器列表中 (#1191)。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7461,7 +7460,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **fix(tests):** 解决因 PR 重叠引发的记忆迁移和技能路由分页 Bug
 - **fix(i18n):** 为控制台组件（`DataTable`、`EmptyState` 等）添加缺失的中文 i18n 支持，更新 `en.json/zh-CN.json` 路由键，并通过 `next-intl` 原生解析 JSX 默认值 (#1274)
 
-### 🔧 Internal Improvements
+### Internal Improvements
 
 - **Compliance 审计扩展:** `src/lib/compliance/index.ts` 扩展了结构化元数据、分页支持、请求上下文富化，并新增 `providerAudit.ts` 模块记录认证和凭据事件、SSRF 阻止的校验尝试和服务商 CRUD 操作
 - **Config Sync Bundle:** `src/lib/sync/bundle.ts` 导出 `buildConfigBundle()` 生成设置、服务商连接、节点、模型别名、Combo 和 API Key（密码已脱敏）的版本化 JSON 快照，支持 ETag 以进行带宽高效的轮询
@@ -7476,7 +7475,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.6.5] — 2026-04-13
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7502,7 +7501,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **稳定性设置:** 为 `lkgpEnabled` 和 `backgroundDegradation` 设置添加持久化支持，集成到 `instrumentation-node.ts` 中以改进生命周期感知 (#1212)
 - **xxhash-wasm 依赖:** 添加 `xxhash-wasm@^1.1.0` 用于 CCH 签名（xxHash64，种子为 `0x6E52736AC806831E`）
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7529,7 +7528,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Codex Combo 冒烟测试误报:** 修复了当 `response.output` 为空但已发出文本增量时 Combo 测试错误地将有效 Codex 流式响应报告为 `ERROR` 的问题。摘要现在回退到累积的增量文本 (#1176 — 感谢 @rdself)
 - **Electron Builder 版本不匹配:** 修复了因原生模块（`better-sqlite3`）位于 `app.asar.unpacked` 下而辅助文件在 `app/node_modules` 中导致的 Windows 打包构建 Electron 桌面启动失败。`resolveServerNodePath()` 现在合并两个位置并进行去重和存在检查 (#1172 — 感谢 @backryun)
 
-### 🔧 Internal Improvements
+### Internal Improvements
 
 - **SSE 解析器: Responses API 非流式转换:** 在 `sseParser.ts` 中添加了完整的 `parseSSEToResponsesOutput()` 实现（255+ 行）— 从 SSE 事件流重建完整的 Responses API 对象，处理 `response.output_text.delta/done`、`response.reasoning_summary_text.delta/done`、`response.function_call_arguments.delta/done` 和终端事件。由 Codex 的新 chatCore 非流式容灾路径使用
 - **Cursor 执行器版本同步:** 将 Cursor 客户端 User-Agent 更新至 `3.1.0` 并集中管理版本常量（`CURSOR_CLIENT_VERSION`、`CURSOR_USER_AGENT`），以实现执行器、用量获取器和 OAuth 流程中的一致指纹
@@ -7538,7 +7537,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Combo 错误响应规范化:** 空的 Combo 目标现在返回 404（`comboModelNotFoundResponse`）而非通用的 503，改进客户端错误区分能力
 - **依赖更新:** 将 `typescript-eslint` 升级至 `8.58.2`（开发依赖）、`axios` 升级至 `1.15.0`（生产依赖）、`next` 升级至 `16.2.2`（生产依赖）(#1224, #1225)
 
-### ⚠️ 破坏性变更
+### 破坏性变更
 
 - **`DELETE /api/settings/codex-service-tier` 已移除：** 该端点不再存在。Codex Service Tier 配置已迁移至每连接的 `providerSpecificData.requestDefaults` 字段。升级后首次启动时，已有连接将自动迁移。任何调用此端点的外部脚本或集成均应更新 — 改用 `PUT /api/providers/:id` 并传入 `providerSpecificData.requestDefaults.serviceTier` (#1176)。
 - **CC 兼容服务商上的 CCH 签名：** 所有发往 `anthropic-compatible-cc-*` 服务商的请求现在均在计费头中包含一个 xxHash64 完整性 Token（`cch=...`）。未校验 CCH 的服务商将忽略它（无行为变更），但任何检查计费头的自定义中间件应预期一个 5 字符十六进制 Token，而非 `00000` 占位符
@@ -7547,7 +7546,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.6.4] — 2026-04-12
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7576,12 +7575,12 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **LKGP 独立策略：** 将 `lkgp`（最后一次成功服务商）实现为全功能的独立 Combo 策略。此前，`lkgp` 作为 Combo 策略会静默回落至 `priority` 排序 — LKGP 查找仅在 `auto` 引擎内部运行。现在 `strategy: "lkgp"` 正确查询 LKGP 状态，将最后成功的服务商移至目标列表顶部，并在每次成功请求后保存 LKGP 状态。当没有 LKGP 状态时，回落至 priority 排序
 - **统一的路由规则与模型别名：** 将路由规则和模型别名管理控件整合到设置页面，减少控制台中的功能碎片化
 
-### ⚡ 性能优化
+### 性能优化
 
 - **中间件延迟加载：** 重构了 `src/proxy.ts`，改为延迟导入 `apiAuth`、`db/settings` 和 `modelSyncScheduler` 模块，降低中间件冷启动开销。新增内联的 `isPublicApiRoute()` 函数，避免对公开路由加载完整认证模块
 - **E2E 认证绕过：** 新增 `NEXT_PUBLIC_OMNIROUTE_E2E_MODE` 环境变量标志，允许在 Playwright E2E 测试运行期间绕过控制台和管理 API 路由的认证门禁
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7603,7 +7602,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Combo 策略 Schema 中重复的 `auto`：** 从 `comboStrategySchema` 中移除了重复的 `"auto"` 条目（原在第 104 和 108 行同时列出）。对 Zod 运行时无害，但已清理以避免混淆。Schema 现具有恰好 13 个唯一策略值
 - **旧版 Combo Refs 规范化：** 修复了 Combo 步骤规范化，在 CRUD 操作期间保留旧版字符串 Combo 引用，防止在编辑 v2 步骤架构之前创建的 Combo 时丢失数据
 
-### 🔒 安全
+### 安全
 
 - **备份路由认证绕过修复（严重）：** 为 `/api/db-backups/exportAll`（完整数据库导出）和 `/api/db-backups`（列出、创建和恢复备份）端点增加了 `isAuthenticated` 守卫 — 这两个端点此前无需认证即可访问
 - **翻译器保存路由认证守卫：** 为 `/api/translator/save` 增加了 `isAuthenticated` 守卫，作为纵深防御的一致性加固
@@ -7611,7 +7610,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **NPM 压缩包泄露修复：** 在 `.npmignore` 中添加了 `app/.env*`，防止工作中的 `.env` 文件被包含在 npm 压缩包分发中
 - **Electron Builder CVE 修复：** 将 `electron-builder` 升级至 26.8.1，解决桌面构建流水线中的 `tar` CVE 漏洞
 
-### 🔧 维护 & Infrastructure
+### 维护 & Infrastructure
 
 - **DB 迁移 021：** 新增 `combo_call_log_targets` 迁移，为 call_logs 添加 `combo_step_id` 和 `combo_execution_key` 列
 - **Combo CRUD 规范化：** `db/combos.ts` 在读取时将所有存储的 Combo 条目通过步骤规范化流水线进行处理，确保步骤 ID 和 kind 标注的一致性，无论 Combo 是何时创建的
@@ -7624,7 +7623,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **构建器草稿重构：** 扩展了 `builderDraft.ts`，通过 `getComboBuilderStages()` 和 `isIntelligentBuilderStrategy()` 动态生成阶段列表。阶段导航（`getNextComboBuilderStage`、`getPreviousComboBuilderStage`、`canAccessComboBuilderStage`）现已接受选项，按需包含或跳过 `intelligent` 向导步骤
 - **i18n 整合：** 从所有 30 个语言文件中移除了独立的 `"autoCombo"` i18n 块（22 个键）。将键迁移至 `"combos"` 块中，新增筛选标签、智能面板和构建器步骤标签
 
-### 🧪 测试
+### 测试
 
 - **16 个新测试套件：** 增加了全面的测试覆盖，包括：
   - `combo-builder-draft.test.mjs`（186 行）— 构建器草稿步骤构造和校验
@@ -7654,7 +7653,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.6.3] — 2026-04-11
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7672,7 +7671,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **OpenAI 兼容宽松校验：** 对于任何 `openai-compatible-*` 服务商（如 Pollinations、本地化路由），现在可以在 UI 中直接提交和保存空 API 密钥，而非阻塞保存操作 (#1152)
 - **Cloudflare 配置：** 更新了 Cloudflare AI 的服务商 Schema 和 UI 集成，正式暴露并安全支持后端的 `accountId` 字段，无需覆盖 (#1150)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7690,7 +7689,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **桌面端 Windows 构建崩溃：** 修复了阻止 OmniRoute Desktop 在 Windows 上启动的 `better_sqlite3.node is not a valid Win32 application` 问题，通过正确移除 Next.js standalone 中 ABI 不匹配的 sqlite 缓存，并在打包构建步骤中回退到交叉编译的 Electron 等价物 (#1163)
 - **登录界面视觉安全：** 移除了在缺少 `OMNIROUTE_API_KEY_BASE64` 标志的 Docker 实例中登录弹窗下方人为渲染的原始回退哈希泄露 (#1148)
 
-### 🔧 维护 & Dependencies
+### 维护 & Dependencies
 
 - **Dependabot 更新：** 安全地将 GitHub Actions `docker/build-push-action` 升级至 v7，将 `actions/download-artifact` 升级至 v8
 - **Electron 更新：** 将桌面封装核心升级至 Electron `41.2.0` 和 `electron-builder` `26.8.1`，纳入必要的 V8/Chromium 安全补丁
@@ -7699,7 +7698,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.6.2] — 2026-04-11
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7719,7 +7718,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **文档更新：** 为 v3.6.2 更新了 README、ARCHITECTURE、FEATURES、AGENTS.md 和 API_REFERENCE，包含准确的服务商数量（100+）、新的执行器列表和系统 API 文档
 - **卸载指南：** 创建了全面的 `docs/guides/UNINSTALL.md`，涵盖所有部署方式（npm、Docker、Electron、源码）的干净卸载
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7738,7 +7737,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.6.1] — 2026-04-10
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7755,7 +7754,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **OAuth 环境修复操作：** 在 OAuth 服务商控制台新增"修复环境"按钮，用于检测并恢复 `.env.example` 中缺失的 OAuth 客户端 ID — 具有时间戳备份和仅追加安全性。包含完整的 33 种语言 i18n 支持和经过脱敏处理的 API 响应 (#1116, by @yart)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7774,7 +7773,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.6.0] — 2026-04-10
 
-### ✨ 新功能 & Analytics
+### 新功能 & Analytics
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7791,7 +7790,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **Combo 冒烟测试：** 将默认 Token 预算提升至 2048，防止预检检查期间思考模型的输出被截断；并完全随机化算术探针提示，绕过上游中继的确定性缓存 (#1105)
 
-### 🐛 问题修复 & Compliance
+### 问题修复 & Compliance
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7811,7 +7810,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.5.9] — 2026-04-09
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7829,7 +7828,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Combo 持久化排序：** 通过拖拽 Combo 卡片的手柄，可在控制台中重新排序 Combo；顺序通过新的 `sort_order` 列和 `POST /api/combos/reorder` 端点持久化到 SQLite。包含 DB 迁移 `020_combo_sort_order.sql` 和 JSON 导入保留 (#1095)
 - **侧边栏分组重排：** 将系统部分的"日志"移至"健康检查"之前，将主要部分的"限制与配额"移至"缓存"之后，以实现更合理的导航流程 (#1095)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7851,7 +7850,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.5.8] — 2026-04-09
 
-### ✨ 新功能 & Analytics
+### 新功能 & Analytics
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7868,7 +7867,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **Analytics 布局重新设计：** 将扁平指标替换为响应式 `CompactStatGrid`，在各区块间对数据进行视觉化分组 (#1089)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7884,7 +7883,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **服务商隔离：** 引入模型/服务商熔断器，对重复的上游错误采用自适应 TTL 指数退避 (#1090)
 - **OAuth 保活：** 安全保护已认证的活跃帐号，防止因瞬时 Token 刷新失败而被路由器意外丢弃 (#1085)
 
-### 🔒 安全 & Maintenance
+### 安全 & Maintenance
 
 - **Dependabot：** 将 axios 从 1.14.0 升级至 1.15.0，解决 SSRF 标记 (#1088)
 
@@ -7892,7 +7891,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.5.7] — 2026-04-09
 
-### 🐛 问题修复 & Security
+### 问题修复 & Security
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7910,7 +7909,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.5.6] — 2026-04-09
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7927,12 +7926,12 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **邮箱隐私遮蔽：** OAuth 帐号邮箱现已在服务商控制台中被遮蔽（如 `di*****@g****.com`），防止截图分享时意外泄露。鼠标悬停时通过 `title` 属性显示完整地址 (#1025)。
 - **OpenRouter 和 GitHub 加入 Embeddings/Images 注册表：** OpenRouter（3 个 Embeddings 模型、4 个 Images 模型）和 GitHub Models（2 个 Embeddings 模型，通过 Azure Inference）现已成为服务商注册表中的一等条目，可用于 `/v1/embeddings` 和 `/v1/images/generations` (#960)。
-- **模型可见性切换与搜索筛选：** 服务商页面的模型列表现在包含实时搜索/筛选栏和按模型的可见性切换按钮（👁 图标）。隐藏的模型显示为灰色，并从 `/v1/models` 目录中排除。活跃数量徽章（`N/M 活跃`）一目了然地显示启用了多少模型 (#750)。
+- **模型可见性切换与搜索筛选：** 服务商页面的模型列表现在包含实时搜索/筛选栏和按模型的可见性切换按钮（ 图标）。隐藏的模型显示为灰色，并从 `/v1/models` 目录中排除。活跃数量徽章（`N/M 活跃`）一目了然地显示启用了多少模型 (#750)。
 - **中文本地化（zh-CN）：** 为上下文交接、记忆系统、LKGP 和 Models.dev 同步功能补充了缺失的翻译，同时统一了整个应用程序的术语 (#1079)。
 - **环境变量自动同步：** 添加了 `sync-env.mjs`，在安装过程中根据 `.env.example` 自动生成并追加 `.env`，首次运行时自动生成加密密钥。
 - **源码模式控制台更新：** 修复了控制台中实时源码（git-checkout）更新的显示，为非 NPM 安装提供了安全实时的更新流水线。
 
-### 🐛 问题修复 & Security
+### 问题修复 & Security
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -7955,7 +7954,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Qoder PAT 校验：** 改进了 Qoder Personal Access Token 校验，提供可操作的错误消息，引导用户使用正确的 Token 格式 (#966)。
 - **CI/CD 流水线：** 通过同步 OpenAPI 版本至 3.5.6 并完成 CHANGELOG 发布标题，修复了 `check:docs-sync` 失败。在 `.env.example` 中注释了 `DATA_DIR`，防止在缺乏 root 权限的 CI 运行器中 E2E 测试失败。
 
-### 🌍 i18n
+### i18n
 
 - **自动生成语言文件 (CI)：** 添加了 CI 流水线，通过 `feat(CI,i18n)` 工作流自动生成缺失的语言文件和字符串，覆盖 30+ 种语言 (#1071)。
 
@@ -7963,7 +7962,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.5.5] — 2026-04-08
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -7982,7 +7981,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **上下文交接 Combo 策略：** 新增 `context-relay` Combo 策略，具有 priority 风格路由、在配额用量达到告警阈值时生成结构化的交接摘要，以及在下一次实际帐号切换后注入交接上下文。
 - **全局上下文交接默认值：** 新增全局设置默认值以及 Combo 级别的配置，涵盖 `handoffThreshold`、`handoffModel` 和 `handoffProviders`，使新的或未配置的 Combo 能够一致地继承该功能。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8004,11 +8003,11 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **上下文交接飞行中重复请求去重：** 防止在更早的摘要请求仍在进行时，为同一会话/Combo 生成重复的交接上下文。
 - **上下文交接服务商门控：** 将运行时行为与配置对齐，显式的 `handoffProviders` 排除（包括空数组）现在按预期禁用交接生成。
 
-### 🛠️ 维护 & Dependabot
+### 维护 & Dependabot
 
 - **更新子依赖：** 将 `hono` 升级至 `4.12.12`，将 `@hono/node-server` 升级至 `1.19.13`，修复关键安全漏洞 (#1063, #1064, #1067, #1068)。
 
-### 📚 Documentation
+### Documentation
 
 - **文档同步：** 更新了系统文档（README、Architecture、Features、Tools、Troubleshooting）并同步了 `i18n` 配置，以匹配 v3.5.5 的上下文交接模式和代理故障排除步骤。
 - **上下文交接交付说明：** 在功能文档、变更日志和代理指南中记录了当前架构、运行时流程和面向 Codex 的范围。
@@ -8017,7 +8016,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.5.4] — 2026-04-07
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8037,7 +8036,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **非流式别名：** 新增了显式非流式别名的 API 支持（`non_stream`、`disable_stream`、`disable_streaming`、`streaming=false`），在服务商翻译前在边界处统一规范化 (#1036 — 感谢 @wlfonseca)。
 - **俄语控制台本地化：** 全面的控制台 UI 俄语翻译，包括修复了 2 个乌克兰语本地化键 (#1003 — 感谢 @mercs2910)。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8057,24 +8056,24 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **macOS 桌面应用启动：** 通过将桌面 Artifact 排除在 standalone bundle 之外并改进启动路径检测，稳定了打包后的 macOS 应用启动 (#1004 — 感谢 @mercs2910)。
 - **macOS 侧边栏布局：** 修复了 Electron 桌面应用中 macOS 红绿灯按钮重叠、侧边栏间距和按钮溢出问题 (#1001 — 感谢 @mercs2910)。
 
-### ⚡ 性能优化
+### 性能优化
 
 - **Analytics 页面加载速度：** 通过按日期筛选的数据库查询、并行的 `Promise.all()` 成本计算以及将 6 个 COUNT 查询合并为单个 CASE WHEN 聚合，大幅缩短了 Analytics 页面加载时间（50K 条目从 30 秒缩短至 1-2 秒）(#1038 — 感谢 @oyi77)。
 
-### 🔒 安全 & Dependencies
+### 安全 & Dependencies
 
 - **Node 基础镜像：** 将 Docker 基础镜像从 `22-bookworm-slim` 升级至 `22.22.2-trixie-slim` (#1011 — Snyk)。
 - **生产依赖：** 升级 5 个生产依赖 (#1044 — Dependabot)。
 - **Vite：** 从 8.0.3 升级至 8.0.5 (#1031 — Dependabot)。
 - **开发依赖：** 升级 4 个开发依赖 (#1030 — Dependabot)。
 
-### 🧪 测试
+### 测试
 
 - **Token 统计测试：** 新增 18 个单元测试，涵盖详细 Token 分解、null 与零的语义、各服务商的 Token 提取以及 Anthropic 流式输入修复 (#1017)。
 - **内置工具测试：** 新增 3 个测试用例，用于内置 Responses API 工具类型保留 (#1014)。
 - **ChatCore 脱敏处理：** 更新了脱敏测试以适配 Responses 格式检测（PR #1002）和内置工具保留（PR #1014）。
 
-### 🛠️ 维护
+### 维护
 
 - **PR 工作流：** 更新了 `/review-prs` 工作流，将 PR 合并至发布分支（`release/vX.Y.Z`）而非直接合并至 `main`，确保正确的预发布暂存。
 
@@ -8096,7 +8095,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **核心容灾：** 保留了主故障上下文，并增强了 Chat 和容灾循环中的边界情况错误处理流水线。
 - **代理/钩子：** 优化了本地 Git 钩子，将 Token 覆盖率端点统一到 `/coverage`，并对 GLM 区域查找添加了守卫。
 
-### 🛠️ 维护
+### 维护
 
 - **CI/CD 稳定：** 通过解耦分片进程、调整测试并发度、在服务器拆除时取消活跃连接的引用、并严格限制作业超时持续时间，防止了 GitHub Runner 随机冻结。
 
@@ -8112,7 +8111,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.5.2] — 2026-04-05
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8131,7 +8130,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **容灾引擎全面升级：** 集成了上下文溢出优雅容灾、主动 OAuth Token 检测以及空内容发送防护 (#990)。
 - **上下文优化路由策略：** 新增智能路由能力，在自动化 Combo 部署中原生最大化上下文窗口利用率 (#990)。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8151,7 +8150,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.5.1] — 2026-04-04
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8170,7 +8169,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **服务商原生能力：** 新增了声明和检查原生 API 特性（例如 `systemInstructions_supported`）的支持，通过清洗无效角色防止故障。目前已配置用于 Gemini Base 和 Antigravity OAuth 服务商。
 - **API 服务商高级设置：** 为 API Key 服务商连接新增每连接的自定义 `User-Agent` 覆盖。该覆盖存储在 `providerSpecificData.customUserAgent` 中，现适用于校验探针和上游执行请求。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8186,7 +8185,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.5.0] — 2026-04-03
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8208,7 +8207,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **MCP 扩展性：** 新增 `omniroute_web_search` MCP 框架工具，将其从测试版成功注册到生产 Schema 中 (#951)。
 - **Token 缓冲区逻辑：** 添加了运行时配置限制，扩展了可配置的输入/输出 Token 缓冲区，以实现精准用量追踪指标 (#959)。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8228,7 +8227,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Claude 缓存标准：** 规范化并准确严格地保留了下游节点关键临时块标记 `ephemeral` 的缓存 TTL 排序，强制执行标准兼容的 CC 请求，干净地映射且无指标丢失 (#948)。
 - **内部别名认证：** 简化了内部运行时映射，规范了全局翻译参数内的 Codex 凭证载荷查找，解决了 401 未认证断开问题 (#958)。
 
-### 🛠️ 维护
+### 维护
 
 - **UI 可发现性：** 正确调整了布局分类，明确将免费层服务商逻辑分离，提升了通用 API 注册页面的 UX 排序流程 (#950)。
 - **部署拓扑：** 统一了 Docker 部署 artifact，确保根 `fly.toml` 与预期的云实例参数开箱即用匹配，原生处理自动化部署，正确缩放。
@@ -8297,7 +8296,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.4.6] - 2026-04-02
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8316,7 +8315,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **控制台 UI：** 为新的 Memory 和 Skills 模块新增独立侧边栏导航 (#926)。
 - **i18n：** 为 Memory 和 Skills 命名空间添加了 30 种语言的翻译字符串和布局映射。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8338,7 +8337,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.4.5] - 2026-04-02
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8357,7 +8356,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Qoder PAT 支持：** 通过本地 `qodercli` 传输直接集成了 Personal Access Tokens (PAT) 支持，替代了旧版远程 `.cn` 浏览器配置 (#913)。
 - **Gemini 3.1 Pro Preview (GitHub)：** 在 GitHub Copilot 服务商中为 `gemini-3.1-pro-preview` 原生增加了规范显式模型支持，同时保留了旧的路由别名 (#924)。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8380,7 +8379,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.4.4] - 2026-04-02
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8397,7 +8396,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **优雅关机信号：** 将 `/api/restart` 和 `/api/shutdown` 路由从 `process.exit(0)` 改为 `process.kill(SIGTERM)`，确保关机处理程序在退出前运行。
 - **Docker 停止宽限期：** 在 Docker Compose 文件中添加了 `stop_grace_period: 40s`，并在 Docker run 示例中添加了 `--stop-timeout 40`。
 
-### 🛠️ 维护
+### 维护
 
 - 关闭了 5 个已解决/非问题的 Issue (#872, #814, #816, #890, #877)。
 - 对 6 个 Issue 进行了分诊，请求补充信息 (#892, #887, #886, #865, #895, #870)。
@@ -8407,7 +8406,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.4.3] - 2026-04-02
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8431,7 +8430,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **模型增强：** 为所有 opencode-zen 模型添加了显式的 `contextLength`。
 - **i18n 与翻译：** 原生集成了 33 种语言的翻译，包括占位 CI 校验和中文文档更新 (#873, #869)。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8460,7 +8459,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **MCP 类型加固：** 从 MCP 服务器工具注册路径中移除了零预算的显式 `any` 退化。
 - **模型同步引擎：** 在服务商的自动同步产生空模型列表时，绕过破坏性的 `replace` 覆盖，保持动态目录的稳定性 (#899)。
 
-### 🛠️ 维护
+### 维护
 
 - **流水线日志：** 细化了流水线日志 artifact 并强制执行留存上限 (#880)。
 - **AGENTS.md 大幅精简：** 从 297 行压缩至 153 行。新增构建/测试/代码风格指南、代码工作流（Prettier、TypeScript、ESLint），并精简了冗长的表格 (#882)。
@@ -8474,7 +8473,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 > **BREAKING CHANGE: request logging, retention, and logging environment variables have been redesigned.**
 > On the first startup after upgrading, OmniRoute archives legacy request logs from `DATA_DIR/logs/`, legacy `DATA_DIR/call_logs/`, and `DATA_DIR/log.txt` into `DATA_DIR/log_archives/*.zip`, then removes the deprecated layout and switches to the new unified artifact format under `DATA_DIR/call_logs/`.
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8497,7 +8496,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Opencode-Zen 模型：** 在 opencode-zen 注册表中新增 4 个免费模型 (#854)
 - **测试：** 新增用于设置开关和 bug 修复的单元和 E2E 测试 (#850)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8520,13 +8519,13 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Claude Code/Codex 翻译：** 保护非流式载荷转换免受上游 Codex 工具的空响应影响，避免灾难性 TypeErrors (#866)
 - **NVIDIA NIM 渲染：** 有条件地剥离音频模型动态推送的相同服务商前缀，消除导致 Media Playground 上出现 404 的重复 `nim/nim` 标签结构 (#872)
 
-### ⚠️ 破坏性变更
+### 破坏性变更
 
 - **请求日志布局：** 移除了旧的多文件 `DATA_DIR/logs/` 请求日志会话和 `DATA_DIR/log.txt` 摘要文件。新请求写入 `DATA_DIR/call_logs/YYYY-MM-DD/` 下的单一 JSON artifact 中。
 - **日志环境变量：** 将 `LOG_*`、`ENABLE_REQUEST_LOGS`、`CALL_LOGS_MAX`、`CALL_LOG_PAYLOAD_MODE` 和 `PROXY_LOG_MAX_ENTRIES` 替换为新的 `APP_LOG_*` 和 `CALL_LOG_RETENTION_DAYS` 配置模型。
 - **管道切换设置：** 将旧版 `detailed_logs_enabled` 设置替换为 `call_log_pipeline_enabled`。新的管道详细信息嵌入到请求 artifact 中，而非存储为独立的 `request_detail_logs` 记录。
 
-### 🛠️ 维护
+### 维护
 
 - **旧版请求日志升级备份：** 升级现在会将旧 `data/logs/`、旧版 `data/call_logs/` 和 `data/log.txt` 布局归档到 `DATA_DIR/log_archives/*.zip` 中，然后移除废弃结构。
 - **流式用量持久化：** 流式请求现在在完成时写入单一的 `usage_history` 行，而非发送包含空状态元数据的重复进行中用量行。
@@ -8536,14 +8535,14 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.4.0] - 2026-03-31
 
-### 🚀 功能
+### 功能
 
 - **订阅用量分析：** 新增配额快照时序追踪、包含 recharts 可视化的服务商利用率和 Combo 健康度标签页，以及相应的 API 端点 (#847)
 - **SQLite 备份控制：** 新增 `OMNIROUTE_DISABLE_AUTO_BACKUP` 环境变量标志，用于禁用自动 SQLite 备份 (#846)
 - **模型注册表更新：** 在 Codex 服务商的模型数组中注入了 `gpt-5.4-mini` (#756)
 - **服务商限制追踪：** 追踪并显示每个帐号的服务商速率限制最后刷新时间 (#843)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8570,7 +8569,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.3.9] - 2026-03-31
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8588,13 +8587,13 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.3.8] - 2026-03-30
 
-### 🚀 功能
+### 功能
 
 - **Models API 筛选：** 端点 `/v1/models` 现在在启用受限访问时，根据 `Authorization: Bearer <token>` 关联的权限动态过滤其列表 (#781)
 - **Qoder 集成：** 为 Qoder AI 提供原生集成，原生替代旧版 iFlow 平台映射 (#660)
 - **提示缓存追踪：** 新增追踪能力以及控制台 UI 中语义和提示缓存的前端可视化（统计卡片）
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8616,7 +8615,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.3.7] - 2026-03-30
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8635,7 +8634,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.3.6] - 2026-03-30
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8655,7 +8654,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.3.5] - 2026-03-30
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8673,7 +8672,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Gemini 配额追踪：** 通过 `retrieveUserQuota` API 新增实时 Gemini CLI 配额追踪 (PR #825)
 - **Cache 控制台：** 增强了 Cache 控制台，以显示提示缓存指标、24 小时趋势和预估成本节省 (PR #824)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8692,7 +8691,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.3.4] - 2026-03-30
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8715,7 +8714,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **服务商多样性：** 通过 Shannon 熵实现了服务商多样性评分，改善负载分配。
 - **自动禁用边界：** 在容灾控制台中新增了自动禁用被封帐户的设置开关。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8731,7 +8730,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **发布自动化：** 扩展了 GitHub Actions 中 Electron App 构建所需的权限。
 - **Cloudflare 运行时：** 解决了 Cloudflared 隧道组件的正确运行时隔离退出代码。
 
-### 🧪 测试
+### 测试
 
 - **测试套件更新：** 扩展了流量检测器、服务商多样性、配置审计和 FSM 的测试覆盖。
 
@@ -8739,7 +8738,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.3.3] - 2026-03-29
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8760,7 +8759,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.3.2] - 2026-03-29
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8778,7 +8777,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Cloudflare 隧道：** Cloudflare Quick Tunnel 集成，具备控制台控制功能 (PR #772)。
 - **诊断：** 为 Combo 实时测试绕过语义缓存 (PR #773)。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8798,7 +8797,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.3.1] - 2026-03-29
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8819,11 +8818,11 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.3.0] - 2026-03-29
 
-### ✨ 增强与重构
+### 增强与重构
 
 - **发布稳定** — 完成了 v3.2.9 发布（Combo 诊断、质量门禁、Gemini 工具修复），并创建了缺失的 git 标签。将所有暂存变更合并为一次原子发布提交。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8842,12 +8841,12 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.2.9] - 2026-03-29
 
-### ✨ 增强与重构
+### 增强与重构
 
 - **Combo 诊断** — 引入了实时测试绕过标志（`forceLiveComboTest`），允许管理员执行真实的上游健康检查，绕过所有本地熔断器和冷却状态机制，在滚动中断期间实现精准诊断 (PR #759)
 - **质量门禁** — 新增了 Combo 的自动响应质量校验，并将 `claude-4.6` 模型正式集成到核心路由 Schema 中 (PR #762)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8865,12 +8864,12 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.2.8] - 2026-03-29
 
-### ✨ 增强与重构
+### 增强与重构
 
 - **Docker 自动更新 UI** — 集成了 Docker Compose 部署的分离式后台更新流程。控制台 UI 现在无缝追踪更新生命周期事件，结合 JSON REST 响应和 SSE 流式进度覆盖，实现跨环境的稳健可靠性。
 - **缓存分析** — 通过将语义缓存遥测日志直接迁移到集中式 SQLite 追踪模块，修复了零指标可视化映射。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8900,14 +8899,14 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.2.6] — 2026-03-29
 
-### ✨ 增强与重构
+### 增强与重构
 
 - **API 密钥显示 (#740)** — 在 API 管理器中新增了受 `ALLOW_API_KEY_REVEAL` 环境变量保护的受限 API 密钥复制流程。
 - **侧边栏可见性控制 (#739)** — 管理员现在可以通过外观设置隐藏任意侧边栏导航链接，减少视觉杂乱。
 - **严格 Combo 测试 (#735)** — 加固了 Combo 健康检查端点，要求模型返回真实的文本响应，而非仅仅软连接信号。
 - **流式详细日志 (#734)** — 将 SSE 流的详细请求日志切换为重建最终载荷，节省大量 SQLite 数据库空间，并显著清洁了 UI。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8925,17 +8924,17 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.2.5] — 2026-03-29
 
-### ✨ 增强与重构
+### 增强与重构
 
 - **Void Linux 部署支持 (#732)** — 集成了 `xbps-src` 打包模板和说明，通过交叉编译目标原生编译并安装 OmniRoute 及其 `better-sqlite3` 绑定。
 
 ## [3.2.4] — 2026-03-29
 
-### ✨ 增强与重构
+### 增强与重构
 
 - **Qoder AI 迁移 (#660)** — 将旧版 `iFlow` 核心服务商完全迁移到 `Qoder AI`，保持稳定的 API 路由能力。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8953,11 +8952,11 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.2.3] — 2026-03-29
 
-### ✨ 增强与重构
+### 增强与重构
 
 - **服务商限制配额 UI (#728)** — 在 Limits 界面中规范化了配额限制逻辑和数据标签。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -8977,7 +8976,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.2.2] — 2026-03-29
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -8994,7 +8993,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **四级请求日志流水线 (#705)** — 重构了日志持久化，在四个不同的流水线阶段保存完整载荷：客户端请求、翻译后的服务商请求、服务商响应和翻译后的客户端响应。引入了 `streamPayloadCollector` 用于稳健的 SSE 流截断和载荷序列化。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9012,7 +9011,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.2.1] — 2026-03-29
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -9029,7 +9028,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **全局容灾服务商 (#689)** — 当所有 Combo 模型均已耗尽（502/503），OmniRoute 现在在返回错误前尝试一个可配置的全局容灾模型。在设置中配置 `globalFallbackModel` 即可启用。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9045,13 +9044,13 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **修复 #709** — 确认已在 v3.1.9 修复 — `system-info.mjs` 递归创建目录。已关闭。
 - **修复 #707** — 确认已在 v3.1.9 修复 — `chatCore.ts` 中空工具名称的脱敏处理。已关闭。
 
-### 🧪 测试
+### 测试
 
 - 新增 6 个单元测试，用于工具调用响应中的上下文 Pinning（null 内容、数组内容、往返校验、重新注入）
 
 ## [3.2.0] — 2026-03-28
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -9070,7 +9069,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **GLM 配额追踪** — 为 GLM Coding (Z.AI) 服务商新增了实时用量和会话配额追踪 (PR #698 by @christopher-s)
 - **详细日志载荷** — 将完整的四级流水线载荷捕获（原始、翻译后、服务商响应、流式增量）直接接入 UI (PR #705 by @rdself)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9087,13 +9086,13 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **修复 #718** — 重建了服务商限制 UI 中的徽章渲染，防止配额边界重叠 (PR #718 by @rdself)
 - **修复 #704** — 修复了 Combo 容灾因 HTTP 400 内容策略错误而中断、阻止模型轮换路由发散的问题 (PR #704 by @rdself)
 
-### 🔒 安全 & Dependencies
+### 安全 & Dependencies
 
 - 将 \`path-to-regexp\` 升级至 \`8.4.0\`，解决 Dependabot 漏洞 (PR #715)
 
 ## [3.1.10] — 2026-03-28
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9112,7 +9111,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.1.9] — 2026-03-28
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -9133,7 +9132,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Codex Auth 导出** — 新增 Codex `auth.json` 导出和 Apply-Local 按钮，实现无缝的 CLI 集成。
 - **Windsurf BYOK 说明** — 在 Windsurf CLI 工具卡片中添加了官方限制警告，记录 BYOK 约束。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9151,14 +9150,14 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **修复 #605 / #592** — 在非流式 Claude 响应中剥离工具名称的 `proxy_` 前缀；修复了 LongCat 校验 URL。
 - **调用日志最大上限** — 升级了 `getMaxCallLogs()`，增加缓存层、环境变量支持（`CALL_LOGS_MAX`）以及 DB 设置集成。
 
-### 🧪 测试
+### 测试
 
 - 测试套件从 964 项扩展至 1027 项（新增 63 项测试）
 - 新增 `schema-coercion.test.mjs` — 针对数值字段强制转换和工具描述脱敏的 9 项测试
 - 新增 `t40-opencode-cli-tools-integration.test.mjs` — OpenCode/Windsurf CLI 集成测试
 - 增强了功能测试分支，配备了全面的覆盖率工具
 
-### 📁 新文件
+### 新文件
 
 | 文件                                                     | 用途                              |
 | -------------------------------------------------------- | --------------------------------- |
@@ -9167,7 +9166,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 | `tests/unit/t40-opencode-cli-tools-integration.test.mjs` | CLI 工具集成测试                  |
 | `COVERAGE_PLAN.md`                                       | 测试覆盖率规划文档                |
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9183,7 +9182,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.1.8] - 2026-03-27
 
-### 🐛 问题修复 & Features
+### 问题修复 & Features
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9201,7 +9200,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.1.7] - 2026-03-27
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9220,7 +9219,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.1.6] — 2026-03-27
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9239,7 +9238,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.1.5] — 2026-03-27
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9253,7 +9252,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **退避自动衰减** — 被速率限制的账户现可在冷却窗口到期后自动恢复，修复了高 `backoffLevel` 导致账户被永久降权的死锁问题（PR #657，作者 @brendandebeasi）
 
-### 🌍 i18n
+### i18n
 
 - **中文翻译全面重写** — 全面重写 `zh-CN.json`，提升翻译准确性（PR #658，作者 @only4copilot）
 
@@ -9261,7 +9260,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.1.4] — 2026-03-27
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9275,7 +9274,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **流式传输覆盖修复** — 请求体中显式的 `stream: true` 现在优先于 `Accept: application/json` 头。同时发送两者的客户端将正确收到 SSE 流式传输响应 (#656)
 
-### 🌍 i18n
+### i18n
 
 - **捷克语字符串优化** — 优化 `cs.json` 中的术语翻译（PR #655，作者 @zen0bit）
 
@@ -9283,7 +9282,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.1.3] — 2026-03-26
 
-### 🌍 i18n & Community
+### i18n & Community
 
 - 将约 **70 个缺失的翻译键** 添加到 `en.json` 和 12 种语言中（PR #652，作者 @zen0bit）
 - **捷克语文档更新** — CLI-TOOLS、API_REFERENCE、VM_DEPLOYMENT 指南（PR #652）
@@ -9293,7 +9292,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.1.2] — 2026-03-26
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9308,7 +9307,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **严重: 工具调用回归** — 通过在 Claude 透传路径中禁用 `proxy_` 工具名称前缀，修复了 `proxy_Bash` 错误。`Bash`、`Read`、`Write` 等工具之前被重命名为 `proxy_Bash`、`proxy_Read` 等，导致 Claude 拒绝使用它们 (#618)
 - **Kiro 账户封禁文档** — 记录为上游 AWS 反欺诈误报，非 OmniRoute 的问题 (#649)
 
-### 🧪 测试
+### 测试
 
 - **936 tests, 0 failures**
 
@@ -9316,7 +9315,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.1.1] — 2026-03-26
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -9334,7 +9333,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **视觉能力元数据**: 为支持视觉的模型在 `/v1/models` 中添加 `capabilities.vision`、`input_modalities` 和 `output_modalities` 字段（PR #646）
 - **Gemini 3.1 模型**: 将 `gemini-3.1-pro-preview` 和 `gemini-3.1-flash-lite-preview` 添加到 Antigravity 服务商中 (#645)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9349,7 +9348,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Ollama Cloud 401 错误**: 修复了错误的 API 基础 URL — 从 `api.ollama.com` 更改为官方地址 `ollama.com/v1/chat/completions` (#643)
 - **过期 Token 重试**: 为过期的 OAuth 连接添加有界重试与指数退避（5→10→20 分钟），而非永久跳过它们（PR #647）
 
-### 🧪 测试
+### 测试
 
 - **936 tests, 0 failures**
 
@@ -9357,7 +9356,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.1.0] — 2026-03-26
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -9375,7 +9374,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **GitHub Issue 模板**: 添加了标准化的 Bug 报告、功能请求以及配置/代理 Issue 模板 (#641)
 - **清除所有模型**: 在服务商详情页添加"清除所有模型"按钮，支持 29 种语言的 i18n (#634)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9393,7 +9392,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Claude 推理力度**: 在所有请求路径中将 OpenAI `reasoning_effort` 参数转换为 Claude 原生的 `thinking` 预算块，包括自动调整 `max_tokens` (#627)
 - **Qwen Token 刷新**: 实现主动的过期前 OAuth Token 刷新（提前 5 分钟缓冲），防止使用短效 Token 时请求失败 (#631)
 
-### 🧪 测试
+### 测试
 
 - **936 项测试, 0 失败** (较 3.0.9 增加 10 项)
 
@@ -9401,7 +9400,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.0.9] — 2026-03-26
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9416,11 +9415,11 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **Claude Code / 客户端响应中 Token 显示为 NaN (#617):**
   - `sanitizeUsage()` 现在在白名单过滤器之前对 `input_tokens`→`prompt_tokens` 和 `output_tokens`→`completion_tokens` 进行互映射，修复当服务商返回 Claude 风格的用量字段名时，响应显示 NaN/0 Token 数的问题
 
-### 🔒 安全
+### 安全
 
 - 升级 `yaml` 包以修复栈溢出漏洞 (GHSA-48c2-rrv3-qjmp)
 
-### 📋 Issue Triage
+### Issue Triage
 
 - 关闭 #613 (Codestral — 通过自定义服务商变通方案解决)
 - 评论 #615 (OpenCode 双端点 — 已提供变通方案，作为功能请求跟踪)
@@ -9431,7 +9430,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.0.8] — 2026-03-25
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9454,7 +9453,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.0.7] — 2026-03-25
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9472,7 +9471,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **代理容灾:** 添加 SOCKS5 中继失败时自动无代理重试
 - **代理测试:** 测试端点现在通过 proxyId 从数据库解析真实凭证
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -9491,7 +9490,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **CLI 工具动态模型:** 模型选择现在从 `/v1/models` API 动态获取 — Kiro 等服务商现在可显示其完整模型目录
 - **Antigravity 模型列表:** 更新为 Claude Sonnet 4.5、Claude Sonnet 4、GPT 5、GPT 5 Mini；启用 `passthroughModels` 以实现动态模型访问 (#628)
 
-### 🔧 维护
+### 维护
 
 - 合并 PR #625 — 修复服务商限额浅色模式背景显示问题
 
@@ -9499,7 +9498,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.0.6] — 2026-03-25
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9515,7 +9514,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **CI:** 修复在没有服务商连接的 CI 环境中集成测试 `v1/models` 断言失败的问题
 - **设置:** 代理测试按钮现在立即显示成功/失败结果（此前隐藏在健康数据之后）
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -9532,7 +9531,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **Playground:** 添加账户选择器下拉菜单 — 当服务商有多个账户时可单独测试特定连接
 
-### 🔧 维护
+### 维护
 
 - 合并 PR #623 — 修正 LongCat API 基础 URL 路径
 
@@ -9540,7 +9539,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.0.5] — 2026-03-25
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -9561,7 +9560,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.0.4] — 2026-03-25
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9582,7 +9581,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.0.3] — 2026-03-25
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -9599,7 +9598,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 - **自动同步模型:** 添加了 UI 开关和 `sync-models` 端点，通过定时调度器自动按服务商同步模型列表（PR #597）
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9616,13 +9615,13 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - **流式传输日志:** 在流式响应日志中实现 `tool_calls` delta 累积，使函数调用在数据库中准确跟踪和持久化（PR #603）
 - **模型目录:** 移除认证豁免，当服务商未显式配置时正确隐藏 `comfyui` 和 `sdwebui` 模型（PR #599）
 
-### 🌐 翻译
+### 翻译
 
 - **cs:** 全面优化了应用中的捷克语翻译字符串（PR #601）
 
 ## [3.0.2] — 2026-03-25
 
-### 🚀 功能增强
+### 功能增强
 
 #### 功能(ui): 连接标签分组
 
@@ -9631,7 +9630,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 - 无标签连接首先显示且不带标题，然后是带标签的分组按字母顺序排列。
 - 标签分组自动应用于 Codex/Copilot/Antigravity 限额部分，因为开关位于连接行内。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9658,7 +9657,7 @@ must be a response to a preceding message with 'tool_calls'` 错误，当 Codex
 
 ## [3.0.1] — 2026-03-25
 
-### 🔧 热修复补丁 — 严重 Bug 修复
+### 热修复补丁 — 严重 Bug 修复
 
 v3.0.0 发布后用户报告的三个严重回归问题已解决。
 
@@ -9682,7 +9681,7 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 
 ---
 
-### 🔀 社区 PR 合并 (2)
+### 社区 PR 合并 (2)
 
 | PR       | Author  | 摘要                                                |
 | -------- | ------- | --------------------------------------------------- |
@@ -9691,13 +9690,13 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 
 ---
 
-### ✅ 已解决的问题
+### 已解决的问题
 
 `#592` `#595` `#605`
 
 ---
 
-### 🧪 测试
+### 测试
 
 - **926 项测试, 0 失败** (与 v3.0.0 相同)
 
@@ -9705,7 +9704,7 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 
 ## [3.0.0] — 2026-03-24
 
-### 🎉 OmniRoute v3.0.0 — 免费 AI 网关，现已支持 67+ 服务商
+### OmniRoute v3.0.0 — 免费 AI 网关，现已支持 67+ 服务商
 
 > **史上最大版本发布。** 从 v2.9.5 的 36 个服务商增长到 v3.0.0 的 **67+ 服务商** — 配备 MCP 服务端、A2A 协议、Auto-Combo 引擎、服务商图标、注册密钥 API、926 项测试，并有来自 **12 位社区成员**的 **10 个合并 PR** 参与贡献。
 >
@@ -9713,7 +9712,7 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 
 ---
 
-### 🆕 新增服务商 (+31 since v2.9.5)
+### 新增服务商 (+31 since v2.9.5)
 
 | 服务商                        | 别名            | 层级   | 说明                                                                    |
 | ----------------------------- | --------------- | ------ | ----------------------------------------------------------------------- |
@@ -9753,9 +9752,9 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 
 ---
 
-### ✨ 重大功能
+### 重大功能
 
-#### 🔑 注册密钥颁发 API (#464)
+#### 注册密钥颁发 API (#464)
 
 通过编程方式自动生成和颁发 OmniRoute API 密钥，支持按服务商和按账户配额管控。
 
@@ -9771,15 +9770,15 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 
 **安全:** 密钥以 SHA-256 哈希存储。原始密钥在创建时显示一次，之后无法再次获取。
 
-#### 🎨 服务商图标 via @lobehub/icons (#529)
+#### 服务商图标 via @lobehub/icons (#529)
 
 130+ 服务商 Logo，使用 `@lobehub/icons` React 组件 (SVG)。回退链: **Lobehub SVG → 已有 PNG → 通用图标**。通过标准化的 `ProviderIcon` 组件应用于控制台、服务商和代理页面。
 
-#### 🔄 模型自动同步调度器 (#488)
+#### 模型自动同步调度器 (#488)
 
 每 **24 小时**自动刷新已连接服务商的模型列表。服务端启动时运行。可通过 `MODEL_SYNC_INTERVAL_HOURS` 配置。
 
-#### 🔀 按模型 Combo 路由 (#563)
+#### 按模型 Combo 路由 (#563)
 
 将模型名称模式 (glob) 映射到特定 Combo 以实现自动路由:
 
@@ -9787,29 +9786,29 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 - 新增 `model_combo_mappings` 表，支持 glob 到正则表达式匹配
 - 控制台 UI 区块: "Model Routing Rules" 支持行内添加/编辑/切换/删除
 
-#### 🧭 API 端点控制台
+#### API 端点控制台
 
 交互式目录、Webhook 管理、OpenAPI 查看器 — 全部整合在 `/dashboard/endpoint` 的标签页中。
 
-#### 🔍 Web 搜索服务商
+#### Web 搜索服务商
 
 5 个新搜索服务商集成: **Perplexity Search**、**Serper**、**Brave Search**、**Exa**、**Tavily** — 支持基于实时 Web 数据的增强 AI 响应。
 
-#### 📊 搜索分析
+#### 搜索分析
 
 `/dashboard/analytics` 中的新标签页 — 服务商分布、缓存命中率、成本追踪。API: `GET /api/v1/search/analytics`。
 
-#### 🛡️ 按 API 密钥的速率限制 (#452)
+#### 按 API 密钥的速率限制 (#452)
 
 `max_requests_per_day` 和 `max_requests_per_minute` 列，使用内存滑动窗口管控，返回 HTTP 429。
 
-#### 🎵 媒体 Playground
+#### 媒体 Playground
 
 `/dashboard/media` 提供完整的媒体生成 Playground: 图像生成、视频、音乐、音频转录（2GB 上传限制）和文字转语音。
 
 ---
 
-### 🔒 安全 & CI/CD
+### 安全 & CI/CD
 
 - **CodeQL 修复** — 修复 10+ 告警: 6 个多项式正则拒绝服务、1 个不安全随机数 (`Math.random()` → `crypto.randomUUID()`)、1 个 Shell 命令注入
 - **路由校验** — Zod Schema + `validateBody()` 覆盖 **176/176 个 API 路由** — CI 强制检查
@@ -9819,7 +9818,7 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 
 ---
 
-### 🐛 问题修复 (40+)
+### 问题修复 (40+)
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -9873,7 +9872,7 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 
 ---
 
-### 🔧 基础设施与改进
+### 基础设施与改进
 
 #### Sub2api Gap Analysis (T01–T15 + T23–T42)
 
@@ -9916,7 +9915,7 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 
 ---
 
-### 🌐 国际化与文档
+### 国际化与文档
 
 - **30 种语言** 达到 100% 同步 — 同步了 2,788 个缺失的翻译键
 - **捷克语** — 完整翻译: 22 篇文档, 2,606 个 UI 字符串 (PR by @zen0bit)
@@ -9927,7 +9926,7 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 
 ---
 
-### 🔀 社区 PR 合并 (10)
+### 社区 PR 合并 (10)
 
 | PR       | Author          | 摘要                                                        |
 | -------- | --------------- | ----------------------------------------------------------- |
@@ -9951,24 +9950,24 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 | **#479** | @prakersh       | feat: Codex 5.3/5.4 和 Anthropic 定价条目                   |
 | **#475** | @only4copilot   | feat(i18n): 优化中文翻译                                    |
 
-**感谢所有贡献者！** 🙏
+**感谢所有贡献者！** 
 
 ---
 
-### 📋 问题处理 (50+)
+### 问题处理 (50+)
 
 `#452` `#458` `#462` `#464` `#466` `#473` `#474` `#481` `#483` `#487` `#488` `#489` `#490` `#491` `#492` `#493` `#506` `#508` `#509` `#510` `#511` `#513` `#520` `#521` `#522` `#524` `#525` `#527` `#529` `#531` `#532` `#535` `#536` `#537` `#541` `#546` `#549` `#563` `#570` `#574` `#585`
 
 ---
 
-### 🧪 测试
+### 测试
 
 - **926 项测试, 0 失败** (从 v2.9.5 的 821 项增加)
 - +105 项新测试涵盖: 模型-Combo 映射、注册密钥、OpencodeExecutor、Bailian 服务商、路由校验、错误分类、宽高比映射等
 
 ---
 
-### 📦 数据库迁移
+### 数据库迁移
 
 | 迁移    | 说明                                                              |
 | ------- | ----------------------------------------------------------------- |
@@ -9978,7 +9977,7 @@ MCP 工具（如 `pencil`、`computer_use`）转发带有 `{type:"object"}` 但�
 
 ---
 
-### ⬆️ 从 v2.9.5 升级
+### ⬆ 从 v2.9.5 升级
 
 ```bash
 # npm
@@ -9997,7 +9996,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 ## [3.0.0-rc.17] — 2026-03-24
 
-### 🔒 安全 & CI/CD
+### 安全 & CI/CD
 
 - **CodeQL 修复** — 修复 10+ 告警:
   - 6 个多项式正则拒绝服务 在 `provider.ts` / `chatCore.ts` 中 (用基于段匹配替换 `(?:^|/)` 交替模式)
@@ -10007,7 +10006,7 @@ docker pull diegosouzapw/omniroute:3.0.0
   - `model-combo-mappings` (POST, PUT), `webhooks` (POST, PUT), `openapi/try` (POST)
   - CI `check:route-validation:t06` 现在通过: **176/176 路由已校验**
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -10021,12 +10020,12 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 - **#585** — `<omniModel>` 内部标签不再泄露到 SSE 响应的客户端。在 `combo.ts` 中添加了出站脱敏 `TransformStream`
 
-### ⚙️ 基础设施
+### 基础设施
 
 - **Docker** — 升级 `docker/setup-buildx-action` 从 v3 → v4 (Node.js 20 废弃修复)
 - **CI 清理** — 删除 150+ 失败/已取消的工作流运行
 
-### 🧪 测试
+### 测试
 
 - 测试套件: **926 项测试, 0 失败** (+3 项新增)
 
@@ -10034,7 +10033,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 ## [3.0.0-rc.16] — 2026-03-24
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -10056,7 +10055,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 ## [3.0.0-rc.15] — 2026-03-24
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -10080,24 +10079,24 @@ docker pull diegosouzapw/omniroute:3.0.0
   - 控制台: Combo 页面新增"模型路由规则"区块，支持行内添加/编辑/切换/删除
   - 示例: `claude-sonnet*` → code-combo, `gpt-4o*` → openai-combo, `gemini-*` → google-combo
 
-### 🌐 i18n
+### i18n
 
 - **全文 i18n 同步**: 2,788 个缺失的键已添加到 30 个语言文件中 — 所有语言现在与 `en.json` 达到 100% 一致
 - **Agents 页面 i18n**: OpenCode 集成部分完全国际化（标题、描述、扫描、下载标签）
 - **6 个新键** 添加到 `agents` 命名空间用于 OpenCode 部分
 
-### 🎨 UI/UX
+### UI/UX
 
 - **服务商图标**: 新增 16 个缺失的服务商图标 (3 个复制, 2 个下载, 11 个 SVG 创建)
 - **SVG 回退**: `ProviderIcon` 组件升级为 4 层策略: Lobehub → PNG → SVG → 通用图标
 - **Agents 指纹识别**: 与 CLI 工具同步 — 将 droid, openclaw, copilot, opencode 添加到指纹列表 (共 14 个)
 
-### 🔒 安全
+### 安全
 
 - **CVE 修复**: 通过 npm overrides 强制使用 `dompurify@^3.3.2`，解决 dompurify XSS 漏洞 (GHSA-v2wj-7wpq-c8vv)
 - `npm audit` 现在报告 **0 个漏洞**
 
-### 🧪 测试
+### 测试
 
 - 测试套件: **923 项测试, 0 失败** (+15 项新增模型-Combo 映射测试)
 
@@ -10105,14 +10104,14 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 ## [3.0.0-rc.14] — 2026-03-23
 
-### 🔀 社区 PR 合并
+### 社区 PR 合并
 
 | PR       | Author   | 摘要                                                               |
 | -------- | -------- | ------------------------------------------------------------------ |
 | **#562** | @coobabm | fix(ux): MCP 会话管理, Claude 透传规范化, OAuth 弹窗, detectFormat |
 | **#561** | @zen0bit | fix(i18n): 捷克语翻译修正 — HTTP 方法名称和文档更新                |
 
-### 🧪 测试
+### 测试
 
 - 测试套件: **908 项测试, 0 失败**
 
@@ -10120,7 +10119,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 ## [3.0.0-rc.13] — 2026-03-23
 
-### 🔧 问题修复
+### 问题修复
 
 - **配置:** 从 CLI 设置路由 (`codex-settings`, `droid-settings`, `kilo-settings`) 中的 `keyId` 解析真实 API 密钥，防止写入脱敏字符串 (#549)
 
@@ -10128,7 +10127,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 ## [3.0.0-rc.12] — 2026-03-23
 
-### 🔀 社区 PR 合并
+### 社区 PR 合并
 
 | PR       | Author   | 摘要                                                                                                                              |
 | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -10137,12 +10136,12 @@ docker pull diegosouzapw/omniroute:3.0.0
 | **#544** | @k0valik | fix(cli): 通过已知安装路径（8 个工具）实现安全的 CLI 工具检测，包含符号链接验证、文件类型检查、大小限制、健康检查中的最小化环境   |
 | **#542** | @rdself  | fix(ui): 优化浅色模式对比度 — 添加缺失的 CSS 主题变量 (`bg-primary`, `bg-subtle`, `text-primary`)，修复日志详情中仅深色模式的颜色 |
 
-### 🔧 问题修复
+### 问题修复
 
 - **`cliRuntime.ts` 中的 TDZ 修复** — `validateEnvPath` 在 `getExpectedParentPaths()` 启动模块时在初始化之前被使用。重新排序声明以修复 `ReferenceError`。
 - **构建修复** — 将 `pino` 和 `pino-pretty` 添加到 `serverExternalPackages`，防止 Turbopack 破坏 Pino 的内部 worker 加载。
 
-### 🧪 测试
+### 测试
 
 - 测试套件: **905 项测试, 0 失败**
 
@@ -10150,7 +10149,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 ## [3.0.0-rc.10] — 2026-03-23
 
-### 🔧 问题修复
+### 问题修复
 
 - **#509 / #508** — Electron 构建回归: 将 Next.js 从 `16.1.x` 降级到 `16.0.10`，以消除 Turbopack 模块哈希不稳定性，该问题导致 Electron 桌面包出现白屏。
 - **单元测试修复** — 修正了两项已过时测试断言（`nanobanana-image-handler` 宽高比/分辨率, `thinking-budget` Gemini `thinkingConfig` 字段映射），它们与最近的实现变更产生了偏差。
@@ -10160,7 +10159,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 ## [3.0.0-rc.9] — 2026-03-23
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -10179,7 +10178,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 - **T42** — 图像生成宽高比映射: 创建了 `sizeMapper` 逻辑用于通用 OpenAI 格式 (`size`)，添加了原生 `imagen3` 处理，并更新 NanoBanana 端点以自动使用映射的宽高比。
 - **T38** — 集中式模型规格说明: 创建了 `modelSpecs.ts` 用于每个模型的上限和参数配置。
 
-### 🔧 改进
+### 改进
 
 - **T40** — OpenCode CLI 工具集成: 原生 `opencode-zen` 和 `opencode-go` 集成已在之前的 PR 中完成。
 
@@ -10187,7 +10186,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 ## [3.0.0-rc.8] — 2026-03-23
 
-### 🔧 问题修复 & Improvements (Fallback, Quota & Budget)
+### 问题修复 & Improvements (Fallback, Quota & Budget)
 
 - **T24** — `503` 冷却等待修复 + `406` 映射: 将 `406 Not Acceptable` 映射到 `503 Service Unavailable` 并设置正确的冷却间隔。
 - **T25** — 服务商校验容灾: 当特定 `validationModelId` 不存在时，优雅地回退到标准校验模型。
@@ -10203,7 +10202,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 > **从 v2.9.5 升级:** 16 个问题已解决 · 2 个社区 PR 已合并 · 2 个新服务商 · 7 个新 API 端点 · 3 个新功能 · 数据库迁移 008+009 · 832 项测试通过 · 15 项 sub2api 差距改进（T01–T15 完成）。
 
-### 🆕 新服务商
+### 新服务商
 
 | 服务商           | 别名           | 层级 | 说明                                                                 |
 | ---------------- | -------------- | ---- | -------------------------------------------------------------------- |
@@ -10214,7 +10213,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 
 ---
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -10229,7 +10228,7 @@ docker pull diegosouzapw/omniroute:3.0.0
 - **功能(providers):** 集成 AgentRouter 作为新的 OpenAI 兼容透传服务商，注册即享 $200 免费积分 (Issue #1572)。
 - **功能(ui):** 在服务商控制台中实现按需单模型测试，支持单个 Token 诊断检查而不触发速率限制 (Issue #1532)。
 
-#### 🔑 注册密钥颁发 API (#464)
+#### 注册密钥颁发 API (#464)
 
 通过编程方式自动生成和颁发 OmniRoute API 密钥，支持按服务商和按账户配额管控。
 
@@ -10252,12 +10251,12 @@ docker pull diegosouzapw/omniroute:3.0.0
 **每密钥预算:** `dailyBudget` / `hourlyBudget` — 限制每个密钥每个窗口内可路由的请求数量。
 **GitHub 报告:** 可选。设置 `GITHUB_ISSUES_REPO` + `GITHUB_ISSUES_TOKEN` 以在配额超出或颁发失败时自动创建 GitHub Issue。
 
-#### 🎨 服务商图标 — @lobehub/icons (#529)
+#### 服务商图标 — @lobehub/icons (#529)
 
 控制台中的所有服务商图标现在使用 `@lobehub/icons` React 组件（130+ 服务商，SVG）。
 回退链: **Lobehub SVG → 已有的 `/providers/{id}.png` → 通用图标**。使用正确的 React `ErrorBoundary` 模式。
 
-#### 🔄 模型自动同步调度器 (#488)
+#### 模型自动同步调度器 (#488)
 
 OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表。
 
@@ -10268,7 +10267,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ---
 
-### 🔧 问题修复
+### 问题修复
 
 #### OAuth & 认证
 
@@ -10296,20 +10295,20 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ---
 
-### 📖 文档更新
+### 文档更新
 
 - **#513** — Docker 密码重置: 文档化了 `INITIAL_PASSWORD` 环境变量变通方案
 - **#520** — pnpm: 文档化了 `pnpm approve-builds better-sqlite3` 步骤
 
 ---
 
-### ✅ v3.0.0 中已解决的问题
+### v3.0.0 中已解决的问题
 
 `#464` `#488` `#489` `#492` `#510` `#513` `#520` `#521` `#522` `#524` `#527` `#529` `#532` `#535` `#536` `#537`
 
 ---
 
-### 🔀 社区 PR 合并
+### 社区 PR 合并
 
 | PR       | Author       | 摘要                                                              |
 | -------- | ------------ | ----------------------------------------------------------------- |
@@ -10319,7 +10318,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ## [3.0.0-rc.7] - 2026-03-23
 
-### 🔧 改进 (sub2api Gap Analysis — T05, T08, T09, T13, T14)
+### 改进 (sub2api Gap Analysis — T05, T08, T09, T13, T14)
 
 - **T05** — 速率限制数据库持久化: `providers.ts` 中的 `setConnectionRateLimitUntil()`, `isConnectionRateLimited()`, `getRateLimitedConnections()`。已有的 `rate_limited_until` 列现在暴露为专用 API — OAuth Token 刷新**不得**修改此字段以防止速率限制循环。
 - **T08** — 按 API 密钥的会话限制: `max_sessions INTEGER DEFAULT 0` 通过自动迁移添加到 `api_keys` 表中。`sessionManager.ts` 新增 `registerKeySession()`, `unregisterKeySession()`, `checkSessionLimit()`, 和 `getActiveSessionCountForKey()`。`chatCore.js` 中的调用方可以强制限制并在 `req.close` 时递减。
@@ -10327,7 +10326,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **T13** — 过期配额显示修复: `getEffectiveQuotaUsage(used, resetAt)` 在重置窗口过期时返回 `0`；`formatResetCountdown(resetAt)` 返回人类可读的倒计数字符串（如 `"2h 35m"`）。两者均从 `providers.ts` + `localDb.ts` 导出以供控制台使用。
 - **T14** — 代理快速失败: 新增 `src/lib/proxyHealth.ts`，包含 `isProxyReachable(proxyUrl, timeoutMs=2000)`（TCP 检查，≤2s 替代 30s 超时）、`getCachedProxyHealth()`, `invalidateProxyHealth()`, 和 `getAllProxyHealthStatuses()`。结果默认缓存 30s；可通过 `PROXY_FAST_FAIL_TIMEOUT_MS` / `PROXY_HEALTH_CACHE_TTL_MS` 配置。
 
-### 🧪 测试
+### 测试
 
 - 测试套件: **832 项测试, 0 失败**
 
@@ -10335,7 +10334,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ## [3.0.0-rc.6] - 2026-03-23
 
-### 🔧 问题修复 & Improvements (sub2api Gap Analysis — T01–T15)
+### 问题修复 & Improvements (sub2api Gap Analysis — T01–T15)
 
 - **T01** — `call_logs` 中的 `requested_model` 列 (migration 009): 跟踪客户端原始请求的模型与实际路由到的模型。支持容灾率分析。
 - **T02** — 从嵌套的 `tool_result.content` 中剥离空文本块: 防止 Claude Code 链式调用工具结果时返回 Anthropic 400 错误（`text content blocks must be non-empty`）。
@@ -10348,7 +10347,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **T12** — MiniMax M2.7 定价条目添加: `minimax-m2.7`, `MiniMax-M2.7`, `minimax-m2.7-highspeed` 已添加到定价表（sub2api PR #1120）。M2.5/GLM-4.7/GLM-5/Kimi 定价已存在。
 - **T15** — 数组内容规范化: `openai-to-claude.ts` 中的 `normalizeContentToString()` 辅助函数正确将数组格式的系统/工具消息折叠为字符串后再发送给 Anthropic。
 
-### 🧪 测试
+### 测试
 
 - 测试套件: **832 项测试, 0 失败** (与 rc.5 相同)
 
@@ -10356,7 +10355,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ## [3.0.0-rc.5] - 2026-03-22
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -10386,7 +10385,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ## [3.0.0-rc.4] - 2026-03-22
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -10409,7 +10408,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ## [3.0.0-rc.3] - 2026-03-22
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -10427,7 +10426,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **#529** — 服务商图标现在使用 [@lobehub/icons](https://github.com/lobehub/lobe-icons) 并带有优雅的 PNG 回退和 `ProviderIcon` 组件（支持 130+ 服务商）
 - **#488** — 通过 `modelSyncScheduler` 每 24 小时自动更新模型列表（可通过 `MODEL_SYNC_INTERVAL_HOURS` 配置）
 
-### 🔧 问题修复
+### 问题修复
 
 - **#537** — Gemini CLI OAuth: 当 Docker/自托管部署中缺少 `GEMINI_OAUTH_CLIENT_SECRET` 时，现在显示清晰可操作的错误信息
 
@@ -10435,7 +10434,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ## [3.0.0-rc.2] - 2026-03-22
 
-### 🔧 问题修复
+### 问题修复
 
 - **#536** — LongCat AI 密钥校验: 修复了 baseUrl (`api.longcat.chat/openai`) 和 authHeader (`Authorization: Bearer`)
 - **#535** — 固定模型覆盖: 当上下文缓存保护检测到固定模型时，`body.model` 现在设置为 `pinnedModel`
@@ -10445,7 +10444,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ## [3.0.0-rc.1] - 2026-03-22
 
-### 🔧 问题修复
+### 问题修复
 
 - **#521** — 跳过密码设置后登录不再卡死（重定向到引导页）
 - **#522** — API 管理器: 移除误导性的"复制脱敏密钥"按钮（替换为锁定图标提示）
@@ -10455,12 +10454,12 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **#510** — Windows: MSYS2/Git-Bash 路径 (`/c/Program Files/...`) 现在自动规范化为 `C:\Program Files\...`
 - **#492** — `omniroute` CLI 现在在 `app/server.js` 缺失时检测 `mise`/`nvm` 管理的 Node 并提供针对性的修复
 
-### 📖 文档
+### 文档
 
 - **#513** — Docker 密码重置: 文档化了 `INITIAL_PASSWORD` 环境变量变通方案
 - **#520** — pnpm: 文档化了 `pnpm approve-builds better-sqlite3`
 
-### ✅ 已关闭的问题
+### 已关闭的问题
 
 #489, #492, #510, #513, #520, #521, #522, #525, #527, #532
 
@@ -10470,7 +10469,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: New OpenCode providers, embedding credentials fix, CLI masked key bug, CACHE_TAG_PATTERN fix.
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -10488,7 +10487,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 ` 前缀** — `comboAgentMiddleware.ts` 中的 `CACHE_TAG_PATTERN` 更新为同时匹配字面量 `
 ` (反斜杠-n) 和 `combo.ts` 流式传输中在 `<omniModel>` 标签周围注入的实际换行 U+000A（修复 #515 之后）。修复 #531。
 
-### ✨ 新服务商
+### 新服务商
 
 - **OpenCode Zen** — 位于 `opencode.ai/zen/v1` 的免费层网关，提供 3 个模型: `minimax-m2.5-free`, `big-pickle`, `gpt-5-nano`
 - **OpenCode Go** — 位于 `opencode.ai/zen/go/v1` 的订阅服务，提供 4 个模型: `glm-5`, `kimi-k2.5`, `minimax-m2.7` (Claude 格式), `minimax-m2.5` (Claude 格式)
@@ -10500,7 +10499,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: Bug fixes — preserve Codex prompt cache key, fix tagContent JSON escaping, sync expired token status to DB.
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -10532,7 +10531,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: Add 5 new free AI providers — LongCat, Pollinations, Cloudflare AI, Scaleway, AI/ML API.
 
-### ✨ 新服务商
+### 新服务商
 
 - **feat(providers/longcat)**: 添加 LongCat AI (`lc/`) — 公测期间每天 50M Token (Flash-Lite) + 500K/天 (Chat/Thinking)。OpenAI 兼容，标准 Bearer 认证。
 - **feat(providers/pollinations)**: 添加 Pollinations AI (`pol/`) — 无需 API 密钥。代理 GPT-5、Claude、Gemini、DeepSeek V3、Llama 4（1 req/15s 免费）。自定义执行器处理可选认证。
@@ -10540,19 +10539,19 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **feat(providers/scaleway)**: 添加 Scaleway Generative APIs (`scw/`) — 新账户 1M 免费 Token。欧盟/GDPR 合规（巴黎）。Qwen3 235B、Llama 3.1 70B、Mistral Small 3.2。
 - **feat(providers/aimlapi)**: 添加 AI/ML API (`aiml/`) — $0.025/天免费积分，通过单一聚合端点提供 200+ 模型（GPT-4o、Claude、Gemini、Llama）。
 
-### 🔄 服务商更新
+### 服务商更新
 
 - **feat(providers/together)**: 添加 `hasFree: true` + 3 个永久免费模型 ID: `Llama-3.3-70B-Instruct-Turbo-Free`, `Llama-Vision-Free`, `DeepSeek-R1-Distill-Llama-70B-Free`
 - **feat(providers/gemini)**: 添加 `hasFree: true` + `freeNote`（每天 1,500 次请求，无需信用卡，aistudio.google.com）
 - **chore(providers/gemini)**: 为清晰性将显示名称重命名为 `Gemini (Google AI Studio)`
 
-### ⚙️ 基础设施
+### 基础设施
 
 - **feat(executors/pollinations)**: 新增 `PollinationsExecutor` — 没有 API 密钥时省略 `Authorization` 头
 - **feat(executors/cloudflare-ai)**: 新增 `CloudflareAIExecutor` — 动态 URL 构建需要在服务商凭据中配置 `accountId`
 - **feat(executors)**: 注册 `pollinations`, `pol`, `cloudflare-ai`, `cf` 执行器映射
 
-### 📝 文档
+### 文档
 
 - **docs(readme)**: 将免费 Combo 栈扩展到 11 个服务商（永久免费）
 - **docs(readme)**: 添加 4 个新免费服务商专区（LongCat、Pollinations、Cloudflare AI、Scaleway）并附模型表
@@ -10560,7 +10559,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **docs(i18n/pt-BR)**: 更新定价表 + 添加葡萄牙语的 LongCat/Pollinations/Cloudflare AI/Scaleway 专区
 - **docs(new-features/ai)**: 10 个任务规范文件 + 总实施计划在 `docs/new-features/ai/`
 
-### 🧪 测试
+### 测试
 
 - Test suite: **821 tests, 0 failures** (unchanged)
 
@@ -10570,7 +10569,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: Fix media transcription (Deepgram/HuggingFace Content-Type, language detection) and TTS error display.
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -10587,7 +10586,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **修复(transcription)**: 为 Deepgram 请求添加 `punctuate=true` 以获得带正确标点符号的高质量转录输出。
 - **修复(tts)**: 文字转语音响应中的 `[object Object]` 错误显示已在 `audioSpeech.ts` 和 `audioTranscription.ts` 中修复。`upstreamErrorResponse()` 函数现在正确提取像 ElevenLabs 这样返回 `{ error: { message: "...", status_code: 401 } }` 而非平面错误字符串的服务商的嵌套字符串消息。
 
-### 🧪 测试
+### 测试
 
 - 测试套件: **821 项测试, 0 失败** (不变)
 
@@ -10625,7 +10624,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: Cross-platform machineId fix, per-API-key rate limits, streaming context cache, Alibaba DashScope, search analytics, ZWS v5, and 8 issues closed.
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -10645,7 +10644,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **feat(api)**: 按 API 密钥的请求数限制 — `max_requests_per_day` 和 `max_requests_per_minute` 列，使用内存滑动窗口管控，返回 HTTP 429 (#452)
 - **feat(dev)**: ZWS v5 — HMR 泄漏修复 (485 个数据库连接 → 1)，内存 2.4GB → 195MB，`globalThis` 单例，Edge Runtime 警告修复 (@zhangqiang8vip)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -10663,12 +10662,12 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(#458)**: Combo Schema 校验 — `system_message`, `tool_filter_regex`, `context_cache_protection` 字段现在在保存时通过 Zod 校验。
 - **fix(#487)**: KIRO MITM 卡片清理 — 移除了 ZWS_README，将 `AntigravityToolCard` 通用化以使用动态工具元数据。
 
-### 🧪 测试
+### 测试
 
 - 添加了 Anthropic 格式工具过滤器单元测试 (PR #397) — 8 个回归测试用于无需 `.function` 包装的 `tool.name`
 - 测试套件: **821 项测试, 0 失败** (从 813 增加)
 
-### 📋 已关闭的问题 (8)
+### 已关闭的问题 (8)
 
 - **#506** — Windows machineId `head` 不识别 (已修复)
 - **#493** — 自定义服务商模型命名 (已修复)
@@ -10855,7 +10854,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: Five community PRs — streaming call log fixes, Kiro compatibility, cache token analytics, Chinese translation, and configurable tool call IDs.
 
-### ✨ Features
+### Features
 
 - **feat(logs)**: Call log response content now correctly accumulated from raw provider chunks (OpenAI/Claude/Gemini) before translation, fixing empty response payloads in streaming mode (#470, @zhangqiang8vip)
 - **feat(providers)**: Per-model configurable 9-char tool call ID normalization (Mistral-style) — only 模型 with the option enabled get truncated IDs (#470)
@@ -10863,7 +10862,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **feat(dashboard)**: Response-first layout in request log detail UI (#470)
 - **feat(i18n)**: Improved Chinese (zh-CN) translation — complete retranslation (#475, @only4copilot)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -10885,12 +10884,12 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: 百炼 Coding Plan 服务商与可编辑基础 URL，以及阿里云和 Kimi Coding 的社区贡献。
 
-### ✨ 功能
+### 功能
 
 - **feat(providers)**: 添加百炼 Coding Plan (`bailian-coding-plan`) — 阿里云 Model Studio，Anthropic 兼容 API。8 个模型的静态目录，包括 Qwen3.5 Plus、Qwen3 Coder、MiniMax M2.5、GLM 5 和 Kimi K2.5。包含自定义认证校验（400=有效，401/403=无效）(#467, @Mind-Dragon)
 - **feat(admin)**: 服务商管理员创建/编辑流程中可编辑默认 URL — 用户可为每个连接配置自定义基础 URL。持久化在 `providerSpecificData.baseUrl` 中，包含拒绝非 http(s) 方案的 Zod Schema 校验 (#467)
 
-### 🧪 测试
+### 测试
 
 - 为百炼 Coding Plan 服务商添加了 30+ 项单元测试和 2 个 E2E 场景，覆盖认证校验、Schema 加固、路由级别行为和跨层集成
 
@@ -10900,12 +10899,12 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: 两个社区贡献的新服务商（阿里云 Coding、Kimi Coding API-Key）和 Docker pino 修复。
 
-### ✨ 功能
+### 功能
 
 - **feat(providers)**: 添加阿里云 Coding Plan 支持，两个 OpenAI 兼容端点 — `alicode`（中国）和 `alicode-intl`（国际），每个提供 8 个模型 (#465, @dtk1985)
 - **feat(providers)**: 添加专用的 `kimi-coding-apikey` 服务商路径 — 基于 API 密钥的 Kimi Coding 访问不再强制通过仅 OAuth 的 `kimi-coding` 路由。包含注册表、常量、模型 API、配置和校验测试 (#463, @Mind-Dragon)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -10925,11 +10924,11 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: Codex responses 子路径透传原生支持，修复 Windows MITM 崩溃，调整 Combos Agent Schema。
 
-### ✨ 功能
+### 功能
 
 - **feat(codex)**: Codex 原生 responses 子路径透传 — 原生路由 `POST /v1/responses/compact` 到 Codex 上游，保持 Claude Code 兼容性而不剥离 `/compact` 后缀 (#457)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -10950,7 +10949,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: 预算保存 Bug + Combo Agent 功能 UI + omniModel 标签安全修复。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -10965,7 +10964,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(budget)**: "保存限额"不再返回 422 — `warningThreshold` 现在正确以小数 (0–1) 而非百分比 (0–100) 发送 (#451)
 - **fix(combos)**: `<omniModel>` 内部缓存标签现在在转发请求到服务商之前被剥离，防止缓存会话中断 (#454)
 
-### ✨ 功能
+### 功能
 
 - **feat(combos)**: Combo 创建/编辑弹窗中新增 Agent 功能区块 — 从控制台直接暴露 `system_message` 覆盖、`tool_filter_regex` 和 `context_cache_protection` (#454)
 
@@ -10975,7 +10974,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: Docker pino 崩溃，Codex CLI responses worker 修复，package-lock 同步。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -10990,7 +10989,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(docker)**: `pino-abstract-transport` 和 `pino-pretty` 现在显式复制到 Docker runner 阶段 — Next.js standalone trace 遗漏这些对等依赖，导致启动时 `Cannot find module pino-abstract-transport` 崩溃 (#449)
 - **fix(responses)**: 从 `/v1/responses` 路由中移除 `initTranslators()` — 该调用导致 Next.js worker 在 Codex CLI 请求时因 `the worker has exited` uncaughtException 崩溃 (#450)
 
-### 🔧 维护
+### 维护
 
 - **chore(deps)**: `package-lock.json` 现在在每次版本更新时提交，确保 Docker `npm ci` 使用精确的依赖版本
 
@@ -11000,7 +10999,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: UX 优化和 Windows CLI 健康检查修复。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11021,7 +11020,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: 搜索工具控制台，i18n 修复，Copilot 限额，Serper 校验修复。
 
-### 🚀 功能
+### 功能
 
 - **feat(search)**: 添加搜索 Playground（第 10 个端点），搜索工具页面包含对比服务商/重排管线/搜索历史，本地重排路由，搜索 API 的认证防护 (#443 by @Regis-RCR)
   - 新路由: `/dashboard/search-tools`
@@ -11030,7 +11029,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
   - 本地 provider_nodes 路由用于 `/v1/rerank`
   - 30+ 个搜索命名空间的 i18n 键
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11053,7 +11052,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: Codex 直连 API 配额容灾修复。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11076,7 +11075,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: 浅色模式界面对比度修复。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11098,7 +11097,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: 统一 Web 搜索路由 (POST /v1/search) 支持 5 个服务商 + Next.js 16.1.7 安全修复 (6 个 CVE)。
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -11121,14 +11120,14 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
   - 数据库迁移: `call_logs` 上的 `request_type` 列用于非聊天请求跟踪
   - Zod 校验 (`v1SearchSchema`)，认证控制，通过 `recordCost()` 记录成本
 
-### 🔒 安全
+### 安全
 
 - **deps**: Next.js 16.1.6 → 16.1.7 — 修复 6 个 CVE:
   - **严重**: CVE-2026-29057 (通过 http-proxy 的 HTTP 请求走私)
   - **高**: CVE-2026-27977, CVE-2026-27978 (WebSocket + Server Actions)
   - **中**: CVE-2026-27979, CVE-2026-27980, CVE-2026-jcc7
 
-### 📁 新增文件
+### 新增文件
 
 | 文件                                                             | 用途                                 |
 | ---------------------------------------------------------------- | ------------------------------------ |
@@ -11147,7 +11146,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: ClawRouter 启发式功能 — toolCalling 标记，多语言意图检测，基于基准的容灾，请求去重，可插拔 RouterStrategy，Grok-4 Fast + GLM-5 + MiniMax M2.5 + Kimi K2.5 定价。
 
-### ✨ 新模型与定价
+### 新模型与定价
 
 - **feat(pricing)**: xAI Grok-4 Fast — `$0.20/$0.50 每 1M Token`，1143ms p50 延迟，支持工具调用
 - **feat(pricing)**: xAI Grok-4 (标准) — `$0.20/$1.50 每 1M Token`，推理旗舰版
@@ -11157,7 +11156,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **feat(pricing)**: Kimi K2.5 通过 Moonshot API — 直连 Moonshot API 访问
 - **feat(providers)**: 添加 Z.AI 服务商 (`zai` 别名) — GLM-5 系列，128K 输出
 
-### 🧠 路由智能
+### 路由智能
 
 - **feat(registry)**: 服务商注册表中每个模型的 `toolCalling` 标记 — Combo 现在可以优先/要求支持工具调用的模型
 - **feat(scoring)**: AutoCombo 评分的多语言意图检测 — PT/ZH/ES/AR 脚本/语言模式影响每个请求上下文的模型选择
@@ -11165,23 +11164,23 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **feat(dedup)**: 通过内容哈希进行请求去重 — 5 秒幂等窗口防止重试客户端产生重复的服务商调用
 - **feat(router)**: `autoCombo/routerStrategy.ts` 中的可插拔 `RouterStrategy` 接口 — 可以在不修改核心的情况下注入自定义路由逻辑
 
-### 🔧 MCP 服务端改进
+### MCP 服务端改进
 
 - **feat(mcp)**: 2 个新高级工具 Schema: `omniroute_get_provider_metrics` (每个服务商的 p50/p95/p99) 和 `omniroute_explain_route` (路由决策解释)
 - **feat(mcp)**: MCP 工具认证权限域更新 — 为服务商指标工具添加 `metrics:read` 权限域
 - **feat(mcp)**: `omniroute_best_combo_for_task` 现在接受 `languageHint` 参数用于多语言路由
 
-### 📊 可观测性
+### 可观测性
 
 - **feat(metrics)**: `comboMetrics.ts` 扩展了每个服务商/账户的实时延迟百分位跟踪
 - **feat(health)**: 健康检查 API (`/api/monitoring/health`) 现在返回每个服务商的 `p50Latency` 和 `errorRate` 字段
 - **feat(usage)**: 用量历史迁移，支持按模型延迟跟踪
 
-### 🗄️ 数据库迁移
+### 数据库迁移
 
 - **feat(migrations)**: `combo_metrics` 表中新增 `latency_p50` 列 — 零破坏，对现有用户安全
 
-### 🐛 问题修复 / Closures
+### 问题修复 / Closures
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11201,7 +11200,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Windows 修复: better-sqlite3 预构建下载，无需 node-gyp/Python/MSVC (#426)。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11221,7 +11220,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > CI 修复 (t11 any-budget)，Bug 修复 #409 (通过 Copilot+Claude 发送文件附件)，发布工作流修正。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11236,7 +11235,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(ci)**: 从 `openai-responses.ts` 和 `chatCore.ts` 的注释中移除单词"any"，这些注释之前误触发了 t11 `any` 预算检查（正则误报，将注释中的单词也计入了）
 - **fix(chatCore)**: 在转发到服务商之前规范化不支持的内容部分类型 (#409 — Cursor 在附加 `.md` 文件时发送 `{type:"file"}`；Copilot 和其他 OpenAI 兼容服务商拒绝这些请求，返回 "type has to be either 'image_url' or 'text'"；修复方法是将 `file`/`document` 块转换为 `text` 并丢弃未知类型)
 
-### 🔧 工作流
+### 工作流
 
 - **chore(generate-release)**: 添加 ATOMIC COMMIT RULE — 版本更新 (`npm version patch`) 必须在提交功能文件之前完成，确保标签始终指向包含所有版本变更的提交
 
@@ -11246,12 +11245,12 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: Combo 作为 Agent（系统提示 + 工具过滤器），上下文缓存保护，自动更新，详细日志，MITM Kiro IDE。
 
-### 🗄️ 数据库迁移（零破坏 — 对现有用户安全）
+### 数据库迁移（零破坏 — 对现有用户安全）
 
 - **005_combo_agent_fields.sql**: `ALTER TABLE combos ADD COLUMN system_message TEXT DEFAULT NULL`, `tool_filter_regex TEXT DEFAULT NULL`, `context_cache_protection INTEGER DEFAULT 0`
 - **006_detailed_request_logs.sql**: 新增 `request_detail_logs` 表，带有 500 条记录的环形缓冲区触发器，通过设置开关选择加入
 
-### ✨ 功能
+### 功能
 
 - **feat(combo)**: 每个 Combo 的系统消息覆盖 (#399 — `system_message` 字段在转发到服务商前替换或注入系统提示)
 - **feat(combo)**: 每个 Combo 的工具过滤器正则 (#399 — `tool_filter_regex` 只保留匹配模式的工具；支持 OpenAI + Anthropic 格式)
@@ -11266,14 +11265,14 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: SSE 改进，本地 provider_nodes 扩展，代理注册表，Claude 透传修复。
 
-### ✨ Features
+### Features
 
 - **feat(health)**: 本地 `provider_nodes` 的后台健康检查，带指数退避 (30s→300s) 和 `Promise.allSettled` 以避免阻塞 (#423, @Regis-RCR)
 - **feat(embeddings)**: 将 `/v1/embeddings` 路由到本地 `provider_nodes` — `buildDynamicEmbeddingProvider()` 带主机名校验 (#422, @Regis-RCR)
 - **feat(audio)**: 将 TTS/STT 路由到本地 `provider_nodes` — `buildDynamicAudioProvider()` 带 SSRF 保护 (#416, @Regis-RCR)
 - **feat(proxy)**: 代理注册表、管理 API 和配额限制通用化 (#429, @Regis-RCR)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11294,7 +11293,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(sse)**: 在翻译前剥离空文本内容块 (#427, @prakersh)
 - **fix(api)**: 为 Claude OAuth 测试配置添加 `refreshable: true` (#428, @prakersh)
 
-### 📦 Dependencies
+### Dependencies
 
 - 升级 `vitest`、`@vitest/*` 及相关 devDependencies (#414, @dependabot)
 
@@ -11304,7 +11303,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > 热修复: Turbopack/Docker 兼容 — 从所有 `src/` 导入中移除 `node:` 协议前缀。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11325,7 +11324,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: 推理模型参数过滤，本地服务商 404 修复，Kilo Gateway 服务商，依赖升级。
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -11342,7 +11341,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 - **feat(api)**: 新增 **Kilo Gateway** (`api.kilo.ai`) 作为新的 API Key 服务商（别名 `kg`）— 335+ 模型，6 个免费模型，3 个自动路由模型 (`kilo-auto/frontier`, `kilo-auto/balanced`, `kilo-auto/free`)。通过 `/api/gateway/models` 端点支持透传模型。(PR #408 by @Regis-RCR)
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11357,7 +11356,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(sse)**: 为推理模型 (o1, o1-mini, o1-pro, o3, o3-mini) 剥离不支持的参数。`o1`/`o3` 系列的模型会以 HTTP 400 拒绝 `temperature`、`top_p`、`frequency_penalty`、`presence_penalty`、`logprobs`、`top_logprobs` 和 `n`。参数现在在 `chatCore` 层转发前被剥离。使用每个模型的声明式 `unsupportedParams` 字段和预计算的 O(1) Map 进行查找。(PR #412 by @Regis-RCR)
 - **fix(sse)**: 本地服务商 404 现在导致**仅模型锁定（5 秒）**而非连接级锁定（2 分钟）。当本地推理后端（Ollama, LM Studio, oMLX）对未知模型返回 404 时，连接保持活动状态，其他模型继续正常工作。同时也修复了一个既有 Bug，即 `model` 未传递给 `markAccountUnavailable()`。本地服务商通过主机名检测（`localhost`, `127.0.0.1`, `::1`，可通过 `LOCAL_HOSTNAMES` 环境变量扩展）。(PR #410 by @Regis-RCR)
 
-### 📦 Dependencies
+### Dependencies
 
 - `better-sqlite3` 12.6.2 → 12.8.0
 - `undici` 7.24.2 → 7.24.4
@@ -11368,7 +11367,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ## [2.6.4] — 2026-03-17
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11393,7 +11392,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: zod/pino 哈希剥离内嵌到构建管线，新增 Synthetic 服务商，修正 VPS PM2 路径。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11408,11 +11407,11 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(build)**: Turbopack 哈希剥离现在在**编译时**对所有包生效 — 不仅仅是 `better-sqlite3`。`prepublish.mjs` 中的步骤 5.6 遍历 `app/.next/server/` 中的每个 `.js` 文件，从任何哈希化的 `require()` 中剥离 16 字符的十六进制后缀。修复了全局 npm 安装时 `zod-dcb22c...`、`pino-...` 等 MODULE_NOT_FOUND 错误。关闭 #398
 - **fix(deploy)**: 两台 VPS 上的 PM2 指向了过时的 git-clone 目录。重新配置为 npm 全局包中的 `app/server.js`。更新 `/deploy-vps` 工作流使用 `npm pack + scp`（npm 注册表拒绝 299MB 包）。
 
-### ✨ Features
+### Features
 
 - **feat(provider)**: Synthetic ([synthetic.new](https://synthetic.new)) — 注重隐私的 OpenAI 兼容推理。`passthroughModels: true` 用于动态 HuggingFace 模型目录。初始模型: Kimi K2.5, MiniMax M2.5, GLM 4.7, DeepSeek V3.2。(PR #404 by @Regis-RCR)
 
-### 📋 Issues Closed
+### Issues Closed
 
 - **close #398**: npm 哈希回归 — 通过在 prepublish 中编译时剥离哈希修复
 - **triage #324**: 无步骤的 Bug 截图 — 请求提供重现详情
@@ -11423,7 +11422,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Sprint: 模块哈希完全修复，2 个 PR 已合并（Anthropic 工具过滤器 + 自定义端点路径），新增阿里云 DashScope 服务商，关闭 3 个过期问题。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11438,12 +11437,12 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(build)**: 将 webpack `externals` 哈希剥离扩展到覆盖**所有** `serverExternalPackages`，而不仅仅是 `better-sqlite3`。Next.js 16 Turbopack 将 `zod`、`pino` 和每个其他 server-external 包哈希化为 `zod-dcb22c6336e0bc69` 这样的名称，这些名称在运行时 `node_modules` 中不存在。HASH_PATTERN 正则通配符现在剥离 16 字符的后缀并回退到基础包名。同时在 `prepublish.mjs` 中添加 `NEXT_PRIVATE_BUILD_WORKER=0` 以加强 webpack 模式，外加构建后扫描报告任何剩余的哈希引用。(#396, #398, PR #403)
 - **fix(chat)**: Anthropic 格式工具名称（`tool.name` 无 `.function` 包装）被 #346 中引入的空名称过滤器静默丢弃。LiteLLM 以 Anthropic Messages API 格式代理带有 `anthropic/` 前缀的请求，导致所有工具被过滤，Anthropic 返回 `400: tool_choice.any may only be specified while providing tools`。修复方法是在 `tool.function.name` 不存在时回退到 `tool.name`。添加了 8 个回归单元测试。(PR #397)
 
-### ✨ Features
+### Features
 
 - **feat(api)**: OpenAI 兼容服务商节点的自定义端点路径 — 在服务商连接界面中按节点配置 `chatPath` 和 `modelsPath`（例如 `/v4/chat/completions`）。包含数据库迁移 (`003_provider_node_custom_paths.sql`) 和 URL 路径脱敏（禁止 `..` 遍历，必须以 `/` 开头）。(PR #400)
 - **feat(provider)**: 新增阿里云 DashScope 作为 OpenAI 兼容服务商。国际端点: `dashscope-intl.aliyuncs.com/compatible-mode/v1`。12 个模型: `qwen-max`、`qwen-plus`、`qwen-turbo`、`qwen3-coder-plus/flash`、`qwq-plus`、`qwq-32b`、`qwen3-32b`、`qwen3-235b-a22b`。认证: Bearer API Key。
 
-### 📋 Issues Closed
+### Issues Closed
 
 - **close #323**: Cline 连接错误 `[object Object]` — 已在 v2.3.7 修复；指导用户从 v2.2.9 升级
 - **close #337**: Kiro 积分跟踪 — 已在 v2.5.5 实现 (#381)；引导用户访问控制台 → 用量
@@ -11455,7 +11454,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > 严重启动修复: v2.6.0 全局 npm 安装因 Next.js 16 instrumentation 钩子中的 Turbopack/webpack 模块名哈希 Bug 导致崩溃并返回 500 错误。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11469,7 +11468,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 - **fix(build)**: 强制 `better-sqlite3` 始终以其确切的包名在 webpack 服务端包中引用。Next.js 16 将 instrumentation 钩子编译到单独的块中，并发出 `require('better-sqlite3-<hash>')` — 一个在 `node_modules` 中不存在的哈希化模块名 — 即使该包已列在 `serverExternalPackages` 中。向服务端 webpack 配置添加了显式的 `externals` 函数，使打包器始终发出 `require('better-sqlite3')`，解决全新全局安装时的启动 `500 Internal Server Error`。(#394, PR #395)
 
-### 🔧 CI
+### CI
 
 - **ci**: 为 `npm-publish.yml` 添加 `workflow_dispatch` 并附带手动触发的版本同步安全措施 (#392)
 - **ci**: 为 `docker-publish.yml` 添加 `workflow_dispatch`，更新 GitHub Actions 到最新版本 (#392)
@@ -11480,7 +11479,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > 问题解决冲刺: 4 个 Bug 修复，日志 UX 优化，Kiro 积分跟踪添加。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11497,11 +11496,11 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(oauth)**: Qoder（及其他重定向到自有界面的服务商）不再将 OAuth 弹窗卡在"等待授权"状态 — 弹窗关闭检测器自动转换为手动 URL 输入模式 (#344)
 - **fix(logs)**: 请求日志表现在在浅色模式下可读 — 状态徽章、Token 计数和 Combo 标签使用自适应的 `dark:` 颜色类 (#378)
 
-### ✨ Features
+### Features
 
 - **feat(kiro)**: Kiro 积分跟踪已添加到用量获取器 — 从 AWS CodeWhisperer 端点查询 `getUserCredits` (#337)
 
-### 🛠 Chores
+### Chores
 
 - **chore(tests)**: 将 `test:plan3`、`test:fixes`、`test:security` 调整为与 `npm test` 使用相同的 `tsx/esm` 加载器 — 消除定向运行中的模块解析假阴性 (PR #386)
 
@@ -11511,7 +11510,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Codex 原生透传修复 + 路由请求体验证加固。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11533,7 +11532,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > 构建修复: 恢复因 v2.5.7 不完整发布导致的中断 VPS 连接。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11553,7 +11552,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > 媒体 Playground 错误处理修复。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11575,7 +11574,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > 严重安全/认证修复: Antigravity OAuth 损坏 + 重启后 JWT 会话丢失。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11596,7 +11595,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > 模型列表去重修复，Electron 独立构建加固，Kiro 积分跟踪。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11611,7 +11610,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(models) #380**: `GET /api/models` 现在在构建活跃服务商过滤器时包含服务商别名 — `claude`（别名 `cc`）和 `github`（别名 `gh`）的模型之前无论是否配置了连接都会一直显示，因为 `PROVIDER_MODELS` 的键是别名，但数据库连接是按服务商 ID 存储的。修复的方法是通过 `PROVIDER_ID_TO_ALIAS` 将每个活跃服务商 ID 扩展到也包含其别名。关闭 #353。
 - **fix(electron) #379**: 新增 `scripts/prepare-electron-standalone.mjs`，在 Electron 打包前准备专用的 `/.next/electron-standalone` 包。如果 `node_modules` 是符号链接则中止并显示清晰错误（electron-builder 会引入对构建机的运行时依赖）。通过 `path.basename` 实现跨平台路径脱敏。作者 @kfiramar。
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -11632,7 +11631,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > 日志记录器启动修复，登录引导安全修复，开发 HMR 可靠性改进。CI 基础设施加固。
 
-### 🐛 问题修复 (PRs #374, #375, #376 by @kfiramar)
+### 问题修复 (PRs #374, #375, #376 by @kfiramar)
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11648,7 +11647,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(login) #375**: 登录页面现在从公开的 `/api/settings/require-login` 端点引导启动，而非受保护的 `/api/settings`。在密码保护设置中，预认证页面一直收到 401 并不必要地回退到安全默认值。公开路由现在返回所有引导元数据（`requireLogin`、`hasPassword`、`setupComplete`），并在出错时采用保守的 200 回退。
 - **fix(dev) #374**: 将 `localhost` 和 `127.0.0.1` 添加到 `next.config.mjs` 中的 `allowedDevOrigins` — 当通过 loopback 地址访问应用时 HMR websocket 被拦截，产生了重复的跨域警告。
 
-### 🔧 CI & Infrastructure
+### CI & Infrastructure
 
 - **ESLint OOM 修复**: `eslint.config.mjs` 现在忽略 `vscode-extension/**`、`electron/**`、`docs/**`、`app/.next/**` 和 `clipr/**` — ESLint 之前因扫描 VS Code 二进制文件和编译后的分块而因 JS 堆 OOM 崩溃。
 - **单元测试修复**: 从 2 个测试文件中移除过时的 `ALTER TABLE provider_connections ADD COLUMN "group"` — 该列现在是基础 Schema 的一部分（在 #373 中添加），导致每次 CI 运行时出现 `SQLITE_ERROR: duplicate column name`。
@@ -11658,7 +11657,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > 严重 Bug 修复: 数据库 Schema 迁移，启动环境加载，服务商错误状态清除，i18n 提示修复。每个 PR 叠加代码质量改进。
 
-### 🐛 问题修复 (PRs #369, #371, #372, #373 by @kfiramar)
+### 问题修复 (PRs #369, #371, #372, #373 by @kfiramar)
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11675,7 +11674,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix(auth) #372**: 在真正恢复后清除服务商账户的过期错误元数据（`errorCode`、`lastErrorType`、`lastErrorSource`）— 此前恢复的账户一直显示为失败
 - **fix(startup) #369**: 统一 `npm run start`、`run-standalone.mjs` 和 Electron 中的环境加载，遵循 `DATA_DIR/.env → ~/.omniroute/.env → ./.env` 优先级 — 防止在已有加密数据库上生成新的 `STORAGE_ENCRYPTION_KEY`
 
-### 🔧 代码质量
+### 代码质量
 
 - 文档化了 `auth.ts` 中的 `result.success` vs `response?.ok` 模式（两者均为有意为之，现已注解）
 - 规范化了 `electron/main.js` 中的 `overridePath?.trim()` 以匹配 `bootstrap-env.mjs`
@@ -11683,7 +11682,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > Codex 账户配额策略，支持自动轮换、快速层级开关、gpt-5.4 模型和分析标签修复。
 
-### ✨ 新功能 (PRs #366, #367, #368)
+### 新功能 (PRs #366, #367, #368)
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -11702,7 +11701,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **Codex 快速层级切换 (PR #367)**: 控制台 → 设置 → Codex 服务层级。默认关闭的开关仅为 Codex 请求注入 `service_tier: "flex"`，降低约 80% 成本。全栈: UI 标签页 + API 端点 + 执行器 + 翻译器 + 启动恢复。
 - **gpt-5.4 模型 (PR #368)**: 将 `cx/gpt-5.4` 和 `codex/gpt-5.4` 添加到 Codex 模型注册表。包含回归测试。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11718,7 +11717,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > 重大发布: strict-random 路由策略，API 密钥访问控制，连接分组，外部定价同步，以及针对思考模型、Combo 测试和工具名称验证的关键 Bug 修复。
 
-### ✨ 新功能 (PRs #363 & #365)
+### 新功能 (PRs #363 & #365)
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -11739,7 +11738,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **外部定价同步 (LiteLLM)**: 3 层定价解析（用户覆盖 → 已同步 → 默认值）。通过 `PRICING_SYNC_ENABLED=true` 选择加入。MCP 工具 `omniroute_sync_pricing`。23 个新测试。
 - **i18n**: 30 种语言，新增 strict-random 策略和 API 密钥管理字符串。pt-BR 完全翻译。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11755,13 +11754,13 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **fix #350**: Combo 测试现在使用内部头绕过 `REQUIRE_API_KEY=true`，并统一使用 OpenAI 兼容格式。超时从 15s 延长到 20s。
 - **fix #346**: 具有空 `function.name` 的工具（由 Claude Code 转发）现在在发送到上游服务商之前被过滤，防止 "Invalid input[N].name: empty string" 错误。
 
-### 🗑️ 已关闭的问题
+### 已关闭的问题
 
 - **#341**: 调试部分已移除 — 替代方案是 `/dashboard/logs` 和 `/dashboard/health`。
 
 > API 密钥轮询支持多密钥服务商设置，并确认通配符路由和配额窗口滚动已就绪。
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -11778,14 +11777,14 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 - **API Key 轮询 (T07)**: 服务商连接现在可以持有多个 API 密钥（编辑连接 → 额外 API 密钥）。请求通过 `providerSpecificData.extraApiKeys[]` 在主密钥和额外密钥之间轮询。密钥按连接在内存中索引 — 无需数据库 Schema 变更。
 
-### 📝 已实现（在审计中确认）
+### 已实现（在审计中确认）
 
 - **通配模型路由 (T13)**: 已在 `model.ts` 中集成 `wildcardRouter.ts`，支持 glob 风格的通配符匹配（`gpt*`、`claude-?-sonnet` 等），并具有特异性排序。
 - **配额窗口滚动 (T08)**: `accountFallback.ts:isModelLocked()` 已自动推进窗口 — 如果 `Date.now() > entry.until`，锁定被立即删除（无过期阻塞）。
 
 > 用户界面优化、路由策略增强以及用量限制的优雅错误处理。
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -11804,7 +11803,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **Free Stack 预设模型**: 使用 Free Stack 模板创建 Combo 时，现在自动填充 7 个顶级的免费服务商模型（Gemini CLI, Kiro, Qoder×2, Qwen, NVIDIA NIM, Groq）。用户只需激活服务商即可获得 $0/月 Combo。
 - **更宽的 Combo 弹窗**: 创建/编辑 Combo 弹窗现在使用 `max-w-4xl` 以舒适地编辑大型 Combo。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11822,7 +11821,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > 来自社区问题分析的多个改进、新服务商支持、Token 追踪 Bug 修复、模型路由和流式可靠性改进。
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -11841,12 +11840,12 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **HuggingFace 服务商**: 添加 HuggingFace Router 作为 OpenAI 兼容服务商，提供 Llama 3.1 70B/8B, Qwen 2.5 72B, Mistral 7B, Phi-3.5 Mini。
 - **Vertex AI 服务商**: 添加 Vertex AI (Google Cloud) 服务商，支持 Gemini 2.5 Pro/Flash, Gemma 2 27B, Claude via Vertex。
 - **Playground 文件上传**: 用于转录的音频上传，视觉模型的图像上传（按模型名称自动检测），图像生成结果的内联图像渲染。
-- **模型选择视觉反馈**: Combo 选择器中已添加的模型现在显示 ✓ 绿色徽章 — 防止重复混淆。
+- **模型选择视觉反馈**: Combo 选择器中已添加的模型现在显示 绿色徽章 — 防止重复混淆。
 - **Qwen 兼容性 (PR #352)**: 为 Qwen 服务商兼容性更新了 User-Agent 和 CLI 指纹设置。
 - **轮询状态管理 (PR #349)**: 增强轮询逻辑以处理被排除的账户并正确维护轮换状态。
 - **剪贴板 UX (PR #360)**: 为非安全上下文加固剪贴板操作并添加回退；Claude 工具规范化改进。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11861,24 +11860,24 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **修复 #302 — OpenAI SDK stream=False 丢失 tool_calls**: T01 Accept 头协商在 `body.stream` 显式为 `false` 时不再强制流式传输。之前导致使用 OpenAI Python SDK 在非流式模式下 tool_calls 被静默丢弃。
 - **修复 #73 — Claude Haiku 在无服务商前缀时被路由到 OpenAI**: 不带服务商前缀发送的 `claude-*` 模型现在正确路由到 `antigravity` (Anthropic) 服务商。同时添加了 `gemini-*`/`gemma-*` → `gemini` 启发式规则。
 - **修复 #74 — Antigravity/Claude 流式传输时 Token 计数始终为 0**: 承载 `input_tokens` 的 `message_start` SSE 事件未被 `extractUsage()` 解析，导致所有输入 Token 计数丢失。输入/输出 Token 跟踪现在对流式响应正常工作。
-- **修复 #180 — 模型导入重复且无反馈**: `ModelSelectModal` 现在对 Combo 中已有的模型显示 ✓ 绿色高亮，一目了然地表明它们已添加。
+- **修复 #180 — 模型导入重复且无反馈**: `ModelSelectModal` 现在对 Combo 中已有的模型显示 绿色高亮，一目了然地表明它们已添加。
 - **媒体页面生成错误**: 图像结果现在渲染为 `<img>` 标签而非原始 JSON。转录结果显示为可读文本。凭据错误显示琥珀色横幅而非静默失败。
 - **服务商页面 Token 刷新按钮**: 为 OAuth 服务商添加了手动 Token 刷新界面。
 
-### 🔧 Improvements
+### Improvements
 
 - **服务商注册表**: HuggingFace 和 Vertex AI 已添加到 `providerRegistry.ts` 和 `providers.ts`（前端）。
 - **读缓存**: 新增 `src/lib/db/readCache.ts` 用于高效的数据库读缓存。
 - **配额缓存**: 改进了配额缓存，支持基于 TTL 的驱逐。
 
-### 📦 Dependencies
+### Dependencies
 
 - `dompurify` → 3.3.3 (PR #347)
 - `undici` → 7.24.2 (PR #348, #361)
 - `docker/setup-qemu-action` → v4 (PR #342)
 - `docker/setup-buildx-action` → v4 (PR #343)
 
-### 📁 New Files
+### New Files
 
 | 文件                                          | 用途                             |
 | --------------------------------------------- | -------------------------------- |
@@ -11890,7 +11889,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ## [2.4.1] - 2026-03-13
 
-### 🐛 修复
+### 修复
 
 - **Combo 弹窗: Free Stack 可见且突出** — Free Stack 模板之前被隐藏（在 3 列网格中排第 4 位）。修复: 移至第 1 位，切换为 2×2 网格使全部 4 个模板可见，绿色边框 + FREE 徽标高亮。
 
@@ -11898,7 +11897,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 > **重大发布** — Free Stack 生态，转录 Playground 全面升级，44+ 服务商，全面的免费层文档，以及全方位的 UI 改进。
 
-### ✨ Features
+### Features
 
 - **Combo: Free Stack 模板** — 新增第 4 个模板 "Free Stack ($0)"，使用 Kiro + Qoder + Qwen + Gemini CLI 的轮询。在首次使用时建议预构建的零成本 Combo。
 - **媒体/转录: Deepgram 作为默认** — Deepgram (Nova 3, $200 免费) 现在是默认转录服务商。AssemblyAI ($50 免费) 和 Groq Whisper (永久免费) 显示免费积分徽章。
@@ -11909,24 +11908,24 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 
 ## [2.3.16] - 2026-03-13
 
-### 📖 Documentation
+### Documentation
 
 - **README: 44+ 服务商** — 将所有 3 处 "36+ providers" 更新为 "44+"，反映实际代码库数量（providers.ts 中的 44 个服务商）
-- **README: 新增专区 "🆓 免费模型 — 你实际能拿到什么"** — 添加了 7 个服务商表，包含每个模型的速率限制: Kiro (通过 AWS Builder ID 无限 Claude)、Qoder (5 模型无限)、Qwen (4 模型无限)、Gemini CLI (180K/月)、NVIDIA NIM (~40 RPM 永久开发者)、Cerebras (1M tok/天 / 60K TPM)、Groq (30 RPM / 14.4K RPD)。包含 /usr/bin/bash Ultimate Free Stack combo 推荐。
+- **README: 新增专区 " 免费模型 — 你实际能拿到什么"** — 添加了 7 个服务商表，包含每个模型的速率限制: Kiro (通过 AWS Builder ID 无限 Claude)、Qoder (5 模型无限)、Qwen (4 模型无限)、Gemini CLI (180K/月)、NVIDIA NIM (~40 RPM 永久开发者)、Cerebras (1M tok/天 / 60K TPM)、Groq (30 RPM / 14.4K RPD)。包含 /usr/bin/bash Ultimate Free Stack combo 推荐。
 - **README: 定价表更新** — 将 Cerebras 添加到 API KEY 层，将 NVIDIA 从 "1000 credits" 修正为 "developer-forever free"，更新 Qoder/Qwen 的模型数量和名称
 - **README: Qoder 8→5 模型** (命名为: kimi-k2-thinking, qwen3-coder-plus, deepseek-r1, minimax-m2, kimi-k2)
 - **README: Qwen 3→4 模型** (命名为: qwen3-coder-plus, qwen3-coder-flash, qwen3-coder-next, vision-model)
 
 ## [2.3.15] - 2026-03-13
 
-### ✨ Features
+### Features
 
-- **Auto-Combo 控制台 (Tier Priority)**: 在 `/dashboard/auto-combo` 因子细分显示中添加了 `🏷️ Tier` 作为第 7 个评分因子标签 — 全部 7 个 Auto-Combo 评分因子现已可见。
+- **Auto-Combo 控制台 (Tier Priority)**: 在 `/dashboard/auto-combo` 因子细分显示中添加了 ` Tier` 作为第 7 个评分因子标签 — 全部 7 个 Auto-Combo 评分因子现已可见。
 - **i18n — autoCombo 专区**: 为 Auto-Combo 控制台向全部 30 个语言文件添加了 20 个新翻译键（`title`, `status`, `modePack`, `providerScores`, `factorTierPriority` 等）。
 
 ## [2.3.14] - 2026-03-13
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11943,16 +11942,16 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **GeminiCLI 缺失 projectId (#338)**: 当存储的凭据中缺少 `projectId`（例如 Docker 重启后）时，不再抛出硬 500 错误，OmniRoute 现在记录警告并尝试请求 — 返回有意义的服务商端错误而非 OmniRoute 崩溃。
 - **Electron 版本不匹配 (#323)**: 将 `electron/package.json` 版本同步到 `2.3.13`（之前为 `2.0.13`），使桌面二进制版本与 npm 包匹配。
 
-### ✨ 新模型 (#334)
+### 新模型 (#334)
 
 - **Kiro**: `claude-sonnet-4`, `claude-opus-4.6`, `deepseek-v3.2`, `minimax-m2.1`, `qwen3-coder-next`, `auto`
 - **Codex**: `gpt5.4`
 
-### 🔧 Improvements
+### Improvements
 
 - **层级评分 (API + 校验)**: 将 `tierPriority`（权重 `0.05`）添加到 `ScoringWeights` Zod Schema 和 `combos/auto` API 路由 — 第 7 个评分因子现在被 REST API 完全接受并在输入时校验。`stability` 权重从 `0.10` 调整到 `0.05` 以保持总和 = `1.0`。
 
-### ✨ 新功能
+### 新功能
 
 - **功能(docs):** 将多页文档集成到 OmniRoute 控制台 (#1969)
 - **功能(settings):** 添加请求体大小限制设置 (#1968)
@@ -11972,7 +11971,7 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **可配置 API 桥接超时**: `API_BRIDGE_PROXY_TIMEOUT_MS` 环境变量允许运维人员调整代理超时（默认 30s）。修复慢速上游响应时的 504 错误。(#332)
 - **Star History**: 在所有 30 个 README 中将 star-history.com 小部件替换为 starchart.cc (`?variant=adaptive`) — 自适应浅色/深色主题，实时更新。
 
-### 🐛 问题修复
+### 问题修复
 
 - **修复(mitm):** 在预发布阶段将 MITM 工具编译为 NodeNext ESM，复制 CommonJS MITM 服务端到独立构建产物中，并在打包运行时中解析 MITM 数据路径，不再依赖 Next.js 别名。
 - **修复(build):** 将本地 `.tmp/wine32` Wine 前缀移出隔离的 Next.js 构建路径，避免 Windows Electron 打包产物在 Node 24 构建过程中触发 `EACCES` 扫描。
@@ -11990,14 +11989,14 @@ OmniRoute 现在每 **24 小时**自动刷新已连接服务商的模型列表�
 - **CLI 路径注入 (T12)**: 在 `cliRuntime.ts` 中添加了 `isSafePath()` 校验器以阻止 `CLI_*_BIN` 环境变量中的路径遍历和 Shell 元字符。
 - **CI**: 在移除覆盖后重新生成 `package-lock.json` 以修复 GitHub Actions 上的 `npm ci` 失败。
 
-### 🔧 Improvements
+### Improvements
 
 - **响应格式 (T1)**: `response_format` (json_schema/json_object) 现在作为系统提示注入到 Claude 中，实现结构化输出兼容性。
 - **429 重试 (T2)**: 对 429 响应进行 URL 内重试（2 次尝试，2s 延迟），再回退到下一个 URL。
 - **Gemini CLI 头部 (T3)**: 为 Gemini CLI 兼容性添加了 `User-Agent` 和 `X-Goog-Api-Client` 指纹头。
 - **定价目录 (T9)**: 添加了 `deepseek-3.1`、`deepseek-3.2` 和 `qwen3-coder-next` 定价条目。
 
-### 📁 New Files
+### New Files
 
 | 文件                                       | 用途                         |
 | ------------------------------------------ | ---------------------------- |

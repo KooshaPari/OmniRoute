@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * db/paramFilters.ts — Provider/Model parameter filter configuration.
  *

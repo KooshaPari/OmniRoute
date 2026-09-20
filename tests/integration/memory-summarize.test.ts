@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any, no-unused-vars
 /**
  * Integration tests — POST /api/memory/summarize
  * Tests: dryRun=true candidates without deleting, dryRun=false deletes+creates,

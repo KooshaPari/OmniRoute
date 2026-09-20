@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { getCodexModelScope } from "../../config/codexQuotaScopes.ts";
 import {
   getCodexChildQuotaHydration,

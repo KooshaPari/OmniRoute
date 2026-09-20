@@ -536,7 +536,6 @@
   "ignorePatterns": [
     ".next",
     "dist",
-    "dist-electron",
     ".build",
     "coverage",
     "playwright-report",

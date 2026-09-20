@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Combo Pipeline Strategy Tests
  *
@@ -72,10 +73,7 @@ const noopLog = {
   debug: () => {},
 };
 
-const STEPS: PipelineStep[] = [
-  { model: "provider-a/model-a" },
-  { model: "provider-b/model-b" },
-];
+const STEPS: PipelineStep[] = [{ model: "provider-a/model-a" }, { model: "provider-b/model-b" }];
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -96,11 +94,7 @@ describe("handlePipelineChat — transient retry", () => {
 
   it("retries on 429 then succeeds", async () => {
     // First call to step 1 → 429, second call to step 1 → 200, step 2 → 200
-    const handler = makeHandler([
-      failResponse(429),
-      okResponse("recovered"),
-      okResponse("final"),
-    ]);
+    const handler = makeHandler([failResponse(429), okResponse("recovered"), okResponse("final")]);
     const res = await handlePipelineChat({
       body: { messages: [{ role: "user", content: "hi" }] },
       steps: STEPS,

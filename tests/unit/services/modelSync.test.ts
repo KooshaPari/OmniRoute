@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Tests for src/lib/services/modelSync.ts
  *

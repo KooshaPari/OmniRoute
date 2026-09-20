@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import fs from "fs";
 import crypto from "crypto";
 import { exec } from "child_process";

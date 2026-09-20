@@ -1,6 +1,6 @@
 # Contributing to OmniRoute (Latviešu)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CONTRIBUTING.md) · 🇸🇦 [ar](../ar/CONTRIBUTING.md) · 🇦🇿 [az](../az/CONTRIBUTING.md) · 🇧🇬 [bg](../bg/CONTRIBUTING.md) · 🇧🇩 [bn](../bn/CONTRIBUTING.md) · 🇨🇿 [cs](../cs/CONTRIBUTING.md) · 🇩🇰 [da](../da/CONTRIBUTING.md) · 🇩🇪 [de](../de/CONTRIBUTING.md) · 🇬🇷 [el](../el/CONTRIBUTING.md) · 🇪🇸 [es](../es/CONTRIBUTING.md) · 🇪🇪 [et](../et/CONTRIBUTING.md) · 🇮🇷 [fa](../fa/CONTRIBUTING.md) · 🇫🇮 [fi](../fi/CONTRIBUTING.md) · 🇫🇷 [fr](../fr/CONTRIBUTING.md) · 🇮🇪 [ga](../ga/CONTRIBUTING.md) · 🇮🇳 [gu](../gu/CONTRIBUTING.md) · 🇮🇱 [he](../he/CONTRIBUTING.md) · 🇮🇳 [hi](../hi/CONTRIBUTING.md) · 🇭🇷 [hr](../hr/CONTRIBUTING.md) · 🇭🇺 [hu](../hu/CONTRIBUTING.md) · 🇮🇩 [id](../id/CONTRIBUTING.md) · 🇮🇹 [it](../it/CONTRIBUTING.md) · 🇯🇵 [ja](../ja/CONTRIBUTING.md) · 🇰🇷 [ko](../ko/CONTRIBUTING.md) · 🇱🇹 [lt](../lt/CONTRIBUTING.md) · 🇮🇳 [mr](../mr/CONTRIBUTING.md) · 🇲🇾 [ms](../ms/CONTRIBUTING.md) · 🇲🇹 [mt](../mt/CONTRIBUTING.md) · 🇳🇱 [nl](../nl/CONTRIBUTING.md) · 🇳🇴 [no](../no/CONTRIBUTING.md) · 🇵🇭 [phi](../phi/CONTRIBUTING.md) · 🇵🇱 [pl](../pl/CONTRIBUTING.md) · 🇵🇹 [pt](../pt/CONTRIBUTING.md) · 🇧🇷 [pt-BR](../pt-BR/CONTRIBUTING.md) · 🇷🇴 [ro](../ro/CONTRIBUTING.md) · 🇷🇺 [ru](../ru/CONTRIBUTING.md) · 🇸🇰 [sk](../sk/CONTRIBUTING.md) · 🇸🇮 [sl](../sl/CONTRIBUTING.md) · 🇷🇸 [sr](../sr/CONTRIBUTING.md) · 🇸🇪 [sv](../sv/CONTRIBUTING.md) · 🇰🇪 [sw](../sw/CONTRIBUTING.md) · 🇮🇳 [ta](../ta/CONTRIBUTING.md) · 🇮🇳 [te](../te/CONTRIBUTING.md) · 🇹🇭 [th](../th/CONTRIBUTING.md) · 🇹🇷 [tr](../tr/CONTRIBUTING.md) · 🇺🇦 [uk-UA](../uk-UA/CONTRIBUTING.md) · 🇵🇰 [ur](../ur/CONTRIBUTING.md) · 🇻🇳 [vi](../vi/CONTRIBUTING.md) · 🇨🇳 [zh-CN](../zh-CN/CONTRIBUTING.md) · 🇹🇼 [zh-TW](../zh-TW/CONTRIBUTING.md)
+**Languages:** [English](../../../CONTRIBUTING.md) · [ar](../ar/CONTRIBUTING.md) · [az](../az/CONTRIBUTING.md) · [bg](../bg/CONTRIBUTING.md) · [bn](../bn/CONTRIBUTING.md) · [cs](../cs/CONTRIBUTING.md) · [da](../da/CONTRIBUTING.md) · [de](../de/CONTRIBUTING.md) · [el](../el/CONTRIBUTING.md) · [es](../es/CONTRIBUTING.md) · [et](../et/CONTRIBUTING.md) · [fa](../fa/CONTRIBUTING.md) · [fi](../fi/CONTRIBUTING.md) · [fr](../fr/CONTRIBUTING.md) · [ga](../ga/CONTRIBUTING.md) · [gu](../gu/CONTRIBUTING.md) · [he](../he/CONTRIBUTING.md) · [hi](../hi/CONTRIBUTING.md) · [hr](../hr/CONTRIBUTING.md) · [hu](../hu/CONTRIBUTING.md) · [id](../id/CONTRIBUTING.md) · [it](../it/CONTRIBUTING.md) · [ja](../ja/CONTRIBUTING.md) · [ko](../ko/CONTRIBUTING.md) · [lt](../lt/CONTRIBUTING.md) · [mr](../mr/CONTRIBUTING.md) · [ms](../ms/CONTRIBUTING.md) · [mt](../mt/CONTRIBUTING.md) · [nl](../nl/CONTRIBUTING.md) · [no](../no/CONTRIBUTING.md) · [phi](../phi/CONTRIBUTING.md) · [pl](../pl/CONTRIBUTING.md) · [pt](../pt/CONTRIBUTING.md) · [pt-BR](../pt-BR/CONTRIBUTING.md) · [ro](../ro/CONTRIBUTING.md) · [ru](../ru/CONTRIBUTING.md) · [sk](../sk/CONTRIBUTING.md) · [sl](../sl/CONTRIBUTING.md) · [sr](../sr/CONTRIBUTING.md) · [sv](../sv/CONTRIBUTING.md) · [sw](../sw/CONTRIBUTING.md) · [ta](../ta/CONTRIBUTING.md) · [te](../te/CONTRIBUTING.md) · [th](../th/CONTRIBUTING.md) · [tr](../tr/CONTRIBUTING.md) · [uk-UA](../uk-UA/CONTRIBUTING.md) · [ur](../ur/CONTRIBUTING.md) · [vi](../vi/CONTRIBUTING.md) · [zh-CN](../zh-CN/CONTRIBUTING.md) · [zh-TW](../zh-TW/CONTRIBUTING.md)
 
 ---
 
@@ -122,156 +122,116 @@ Noklusējuma URL:
 
 ---
 
-## Git darbplūsma
-
-> ⚠️ **NEKAD neveiciet tiešu commit uz `main`.** Vienmēr izmantojiet funkciju zarus.
->
-> **PR bāze:** mērķējiet uz aktīvo `release/vX.Y.Z` zaru (nevis `main`). Skatiet
-> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md), lai iepazītos ar
-> modeli “release-per-branch + tag-at-ship”.
+## Running Tests
 
 ```bash
-# Izveidot zaru no aktīvā release gala (piemērs: release/v3.8.49)
-git fetch origin
-git checkout -b feat/your-feature-name origin/release/v3.8.49
-# ... veikt izmaiņas ...
-git commit -m "feat: describe your change"
-git push -u origin feat/your-feature-name
-# Atveriet Pull Request ar base = release/v3.8.49
-```
-
-### Zaru nosaukumi
-
-| Prefix      | Nolūks                      |
-| ----------- | --------------------------- |
-| `feat/`     | Jaunas funkcijas            |
-| `fix/`      | Kļūdu labojumi              |
-| `refactor/` | Koda pārstrukturēšana       |
-| `docs/`     | Dokumentācijas izmaiņas     |
-| `test/`     | Testu pievienošana/labošana |
-| `chore/`    | Rīki, CI, atkarības         |
-
-### Commit ziņojumi
-
-Ievērojiet [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update SECURITY.md with PII protection
-test: add observability unit tests
-refactor(db): consolidate rate limit tables
-```
-
-Tvērumi (v3.8): `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`, `cloud-agent`, `guardrails`, `compression`, `auto-combo`, `resilience`, `providers`, `executors`, `translator`, `domain`, `authz`.
-
----
-
-## Testu palaišana
-
-```bash
-# Visi testi (unit + vitest + ecosystem + e2e)
+# All tests (unit + vitest + ecosystem + e2e)
 npm run test:all
 
-# Viens testa fails (Node.js native test runner — lielākā daļa testu izmanto šo)
+# Single test file (Node.js native test runner — most tests use this)
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Tikai izmaiņu ietekmētie unit testi (tas pats TIA selektors, ko izmanto CI vārteja, #8084)
-npm run test:scoped            # izmaiņas pēdējā commit (vai darba kokā)
-npm run test:scoped:staged     # tikai staged izmaiņas — labi piemērots pre-commit palaišanai
-npm run test:scoped:full       # vispirms atkārtoti izveidot import-graph karti (pēc failu pievienošanas/pārvietošanas)
-# Exit 1 + "run the full suite" nozīmē, ka mainīts hub fails (tsconfig, package.json, …) vai
-# nekartēts avots — selektors neuzņemas risku, tas nekad klusi neizlaiž testus.
+# Only the unit tests impacted by your change (same TIA selector as the CI gate, #8084)
+npm run test:scoped            # changes in the last commit (or the working tree)
+npm run test:scoped:staged     # staged changes only — pairs well with a pre-commit run
+npm run test:scoped:full       # rebuild the import-graph map first (after adding/moving files)
+# Exit 1 + "run the full suite" means a hub file (tsconfig, package.json, …) or an
+# unmapped source changed — the selector fails safe, it never silently skips.
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
 
-# E2E testi (nepieciešams Playwright)
+# E2E tests (requires Playwright)
 npm run test:e2e
 
-# Protokola klientu E2E (MCP transports, A2A)
+# Protocol clients E2E (MCP transports, A2A)
 npm run test:protocols:e2e
 
-# Ecosystem saderības testi
+# Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Pārklājuma vārteja: 60% statements/lines/functions/branches
+# Coverage gate: 60% statements/lines/functions/branches
 npm run test:coverage
 npm run coverage:report
 
-# Lint + format pārbaude
+# Lint + format check
 npm run lint
 npm run check
 
-# Kontrolēta reālo upstream kombināciju smoke pārbaude (nepieciešama VPS piekļuve + reāla provideru kredītu bilance)
-# Izmanto REAL providerus — izmaksas ir nelielas. NEKAD netiek palaists CI. Bez vārtejas tiek korekti izlaists.
-# Nepieciešama: ssh root@192.168.0.15 piekļuve (no VPS tiek iegūts tikai lasāms DB momentuzņēmums).
+# Gated real-upstream combo smoke (requires VPS access + real provider credits)
+# Hits REAL providers — costs a little. NEVER runs in CI. Skips cleanly without the gate.
+# Needs: ssh root@192.168.0.15 access (sources a read-only DB snapshot from the VPS).
 RUN_COMBO_LIVE=1 npm run test:combo:live
 
-# 3. fāzes VPS live smoke pārbaude — vienkārši Node ESM skripti, kas tieši piekļūst live .15 serverim.
-# Nepieciešama: ssh root@192.168.0.15 piekļuve (kombinācijas tiek izveidotas/noņemtas, izmantojot SSH sqlite).
-# Izmanto REAL providerus (nelielas izmaksas). Izveido/dzēš tikai __live_test__* kombinācijas. NEKAD netiek palaists CI.
-# REQUIRE_API_KEY=false uz .15, tāpēc API atslēga nav nepieciešama, bet, ja iestatīti, tiek ņemti vērā COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY.
-npm run test:combo:live:vps              # 7 HTTP scenāriji (priority/round-robin/weighted/cost/fusion/auto + health)
-npm run test:combo:live:vps:failover     # pievieno reālu starp-provideru failover scenāriju (kopā 8)
+# Phase-3 VPS live smoke — plain Node ESM scripts, hit the live .15 server directly.
+# Requires: ssh root@192.168.0.15 access (combos created/torn down via SSH sqlite).
+# Hits REAL providers (small cost). Creates/deletes only __live_test__* combos. NEVER runs in CI.
+# REQUIRE_API_KEY=false on .15 so no API key needed, but honors COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY if set.
+npm run test:combo:live:vps              # 7 HTTP scenarios (priority/round-robin/weighted/cost/fusion/auto + health)
+npm run test:combo:live:vps:failover     # adds a real cross-provider failover scenario (8 total)
 ```
 
-Pārklājuma piezīmes:
+Coverage notes:
 
-- `npm run test:coverage` mēra avota pārklājumu galvenajai unit testu kopai, izslēdz `tests/**` un ietver `open-sse/**`
-- Pull Request ir jāsaglabā pārklājuma vārteja vismaz **60%+** apmērā statements/lines/functions/branches
-- Ja PR maina produkcijas kodu mapēs `src/`, `open-sse/`, `electron/` vai `bin/`, tajā pašā PR ir jāpievieno vai jāatjaunina automatizētie testi
-- `npm run coverage:report` izvada detalizētu pārskatu par katru failu no jaunākās pārklājuma palaišanas
-- `npm run test:coverage:legacy` saglabā vecāko metriku vēsturiskai salīdzināšanai
-- Skatiet `docs/ops/COVERAGE_PLAN.md`, lai iepazītos ar pakāpenisku pārklājuma uzlabošanas ceļvedi
+- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- Pull requests must keep the coverage gate at **60%+** statements/lines/functions/branches
+- If a PR changes production code in `src/`, `open-sse/`, or `bin/`, it must add or update automated tests in the same PR
+- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `npm run test:coverage:legacy` preserves the older metric for historical comparison
+- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
-### Pull Request prasības
+### Pull Request Requirements
 
-Pirms PR atvēršanas izmantojiet
-[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md), lai palaistu mērķēto ciklu
-atbilstoši veiktajām izmaiņām. Pilnā unit testu kopa (4 CI shards), Vitest, **60%+**
-pārklājuma vārteja un produkcijas build ir CI atbildība — to palaišana lokāli nedod nekādu papildu
-informāciju, ko PR pārbaudes jau nesniegs, turklāt mazākās ierīcēs tas var pārslogot hostu (#8084):
+Before opening a PR, use the
+[Contribution Golden Path](docs/ops/CONTRIBUTION_GOLDEN_PATH.md) to run the focused loop for
+what you changed. The full unit suite (4 CI shards), Vitest, the **60%+** coverage gate, and
+the production build are CI's responsibility — running them locally adds no signal the PR
+checks will not already give you, and on smaller machines it can saturate the host (#8084):
 
-- Palaidiet testa failus, kas aptver jūsu izmaiņas: `node --import tsx/esm --test tests/unit/<file>.test.ts`
-- Palaidiet `npm run lint`
-- Ikreiz, kad mainās produkcijas kods, tajā pašā PR iekļaujiet vai atjauniniet automatizētos testus
-- Ja mainījies produkcijas kods, PR aprakstā iekļaujiet mainītos vai pievienotos testa failus
-- Ja CI ir konfigurēti projekta noslēpumi, pārbaudiet SonarQube rezultātu PR
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
+- Include the changed or added test files in the PR description when production code changed
+- Check the SonarQube result on the PR when the project secrets are configured in CI
 
-Pašreizējais testu statuss: **122 unit testu faili**, kas aptver:
+Current test status: **122 unit test files** covering:
 
-- Provideru translatorus un formātu konvertēšanu
-- Ātruma ierobežošanu, circuit breaker un noturību
-- Semantisko kešatmiņu, idempotenci, progresa izsekošanu
-- Datu bāzes darbības un shēmu (21 DB modulis)
-- OAuth plūsmas un autentifikāciju
-- API galapunktu validāciju (Zod v4)
-- MCP servera rīkus un tvērumu izpildes kontroli
-- Memory un Skills sistēmas
+- Provider translators and format conversion
+- Rate limiting, circuit breaker, and resilience
+- Semantic cache, idempotency, progress tracking
+- Database operations and schema (21 DB modules)
+- OAuth flows and authentication
+- API endpoint validation (Zod v4)
+- MCP server tools and scope enforcement
+- Memory and Skills systems
 
 ---
 
-## Koda stils
+## Code Style
 
-- **ESLint** — Pirms komita izpildiet `npm run lint`
-- **Prettier** — Komita laikā automātiski formatē, izmantojot `lint-staged` (2 atstarpes, semikoli, dubultās pēdiņas, 100 rakstzīmju platums, `es5` beigu komati)
-- **TypeScript** — Viss `src/` kods izmanto `.ts`/`.tsx`; `open-sse/` izmanto `.ts`/`.js`; dokumentējiet ar TSDoc (`@param`, `@returns`, `@throws`)
-- **Bez `eval()`** — ESLint ievēro `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validācija** — Visai API ievades validācijai izmantojiet Zod v4 shēmas
-- **Nosaukumi**: faili = camelCase/kebab-case, komponenti = PascalCase, konstantes = UPPER_SNAKE
+- **ESLint** — Run `npm run lint` before committing
+- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **Zod validation** — Use Zod v4 schemas for all API input validation
+- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
 
-### Kļūdu apstrāde / tukši catch bloki
+### Error handling / empty catch blocks
 
-Nekad neatstājiet `catch` bez paskaidrojuma. Klasificējiet to vienā no divām kategorijām (tādējādi tiek ieviests stingrais noteikums “nekad klusi neignorēt kļūdas SSE straumēs”):
+Never leave a `catch` unexplained. Classify it into one of two buckets (operationalizes
+the hard rule "never silently swallow errors in SSE streams"):
 
-- **Apzināta (mūsu pašu labāko centienu tīrīšana/telemetrija)** — kļūme šeit ir sagaidāma un nekaitīga; pievienojiet vienas rindiņas pamatojuma komentāru, neveiciet reģistrēšanu (reģistrēšana katra pieprasījuma laikā ir troksnis, no kura šī konvencija palīdz izvairīties).
+- **Intentional (our own best-effort cleanup/telemetry)** — a failure here is expected and
+  harmless; add a one-line rationale comment, no logging (logging on every request is the
+  noise this convention avoids).
 
   ```ts
-  } catch {} // jau aizvērta kontrollera aizvēršana pēc klienta atvienošanās ir sagaidāma
+  } catch {} // closing an already-closed controller after client disconnect is expected
   ```
 
-- **Jāreģistrē (ārējs/zvanītāja nodrošināts kods vai kļūdas ignorēšana maina vadības plūsmu)** — saglabājiet `catch` (nekad neļaujiet tam pārtraukt straumi), bet izvadiet kontekstuālu `console.debug`/`warn`, lai kļūme būtu atklājama.
+- **Should log (external/caller-supplied code, or the swallow changes control flow)** — keep
+  the catch (never let it break the stream) but emit a contextual `console.debug`/`warn` so the
+  failure is discoverable.
 
   ```ts
   } catch (e) {
@@ -279,150 +239,150 @@ Nekad neatstājiet `catch` bez paskaidrojuma. Klasificējiet to vienā no divām
   }
   ```
 
-Skatiet `open-sse/utils/stream.ts` un `open-sse/utils/streamHandler.ts`, lai iepazītos ar pielietotajiem piemēriem.
+See `open-sse/utils/stream.ts` and `open-sse/utils/streamHandler.ts` for applied examples.
 
 ---
 
-## Projekta struktūra
+## Project Structure
 
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Informācijas paneļa lapas (23 sadaļas)
-│   ├── api/                # API maršruti (51 direktorija)
-│   └── login/              # Autentifikācijas lapas (.tsx)
-├── domain/                 # Politiku dzinis (policyEngine, comboResolver, costRules u.c.)
-├── lib/                    # Galvenā biznesa loģika (.ts)
-│   ├── a2a/                # Agent-to-Agent v0.3 protokola serveris
-│   ├── acp/                # Agent Communication Protocol reģistrs
-│   ├── compliance/         # Atbilstības politiku dzinis
-│   ├── db/                 # SQLite domēna moduļi + 130 migrācijas
-│   ├── memory/             # Pastāvīga sarunu atmiņa
-│   ├── oauth/              # OAuth nodrošinātāji, pakalpojumi un utilītas
-│   ├── skills/             # Paplašināma prasmju infrastruktūra
-│   ├── usage/              # Lietojuma uzskaite un izmaksu aprēķināšana
-│   └── localDb.ts          # Tikai atkārtotas eksportēšanas slānis — nekad šeit nepievienojiet loģiku
-├── middleware/              # Pieprasījumu starpprogrammatūra (promptInjectionGuard)
-├── mitm/                   # MITM starpniekserveris (sertifikāts, DNS, mērķa maršrutēšana)
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # React komponenti (.tsx)
-│   ├── constants/          # Nodrošinātāju definīcijas (329), MCP tvērumi, 19 maršrutēšanas stratēģijas
-│   ├── utils/              # Automātiskais slēdzis, sanitizētājs, autentifikācijas palīgi
-│   └── validation/         # Zod v4 shēmas
-└── sse/                    # SSE starpniekservera konveijers
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 19 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
 open-sse/                   # @omniroute/open-sse workspace
-├── executors/              # 89 izpildītāju ieviešanas moduļi
-├── handlers/               # 11 pieprasījumu apstrādātāji (chat, responses, embeddings, images u.c.)
-├── mcp-server/             # MCP serveris (110 unikāli rīki, 3 transporti, 33 tvērumi)
-├── services/               # 178 augstākā līmeņa pakalpojumi (combo, autoCombo, rateLimitManager u.c.)
-├── translator/             # Formātu tulkotāji (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Responses API pārveidotājs
-└── utils/                  # 22 utilītas moduļi (straume, TLS, starpniekserveris, reģistrēšana)
+├── executors/              # 89 executor implementation modules
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron darbvirsmas lietotne (daudzplatformu)
+apps/desktop/               # Tauri 2 desktop app (cross-platform)
 
 tests/
-├── unit/                   # Node.js testu palaidējs (1,574 testu faili)
-├── integration/            # Integrācijas testi
-├── e2e/                    # Playwright testi
-├── security/               # Drošības testi
-├── translator/             # Tulkotājam specifiski testi
-└── load/                   # Slodzes testi
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/
-├── adr/                     # Arhitektūras lēmumu ieraksti
-├── architecture/            # Sistēmas arhitektūra un noturība
-├── comparison/              # OmniRoute salīdzinājumā ar alternatīvām
-├── compression/             # Saspiešanas ceļveži un noteikumi
-├── dev/                     # Izstrādes ceļveži
-├── diagrams/                # Arhitektūras diagrammas
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
 ├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
-├── guides/                  # Lietotāja ceļvedis, Docker, iestatīšana, problēmu novēršana
-├── i18n/                    # Internacionalizēti README tulkojumi
-├── marketing/               # Mārketinga materiāli
-├── ops/                     # Izvietošana, starpniekserveris, pārklājums, laidieni
-├── providers/               # Konkrētiem nodrošinātājiem paredzēta dokumentācija
-├── reference/               # API atsauce, vides mainīgie, CLI rīki, bezmaksas līmeņi
-├── releases/                # Laidienu piezīmes
-├── routing/                 # Automātiskās kombinēšanas dzinis, spriešanas atkārtošana
-├── screenshots/              # Informācijas paneļa ekrānuzņēmumi
-├── security/                # Drošības vadīklas, atbilstība, slēpšana, pilnvarojuma marķieri
-└── specs/                   # Izstrādes specifikācijas
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
 ---
 
-## Jauna nodrošinātāja pievienošana
+## Adding a New Provider
 
-### 1. darbība: reģistrējiet nodrošinātāja konstantes
+### Step 1: Register Provider Constants
 
-Pievienojiet `src/shared/constants/providers.ts` — validācija ar Zod tiek veikta moduļa ielādes laikā.
+Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
 
-### 2. darbība: pievienojiet izpildītāju (ja nepieciešama pielāgota loģika)
+### Step 2: Add Executor (if custom logic needed)
 
-Izveidojiet izpildītāju `open-sse/executors/your-provider.ts`, paplašinot bāzes izpildītāju.
+Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
 
-### 3. darbība: pievienojiet tulkotāju (ja formāts nav OpenAI formāts)
+### Step 3: Add Translator (if non-OpenAI format)
 
-Izveidojiet pieprasījumu/atbilžu tulkotājus direktorijā `open-sse/translator/`.
+Create request/response translators in `open-sse/translator/`.
 
-### 4. darbība: pievienojiet OAuth konfigurāciju (ja tiek izmantots OAuth)
+### Step 4: Add OAuth Config (if OAuth-based)
 
-Pievienojiet OAuth akreditācijas datus failā `src/lib/oauth/constants/oauth.ts` un pakalpojumu direktorijā `src/lib/oauth/services/`.
+Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
 
-Ja augšupējais nodrošinātājs izplata publisku OAuth client_id/secret vai Firebase Web API key savā publiskajā CLI / pārlūkprogrammas komplektā, **neieguliet to kā virknes literāli**. Izmantojiet `resolvePublicCred()` no `open-sse/utils/publicCreds.ts` un pievienojiet maskētu baitu ierakstu kolekcijai `EMBEDDED_DEFAULTS`. Pilnā obligātā darbplūsma ir dokumentēta failā [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
+If the upstream provider distributes a public OAuth client_id/secret or Firebase Web API key inside its public CLI / browser bundle, **do not** embed it as a string literal. Use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts` and add a masked byte entry to `EMBEDDED_DEFAULTS`. The full mandatory workflow is documented in [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md).
 
-Apstrādātājos/izpildītājos kļūdu ziņojumiem, kas sasniedz klientu, ir jāizmanto `buildErrorBody()` / `sanitizeErrorMessage()` no `open-sse/utils/error.ts` — nekad neievietojiet neapstrādātu `err.stack` vai `err.message` objekta `Response` pamattekstā. Skatiet [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
+Inside handlers/executors, error messages reaching the client must go through `buildErrorBody()` / `sanitizeErrorMessage()` from `open-sse/utils/error.ts` — never put raw `err.stack` or `err.message` in a Response body. See [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md).
 
-### 5. darbība: reģistrējiet modeļus
+### Step 5: Register Models
 
-Pievienojiet modeļu definīcijas failā `open-sse/config/providerRegistry.ts`.
+Add model definitions in `open-sse/config/providerRegistry.ts`.
 
-### 6. darbība: pievienojiet testus
+### Step 6: Add Tests
 
-Uzrakstiet vienību testus direktorijā `tests/unit/`, kas aptver vismaz:
+Write unit tests in `tests/unit/` covering at minimum:
 
-- Nodrošinātāja reģistrāciju
-- Pieprasījumu/atbilžu tulkošanu
-- Kļūdu apstrādi
-
----
-
-## Pull Request kontrolsaraksts
-
-- [ ] Testi ir veiksmīgi (`npm test`)
-- [ ] Lint pārbaude ir veiksmīga (`npm run lint`)
-- [ ] Būvēšana ir veiksmīga (`npm run build`)
-- [ ] Jaunām publiskajām funkcijām un saskarnēm ir pievienoti TypeScript tipi
-- [ ] Nav cietkodētu noslēpumu vai rezerves vērtību
-- [ ] Publiskie augšupējā nodrošinātāja akreditācijas dati ir iegulti, izmantojot `resolvePublicCred()` (skatiet [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nekad kā literāļi
-- [ ] Kļūdu atbildes tiek novirzītas caur `buildErrorBody()` / `sanitizeErrorMessage()` — atbildes pamattekstā nav neapstrādātu steka izsekojumu (skatiet [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Čaulas komandas (`exec` / `spawn`) izpildlaika vērtības padod, izmantojot `env`, nevis virkņu interpolāciju
-- [ ] Visas ievades tiek validētas ar Zod shēmām
-- [ ] Lietotājiem redzamām izmaiņām ir pievienots izmaiņu žurnāla **fragment** fails `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` (skatiet [`changelog.d/README.md`](./changelog.d/README.md)) — **ne**rediģējiet `CHANGELOG.md` tieši; fragmenti tiek apkopoti laidiena izveides laikā un nekad nerada konfliktus starp PR
-- [ ] Dokumentācija ir atjaunināta (ja piemērojams)
-- [ ] Nav atvērti jauni CodeQL / Secret-Scanning brīdinājumi, vai arī katrs no tiem ir noraidīts ar tehnisku pamatojumu, atsaucoties uz atbilstošo `docs/security/` dokumentu
-- [ ] Maršruti, kas palaiž bērnprocesus (`/api/mcp/`, `/api/cli-tools/runtime/`), failā `src/server/authz/routeGuard.ts` ir klasificēti ar `isLocalOnlyPath()` — skatiet [Stingro noteikumu #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Komitziņojumos nav `Co-Authored-By` papildinājumu — komitiem ir jāparādās tikai repozitorija īpašnieka Git identitātes vārdā (Stingrais noteikums #16)
+- Provider registration
+- Request/response translation
+- Error handling
 
 ---
 
-## Izlaides
+## Pull Request Checklist
 
-Izlaides tiek pārvaldītas, izmantojot `/generate-release` darbplūsmu. Kad tiek izveidots jauns GitHub laidiens, pakotne tiek **automātiski publicēta npm** platformā, izmantojot GitHub Actions.
-
-VPS izvietošanai izmantojiet `npm run build:release` (nevis `npm run build`) — tas veic tīru
-pārbūvi, apkopo komplektu mapē `dist/` un izveido `dist/BUILD_SHA` indikatorfailu.
-Pēc tam izmantojiet `/deploy-vps-*-cc` prasmes, kas ar rsync sinhronizē `dist/` ar attālo `app/` mapi.
+- [ ] Tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] TypeScript types added for new public functions and interfaces
+- [ ] No hardcoded secrets or fallback values
+- [ ] Public upstream credentials embedded via `resolvePublicCred()` (see [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), never as literals
+- [ ] Error responses route through `buildErrorBody()` / `sanitizeErrorMessage()` — no raw stack traces in response bodies (see [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell commands (`exec` / `spawn`) pass runtime values via `env`, not via string interpolation
+- [ ] All inputs validated with Zod schemas
+- [ ] Changelog **fragment** added under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` for user-facing changes (see [`changelog.d/README.md`](./changelog.d/README.md)) — do **not** edit `CHANGELOG.md` directly; fragments are aggregated at release time and never conflict between PRs
+- [ ] Documentation updated (if applicable)
+- [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
+- [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
 
 ---
 
-## Palīdzības saņemšana
+## Releasing
 
-- **Arhitektūra**: skatiet [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API atsauce**: skatiet [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Drošības dokumentācija**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Operāciju dokumentācija**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
-- **Problēmas**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: skatiet `docs/adr/`, lai iepazītos ar arhitektūras lēmumu ierakstiem
+Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+
+For VPS deploys, use `npm run build:release` (not `npm run build`) — it performs a clean
+rebuild, assembles the bundle into `dist/`, and writes the `dist/BUILD_SHA` sentinel.
+Then use the `/deploy-vps-*-cc` skills which rsync `dist/` to the remote `app/` directory.
+
+---
+
+## Getting Help
+
+- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Security docs**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Ops docs**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **ADRs**: See `docs/adr/` for architectural decision records

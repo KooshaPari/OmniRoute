@@ -1,6 +1,6 @@
 # Kebijakan Keamanan (Bahasa Indonesia)
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇦🇿 [az](../az/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇬🇷 [el](../el/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇪🇪 [et](../et/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇪 [ga](../ga/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇷 [hr](../hr/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇱🇹 [lt](../lt/SECURITY.md) · 🇱🇻 [lv](../lv/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇲🇹 [mt](../mt/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇮 [sl](../sl/SECURITY.md) · 🇷🇸 [sr](../sr/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md) · 🇹🇼 [zh-TW](../zh-TW/SECURITY.md)
+**Languages:** [English](../../../SECURITY.md) · [ar](../ar/SECURITY.md) · [az](../az/SECURITY.md) · [bg](../bg/SECURITY.md) · [bn](../bn/SECURITY.md) · [cs](../cs/SECURITY.md) · [da](../da/SECURITY.md) · [de](../de/SECURITY.md) · [el](../el/SECURITY.md) · [es](../es/SECURITY.md) · [et](../et/SECURITY.md) · [fa](../fa/SECURITY.md) · [fi](../fi/SECURITY.md) · [fr](../fr/SECURITY.md) · [ga](../ga/SECURITY.md) · [gu](../gu/SECURITY.md) · [he](../he/SECURITY.md) · [hi](../hi/SECURITY.md) · [hr](../hr/SECURITY.md) · [hu](../hu/SECURITY.md) · [it](../it/SECURITY.md) · [ja](../ja/SECURITY.md) · [ko](../ko/SECURITY.md) · [lt](../lt/SECURITY.md) · [lv](../lv/SECURITY.md) · [mr](../mr/SECURITY.md) · [ms](../ms/SECURITY.md) · [mt](../mt/SECURITY.md) · [nl](../nl/SECURITY.md) · [no](../no/SECURITY.md) · [phi](../phi/SECURITY.md) · [pl](../pl/SECURITY.md) · [pt](../pt/SECURITY.md) · [pt-BR](../pt-BR/SECURITY.md) · [ro](../ro/SECURITY.md) · [ru](../ru/SECURITY.md) · [sk](../sk/SECURITY.md) · [sl](../sl/SECURITY.md) · [sr](../sr/SECURITY.md) · [sv](../sv/SECURITY.md) · [sw](../sw/SECURITY.md) · [ta](../ta/SECURITY.md) · [te](../te/SECURITY.md) · [th](../th/SECURITY.md) · [tr](../tr/SECURITY.md) · [uk-UA](../uk-UA/SECURITY.md) · [ur](../ur/SECURITY.md) · [vi](../vi/SECURITY.md) · [zh-CN](../zh-CN/SECURITY.md) · [zh-TW](../zh-TW/SECURITY.md)
 
 ---
 
@@ -22,11 +22,11 @@ Jika Anda menemukan kerentanan keamanan di OmniRoute, harap laporkan secara bert
 
 ## Versi yang Didukung
 
-| Versi   | Status Dukungan   |
-| ------- | ----------------- |
-| 3.6.x   | ✅ Aktif          |
-| 3.5.x   | ✅ Keamanan       |
-| < 3.5.0 | ❌ Tidak Didukung |
+| Versi   | Status Dukungan |
+| ------- | --------------- |
+| 3.6.x   | Aktif           |
+| 3.5.x   | Keamanan        |
+| < 3.5.0 | Tidak Didukung  |
 
 ---
 
@@ -38,7 +38,7 @@ OmniRoute menerapkan model keamanan berlapis:
 Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
 ```
 
-### 🔐 Autentikasi & Otorisasi
+### Autentikasi & Otorisasi
 
 | Fitur                   | Implementasi                                                         |
 | ----------------------- | -------------------------------------------------------------------- |
@@ -49,7 +49,7 @@ Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer
 | **Cookie Aman**         | `AUTH_COOKIE_SECURE=true` untuk lingkungan HTTPS                     |
 | **Ruang Lingkup MCP**   | 32 ruang lingkup terperinci untuk kontrol akses alat MCP             |
 
-### 🛡️ Enkripsi Data Tersimpan
+### Enkripsi Data Tersimpan
 
 Semua data sensitif yang disimpan di SQLite dienkripsi menggunakan **AES-256-GCM** dengan derivasi kunci scrypt:
 
@@ -62,7 +62,7 @@ Semua data sensitif yang disimpan di SQLite dienkripsi menggunakan **AES-256-GCM
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🧠 Penjaga Injeksi Prompt
+### Penjaga Injeksi Prompt
 
 Middleware yang mendeteksi dan memblokir serangan injeksi prompt dalam permintaan LLM:
 
@@ -81,7 +81,7 @@ INPUT_SANITIZER_ENABLED=true
 INPUT_SANITIZER_MODE=block    # warn | block | redact
 ```
 
-### 🔒 Redaksi PII
+### Redaksi PII
 
 Deteksi otomatis dan redaksi opsional informasi yang dapat mengidentifikasi pribadi:
 
@@ -98,7 +98,7 @@ Deteksi otomatis dan redaksi opsional informasi yang dapat mengidentifikasi prib
 PII_REDACTION_ENABLED=true
 ```
 
-### 🌐 Keamanan Jaringan
+### Keamanan Jaringan
 
 | Fitur                    | Deskripsi                                                                         |
 | ------------------------ | --------------------------------------------------------------------------------- |
@@ -109,7 +109,7 @@ PII_REDACTION_ENABLED=true
 | **Sidik Jari TLS**       | Spoofing sidik jari TLS menyerupai browser untuk mengurangi deteksi bot           |
 | **Sidik Jari CLI**       | Pengurutan header/body per-penyedia agar sesuai tanda tangan CLI native           |
 
-### 🔌 Ketahanan & Ketersediaan
+### Ketahanan & Ketersediaan
 
 | Fitur                      | Deskripsi                                                                   |
 | -------------------------- | --------------------------------------------------------------------------- |
@@ -118,7 +118,7 @@ PII_REDACTION_ENABLED=true
 | **Backoff Eksponensial**   | Percobaan ulang otomatis dengan penundaan yang semakin meningkat            |
 | **Dashboard Kesehatan**    | Pemantauan kesehatan penyedia secara real-time                              |
 
-### 📋 Kepatuhan
+### Kepatuhan
 
 | Fitur                 | Deskripsi                                                          |
 | --------------------- | ------------------------------------------------------------------ |

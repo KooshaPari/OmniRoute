@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";

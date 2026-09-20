@@ -50,7 +50,6 @@
       "**/coverage",
       "**/.worktrees",
       "**/.claude/worktrees",
-      "**/electron",
       "**/_references",
       "**/_mono_repo",
       "**/_tasks"
@@ -93,7 +92,6 @@
     "**/test-results/**": true,
     "**/.worktrees/**": true,
     "**/.claude/worktrees/**": true,
-    "**/electron/**": true,
     "**/_references/**": true,
     "**/_mono_repo/**": true,
     "**/_tasks/**": true,
@@ -125,7 +123,6 @@
     "**/test-results": true,
     "**/.worktrees": true,
     "**/.claude/worktrees": true,
-    "**/electron": true,
     "**/_references": true,
     "**/_mono_repo": true,
     "**/_tasks": true,

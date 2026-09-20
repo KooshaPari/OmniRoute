@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -155,10 +156,7 @@ test("handleAudioSpeech maps OpenAI stock voice name alloy to a real ElevenLabs 
     });
 
     assert.equal(response.status, 200);
-    assert.equal(
-      capturedUrl,
-      "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM"
-    );
+    assert.equal(capturedUrl, "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM");
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -187,10 +185,7 @@ test("handleAudioSpeech resolves ElevenLabs display name 'rachel' case-insensiti
     });
 
     assert.equal(response.status, 200);
-    assert.equal(
-      capturedUrl,
-      "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM"
-    );
+    assert.equal(capturedUrl, "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM");
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -218,10 +213,7 @@ test("handleAudioSpeech defaults to Rachel's voice_id when voice is omitted", as
     });
 
     assert.equal(response.status, 200);
-    assert.equal(
-      capturedUrl,
-      "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM"
-    );
+    assert.equal(capturedUrl, "https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM");
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -34,7 +34,10 @@ test("6A.8: discoverManifests finds root and workspace package.json files", () =
   // Must include the root
   assert.ok(manifests.includes("package.json"), "root package.json must be included");
   // Must include known workspaces
-  assert.ok(manifests.includes("electron/package.json"), "electron/package.json must be included");
+  assert.ok(
+    manifests.includes("apps/desktop/package.json"),
+    "apps/desktop/package.json must be included"
+  );
   assert.ok(manifests.includes("open-sse/package.json"), "open-sse/package.json must be included");
   assert.ok(
     manifests.includes("@omniroute/opencode-plugin/package.json"),
@@ -55,7 +58,7 @@ test("6A.8: discoverManifests does NOT include node_modules, .next, or deep refe
     assert.ok(!m.includes("_mono_repo"), `should not include _mono_repo: ${m}`);
     assert.ok(!m.includes(".build"), `should not include .build: ${m}`);
     assert.ok(!m.includes(".claude"), `should not include .claude: ${m}`);
-    assert.ok(!m.includes("dist-electron"), `should not include dist-electron: ${m}`);
+    assert.ok(!m.includes("src-tauri/target"), `should not include src-tauri/target: ${m}`);
   }
 });
 

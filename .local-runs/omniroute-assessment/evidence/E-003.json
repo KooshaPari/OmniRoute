@@ -1,0 +1,13 @@
+{
+  "kind": "evidence",
+  "schema_version": "1.0.0",
+  "id": "E-003",
+  "subject_digest": "sha256:bb5aad5092a4c679de94acaef7aa7277553feda86c07aac364f0c58f7a35b2ec",
+  "path": "raw/E-003.json",
+  "observed_at": "2026-09-15T06:17:10Z",
+  "sensitivity": "PUBLIC",
+  "role": "OBSERVATION",
+  "origin": "LOCAL_OBSERVATION",
+  "summary": "Executor inventory: Filesystem scan of open-sse/executors/ identified 132 files",
+  "digest": "sha256:c1cf752efc1908af3e634016bbb06613c85b01a72cd2f73d25c20ec0bdb54c84"
+}

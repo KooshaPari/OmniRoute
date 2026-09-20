@@ -6,11 +6,11 @@ lastUpdated: 2026-07-25
 
 # Konfiguracja headless w Termux
 
-OmniRoute może działać jako serwer headless na Androidzie przez Termux. Aplikacja desktopowa Electron nie jest obsługiwana w Termux, ale webowy dashboard oraz API zgodne z OpenAI działają z lokalnej przeglądarki lub z innych urządzeń w tej samej sieci.
+OmniRoute can run as a headless server on Android through Termux. The Tauri 2 desktop app (`apps/desktop/`) is not supported in Termux, but the web dashboard and OpenAI-compatible API work from the local browser or from other devices on the same network.
 
-## Wymagania wstępne
+## Prerequisites
 
-Zainstaluj Termux z F-Droid lub z wydań na GitHub, następnie zaktualizuj pakiety i zainstaluj narzędzia kompilacji wymagane przez natywne zależności, takie jak `better-sqlite3`.
+Install Termux from F-Droid or GitHub releases, then update packages and install the build tools required by native dependencies such as `better-sqlite3`.
 
 ```bash
 pkg update
@@ -18,62 +18,62 @@ pkg upgrade
 pkg install nodejs python build-essential git
 ```
 
-> **Wersja Node.js:** OmniRoute wymaga Node `>=22.22.2 <23 || >=24.0.0 <27` (zgodnie z `engines` w `package.json` / `SUPPORTED_NODE_RANGE`). Pakiet `nodejs-lts` w Termux zwykle dostarcza Node 20 LTS, który **nie jest już wspierany** — zamiast tego zainstaluj `pkg install nodejs` (current) i sprawdź, czy `node --version` zgłasza linię 22.x/24.x+.
+> **Node.js version:** OmniRoute requires Node `>=22.22.2 <23 || >=24.0.0 <27` (matches `engines` in `package.json` / `SUPPORTED_NODE_RANGE`). Termux's `nodejs-lts` typically ships Node 20 LTS, which is **no longer supported** — install `pkg install nodejs` (current) instead and verify `node --version` reports a 22.x/24.x+ line.
 
-Jeśli kompilacja natywnego pakietu się nie powiedzie, ponów powyższe polecenie `pkg install`, a następnie spróbuj ponownie zainstalować OmniRoute.
+If native package compilation fails, rerun the `pkg install` command above and then retry the OmniRoute install.
 
-## Instalacja
+## Install
 
-Uruchom najnowszy opublikowany pakiet bezpośrednio:
+Run the latest published package directly:
 
 ```bash
 npx -y omniroute@latest
 ```
 
-Możesz też zainstalować go globalnie:
+You can also install it globally:
 
 ```bash
 npm install -g omniroute
 omniroute
 ```
 
-## Uruchomienie
+## Run
 
-Uruchom OmniRoute w trybie serwera headless:
+Start OmniRoute in headless server mode:
 
 ```bash
 omniroute
 ```
 
-lub:
+or:
 
 ```bash
 npx omniroute
 ```
 
-Dashboard nasłuchuje pod adresem:
+The dashboard listens on:
 
 ```text
 http://localhost:20128
 ```
 
-Otwórz ten URL w przeglądarce Androida. Jeśli uruchamiasz klientów wewnątrz Termux, użyj tego samego hosta i portu jako bazowego URL zgodnego z OpenAI.
+Open that URL in the Android browser. If you run clients inside Termux, use the same host and port as the OpenAI-compatible base URL.
 
-## Działanie w tle
+## Background Execution
 
-Dla prostego procesu w tle:
+For a simple background process:
 
 ```bash
 nohup omniroute > omniroute.log 2>&1 &
 ```
 
-Aby go zatrzymać:
+To stop it:
 
 ```bash
 pkill -f omniroute
 ```
 
-Dla automatycznego startu po uruchomieniu urządzenia zainstaluj dodatek Termux:Boot i utwórz skrypt startowy:
+For automatic startup after device boot, install the Termux:Boot add-on and create a boot script:
 
 ```bash
 mkdir -p ~/.termux/boot
@@ -85,107 +85,107 @@ EOF
 chmod +x ~/.termux/boot/omniroute.sh
 ```
 
-Optymalizacja baterii w Androidzie może zatrzymać długo działające procesy w tle. Wyłącz optymalizację baterii dla Termux, jeśli serwer ma pozostać online.
+Android battery optimization can stop long-running background processes. Disable battery optimization for Termux if the server is expected to stay online.
 
-## Dostęp z innych urządzeń
+## Access From Other Devices
 
-Znajdź adres IP telefonu w sieci WiFi:
+Find the phone IP address on the WiFi network:
 
 ```bash
 ip addr show wlan0
 ```
 
-Następnie otwórz dashboard z innego urządzenia:
+Then open the dashboard from another device:
 
 ```text
 http://PHONE_IP:20128
 ```
 
-Na przykład:
+For example:
 
 ```text
 http://192.168.1.50:20128
 ```
 
-Trzymaj telefon i klienta w tej samej zaufanej sieci. Jeśli udostępniasz OmniRoute poza telefonem, włącz klucze API oraz uwierzytelnianie dashboardu.
+Keep the phone and client on the same trusted network. If you expose OmniRoute outside the phone, enable API keys and dashboard authentication.
 
-## Katalog danych
+## Data Directory
 
-Domyślnie OmniRoute przechowuje dane w katalogu domowym Termux, zgodnie z tą samą ścieżką danych po stronie serwera co na Linuxie. Aby umieścić bazę w konkretnej lokalizacji:
+By default OmniRoute stores data under the Termux home directory, following the same server-side data path behavior used on Linux. To place the database somewhere explicit:
 
 ```bash
 export DATA_DIR="$HOME/.omniroute"
 omniroute
 ```
 
-## Ograniczenia
+## Limitations
 
-- Electron nie działa w Termux.
-- Brak systemowego tray ani integracji z pulpitem.
-- Ta konfiguracja jest wyłącznie serwerowa: korzystaj z dashboardu w przeglądarce.
-- Natywne zależności mogą wymagać lokalnej kompilacji.
-- Urządzenia Android z małą ilością pamięci mogą wymagać mniejszej liczby równoczesnych żądań.
-- Funkcje MITM / systemowych certyfikatów mogą wymagać pracy na poziomie magazynu zaufania Androida poza Termux.
+- The Tauri 2 desktop app does not run in Termux.
+- There is no system tray or desktop integration.
+- This setup is server-only: use the browser dashboard.
+- Native dependencies may need local compilation.
+- Low-memory Android devices may need fewer concurrent requests.
+- MITM/system certificate features may require Android-level trust-store work outside Termux.
 
-## Rozwiązywanie problemów
+## Troubleshooting
 
-### Unsupported platform: android (każde żądanie zwraca HTTP 500)
+### Unsupported platform: android (every request returns HTTP 500)
 
-**Objaw:** `omniroute` / `omniroute serve` wypisuje `✔ OmniRoute is running!`, ale każde żądanie do dashboardu lub API zwraca goły `500 Internal Server Error`. Plik `~/.omniroute/logs/application/app.log` pozostaje pusty, `APP_LOG_LEVEL=debug` nic sensownego nie wypisuje, a ciało odpowiedzi to zwykły tekst (`Internal Server Error`) bez szczegółów JSON.
+**Symptom:** `omniroute` / `omniroute serve` prints ` OmniRoute is running!`, but every dashboard or API request returns a bare `500 Internal Server Error`. `~/.omniroute/logs/application/app.log` stays empty, `APP_LOG_LEVEL=debug` prints nothing useful, and the response body is plain text (`Internal Server Error`) with no JSON detail.
 
-**Przyczyna:** Niektóre buildy Termux/Node zgłaszają `process.platform === "android"`. Next.js `getCacheDirectory()` nie obsługuje tej platformy: wymaga, aby `~/.cache` (lub generyczny katalog tmp) _już_ istniał, w przeciwnym razie kończy się błędem podczas ładowania instrumentation hooka z komunikatem:
+**Cause:** Some Termux/Node builds report `process.platform === "android"`. Next.js `getCacheDirectory()` does not handle that platform: it requires `~/.cache` (or a generic tmp dir) to _already_ exist, otherwise it fails while loading the instrumentation hook with:
 
 ```text
 Error: An error occurred while loading instrumentation hook: Unsupported platform: android
 ```
 
-Ponieważ hook się nie ładuje, logowanie nigdy się nie uruchamia — błąd 500 wygląda na całkowicie niemożliwy do zdiagnozowania. OmniRoute tworzy `~/.cache` (i ustawia `XDG_CACHE_HOME`, gdy nie jest ustawione) w punkcie wejścia CLI przed startem Next.js, aby ta sonda zakończyła się powodzeniem na Androidzie/Termux.
+Because the hook never loads, logging never starts — the 500 looks completely undiagnosable. OmniRoute creates `~/.cache` (and sets `XDG_CACHE_HOME` when unset) in the CLI entrypoint before Next.js starts so this probe succeeds on Android/Termux.
 
-**Obsługiwane rozwiązanie (bez łatania pakietu):**
+**Supported resolution (no package patching):**
 
 ```bash
 mkdir -p ~/.cache
 omniroute serve
 ```
 
-W aktualnych buildach OmniRoute CLI robi to automatycznie na Androidzie/Termux — świeża instalacja `npx -y omniroute@latest` / globalna nie powinna wymagać kroku ręcznego. Jeśli po aktualizacji nadal widzisz błąd, utwórz raz `~/.cache` jak wyżej i zrestartuj.
+On current OmniRoute builds the CLI does this automatically on Android/Termux — a fresh `npx -y omniroute@latest` / global install should not require the manual step. If you still see the error after upgrading, create `~/.cache` once as above and restart.
 
-**Nie** łataj `dist/server.js`, aby wymusić `process.platform = "linux"`. Tego typu łatka pakietu jest nadpisywana przy każdej reinstalacji/aktualizacji i jest zbędna, gdy katalog cache już istnieje.
+**Do not** patch `dist/server.js` to force `process.platform = "linux"`. That kind of package patch is overwritten on every reinstall/upgrade and is unnecessary once the cache directory exists.
 
-### Błędy kompilacji better-sqlite3
+### better-sqlite3 Build Errors
 
-Zainstaluj toolchain kompilacji Termux:
+Install the Termux build toolchain:
 
 ```bash
 pkg install nodejs python build-essential
 ```
 
-Następnie uruchom ponownie:
+Then rerun:
 
 ```bash
 npx -y omniroute@latest
 ```
 
-### Port już zajęty
+### Port Already In Use
 
-Sprawdź, co nasłuchuje na domyślnym porcie:
+Check what is listening on the default port:
 
 ```bash
 ss -ltnp | grep 20128
 ```
 
-Zatrzymaj stary proces:
+Stop the old process:
 
 ```bash
 pkill -f omniroute
 ```
 
-### Dashboard niedostępny z innego urządzenia
+### Dashboard Not Reachable From Another Device
 
-Upewnij się, że oba urządzenia są w tej samej sieci WiFi, a następnie przetestuj z Termux:
+Verify both devices are on the same WiFi network, then test from Termux:
 
 ```bash
 curl http://localhost:20128
 ```
 
-Jeśli dostęp lokalny działa, a dostęp z LAN nie, sprawdź izolację hotspotu/WiFi w Androidzie oraz ewentualny profil zapory lub VPN na telefonie.
+If local access works but LAN access does not, check Android hotspot/WiFi isolation and any firewall or VPN profile on the phone.

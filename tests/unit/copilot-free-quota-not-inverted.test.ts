@@ -1,3 +1,4 @@
+// oxlint-disable no-explicit-any
 /**
  * Regression for #2876 — GitHub Copilot Provider Quota rendered the other way around.
  *

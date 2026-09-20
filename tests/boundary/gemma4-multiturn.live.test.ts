@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Multi-turn investigation: Does accumulated context cause Gemma4 to
  * start generating literal \\n in tool call arguments?
@@ -9,11 +10,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const BASE = process.env.OMNIROUTE_TEST_BASE || "http://localhost:20128/v1";
-const AUTH = process.env.OMNIROUTE_TEST_BEARER
-    ? `Bearer ${process.env.OMNIROUTE_TEST_BEARER}`
-    : "";
-const COOKIE =
-  process.env.OMNIROUTE_TEST_COOKIE || "";
+const AUTH = process.env.OMNIROUTE_TEST_BEARER ? `Bearer ${process.env.OMNIROUTE_TEST_BEARER}` : "";
+const COOKIE = process.env.OMNIROUTE_TEST_COOKIE || "";
 
 const MODEL = "gemini/gemma-4-26b-a4b-it";
 

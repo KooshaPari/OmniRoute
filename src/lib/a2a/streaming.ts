@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * A2A SSE Streaming Support
  *

@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 /**
  * Provider-wildcard expansion for combo targets (#2562).
  *
