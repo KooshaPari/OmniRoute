@@ -1110,33 +1110,6 @@
       "switch": "Aktiveeri parim komboarvestus"
     }
   },
-  "oneproxy": {
-    "description": "Halda OneProxy ülemvoolu puuli",
-    "stats": {
-      "provider": "Filtreeri teenusepakkuja järgi",
-      "period": "Ajaperiood (vaikimisi: 24h)"
-    },
-    "fetch": {
-      "description": "Hangi puulist proksisid",
-      "count": "Hangitavate proksite arv (vaikimisi: 1)",
-      "type": "Proksi tüüp: http|socks5 (vaikimisi: http)"
-    },
-    "rotate": {
-      "description": "Sunni proksi rotatsiooni",
-      "provider": "Teenusepakkuja, kelle jaoks rotatsiooni läbi viia",
-      "connectionId": "Konkreetne ühenduse ID, mida rotatsiooni viia"
-    },
-    "config": {
-      "description": "Kuva või uuenda OneProxy seadeid",
-      "enabled": "Luba proksipuul (true|false)",
-      "poolSize": "Puuli suurus",
-      "providerSource": "Proksiteenuse pakkuja URL",
-      "rotationPolicy": "Rotatsiooni reegel: sticky|per-request|periodic"
-    },
-    "pool": {
-      "description": "Kuva praegune proksipuul koos meetrikatega"
-    }
-  },
   "open": {
     "description": "Ava veebibrauseris konkreetne OmniRoute juhtpaneeli leht",
     "url": "Kuva ainult URL, ära ava brauserit"

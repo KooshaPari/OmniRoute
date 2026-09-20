@@ -1110,33 +1110,6 @@
       "switch": "Activate the top-ranked combo"
     }
   },
-  "oneproxy": {
-    "description": "Manage the OneProxy upstream pool",
-    "stats": {
-      "provider": "Filter by provider",
-      "period": "Time period (default: 24h)"
-    },
-    "fetch": {
-      "description": "Fetch proxies from the pool",
-      "count": "Number of proxies to fetch (default: 1)",
-      "type": "Proxy type: http|socks5 (default: http)"
-    },
-    "rotate": {
-      "description": "Force proxy rotation",
-      "provider": "Provider to rotate for",
-      "connectionId": "Specific connection ID to rotate"
-    },
-    "config": {
-      "description": "Show or update OneProxy config",
-      "enabled": "Enable proxy pool (true|false)",
-      "poolSize": "Pool size",
-      "providerSource": "URL for proxy provider",
-      "rotationPolicy": "Rotation policy: sticky|per-request|periodic"
-    },
-    "pool": {
-      "description": "List current proxy pool with metrics"
-    }
-  },
   "open": {
     "description": "Open a specific OmniRoute dashboard page in the browser",
     "url": "Print URL only, do not open browser"

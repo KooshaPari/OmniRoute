@@ -431,13 +431,6 @@ export {
 export type { ReasoningCacheEntry, ReasoningCacheStats } from "./db/reasoningCache";
 
 export {
-  // 1proxy Integration (#1788)
-  listOneproxyProxies,
-} from "./db/oneproxy";
-
-export type { OneproxyProxyRecord } from "./db/oneproxy";
-
-export {
   getSessionAccountAffinity,
   upsertSessionAccountAffinity,
   touchSessionAccountAffinity,

@@ -3,29 +3,24 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Card } from "@/shared/components";
+import type { FreeProxyRecord, FreeProxyStats } from "@/lib/db/freeProxies";
+import type { FreeProxySyncResult } from "@/lib/freeProxyProviders/types";
 
-type OneproxyItem = {
-  id: string;
-  name: string;
-  host: string;
-  port: number;
-  type: string;
-  countryCode: string | null;
-  qualityScore: number | null;
-  latencyMs: number | null;
-  anonymity: string | null;
-  googleAccess: boolean;
-  status: string;
-  lastValidated: string | null;
+type FreeProxiesListResponse = {
+  success: true;
+  data: {
+    proxies: FreeProxyRecord[];
+    total: number;
+    hasMore: boolean;
+    stats: FreeProxyStats;
+    syncErrors: Record<string, string[]>;
+  };
 };
 
-type OneproxyStats = {
-  total: number;
-  active: number;
-  avgQuality: number | null;
-  lastValidated: string | null;
-  byProtocol: Array<{ protocol: string; count: number }>;
-  byCountry: Array<{ countryCode: string; count: number }>;
+type FreeProxiesSyncResponse = {
+  success: true;
+  results: Record<string, FreeProxySyncResult>;
+  lastSyncAt: string | null;
 };
 
 type SyncStatus = {
@@ -36,10 +31,12 @@ type SyncStatus = {
   consecutiveFailures: number;
 };
 
+const SOURCE = "1proxy" as const;
+
 export default function OneproxyTab() {
   const t = useTranslations("settings");
-  const [proxies, setProxies] = useState<OneproxyItem[]>([]);
-  const [stats, setStats] = useState<OneproxyStats | null>(null);
+  const [proxies, setProxies] = useState<FreeProxyRecord[]>([]);
+  const [stats, setStats] = useState<FreeProxyStats | null>(null);
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -52,25 +49,31 @@ export default function OneproxyTab() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
+      params.set("sources", SOURCE);
       if (filterProtocol) params.set("protocol", filterProtocol);
-      if (filterCountry) params.set("countryCode", filterCountry);
+      if (filterCountry) params.set("country", filterCountry);
       if (minQuality) params.set("minQuality", minQuality);
 
-      const [proxiesRes, statsRes] = await Promise.all([
-        fetch(`/api/settings/oneproxy?${params.toString()}`),
-        fetch("/api/settings/oneproxy?action=stats"),
-      ]);
+      const res = await fetch(`/api/settings/free-proxies?${params.toString()}`);
+      if (res.ok) {
+        const body = (await res.json()) as FreeProxiesListResponse;
+        setProxies(body.data.proxies);
+        setStats(body.data.stats);
 
-      if (proxiesRes.ok) {
-        const data = await proxiesRes.json();
-        setProxies(data.items || []);
-      }
-      if (statsRes.ok) {
-        const data = await statsRes.json();
-        setStats(data.stats);
-        setStatus(data.status);
+        const errors = body.data.syncErrors[SOURCE] ?? [];
+        const lastSyncAt = body.data.stats.lastSyncAt;
+        setStatus({
+          lastSyncSuccess: errors.length === 0,
+          lastSyncError: errors[0] ?? null,
+          lastSyncAt,
+          // The list endpoint doesn't expose per-run fetched/added/updated;
+          // the precise numbers appear in the Sync Now response itself.
+          lastSyncCount: 0,
+          consecutiveFailures: errors.length > 0 ? 1 : 0,
+        });
       }
     } catch {
+      // Ignore — UI degrades gracefully
     } finally {
       setLoading(false);
     }
@@ -84,12 +87,25 @@ export default function OneproxyTab() {
     setSyncing(true);
     setSyncResult(null);
     try {
-      const res = await fetch("/api/settings/oneproxy", { method: "POST" });
-      const data = await res.json();
-      if (data.success) {
-        setSyncResult(`Synced ${data.total} proxies (${data.added} new, ${data.updated} updated)`);
+      const res = await fetch("/api/settings/free-proxies/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sources: [SOURCE] }),
+      });
+      const body = (await res.json()) as FreeProxiesSyncResponse | { error: string };
+      if ("results" in body) {
+        const r = body.results[SOURCE];
+        if (r) {
+          const total = r.fetched;
+          const errMsg = r.errors[0];
+          setSyncResult(
+            errMsg
+              ? `Sync failed: ${errMsg}`
+              : `Synced ${total} proxies (${r.added} new, ${r.updated} updated)`,
+          );
+        }
       } else {
-        setSyncResult(`Sync failed: ${data.error}`);
+        setSyncResult(`Sync failed: ${body.error}`);
       }
       await loadData();
     } catch (err) {
@@ -102,7 +118,7 @@ export default function OneproxyTab() {
   const handleClearAll = async () => {
     if (!confirm("Clear all 1proxy proxies?")) return;
     try {
-      await fetch("/api/settings/oneproxy?clearAll=1", { method: "DELETE" });
+      await fetch(`/api/settings/free-proxies?source=${SOURCE}`, { method: "DELETE" });
       await loadData();
     } catch {
       // ignore
@@ -111,9 +127,9 @@ export default function OneproxyTab() {
 
   const handleDelete = async (id: string) => {
     try {
-      await fetch(`/api/settings/oneproxy?id=${id}`, { method: "DELETE" });
+      await fetch(`/api/settings/free-proxies?id=${id}`, { method: "DELETE" });
       setProxies((prev) => prev.filter((p) => p.id !== id));
-      if (stats) setStats({ ...stats, total: stats.total - 1, active: stats.active - 1 });
+      if (stats) setStats({ ...stats, total: stats.total - 1 });
     } catch {
       // ignore
     }
@@ -176,12 +192,12 @@ export default function OneproxyTab() {
             <div className="text-sm text-text-muted">{t("oneproxyTotalProxies")}</div>
           </Card>
           <Card className="p-4">
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-            <div className="text-sm text-text-muted">Active</div>
+            <div className="text-2xl font-bold text-green-600">{stats.inPool}</div>
+            <div className="text-sm text-text-muted">In Pool</div>
           </Card>
           <Card className="p-4">
             <div className="text-2xl font-bold text-text-main">
-              {stats.avgQuality != null ? `${stats.avgQuality}` : "—"}
+              {stats.avgQuality != null ? `${Math.round(stats.avgQuality)}` : "—"}
             </div>
             <div className="text-sm text-text-muted">{t("oneproxyAvgQuality")}</div>
           </Card>
@@ -244,7 +260,6 @@ export default function OneproxyTab() {
                   <th className="text-left py-2 px-3 text-text-muted font-medium">Quality</th>
                   <th className="text-left py-2 px-3 text-text-muted font-medium">Latency</th>
                   <th className="text-left py-2 px-3 text-text-muted font-medium">Anonymity</th>
-                  <th className="text-left py-2 px-3 text-text-muted font-medium">Google</th>
                   <th className="text-left py-2 px-3 text-text-muted font-medium">Actions</th>
                 </tr>
               </thead>
@@ -270,20 +285,15 @@ export default function OneproxyTab() {
                         <div
                           className={`w-3 h-3 rounded-full ${qualityColor(proxy.qualityScore)}`}
                         />
-                        <span className="text-text-main">{proxy.qualityScore ?? "—"}</span>
+                        <span className="text-text-main">
+                          {proxy.qualityScore != null ? Math.round(proxy.qualityScore) : "—"}
+                        </span>
                       </div>
                     </td>
                     <td className="py-2 px-3 text-text-main">
-                      {proxy.latencyMs != null ? `${proxy.latencyMs}ms` : "—"}
+                      {proxy.latencyMs != null ? `${Math.round(proxy.latencyMs)}ms` : "—"}
                     </td>
                     <td className="py-2 px-3 text-text-main">{proxy.anonymity || "—"}</td>
-                    <td className="py-2 px-3">
-                      {proxy.googleAccess ? (
-                        <span className="text-green-600">&#10003;</span>
-                      ) : (
-                        <span className="text-red-600">&#10007;</span>
-                      )}
-                    </td>
                     <td className="py-2 px-3">
                       <button
                         onClick={() => handleDelete(proxy.id)}
@@ -316,10 +326,6 @@ export default function OneproxyTab() {
               <span className="text-text-muted">{t("oneproxyProxiesFetched")} </span>
               <span className="text-text-main">{status.lastSyncCount}</span>
             </div>
-            <div>
-              <span className="text-text-muted">{t("oneproxyConsecutiveFailures")} </span>
-              <span className="text-text-main">{status.consecutiveFailures}</span>
-            </div>
             {status.lastSyncError && (
               <div className="col-span-full">
                 <span className="text-text-muted">{t("oneproxyErrorLabel")} </span>
@@ -332,3 +338,5 @@ export default function OneproxyTab() {
     </div>
   );
 }
+
+

@@ -1091,33 +1091,6 @@
       "switch": "激活排名最高的组合"
     }
   },
-  "oneproxy": {
-    "description": "管理 OneProxy 上游代理池",
-    "stats": {
-      "provider": "按提供者筛选",
-      "period": "时间范围（默认：24h）"
-    },
-    "fetch": {
-      "description": "从代理池获取代理",
-      "count": "要获取的代理数（默认：1）",
-      "type": "代理类型：http|socks5（默认：http）"
-    },
-    "rotate": {
-      "description": "强制轮换代理",
-      "provider": "要轮换的提供者",
-      "connectionId": "要轮换的特定连接 ID"
-    },
-    "config": {
-      "description": "显示或更新 OneProxy 配置",
-      "enabled": "启用代理池（true|false）",
-      "poolSize": "池大小",
-      "providerSource": "代理提供者的 URL",
-      "rotationPolicy": "轮换策略：sticky|per-request|periodic"
-    },
-    "pool": {
-      "description": "列出当前代理池及指标"
-    }
-  },
   "open": {
     "description": "在浏览器中打开特定的 OmniRoute 仪表盘页面",
     "url": "仅打印 URL，不打开浏览器"

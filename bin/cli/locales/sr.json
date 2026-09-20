@@ -1110,33 +1110,6 @@
       "switch": "Aktiviraj najbolje rangiranu kombinaciju"
     }
   },
-  "oneproxy": {
-    "description": "Upravljanje OneProxy skupom nadređenih proksija",
-    "stats": {
-      "provider": "Filtriraj po dobavljaču",
-      "period": "Vremenski period (podrazumevano: 24h)"
-    },
-    "fetch": {
-      "description": "Preuzmi proksije iz skupa",
-      "count": "Broj proksija za preuzimanje (podrazumevano: 1)",
-      "type": "Tip proksija: http|socks5 (podrazumevano: http)"
-    },
-    "rotate": {
-      "description": "Prisilna rotacija proksija",
-      "provider": "Dobavljač za koji se vrši rotacija",
-      "connectionId": "ID konkretne konekcije za rotaciju"
-    },
-    "config": {
-      "description": "Prikaži ili ažuriraj OneProxy konfiguraciju",
-      "enabled": "Omogući skup proksija (true|false)",
-      "poolSize": "Veličina skupa",
-      "providerSource": "URL dobavljača proksija",
-      "rotationPolicy": "Politika rotacije: sticky|per-request|periodic"
-    },
-    "pool": {
-      "description": "Prikaži trenutni skup proksija sa metrikama"
-    }
-  },
   "open": {
     "description": "Otvori određenu OmniRoute kontrolnu stranicu u pretraživaču",
     "url": "Samo ispiši URL, ne otvaraj pretraživač"

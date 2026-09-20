@@ -1110,33 +1110,6 @@
       "switch": "Aktivizēt visaugstāk novērtēto kombināciju"
     }
   },
-  "oneproxy": {
-    "description": "Pārvaldīt OneProxy augšējā līmeņa baseinu",
-    "stats": {
-      "provider": "Filtrēt pēc pakalpojuma sniedzēja",
-      "period": "Laika periods (noklusējums: 24h)"
-    },
-    "fetch": {
-      "description": "Iegūt starpniekserverus no baseina",
-      "count": "Iegūstamo starpniekserveru skaits (noklusējums: 1)",
-      "type": "Starpniekservera tips: http|socks5 (noklusējums: http)"
-    },
-    "rotate": {
-      "description": "Piespiest starpniekservera maiņu",
-      "provider": "Pakalpojuma sniedzējs, kam veikt maiņu",
-      "connectionId": "Konkrētais savienojuma ID, kam veikt maiņu"
-    },
-    "config": {
-      "description": "Rādīt vai atjaunināt OneProxy konfigurāciju",
-      "enabled": "Iespējot starpniekserveru baseinu (true|false)",
-      "poolSize": "Baseina lielums",
-      "providerSource": "URL starpniekserveru sniedzējam",
-      "rotationPolicy": "Maiņas politika: sticky|per-request|periodic"
-    },
-    "pool": {
-      "description": "Parādīt pašreizējo starpniekserveru baseinu ar metrikām"
-    }
-  },
   "open": {
     "description": "Atvērt konkrētu OmniRoute informācijas paneli pārlūkā",
     "url": "Tikai izdrukāt URL, neatvērt pārlūku"

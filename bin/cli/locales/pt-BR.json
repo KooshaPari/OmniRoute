@@ -1110,33 +1110,6 @@
       "switch": "Ativar o combo mais bem classificado"
     }
   },
-  "oneproxy": {
-    "description": "Gerenciar o pool de proxies OneProxy",
-    "stats": {
-      "provider": "Filtrar por provider",
-      "period": "Período de tempo (padrão: 24h)"
-    },
-    "fetch": {
-      "description": "Buscar proxies do pool",
-      "count": "Número de proxies a buscar (padrão: 1)",
-      "type": "Tipo de proxy: http|socks5 (padrão: http)"
-    },
-    "rotate": {
-      "description": "Forçar rotação de proxy",
-      "provider": "Provider para rotacionar",
-      "connectionId": "ID de conexão específica para rotacionar"
-    },
-    "config": {
-      "description": "Exibir ou atualizar configuração do OneProxy",
-      "enabled": "Habilitar pool de proxies (true|false)",
-      "poolSize": "Tamanho do pool",
-      "providerSource": "URL do provedor de proxies",
-      "rotationPolicy": "Política de rotação: sticky|per-request|periodic"
-    },
-    "pool": {
-      "description": "Listar pool de proxies atual com métricas"
-    }
-  },
   "open": {
     "description": "Abrir uma página específica do dashboard OmniRoute no navegador",
     "url": "Apenas imprime a URL, sem abrir o navegador"

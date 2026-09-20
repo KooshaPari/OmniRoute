@@ -1110,33 +1110,6 @@
       "switch": "Aktyvinti aukščiausiai įvertintą derinį"
     }
   },
-  "oneproxy": {
-    "description": "Valdyti OneProxy išorinį telkinį",
-    "stats": {
-      "provider": "Filtruoti pagal teikėją",
-      "period": "Laikotarpis (numatytoji reikšmė: 24h)"
-    },
-    "fetch": {
-      "description": "Gauti tarpinius serverius iš telkinio",
-      "count": "Gaunamų tarpinių serverių skaičius (numatytoji reikšmė: 1)",
-      "type": "Tarpinio serverio tipas: http|socks5 (numatytoji reikšmė: http)"
-    },
-    "rotate": {
-      "description": "Priverstinai pakeisti tarpinį serverį",
-      "provider": "Teikėjas, kuriam atliekamas pakeitimas",
-      "connectionId": "Konkretaus ryšio ID, kuriam atliekamas pakeitimas"
-    },
-    "config": {
-      "description": "Rodyti arba atnaujinti OneProxy konfigūraciją",
-      "enabled": "Įjungti tarpinių serverių telkinį (true|false)",
-      "poolSize": "Telkinio dydis",
-      "providerSource": "Tarpinių serverių teikėjo URL",
-      "rotationPolicy": "Keitimo politika: sticky|per-request|periodic"
-    },
-    "pool": {
-      "description": "Rodyti dabartinį tarpinių serverių telkinį su metrikomis"
-    }
-  },
   "open": {
     "description": "Naršyklėje atidaryti konkretų OmniRoute skydelio puslapį",
     "url": "Tik išvesti URL, neatidaryti naršyklės"

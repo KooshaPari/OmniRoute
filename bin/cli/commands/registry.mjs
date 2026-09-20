@@ -19,7 +19,6 @@ import { registerContextEng } from "./context-eng.mjs";
 import { registerSessions } from "./sessions.mjs";
 import { registerTags } from "./tags.mjs";
 import { registerOpenapi } from "./openapi.mjs";
-import { registerOneProxy } from "./oneproxy.mjs";
 import { registerTelemetry } from "./telemetry.mjs";
 import { registerOpen } from "./open.mjs";
 import { registerChat } from "./chat.mjs";
@@ -105,7 +104,6 @@ export function registerCommands(program) {
   registerSessions(program);
   registerTags(program);
   registerOpenapi(program);
-  registerOneProxy(program);
   registerTelemetry(program);
   registerOpen(program);
   registerChat(program);

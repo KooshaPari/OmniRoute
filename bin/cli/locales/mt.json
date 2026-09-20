@@ -1110,33 +1110,6 @@
       "switch": "Attiva l-combo bl-ogħla klassifikazzjoni"
     }
   },
-  "oneproxy": {
-    "description": "Immaniġġja l-pool upstream ta' OneProxy",
-    "stats": {
-      "provider": "Iffiltra skont il-fornitur",
-      "period": "Perjodu ta' żmien (default: 24h)"
-    },
-    "fetch": {
-      "description": "Ġib proxies mill-pool",
-      "count": "Numru ta' proxies biex jinġiebu (default: 1)",
-      "type": "Tip ta' proxy: http|socks5 (default: http)"
-    },
-    "rotate": {
-      "description": "Iġġiegħel ir-rotazzjoni tal-proxy",
-      "provider": "Fornitur li għalih issir ir-rotazzjoni",
-      "connectionId": "ID tal-konnessjoni speċifiku għar-rotazzjoni"
-    },
-    "config": {
-      "description": "Uri jew aġġorna l-konfigurazzjoni ta' OneProxy",
-      "enabled": "Ippermetti l-pool tal-proxy (true|false)",
-      "poolSize": "Daqs tal-pool",
-      "providerSource": "URL għall-fornitur tal-proxy",
-      "rotationPolicy": "Politika ta' rotazzjoni: sticky|per-request|periodic"
-    },
-    "pool": {
-      "description": "Elenca l-pool tal-proxy attwali bil-metriċi"
-    }
-  },
   "open": {
     "description": "Iftaħ paġna speċifika tad-dashboard ta' OmniRoute fil-browser",
     "url": "Stampa biss l-URL, tiftaħx il-browser"

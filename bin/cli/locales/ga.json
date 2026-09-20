@@ -1110,33 +1110,6 @@
       "switch": "Gníomhachtaigh an comhoiriú is fearr ranga"
     }
   },
-  "oneproxy": {
-    "description": "Bainistigh linn uachtarach OneProxy",
-    "stats": {
-      "provider": "Scag de réir soláthraí",
-      "period": "Tréimhse ama (réamhshocrú: 24h)"
-    },
-    "fetch": {
-      "description": "Faigh seachfhreastalaithe ón linn",
-      "count": "Líon na seachfhreastalaithe le fáil (réamhshocrú: 1)",
-      "type": "Cineál seachfhreastalaí: http|socks5 (réamhshocrú: http)"
-    },
-    "rotate": {
-      "description": "Éiligh rothlú seachfhreastalaí",
-      "provider": "Soláthraí le rothlú dó",
-      "connectionId": "ID ceangail shonrach le rothlú"
-    },
-    "config": {
-      "description": "Taispeáin nó nuashonraigh cumraíocht OneProxy",
-      "enabled": "Cumasaigh linn seachfhreastalaí (true|false)",
-      "poolSize": "Méid na linne",
-      "providerSource": "URL do sholáthraí seachfhreastalaí",
-      "rotationPolicy": "Polasaí rothlú: sticky|per-request|periodic"
-    },
-    "pool": {
-      "description": "Liostáil linn seachfhreastalaí reatha le meitricí"
-    }
-  },
   "open": {
     "description": "Oscail leathanach painéil rialaithe OmniRoute sonrach sa bhrabhsálaí",
     "url": "Priontáil URL amháin, ná oscail an brabhsálaí"

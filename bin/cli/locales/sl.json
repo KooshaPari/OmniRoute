@@ -1110,33 +1110,6 @@
       "switch": "Aktiviraj najbolje uvrščeno kombinacijo"
     }
   },
-  "oneproxy": {
-    "description": "Upravljaj skupino posredniških strežnikov OneProxy",
-    "stats": {
-      "provider": "Filtriraj po ponudniku",
-      "period": "Časovno obdobje (privzeto: 24h)"
-    },
-    "fetch": {
-      "description": "Pridobi posredniške strežnike iz skupine",
-      "count": "Število posredniških strežnikov za pridobitev (privzeto: 1)",
-      "type": "Vrsta posredniškega strežnika: http|socks5 (privzeto: http)"
-    },
-    "rotate": {
-      "description": "Vsili zamenjavo posredniškega strežnika",
-      "provider": "Ponudnik, za katerega naj se izvede zamenjava",
-      "connectionId": "ID določene povezave za zamenjavo"
-    },
-    "config": {
-      "description": "Prikaži ali posodobi konfiguracijo OneProxy",
-      "enabled": "Omogoči skupino posredniških strežnikov (true|false)",
-      "poolSize": "Velikost skupine",
-      "providerSource": "URL ponudnika posredniških strežnikov",
-      "rotationPolicy": "Pravilnik zamenjave: sticky|per-request|periodic"
-    },
-    "pool": {
-      "description": "Prikaži trenutno skupino posredniških strežnikov z metrikami"
-    }
-  },
   "open": {
     "description": "Odpri določeno stran nadzorne plošče OmniRoute v brskalniku",
     "url": "Samo izpiši URL, ne odpiraj brskalnika"
