@@ -185,29 +185,3 @@ export function getRegistryModel(
   const providerModels = PROVIDER_MODELS[alias] || PROVIDER_MODELS[providerId] || [];
   return providerModels.find((model) => model?.id === modelId) || null;
 }
-
-/**
- * Default context-length fallback for a model.
- */
-export function getDefaultContextFallback(
-  model: any,
-  aliasToProviderId: Record<string, string>,
-  capabilityResolutionSnapshot: any
-): number | undefined {
-  if (typeof model.context_length === "number") return undefined;
-  if (model.owned_by === "combo") return undefined;
-  if (model.type && model.type !== "chat") return undefined;
-
-  const provider = typeof model.owned_by === "string" ? model.owned_by : null;
-  if (!provider) return undefined;
-  const canonicalId = aliasToProviderId[provider] || provider;
-
-  const registryFallback = REGISTRY[canonicalId]?.defaultContextLength;
-  if (registryFallback) return registryFallback;
-
-  const modelId =
-    model.root || (typeof model.id === "string" ? model.id.split("/").pop() : undefined);
-  return modelId
-    ? getSourcedTokenLimit(canonicalId, modelId, capabilityResolutionSnapshot)
-    : getSourcedTokenLimit(canonicalId, null, capabilityResolutionSnapshot);
-}
