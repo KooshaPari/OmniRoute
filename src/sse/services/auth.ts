@@ -513,23 +513,42 @@ export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 export { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
 export { extractSessionAffinityKey } from "./sessionAffinityPin";
 // Re-export quota helpers from authQuota.ts (F-01 decomposition).
-export {
-  resolveQuotaLimitPolicy,
+// These are also used inside this file (e.g. getProviderCredentials), so they
+// are imported as values, not only re-exported. A bare
+// `export { x } from "./y"` does not introduce a local binding, which left 27
+// TS2304/TS2552/TS18004 errors and a ReferenceError at runtime on the
+// getProviderCredentials path.
+import {
   evaluateQuotaLimitPolicy,
   isTerminalConnectionStatus,
   isTerminalConnectionStatusForModel,
-  getConnectionQuotaHeadroomPercent,
-  getConnectionErrorPenalty,
-  getConnectionRecencyPenalty,
-  getP2CConnectionScore,
-  compareP2CConnections,
   getEarliestFutureDate,
   getCachedQuotaResetAt,
   isRetryableModelLockoutReason,
+  compareP2CConnections,
   asRecord,
   uniqueWindows,
   parseFutureDateMs,
 } from "./authQuota.ts";
+export {
+  resolveQuotaLimitPolicy,
+  getConnectionQuotaHeadroomPercent,
+  getConnectionErrorPenalty,
+  getConnectionRecencyPenalty,
+  getP2CConnectionScore,
+} from "./authQuota.ts";
+export {
+  evaluateQuotaLimitPolicy,
+  isTerminalConnectionStatus,
+  isTerminalConnectionStatusForModel,
+  getEarliestFutureDate,
+  getCachedQuotaResetAt,
+  isRetryableModelLockoutReason,
+  compareP2CConnections,
+  asRecord,
+  uniqueWindows,
+  parseFutureDateMs,
+};
 const PROVIDER_SEARCH_PAIRS: string[][] = [
   ["nvidia", "nvidia_nim"],
   ["kimi-coding", "kimi-coding-apikey"],
