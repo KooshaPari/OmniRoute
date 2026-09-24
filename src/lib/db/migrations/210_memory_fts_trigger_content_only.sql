@@ -1,4 +1,4 @@
--- 149_memory_fts_trigger_content_only.sql
+-- 210: memory_fts_au trigger only fires on real content changes.
 -- Fix: memory_fts_au trigger fires on EVERY UPDATE (including access_count bumps),
 -- generating unbounded FTS5 tombstones/segments that bloat memory_fts_data/docsize.
 --
