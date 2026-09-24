@@ -712,9 +712,14 @@ export async function saveRequestUsage(entry: UsageEntry) {
     // Keyed on the natural identity of a request: timestamp + provider + model
     // + connectionId + apiKeyId + token counts. If only the endpoint is missing
     // on the existing row, fill it in rather than inserting a duplicate.
-    let inserted = false;
+  let inserted = false;
 
-    db.transaction(() => {
+  // #13459: normalize provider aliases to the canonical id so usage_history
+  // dedupes `openai/chat` and `openai` as the same provider. `entry.provider`
+  // is optional, so guard before resolving — resolveProviderId takes a string.
+  const canonicalProvider = entry.provider ? resolveProviderId(entry.provider) : null;
+
+  db.transaction(() => {
       const existing = db
         .prepare(
           `SELECT id, endpoint FROM usage_history
@@ -729,7 +734,10 @@ export async function saveRequestUsage(entry: UsageEntry) {
         )
         .get(
           timestamp,
-          resolveProviderId(entry.provider) || null,
+          canonicalProvider,
+          entry.model || null,
+          entry.connectionId || null,
+          entry.apiKeyId || null,
           tokensInput,
           tokensOutput
         ) as { id: number; endpoint: string | null } | undefined;
@@ -754,7 +762,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
       ).run(
-        resolveProviderId(entry.provider) || null,
+        canonicalProvider,
         entry.model || null,
         entry.connectionId || null,
         accountIdentity.accountKey,
