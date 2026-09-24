@@ -81,6 +81,21 @@ function normalizeZedProvider(value: unknown, model: unknown): ZedProviderName {
   return ZED_PROVIDER.openai;
 }
 
+/**
+ * Map OpenAI "developer" role to "system" so Zed's OpenAI proxy accepts it.
+ * See #13362.  The `developer` role is an OpenAI-specific extension that
+ * Zed's proxy does not recognise; the semantic equivalent for the proxy is
+ * the standard `system` role.
+ */
+function normalizeDeveloperRole(body: unknown): unknown {
+  const rec = body as Record<string, unknown>;
+  if (!Array.isArray(rec.messages)) return body;
+  rec.messages = rec.messages.map((m: Record<string, unknown>) =>
+    m.role === "developer" ? { ...m, role: "system" } : m
+  );
+  return rec;
+}
+
 function buildProviderRequest(
   provider: ZedProviderName,
   model: string,
@@ -101,10 +116,11 @@ function buildProviderRequest(
     return normalizeForZedProxy(geminiReq);
   }
   if (provider === ZED_PROVIDER.openai) {
-    return openaiToOpenAIResponsesRequest(model, body, true, credentials);
+    // #13362: Zed's OpenAI proxy does not understand the "developer" role.
+    return openaiToOpenAIResponsesRequest(model, normalizeDeveloperRole(body), true, credentials);
   }
   return {
-    ...(body as Record<string, unknown>),
+    ...(normalizeDeveloperRole(body) as Record<string, unknown>),
     model,
     stream: stream !== false,
   };

@@ -43,9 +43,16 @@ export function isStrictlySerializable(value: unknown, seen = new Set<object>())
   }
   if (typeof value !== "object" || seen.has(value)) return false;
   seen.add(value);
-  if (Array.isArray(value)) return value.every((entry) => isStrictlySerializable(entry, seen));
-  if (!isPlainObject(value)) return false;
-  return Object.values(value).every((entry) => isStrictlySerializable(entry, seen));
+  try {
+    if (Array.isArray(value)) return value.every((entry) => isStrictlySerializable(entry, seen));
+    if (!isPlainObject(value)) return false;
+    return Object.values(value).every((entry) => isStrictlySerializable(entry, seen));
+  } finally {
+    // #13154: only track the current recursion PATH (ancestors), not every
+    // node ever visited. Without this, two sibling branches referencing the
+    // SAME non-cyclic sub-object are falsely rejected as cycles.
+    seen.delete(value);
+  }
 }
 
 const WORKER_STACK_ENGINES = new Set(["caveman", "rtk", "standard"]);

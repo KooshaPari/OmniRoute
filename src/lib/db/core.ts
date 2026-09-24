@@ -1246,12 +1246,21 @@ export function getDbInstance(): SqliteDatabase {
     if (skipIntegrityCheck) {
       console.log("[DB] Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
     }
-    runDbHealthCheck(db, {
+    const healthResult = runDbHealthCheck(db, {
       autoRepair: true,
       expectedSchemaVersion: "1",
       skipIntegrityCheck,
       createBackupBeforeRepair: () => createHealthCheckBackup(db),
     });
+    // #13308: prune old backups after creating a new one so db_backups/ does not
+    // grow without bound. The health-check-repair path creates a snapshot on every
+    // startup even for a healthy database, and without pruning each restart adds a
+    // full-sized copy. Dynamic import avoids a circular dependency with backup.ts.
+    if (healthResult.backupCreated && DB_BACKUPS_DIR) {
+      import("./backup")
+        .then(({ cleanupDbBackups }) => cleanupDbBackups({ backupDir: DB_BACKUPS_DIR }))
+        .catch(() => {});
+    }
   }
 
   setDb(db);
