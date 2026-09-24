@@ -186,6 +186,18 @@ function psiLevel(
   return null;
 }
 
+/**
+ * #13124: operators can opt out of the PSI (Linux pressure stall information)
+ * component of the guard. PSI is HOST-wide rather than this process's own cgroup
+ * pressure, so a busy neighbour can trip the guard for reasons unrelated to this
+ * process. When disabled, PSI contributes neither to pressure detection nor to
+ * recovery.
+ */
+function psiDisabled(env: { OMNIROUTE_PRESSURE_PSI_DISABLED?: string } = process.env): boolean {
+  const raw = (env.OMNIROUTE_PRESSURE_PSI_DISABLED ?? "").trim().toLowerCase();
+  return raw === "true" || raw === "1";
+}
+
 export function classifyAdaptiveResourcePressure(
   signals: ResourceSignals,
   thresholds: ResourcePressureThresholds
@@ -211,6 +223,7 @@ export function classifyAdaptiveResourcePressure(
     best,
     ratioLevel(signals.cgroup.currentBytes, signals.cgroup.highBytes, thresholds, "cgroup_high")
   );
+  if (psiDisabled()) return best;
   best = maxLevel(best, psiLevel(signals.psi?.someAvg10 ?? null, thresholds, "psi_some"));
   return maxLevel(best, psiLevel(signals.psi?.fullAvg10 ?? null, thresholds, "psi_full"));
 }
@@ -247,6 +260,7 @@ function isRecovered(signals: ResourceSignals, thresholds: ResourcePressureThres
   ) {
     return false;
   }
+  if (psiDisabled()) return true;
   return ![signals.psi?.someAvg10, signals.psi?.fullAvg10].some(
     (value) => value != null && value > thresholds.recoveryPsiAvg10
   );

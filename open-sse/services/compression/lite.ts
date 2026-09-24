@@ -20,6 +20,13 @@ interface LiteCompressionOptions {
   compressToolResults?: boolean;
 }
 
+// Maximum length of a single tool-result message before truncation. Override
+// via OMNIROUTE_MAX_TOOL_LENGTH.
+const MAX_TOOL_LENGTH = (() => {
+  const n = Number(process.env.OMNIROUTE_MAX_TOOL_LENGTH);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 2000;
+})();
+
 function normalizeMessageWhitespace(content: string): string {
   if (!content) return "";
   return content.replace(/\n{3,}/g, "\n\n").replace(/[ \t]+$/gm, "");
@@ -123,7 +130,6 @@ export function compressToolResults(body: ChatBody): {
   applied: boolean;
 } {
   if (!body.messages) return { body, applied: false };
-  const MAX_TOOL_LENGTH = 2000;
   let applied = false;
   const messages = body.messages.map((msg) => {
     if (msg.role !== "tool" || typeof msg.content !== "string") return msg;
