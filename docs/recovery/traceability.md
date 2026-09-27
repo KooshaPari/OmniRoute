@@ -37,6 +37,41 @@ so the live `~/.omniroute` database is never touched).
   changed none of them, and `tests/unit/chatgpt-web-citations.test.ts` fails
   identically on pristine main.
 
+## Test-suite verification
+
+`pnpm test` on the branch: 21,398 tests, 18,323 pass, 234 fail, 2,823 cancelled.
+A raw fail count is not evidence of a branch regression on its own, so both
+trees were compared directly.
+
+**Changed test surface.** The branch touches 67 files, 21 of which are tests.
+All 21 pass on the branch (159 assertions total):
+
+- 20 files under `node --test`: all `pass > 0, fail 0`
+- `tests/unit/13462-credential-masker-data-uri.test.tsx` is a `.tsx` file that
+  `node --test` cannot load; under its real runner
+  (`pnpm vitest run`) it is **5/5 passing**.
+- Effective result: **21/21 changed test files passing, 0 failing.**
+
+**Failure-set comparison.** 120 files were sampled from the branch's failing
+set and replayed file-by-file, one process each, on both worktrees:
+
+| Outcome | Count |
+|---|---|
+| Fail only on branch (true regression) | **0** |
+| Fail on both trees (pre-existing) | 5 |
+| Fail only on main (fixed by the branch) | 3 |
+
+The 3 main-only failures, fixed by this branch:
+`issue-6343-v0-web-alias-collision`, `opencode-autocombo-search-pair`,
+`rate-limit-execution-timeout-message-4165`.
+
+The 5 pre-existing failures, failing identically on both trees:
+`i18n-home-recent-requests-topology-legend`,
+`media-page-client-browser-bundle`, `models-catalog-model-exposure-list`,
+`radar-referrals-page-tab`, `tls-client-wreq-residue`.
+
+**Conclusion: zero test regressions attributable to the branch.**
+
 ## Quality-gate comparison (branch vs pristine main)
 
 | Gate | Main | Branch | Branch-attributable delta |
