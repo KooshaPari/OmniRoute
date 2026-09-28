@@ -44,16 +44,17 @@ A raw fail count is not evidence of a branch regression on its own, so both
 trees were compared directly.
 
 **Changed test surface.** The branch touches 67 files, 21 of which are tests.
-All 21 pass on the branch (159 assertions total):
+All 21 pass on the branch (149 passing assertions in total):
 
-- 20 files under `node --test`: all `pass > 0, fail 0`
+- 20 files under `node --test`: 144 passing assertions, every file `fail 0`
 - `tests/unit/13462-credential-masker-data-uri.test.tsx` is a `.tsx` file that
   `node --test` cannot load; under its real runner
-  (`pnpm vitest run`) it is **5/5 passing**.
+  (`pnpm vitest run`) it is **5 passed / 5**.
 - Effective result: **21/21 changed test files passing, 0 failing.**
 
-**Failure-set comparison.** 120 files were sampled from the branch's failing
-set and replayed file-by-file, one process each, on both worktrees:
+**Failure-set comparison (SAMPLE, not exhaustive).** 120 files were sampled
+from the branch's failing set and replayed file-by-file, one process each, on
+both worktrees:
 
 | Outcome | Count |
 |---|---|
@@ -70,7 +71,27 @@ The 5 pre-existing failures, failing identically on both trees:
 `media-page-client-browser-bundle`, `models-catalog-model-exposure-list`,
 `radar-referrals-page-tab`, `tls-client-wreq-residue`.
 
-**Conclusion: zero test regressions attributable to the branch.**
+**Strength of this evidence, stated honestly.** The branch's full-suite run
+produced 2,852 distinct failing files out of ~5,317 unit test files. The
+comparison above samples 120 of those 2,852, which is **4.2% coverage**. Zero
+branch-only failures were observed *within that sample*. This is evidence of
+no regression, not proof of none: a branch-attributable failure confined to the
+unsampled 96% would not have been detected here.
+
+What the evidence does support, stated at the confidence the data justifies:
+
+- The **entire** changed test surface is green (21/21), which is exhaustive,
+  not sampled. A branch change that broke an existing test would almost
+  certainly surface in a test that directly covers the changed module.
+- The 5 files failing in the sample fail identically on main, establishing
+  that the branch's failures are pre-existing in character rather than newly
+  introduced.
+- No quality gate is worse on the branch than on main (see below), which is an
+  exhaustive comparison, not a sample.
+
+Closing the remaining 96% would require replaying all 2,852 files on both
+trees. At the observed rate (~8.75 s/file/tree, two trees in parallel) that is
+roughly 7 hours of wall clock and was not performed.
 
 ## Quality-gate comparison (branch vs pristine main)
 
@@ -88,6 +109,11 @@ The 5 pre-existing failures, failing identically on both trees:
 ## Conclusion
 
 Every recovered behavior has an observed main-vs-branch difference at a
-production entry point. No quality gate is worse on the branch than on
-pristine main. Commits are local on
-`feat/release-line-gap-recovery-v2-20260924`; nothing has been pushed.
+production entry point, and no quality gate is worse on the branch than on
+pristine main. The complete changed test surface is green. The failure-set
+comparison found no branch-only failure in the 120-file sample (4.2% of the
+branch's failing set); that comparison is a sample, not an exhaustive proof of
+zero regressions, and the limits of that evidence are stated above.
+
+Commits are local on `feat/release-line-gap-recovery-v2-20260924`; nothing has
+been pushed.
