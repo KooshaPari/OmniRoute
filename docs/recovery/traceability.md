@@ -93,6 +93,26 @@ Closing the remaining 96% would require replaying all 2,852 files on both
 trees. At the observed rate (~8.75 s/file/tree, two trees in parallel) that is
 roughly 7 hours of wall clock and was not performed.
 
+## Host hazard encountered during this verification
+
+The test suite leaks per-test `mkdtemp` scratch directories. A single
+`pnpm test` run left **306 `omniroute-<testname>-<random>` directories totalling
+5.4 GB** in `$JCODE_SCRATCH_DIR`, which drove the host volume to 100% full
+(584 MB free at the worst point). Consequences observed while the disk was
+full: load average 335, `du` scans timing out past 10 minutes, and even a
+`grep` over one directory taking minutes.
+
+Mitigation applied: the 306 leaked directories were removed after verifying
+each was throwaway per-test residue and that neither real git worktree
+(`omniroute-cherry-v2`, `omniroute-cherry-wt`) was among them. Remaining disk
+pressure is from unrelated workstreams on the same host, notably an 8 GB
+`qemu-system-aarch64` VM and concurrent `rustc`/`clippy` builds.
+
+Anyone re-running the full suite should expect to reclaim multi-GB scratch
+afterwards, and should not treat a full disk as evidence of a test failure.
+`git fsck` was clean (exit 0, dangling objects only) after the event, and
+`package.json` and `pnpm-lock.yaml` are unmodified.
+
 ## Quality-gate comparison (branch vs pristine main)
 
 | Gate | Main | Branch | Branch-attributable delta |
