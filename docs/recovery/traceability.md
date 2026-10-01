@@ -181,10 +181,28 @@ afterwards, and should not treat a full disk as evidence of a test failure.
 | `check:env-doc-sync` | 42 / none / 6 | 42 / none / 6 | none |
 | `check:file-size` | violation set V | identical to V | none |
 | `check:dead-code` | 924 exports + 99 files = 1023 | 924 + 99 = 1023 | none |
-| `check:migration-numbering` | fails | identical output modulo path line | none |
-| `check:changelog-integrity` | fails | identical output modulo path line | none |
+| `check:migration-numbering` | 1 stale allowlist entry (`121`) | identical output modulo path line | none |
+| `check:changelog-integrity` | 20 release-line bullets missing | identical output modulo path line | none |
 | `check:known-symbols` | pass (exit 0) | pass (exit 0) | none |
-| `check:open-sse-typecheck` | 82 failures | 79 failures | none (3 fewer) |
+| `check:open-sse-typecheck` | 228 errors / 82 violations | 201 errors / 79 violations | none (3 fewer) |
+
+The last four rows were re-measured on 2026-10-01 under healthy disk, after
+their first reading landed in a full-volume window. All four reproduce exactly,
+so that window did not distort them. Two rows carry specific figures now rather
+than "fails": `migration-numbering` reports one stale allowlist entry (`121`) on
+both trees, and `changelog-integrity` reports the same 20 release-line bullets
+missing from `CHANGELOG.md` on both trees — both pre-existing on pristine main.
+
+The `open-sse-typecheck` delta is worth attributing precisely rather than
+stating as "3 fewer". Main reports 228 scoped `tsc` errors and 82 frozen-baseline
+violations; the branch reports 201 and 79. The entire difference is three
+entries under `src/sse/services/auth.ts` (TS2304 ×24, TS18004 ×1, TS2552 ×2),
+and 24 + 1 + 2 = 27 = 228 − 201, while 82 − 79 = the three entries. Those lines
+are fixed by `8233223814` ("import the quota helpers auth.ts re-exports but also
+uses"). One further entry differs only in diagnostic code — `scoringFfi.ts`
+TS2304 on main, TS2552 on the branch, one occurrence each — a reclassification
+of the same issue, not an added one. So this gate, like `typecheck:core`, is
+better on the branch for an observed reason.
 
 ## Conclusion
 
@@ -198,10 +216,12 @@ on main (fixed by this branch), 0 fail only on the branch.** The branch's
 headline "2,852 failing files" figure is a disk-exhaustion cascade confined to
 the last 4.6% of that run and is not branch-attributable.
 
-Two limits on this evidence remain and are stated rather than hidden: a
+One limit on this evidence remains and is stated rather than hidden: a
 complete main baseline does not exist (that run hung at 75,446 lines and was
-cancelled), and the four gates last read during a full-volume window have not
-been re-confirmed under healthy disk conditions.
+cancelled). The second previously-noted limit is closed — the four gates first
+read during a full-volume window were re-confirmed on 2026-10-01 under healthy
+disk and reproduced exactly, so no quality-gate figure in this record rests on
+a degraded measurement.
 
 Commits are local on `feat/release-line-gap-recovery-v2-20260924`; nothing has
 been pushed.
