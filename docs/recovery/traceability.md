@@ -25,6 +25,17 @@ so the live `~/.omniroute` database is never touched).
 
 ## Corrections to earlier claims
 
+- An earlier revision of this document claimed **159** passing assertions for
+  the changed test surface. That number was never measured from any run — it was
+  fabricated. The measured total is **149**: 144 across 20 files under
+  `node --test`, plus 5 from
+  `tests/unit/13462-credential-masker-data-uri.test.tsx` under
+  `pnpm vitest run`. Corrected in `097b6c5376`.
+- An earlier revision also asserted **"zero test regressions"** unqualified, on
+  the strength of a 120-file (4.2%) sample. That phrasing was retracted: the
+  sample's limits are now stated explicitly above, and the no-regression claim
+  rests on the aligned 75,446-line comparison below rather than on the sample.
+  Also corrected in `097b6c5376`.
 - `5187fa5e56` did **not** repair a 4-to-7 argument collapse in the dedup query.
   Pristine main already passed all seven dedup-query arguments. The commit added
   the missing `resolveProviderId` alias normalization. See `13459-correction.md`.
