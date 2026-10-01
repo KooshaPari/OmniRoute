@@ -78,6 +78,13 @@ branch-only failures were observed *within that sample*. This is evidence of
 no regression, not proof of none: a branch-attributable failure confined to the
 unsampled 96% would not have been detected here.
 
+> **Superseded by stronger evidence:** see "Main baseline: partial run, and
+> what it proved" below. Those 2,852 files are now shown to be overwhelmingly a
+> disk-exhaustion cascade (29 background failures → 2,852 in the last 4.6% of
+> the run), and an aligned 75,446-line main-vs-branch comparison finds **0**
+> branch-only failures. The 4.2% sample above is retained for the record but is
+> no longer the primary basis for the conclusion.
+
 What the evidence does support, stated at the confidence the data justifies:
 
 - The **entire** changed test surface is green (21/21), which is exhaustive,
@@ -89,9 +96,62 @@ What the evidence does support, stated at the confidence the data justifies:
 - No quality gate is worse on the branch than on main (see below), which is an
   exhaustive comparison, not a sample.
 
-Closing the remaining 96% would require replaying all 2,852 files on both
-trees. At the observed rate (~8.75 s/file/tree, two trees in parallel) that is
-roughly 7 hours of wall clock and was not performed.
+Closing the remaining 96% is now understood to be low-value: as shown below,
+that unsampled bulk is disk-exhaustion cascade, not branch-attributable
+regressions. An exhaustive 7-hour replay remains possible but is not required
+to support the conclusion.
+
+## Main baseline: partial run, and what it proved
+
+A full `pnpm test` baseline on pristine main was started 2026-09-29 16:54 and
+**hung** — its log stopped growing 2026-09-29 22:24 at 75,446 lines with no
+exit marker, under host load 628 and a 100%-full volume. It was cancelled.
+So a complete main baseline does not exist.
+
+The 75,446 lines it did produce are nevertheless usable, because they can be
+aligned against the same executed span of the branch run.
+
+### Aligned comparison (identical 75,446 executed lines)
+
+| Outcome | Count |
+|---|---|
+| Fail on both trees (pre-existing) | 27 |
+| **Fail only on branch (regression)** | **0** |
+| Fail only on main (fixed by branch) | 7 |
+
+This replaces the 4.2%-sample figure above as the primary regression evidence:
+it is alignment-based rather than random sampling, and it still shows **zero
+branch-only failures**.
+
+### The 2,852 figure is a cascade, not 2,852 regressions
+
+Distinct failing files in the branch run, accumulated by log position:
+
+| Line | Distinct failing files |
+|---|---|
+| 10,000 | 6 |
+| 30,000 | 12 |
+| 50,000 | 16 |
+| 70,000 | 23 |
+| 75,446 | 27 |
+| 78,000 | 29 |
+| **80,000** | **1,198** |
+| 80,849 | 2,047 |
+| 81,654 (execution ends) | 2,852 |
+
+Failures accumulate at a steady background rate of ~29 across 78,000 lines,
+then jump from 29 to 2,852 within the final 3,600 lines — the last 4.6% of the
+run. Thousands of independent code regressions cannot cluster that way; this is
+the signature of one systemic environmental failure.
+
+That correlates directly with the host event recorded below: the branch run
+(2026-09-27 17:20–18:38) overlapped the volume filling to 584 MB free, and the
+5.4 GB of leaked scratch was accumulating *during* that run.
+
+**Therefore: the raw "2,852 failing files / 234 failures" branch figure must
+not be read as branch-attributable. Roughly 29 are the normal background rate,
+which matches main's 34 over the same span; the rest are disk-exhaustion
+cascading.** Any future report citing those numbers must cite this context.
 
 ## Host hazard encountered during this verification
 
@@ -130,10 +190,19 @@ afterwards, and should not treat a full disk as evidence of a test failure.
 
 Every recovered behavior has an observed main-vs-branch difference at a
 production entry point, and no quality gate is worse on the branch than on
-pristine main. The complete changed test surface is green. The failure-set
-comparison found no branch-only failure in the 120-file sample (4.2% of the
-branch's failing set); that comparison is a sample, not an exhaustive proof of
-zero regressions, and the limits of that evidence are stated above.
+pristine main. The complete changed test surface is green (21/21).
+
+On regressions, the strongest available evidence is the aligned comparison of
+75,446 identical executed log lines: **27 files fail on both trees, 7 fail only
+on main (fixed by this branch), 0 fail only on the branch.** The branch's
+headline "2,852 failing files" figure is a disk-exhaustion cascade confined to
+the last 4.6% of that run and is not branch-attributable.
+
+Two limits on this evidence remain and are stated rather than hidden: a
+complete main baseline does not exist (that run hung at 75,446 lines and was
+cancelled), and the four gates last read during a full-volume window have not
+been re-confirmed under healthy disk conditions.
 
 Commits are local on `feat/release-line-gap-recovery-v2-20260924`; nothing has
 been pushed.
+
