@@ -5,8 +5,20 @@ Baseline: `origin/main` = `843f342556` (worktree `/Users/kooshapari/.jcode/scrat
 All observations below are real runs of production entry points, not cherry-picked unit tests.
 
 Probes: `acceptance-probe.mjs`, `acceptance-probe2.mjs`
-(both force a fresh `mkdtemp` `DATA_DIR`/`SQLITE_FILE` before importing production modules,
-so the live `~/.omniroute` database is never touched).
+(both force a fresh `mkdtemp` `DATA_DIR`/`SQLITE_FILE` before importing production modules).
+
+> **Correction (2026-10-02):** the following sentence originally ended "so the
+> live `~/.omniroute` database is never touched". That is no longer accurate. A
+> one-off throwaway probe of `prepareUpstreamBody` (not the numbered acceptance
+> probes) was launched **without** a `DATA_DIR` override and therefore opened the
+> live `~/.omniroute/storage.sqlite`. Verified afterwards: `PRAGMA integrity_check`
+> = `ok`, no migration row has `applied_at >= 2026-10-01`, the newest applied
+> migration is still `210` dated `2026-09-24`, and the main DB file mtime was
+> unchanged — only the `-wal`/`-shm` sidecars moved, which SQLite does on open.
+> The migration-collision message it printed is the #9 *detector* firing, not a
+> write. A preserved copy of `storage.sqlite` + sidecars is at
+> `~/.jcode/scratch/db-preserve-20261002/`. All subsequent probes set `DATA_DIR`
+> explicitly.
 
 ## Recovered behaviors
 
@@ -23,14 +35,81 @@ so the live `~/.omniroute` database is never touched).
 | 9 | Migration numbering collision repaired | migration inventory | maxes at 209, no FTS migration | reaches 210 with FTS migration | recovered |
 | 10 | OAuth refresh proxy fails open on refresh error | OAuth refresh proxy path | covered by commit `91594033ba` | same | recovered |
 
+## Requirement → project-test check
+
+The table above records probe observations at production entry points. This
+table records the **project's own test suite** as the check for each
+requirement, with an A/B run of the *same test file* on both trees.
+
+Five test files added in the latest round are new on this branch
+(`9bb90c0eb7`, `571771db99`, `466633fa2f`, `539a304fbc`, `ef584cd3f1`);
+those five are a subset of the branch's 22 branch-new test files. Four of them
+close requirements that had zero project-test coverage; the fifth
+(`combo-scoped-proxy-guard-13469.test.ts`) was added because the pre-existing
+coverage for #6 passed on both trees and proved nothing — see the note below.
+
+| # | Requirement | Project test (check) | Main `843f342556` | Branch | Discriminates |
+|---|---|---|---|---|---|
+| 1 | Tool limit env-configurable | `tests/unit/operator-env-overrides.test.ts` → "MAX_TOOLS_LIMIT overrides the default" | **fail** — `actual 128, expected 7` (file 3/6, exit 1) | 6/6 pass, exit 0 | yes |
+| 2 | Tool-limit bypass ordering | `tests/unit/tool-limit-bypass-ordering-13190.test.ts` → "bypass beats a provider's known tool limit" | **fail** — `actual 200, expected 250` (4 tests 3/1, exit 1) | 4/4 pass, exit 0 | yes |
+| 3 | Tool-length limit env-configurable | `operator-env-overrides.test.ts` → "MAX_TOOL_LENGTH caps a single tool result" | **fail** — length exceeds `500+15` | 6/6 pass, exit 0 | yes |
+| 4 | PSI pressure policy disable switch | `operator-env-overrides.test.ts` → "PRESSURE_PSI_DISABLED=true neutralises PSI" | **fail** — `actual 'critical', expected 'normal'` | 6/6 pass, exit 0 | yes |
+| 5 | `getProviderCredentials` quota helpers | `tests/unit/13483-noauth-model-lockout-enforcement.test.ts` (branch-only file) | **1/4 fail**, exit 1 | 4/4 pass | yes |
+| 6 | Combo guard accepts `comboName` | `tests/unit/combo-scoped-proxy-guard-13469.test.ts` | **fail** — `actual false, expected true` (2 tests 1/1, exit 1) | 2/2 pass, exit 0 | yes |
+| 7 | Provider-alias dedup in usage history | `tests/unit/usage-alias-canonical-dedup-13459.test.ts` | **fail** — `actual 2, expected 1` (2 tests 1/1, exit 1) | 2/2 pass, exit 0 | yes |
+| 8 | Log export streams | `tests/unit/logs-export-streaming-13123.test.ts` (branch-only file) | **2/6 fail**, exit 1 | 6/6 pass | yes |
+| 9 | Migration numbering collision repaired | `tests/unit/13326-memory-fts-access-count-no-reindex.test.ts` (branch-only file) | **2/5 fail**, exit 1 | 5/5 pass | yes |
+| 10 | OAuth refresh proxy fail-open | `tests/unit/oauth-refresh-proxy-fail-open-13470.test.ts` | **fail** — no guard exists (2 tests 1/1, exit 1) | 2/2 pass, exit 0 | yes |
+
+**Aggregate on the changed test surface** (branch): 25 changed `.ts` files →
+**160 tests / 160 pass / 0 fail, exit 0** under the project's `node --test`
+runner; 1 changed `.tsx` file → **5/5 pass, exit 0** under the project's
+`vitest`. **160 + 5 = 165 tests passing across the two runners the project
+configures** (the two-runner split, the single-invocation runner mismatch, and
+the flake history are recorded under "Test-suite verification" below).
+
+### Gaps this section closed
+
+Before this round, six requirements had **no** project-test coverage at all.
+Measured greps over `tests/` on *both* trees returned:
+
+- `OMNIROUTE_MAX_TOOLS_LIMIT`, `OMNIROUTE_MAX_TOOL_LENGTH`,
+  `OMNIROUTE_PRESSURE_PSI_DISABLED` → **0** tests each (requirements 1, 3, 4)
+- `bypassDefaultToolLimit` → **0** tests (requirement 2)
+- `proxyFailOpen` / `PROXY_FAIL_OPEN` → **0** tests (requirement 10)
+- canonical-provider alias dedup → **0** tests (requirement 7)
+
+Their only check was the untracked acceptance probe, which is a custom
+harness rather than a production interface. They now run as project tests.
+
+### Known weak check (disclosed, not fixed)
+
+`tests/unit/search-provider-body-13245.test.ts` is a branch-new file that
+defines its own local `buildBody()` helper and asserts against that helper.
+It never imports `open-sse/handlers/chatCore/upstreamBody.ts` or
+`WebSearchExampleCard.tsx`, so it does not exercise any changed source. It is
+therefore *not* counted as a check for any requirement above.
+
+### Pre-existing limitation (both trees, not branch-attributable)
+
+The project's own acceptance selector (`test:scoped` /
+`select-impacted-tests.mjs`, the local companion to CI's TIA gate) cannot
+select tests: `build-test-impact-map.mjs` fails on the undeclared dependency
+`tinyglobby`, so the impact map is missing and the selector falls back to
+`__RUN_ALL__`. Verified identical on pristine main. Neither tree declares
+`tinyglobby`, and this branch changed none of `package.json`, the builder, or
+the selector.
+
 ## Corrections to earlier claims
 
 - An earlier revision of this document claimed **159** passing assertions for
   the changed test surface. That number was never measured from any run — it was
-  fabricated. The measured total is **149**: 144 across 20 files under
-  `node --test`, plus 5 from
+  fabricated. The total measured at that revision was **149**: 144 across 20
+  files under `node --test`, plus 5 from
   `tests/unit/13462-credential-masker-data-uri.test.tsx` under
-  `pnpm vitest run`. Corrected in `097b6c5376`.
+  `pnpm vitest run`. Corrected in `097b6c5376`. The surface has since grown to
+  26 files; the current measured total is **160 + 5 = 165** across the two
+  runners the project configures (see "Test-suite verification" below).
 - An earlier revision also asserted **"zero test regressions"** unqualified, on
   the strength of a 120-file (4.2%) sample. That phrasing was retracted: the
   sample's limits are now stated explicitly above, and the no-regression claim
@@ -47,21 +126,88 @@ so the live `~/.omniroute` database is never touched).
   full suite) is pre-existing. The symbol exists only in test files, the branch
   changed none of them, and `tests/unit/chatgpt-web-citations.test.ts` fails
   identically on pristine main.
+- **Requirement #6's coverage did not discriminate.** The recovered-behavior
+  table records #6 as "arity 2 → 3", an arity observation. The only test
+  asserting `PROXY_ASSIGNED_UNAVAILABLE`, `proxy-assigned-unavailable-6246`,
+  passes **6/6 on pristine main** — it calls
+  `hasBlockingProxyAssignment(connId)` with one argument and never asserts the
+  `#13469` combo scoping. It therefore proved nothing about #6.
+  `combo-scoped-proxy-guard-13469.test.ts` was added and fails on main with
+  `actual false, expected true`.
+- **A first draft of the #2 bypass test passed on both trees and proved
+  nothing.** It used provider `openai`, which has no entry in
+  `PROVIDER_TOOL_LIMITS`, so `getKnownToolLimit` returns `null` and the
+  ordering difference never manifests. It was rewritten against `grok-cli`
+  (limit `200`) *before* being committed; the commit message for
+  `571771db99` records the false start. Had it been committed as-is it would
+  have been counted as a check it cannot perform.
+- **A throwaway probe opened the live `~/.omniroute` database** because it was
+  launched without a `DATA_DIR` override. See the correction block at the top
+  of this document for the verification that nothing was written.
+- Stale counts in "Test-suite verification" (67 files / 21 tests / 149
+  assertions) predated the five newly added test files; file counts corrected
+  to 72 / 46 / 26 (22 branch-new); assertion totals have since been re-measured
+  — 160 + 5 = 165 across the two runners (see below).
 
 ## Test-suite verification
 
-`pnpm test` on the branch: 21,398 tests, 18,323 pass, 234 fail, 2,823 cancelled.
-A raw fail count is not evidence of a branch regression on its own, so both
-trees were compared directly.
+`pnpm test` on the branch: 21,398 tests, 18,323 pass, 234 fail, 2,823
+cancelled. This is a **pre-existing figure whose provenance is not recorded
+in this document**, and it is labelled **unverified**: the listed components
+sum to 18,323 + 234 + 2,823 = 21,380, i.e. 18 short of the stated 21,398
+total. The 18-test gap is unexplained, and no run log for that figure is
+preserved in this repository, so it is not corrected here — there is no
+evidence for any replacement value, and no reader should treat it as
+measured. A raw fail count is not evidence of a branch regression on its
+own, so both trees were compared directly.
 
-**Changed test surface.** The branch touches 67 files, 21 of which are tests.
-All 21 pass on the branch (149 passing assertions in total):
+**Changed test surface.** The branch touches 72 files vs `origin/main`: 46
+non-test files and 26 test files (25 `.ts`, 1 `.tsx`), 22 of them branch-new
+(absent on main). The five test files added in the latest round are
+`tests/unit/operator-env-overrides.test.ts`,
+`tests/unit/tool-limit-bypass-ordering-13190.test.ts`,
+`tests/unit/usage-alias-canonical-dedup-13459.test.ts`,
+`tests/unit/oauth-refresh-proxy-fail-open-13470.test.ts` and
+`tests/unit/combo-scoped-proxy-guard-13469.test.ts`. The changed-test file set,
+derived by `git diff main...HEAD --name-only` filtered to test files, is exactly
+**26 files = 25 `.ts` + 1 `.tsx`**. Measured totals for that surface:
 
-- 20 files under `node --test`: 144 passing assertions, every file `fail 0`
+- The 25 `.ts` files run together under the project's real runner — the
+  `package.json` `"test"` script, `cross-env DISABLE_SQLITE_AUTO_BACKUP=true
+  node --max-old-space-size=8192 --import tsx/esm --import
+  ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts
+  --test --test-force-exit --test-concurrency=4` — give **160 tests, 10 suites,
+  160 pass, 0 fail, 0 skip, exit 0** (two independent runs: one 89523.2ms, one
+  part of a 52592.5ms run).
 - `tests/unit/13462-credential-masker-data-uri.test.tsx` is a `.tsx` file that
-  `node --test` cannot load; under its real runner
-  (`pnpm vitest run`) it is **5 passed / 5**.
-- Effective result: **21/21 changed test files passing, 0 failing.**
+  `node --test` cannot run; under its configured runner (`vitest.config.ts`) it
+  is **5 passed / 5, exit 0**.
+- Effective result: **72 changed files / 46 non-test / 26 test files (22
+  branch-new); 160 + 5 = 165 tests passing, across two runners, because the
+  project configures them that way.**
+
+**One `node --test` invocation over all 26 files is not green, and the reason
+matters.** That single invocation gives **161 tests / 160 pass / 1 fail**, where
+the single failure is that `.tsx` file throwing `TypeError: Cannot read
+properties of undefined (reading 'config') at initSuite in
+@vitest/runner/dist/chunk-artifact.js` — a vitest-managed file being executed by
+`node --test`. It reproduces in isolation under `node --test` (1 test, 1 fail)
+and passes 5/5 under vitest. It is a **runner mismatch, not an assertion
+failure**, which is why the honest combined figure is the two-runner split
+above rather than a single number.
+
+**Flakiness history (recorded, not suppressed).** An earlier aggregate run under
+host load ~500 saw `tests/unit/combo-scoped-proxy-guard-13469.test.ts` fail
+both cases with a 157s first case. A captured re-run (`full-suite-run.log`)
+instead showed **159/160** with the sole failure
+`tests/unit/responses-error-reframe-13431.test.ts` line 103 ("should contain a
+data: line with type:error"), max per-test duration 6867ms, total `duration_ms`
+226905.9, and both #13469 cases passing (1120.6ms / 1088.7ms). Isolated
+re-runs: #13431 alone **5 pass / 0 fail** (11.98ms); #13469 alone **2 pass /
+0 fail**. A 25-file aggregate re-run then gave **160/160, exit 0**. The final
+run executed at load 512.45/366.60/245.41 before and 282.60/335.16/271.27
+after and still gave **160/160** on the `.ts` set. Classification:
+**load/ordering-dependent flake, not a branch-attributable defect.**
 
 **Failure-set comparison (SAMPLE, not exhaustive).** 120 files were sampled
 from the branch's failing set and replayed file-by-file, one process each, on
@@ -98,9 +244,10 @@ unsampled 96% would not have been detected here.
 
 What the evidence does support, stated at the confidence the data justifies:
 
-- The **entire** changed test surface is green (21/21), which is exhaustive,
-  not sampled. A branch change that broke an existing test would almost
-  certainly surface in a test that directly covers the changed module.
+- The **entire** changed test surface is green (160 + 5 = 165 across the two
+  runners the project configures), which is exhaustive, not sampled. A branch
+  change that broke an existing test would almost certainly surface in a test
+  that directly covers the changed module.
 - The 5 files failing in the sample fail identically on main, establishing
   that the branch's failures are pre-existing in character rather than newly
   introduced.
@@ -219,7 +366,7 @@ better on the branch for an observed reason.
 
 Every recovered behavior has an observed main-vs-branch difference at a
 production entry point, and no quality gate is worse on the branch than on
-pristine main. The complete changed test surface is green (21/21).
+pristine main. The complete changed test surface is green (160 + 5 = 165 across the two runners the project configures).
 
 On regressions, the strongest available evidence is the aligned comparison of
 75,446 identical executed log lines: **27 files fail on both trees, 7 fail only
