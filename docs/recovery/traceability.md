@@ -90,6 +90,12 @@ It never imports `open-sse/handlers/chatCore/upstreamBody.ts` or
 `WebSearchExampleCard.tsx`, so it does not exercise any changed source. It is
 therefore *not* counted as a check for any requirement above.
 
+> **Round-3 confirmation (2026-10-04):** `search-provider-body-13245.test.ts`
+> is confirmed synthetic — it reimplements `buildBody` and never imports the
+> component, so it cannot fail on a revert. It is retained as a methodology
+> finding, not as coverage. The real covering check is the round-3
+> `websearch-example-card-provider-body-13245.test.tsx` in the table above.
+
 ### Pre-existing limitation (both trees, not branch-attributable)
 
 The project's own acceptance selector (`test:scoped` /
@@ -99,6 +105,61 @@ select tests: `build-test-impact-map.mjs` fails on the undeclared dependency
 `__RUN_ALL__`. Verified identical on pristine main. Neither tree declares
 `tinyglobby`, and this branch changed none of `package.json`, the builder, or
 the selector.
+
+### Round-3 regression: chatcore attempt-logging (found and fixed)
+
+Round 3 found one genuine branch regression, in a test rather than in
+production. Branch-only commit `de2971ab2b` (2026-09-20, #13481) changed the
+call-log primary key from `pendingRequestId` to `traceId`
+(`open-sse/handlers/chatCore/attemptLogging.ts`: origin/main:462
+`id: pendingRequestId` → HEAD:467 `id: traceId`). The test was byte-identical
+to main, supplied no `traceId`, and polled `getCallLogById(pendingRequestId)`.
+
+- **Before fix (branch):** deterministic 2 pass / 4 fail ×3 runs (load
+  280–307). Failures at :86 "call log row should be persisted" (actual `null`)
+  and :108 / :124 / :135 `assert.ok(row)`.
+- **Pristine main:** 6 pass / 0 fail, exit 0, ×2 runs, using the exact
+  `package.json` flags.
+- **Root cause:** `src/lib/usage/callLogs.ts:513` falls back to
+  `generateLogId()` when no `traceId` is supplied. The row **was** persisted
+  (probe: CASE A no traceId → lookup `NULL` but a row exists as
+  `"1791108392907-1"`; CASE B traceId set → `FOUND`). Production behaviour was
+  fine; the test keyed on the old semantics.
+- **No upstream fix exists:** the `origin/release/v3.8.51` diff for this file is
+  empty vs HEAD and vs `origin/main`.
+- **Fix applied (test-only):** supply a per-request `traceId` and poll
+  `getCallLogById(traceId)`. 4 tests touched; assertions :86 / :108 / :124 /
+  :135 are byte-identical before and after; no counts changed; production
+  source untouched. After fix: branch **6 pass / 0 fail**, exit 0, ×2 runs.
+
+### Round-3 covering checks for changed public outputs
+
+Round 3 enumerated **43 changed outputs outside `tests/` and `docs/`**. Two
+previously-conflated lists are separated here:
+
+- **UNMAPPED** (rhino) = no covering check exists.
+- **UNOBSERVED** (palmtree) = a check exists but was never executed.
+
+Round 3 executed the remaining checks: `db/proxies/guards.ts` 2/2,
+`db/proxyLogs.ts` 6/6, `evals/runtime.ts` 3/3, `usage/migrations.ts` 6/6 all
+pass; the `changelog.d` fragment is covered by `check:changelog-integrity`
+(fails pre-existing, above). **42 of the 43 outputs now have an OBSERVED
+result.** The single residual gap is `opencode-plugin/src/index.ts` — **no
+covering check exists on either tree** (the opencode-plugin cache-age log;
+`config-shim.test.ts:1285` asserts a substring present in *both* the old and
+new messages, so it cannot discriminate).
+
+Three of rhino's previously-UNMAPPED outputs now have new checks, each verified
+**both ways** (branch pass / pristine-main fail for the right reason):
+
+| New test | Output covered | Branch | Pristine main |
+|---|---|---|---|
+| `tests/unit/memory-anthropic-system-merge-13425.test.ts` | memory injected into a top-level `system` field, not a prepended `role:"system"` message | 4 pass / 0 fail | exit 1, 1 pass / 3 fail — `"system must start with memory context, got: You are a helpful assistant."`; `assert.ok(out.system.startsWith("Memory context: dark mode"))` falsy |
+| `tests/unit/db-backup-autoprune-13308.test.ts` | `getDbInstance` prunes `db_backups` after a health-check repair backup | 1 pass / 0 fail | exit 1, 0 pass / 1 fail — `"expected db_backups pruned to 3, saw 7"` (main discards the `runDbHealthCheck` result; zero `cleanupDbBackups` refs; 6 seeded + 1 repair = 7). Spawns a child process because `isAutomatedTestProcess()` blocks in-process `createHealthCheckBackup` |
+| `tests/unit/ui/websearch-example-card-provider-body-13245.test.tsx` | websearch example card sends `body.provider === providerId` to `/api/v1/search` | (vitest) 1 pass / 0 fail | exit 1 — `"expected undefined to be 'brave-search'"` (main `buildBody = ({query, max_results})` sends no provider) |
+
+`main-accept` was cleaned up after these A/B runs: porcelain empty, HEAD still
+`843f342556`.
 
 ## Corrections to earlier claims
 
@@ -208,6 +269,25 @@ re-runs: #13431 alone **5 pass / 0 fail** (11.98ms); #13469 alone **2 pass /
 run executed at load 512.45/366.60/245.41 before and 282.60/335.16/271.27
 after and still gave **160/160** on the `.ts` set. Classification:
 **load/ordering-dependent flake, not a branch-attributable defect.**
+
+**Round-3 explanation of the load-driven flake (inferred, not reproduced under
+controlled load).** Wall-clock balloons under host load: the combo-scoped test
+went 1.1s → 958s, and the tool-limit test took 93s at load ~400–800; the
+round-3 gate runs saw load 210 → 360. This independently explains the
+historical flake reports (the 157s runs, and the 159-of-160 reading). The
+mechanism is stated as an inference from correlated load and duration
+observations, not as a controlled reproduction.
+
+**Round-3 failure-mode evidence.** Determinism: **15/15** (5 files × 3 runs).
+Live-DB isolation: **PASS** — the live `storage.sqlite` was unchanged
+(`2605056` bytes / Oct 1 19:58:06). Packaging: **PASS** — across the 50
+commits, zero hits in `package.json`, `pnpm-lock.yaml`, or `.github`.
+
+**Route ledger (round 3, recorded honestly, not editorialised).**
+`mimo-v2.6-flash` failed **5 of 5** spawned workers (hippo, piglet, mushroom,
+clover, cactus — stream errors / send failures). The operator fallback ladder
+then advanced **one rung** to `opencode-go:deepseek-v4.1-flash`, which served
+every successful round-3 deliverable. There was no silent advancement.
 
 **Failure-set comparison (SAMPLE, not exhaustive).** 120 files were sampled
 from the branch's failing set and replayed file-by-file, one process each, on
@@ -331,6 +411,29 @@ afterwards, and should not treat a full disk as evidence of a test failure.
 `git fsck` was clean (exit 0, dangling objects only) after the event, and
 `package.json` and `pnpm-lock.yaml` are unmodified.
 
+### Round-3 product defect: `call_logs` writes into the LIVE data dir
+
+A second, more serious live-directory exposure was found in round 3. Two test
+JSON files were written into the **live** `~/.omniroute/call_logs/2026-10-02`
+(919 B + 797 B, account `"model-test-timeout-regression"`, `schemaVersion` 5,
+`gpt-4o`, a 200 warm-up plus a 504 at `timeoutMs:1000`). The content is proven
+to come from `tests/unit/model-test-runner.test.ts:236-237`.
+
+- **Writer:** `src/lib/usage/callLogArtifacts.ts:275`; the directory resolves
+  via `callLogArtifacts.ts:10-12` → `dataPaths.ts:64 getDefaultDataDir()` →
+  legacy `~/.omniroute`.
+- **Root cause:** the #10428 test-context guard exists **only** in
+  `resolveWritableDataDir` (`dataPaths.ts:130-168`, used by the DB at
+  `db/core.ts:122`) — `call_logs` are **not** protected. Leak vectors: the
+  `test:coverage:legacy` npm script (`c8 … node --import tsx/esm --test
+  tests/unit/*.test.ts`) never injects `isolateDataDir.ts`, plus bare
+  `node --test`.
+- **Attribution limit:** session attribution **cannot prove** which session
+  wrote them.
+- **Recommendation:** apply the same guard to `callLogArtifacts`.
+- **Status:** the two stray JSON files are **left in place pending operator
+  approval** (deletion is destructive and was not performed).
+
 ## Quality-gate comparison (branch vs pristine main)
 
 | Gate | Main | Branch | Branch-attributable delta |
@@ -362,6 +465,52 @@ TS2304 on main, TS2552 on the branch, one occurrence each — a reclassification
 of the same issue, not an added one. So this gate, like `typecheck:core`, is
 better on the branch for an observed reason.
 
+### Round-3 gate stability (32 runs, 2026-10-04)
+
+The table above rests on a single reading per gate. Round 3 re-ran **8 gates ×
+2 trees × 2 repeats = 32 runs**: **0 timeouts, 0 skips, 0 instability, Phase 3
+never triggered, longest run 181s.** Every reading reproduced, so the deltas
+below are **stable deltas**, not one-off noise.
+
+| Gate | Main | Branch | Round-3 class |
+|---|---|---|---|
+| `typecheck:core` | **rc=2, 27 errors** in `src/sse/services/auth.ts` (TS2304 ×24, TS18004 ×1, TS2552 ×2) | **rc=0, 0 errors** | stable-delta, favours branch |
+| `check:open-sse-typecheck` | 228 errors / 82 entries | 201 errors / 79 entries | stable-delta, favours branch |
+| `check:env-doc-sync` | 636 code / 795 env / 818 docs, rc=1, violations 42+6 | 638 / 798 / 821, rc=1, violations 42+6 | stable-delta on raw counts only |
+| `check:file-size` | rc=1, 15 src + 22 test = 37 | identical | no delta |
+| `check:dead-code` | rc=1, `DEAD_TOTAL=1023` | identical | no delta |
+| `check:migration-numbering` | rc=1, 1 obsolete allowlist entry (`121`) | identical | no delta |
+| `check:changelog-integrity` | rc=1, 20 removed / 20 added, sha256 `2ec60c77` | identical | no delta (pre-existing, see below) |
+| `check:known-symbols` | rc=0 (135 exec / 21 strat / 17 pairs / 96 tools / 6 a2a / 4 cloud) | identical | no delta |
+
+**Overall: no gate that pristine main passes fails on the branch.**
+
+The `typecheck:core` and `check:open-sse-typecheck` deltas share one cause,
+now pinned: `export { x } from "./authQuota.ts"` creates **no local binding**,
+so `auth.ts` (which also *uses* the helpers) does not typecheck on main. The
+branch's commit `8233223814` (auth.ts +23/−4) adds a real
+`import { ... }`, removing exactly 27 errors (24 + 1 + 2 = 228 − 201) and 3
+frozen-baseline entries (82 − 79). `8233223814` is confirmed an ancestor of
+branch HEAD and **not** of main HEAD.
+
+### `check:changelog-integrity` is pre-existing and out of scope (round 3)
+
+`check:changelog-integrity` fails **identically on pristine main** (rc=1, same
+20 removed / 20 added, sha256 `2ec60c77`). Proven independently: `CHANGELOG.md`
+does not appear in `git diff origin/main...HEAD`, no branch commit touches it,
+`config/release/changelog-reconciliations.json` is unchanged, and the check's
+other input is the shared ref `origin/release/v3.8.51`. This "changelog-eat" is
+a pre-existing repo condition, not branch-attributable.
+
+### `check:known-symbols` read hazard (round 3)
+
+Clarified: the `DATA_DIR` redirect **is** honoured for the database, but this
+gate resolves a plugin-scan directory from `HOME` and **reads**
+`~/.omniroute/plugins`. The exposure is read-only, not a write. Every gate run
+logged a scratch `storage.sqlite`; the live DB mtime (`1790877486`) and size
+(`2605056`) were unchanged before and after, and no file under `~/.omniroute`
+was newer than session start.
+
 ## Conclusion
 
 Every recovered behavior has an observed main-vs-branch difference at a
@@ -381,6 +530,24 @@ read during a full-volume window were re-confirmed on 2026-10-01 under healthy
 disk and reproduced exactly, so no quality-gate figure in this record rests on
 a degraded measurement.
 
+Round 3 (2026-10-04) strengthens and extends this record:
+
+- **Gate stability proven.** 32 runs (8 gates × 2 trees × 2 repeats) with 0
+  timeouts / 0 skips / 0 instability; every delta reproduced as a stable delta.
+  No gate that pristine main passes fails on the branch.
+- **`changelog-eat` classified pre-existing and out of scope** — it fails
+  identically on pristine main for a shared-ref reason, and no branch commit
+  touches `CHANGELOG.md`.
+- **One branch regression found and fixed** (test-only): chatcore
+  attempt-logging keyed on `pendingRequestId`, which `de2971ab2b` renamed to
+  `traceId`; now 6/0.
+- **Coverage of changed public outputs closed to 42 of 43 observed**, via three
+  new A/B-discriminating tests; the residual gap is
+  `opencode-plugin/src/index.ts` (no covering check exists).
+- **One live-directory product defect disclosed, not fixed:**
+  `call_logs` writes into `~/.omniroute` because the #10428 guard covers only
+  the DB path. Two stray test JSONs are left in place pending operator
+  approval.
+
 Commits are local on `feat/release-line-gap-recovery-v2-20260924`; nothing has
 been pushed.
-
