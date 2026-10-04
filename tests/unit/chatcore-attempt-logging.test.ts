@@ -78,11 +78,12 @@ after(() => {
 
 test("persists a call log row with the mapped fields (default cacheSource=upstream)", async () => {
   const id = "attempt-basic-1";
+  const traceId = "trace-attempt-basic-1";
   persistAttemptLogs(
     { status: 200, tokens: { input: 1, output: 2 } },
-    baseCtx({ pendingRequestId: id, credentials: { connectionId: "conn-1" } })
+    baseCtx({ pendingRequestId: id, traceId, credentials: { connectionId: "conn-1" } })
   );
-  const row = await pollForCallLog(id);
+  const row = await pollForCallLog(traceId);
   assert.ok(row, "call log row should be persisted");
   assert.equal(row.status, 200);
   assert.equal(row.model, "gpt-x");
@@ -94,17 +95,19 @@ test("persists a call log row with the mapped fields (default cacheSource=upstre
 
 test("uses final credentials connectionId when Codex failover rotates the account", async () => {
   const id = "attempt-codex-rotation-1";
+  const traceId = "trace-attempt-codex-rotation-1";
   persistAttemptLogs(
     { status: 200, tokens: { input: 1, output: 2 }, responseBody: { id: "response-1" } },
     baseCtx({
       pendingRequestId: id,
+      traceId,
       provider: "codex",
       connectionId: "initial-conn",
       credentials: { connectionId: "final-conn" },
     })
   );
 
-  const row = await pollForCallLog(id);
+  const row = await pollForCallLog(traceId);
   assert.ok(row);
   assert.equal(row.connectionId, "final-conn");
   assert.deepEqual(getCodexAccountRotation(row.requestBody), {
@@ -119,19 +122,24 @@ test("uses final credentials connectionId when Codex failover rotates the accoun
 
 test("cacheSource 'semantic' is preserved", async () => {
   const id = "attempt-semantic-1";
-  persistAttemptLogs({ status: 200, cacheSource: "semantic" }, baseCtx({ pendingRequestId: id }));
-  const row = await pollForCallLog(id);
+  const traceId = "trace-attempt-semantic-1";
+  persistAttemptLogs(
+    { status: 200, cacheSource: "semantic" },
+    baseCtx({ pendingRequestId: id, traceId })
+  );
+  const row = await pollForCallLog(traceId);
   assert.ok(row);
   assert.equal(row.cacheSource, "semantic");
 });
 
 test("connectionId falls back to credentials.connectionId when null, and error is persisted", async () => {
   const id = "attempt-fallback-1";
+  const traceId = "trace-attempt-fallback-1";
   persistAttemptLogs(
     { status: 502, error: "upstream boom" },
-    baseCtx({ pendingRequestId: id, connectionId: null })
+    baseCtx({ pendingRequestId: id, traceId, connectionId: null })
   );
-  const row = await pollForCallLog(id);
+  const row = await pollForCallLog(traceId);
   assert.ok(row);
   assert.equal(row.connectionId, "cred-conn");
   assert.equal(row.status, 502);
