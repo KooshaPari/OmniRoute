@@ -293,6 +293,8 @@ Three of rhino's previously-UNMAPPED outputs now have new checks, each verified
   **poll-budget exhaustion** (see the second chatcore finding above), not a
   missed conversion. The flake diagnosis was correct; the "incomplete fix"
   assertion was not.
+- See **Pre-existing pnpm lockfile inconsistency** (Host hazard section) for the
+  lockfile regeneration, postinstall failure, and operator-authorized resolution.
 
 ## Test-suite verification
 
@@ -538,13 +540,76 @@ suspected).
 - **The branch worktree was recreated at the same path** (`git worktree add`
   after `git worktree prune`): HEAD `86ed0f96b4`, 54 commits, this doc 553
   lines, `git status --porcelain` empty — matching the pre-loss state exactly.
-- **Constraint carried forward:** the recreated worktree has **no
-  `node_modules`**, so tests cannot be executed until dependencies are
-  reinstalled. This round is therefore documentation-only.
+- **Re-created worktrees and `node_modules`:** Both worktrees were re-created
+  after the 2026-10-08 disappearance. Operator-authorized
+  `pnpm install --no-frozen-lockfile` restored `node_modules` (3.7 G, 138
+  top-level entries) and the test runners (`.bin/tsx`, `.bin/vitest` present in
+  both worktrees). `pnpm-lock.yaml` is locally modified in both; `package.json`
+  untouched. `pnpm` exits `1` due to upstream FFI postinstall failures (see
+  "Pre-existing pnpm lockfile inconsistency" below).
 - **CAUTION:** the parent repo's own checkout is **dirty** with many unrelated
   modified files (`.cbmignore`, `.coderabbit.yaml`, `.dockerignore`,
   `.env.example`, `.github/*`, …). Those are **not ours**; this session never
   worked in the parent repo. Do not touch or clean them.
+- **Subsequent event, 2026-10-08 ~07:09:** the pristine-main comparison
+  worktree (`/Users/kooshapari/.jcode/scratch/main-accept`) ALSO disappeared, in
+  addition to the branch worktree already re-created at 01:13. Two worktrees
+  lost in ~6 hours points to a recurring cleanup or pruning process, not a
+  one-off. In both cases the ref and objects survived in the parent repo; only
+  the working directories vanished.
+- The pristine-main worktree was re-created via
+  `git worktree add /Users/kooshapari/.jcode/scratch/main-accept origin/main`
+  after `git worktree prune`. Verified: HEAD `843f342556` (detached), porcelain
+  empty, standard OmniRoute layout, `node_modules` absent (consistent with the
+  freshly-re-created branch worktree state).
+- The worktree list at that moment held **3** pre-existing entries (parent +
+  `omniroute-cherry-v2` [our branch, still tracked] + `use-pheno-otel`), not 2;
+  `omniroute-cherry-v2` was correctly registered and was not double-added.
+- After both worktrees were re-established, both were missing `node_modules`
+  (lost in the disappearance). Operator authorized
+  `pnpm install --no-frozen-lockfile` in BOTH worktrees to restore the dev
+  environment. The verbatim install figures appear in the re-created-worktree
+  disclosure above and in "Pre-existing pnpm lockfile inconsistency" below.
+
+### Pre-existing pnpm lockfile inconsistency
+
+At the start of the 2026-10-08 restoration, `pnpm install --frozen-lockfile`
+failed with `ERR_PNPM_OUTDATED_LOCKFILE` because `package.json` declared
+`oxlint@^1.61.0` (a devDependency at line 438, with `lint:oxlint` scripts at
+lines 280-281) but `pnpm-lock.yaml` had **0** oxlint references.
+
+This inconsistency is **pre-existing on `origin/main` (`843f342556`)** itself: a
+fresh `git show origin/main:package.json | grep -n oxlint` returns 3 hits (lines
+280, 281, 438) and `git show origin/main:pnpm-lock.yaml | grep -c oxlint`
+returns 0. A fresh clone of main would therefore also fail `--frozen-lockfile`.
+The cherry-pick `e16215e01c` (`chore(lint): add oxlint config and oxlint-disable
+comments`) is a net no-op versus main: main already carried the same
+`package.json` state at `843f342556`; merely `pnpm-lock.yaml` was never
+regenerated to match.
+
+- **Resolution:** operator authorized `pnpm install --no-frozen-lockfile` in both
+  worktrees. Branch worktree: `pnpm-lock.yaml` +229 lines, +62 oxlint
+  references, `package.json` UNTOUCHED (per `git status --porcelain`).
+  `main-accept`: same numbers, same single-file diff. Both installs took ~120-160
+  s wall time and the test runners (`.bin/tsx` and `.bin/vitest`) materialized
+  correctly.
+- **CAVEAT:** the install exit code is `1` in both worktrees due to postinstall
+  scripts of 5 upstream FFI packages (`omniroute-ffi-darwin-arm64`,
+  `-darwin-x64`, `-linux-arm64-gnu`, `-linux-x64-gnu`, `-win32-x64`) failing
+  under Node 26. Each has a `scripts/postinstall.mjs` that uses CJS
+  `require("node:fs")` inside an ESM `.mjs` file, producing `ReferenceError:
+  require is not defined in ES module scope`. This is an upstream package bug,
+  not caused by our work, and only affects the FFI packages' build phase — the
+  unit-test runners are functional. The root-project postinstall (playwright-core
+  Android patch, sql.js/node-machine-id copies, LLMLingua co-location) SUCCEEDED
+  in both worktrees. A `pnpm install --ignore-scripts` would exit 0 if a clean
+  postinstall status is needed.
+- **Session-local artifact:** this lockfile regeneration is a session-local
+  artifact; `pnpm-lock.yaml` is currently modified in the worktree but is NOT
+  part of this commit. Whether to commit it is an operator decision — committing
+  would propagate the regeneration to `origin/main` (which is itself in the same
+  broken state, so a no-op in practice) and remove the dirty-status warning; not
+  committing leaves the session-local fix.
 
 ### Round-3 product defect: `call_logs` writes into the LIVE data dir
 
