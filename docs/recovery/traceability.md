@@ -132,22 +132,97 @@ to main, supplied no `traceId`, and polled `getCallLogById(pendingRequestId)`.
   :135 are byte-identical before and after; no counts changed; production
   source untouched. After fix: branch **6 pass / 0 fail**, exit 0, ×2 runs.
 
+#### Round-3 second finding: at-HEAD poll-budget exhaustion (found and fixed)
+
+After the first fix (`2aee1c8a55`, `tries = 120`), a re-run of the same file at
+final HEAD still failed — one red against three greens:
+
+- **Failing test:** `tests/unit/chatcore-attempt-logging.test.ts:143:10` —
+  `assert.ok(row)`, `actual: null`, observed at **2634.6145 ms**. Raw log:
+  `~/.jcode/scratch/athead-test-raw/chatcore-attempt-logging.test.ts.log`
+  (summary: 6 tests / 5 pass / 1 fail, `duration_ms` 16022.88).
+- **Root cause: poll-budget exhaustion, not a keying defect.** `pollForCallLog`
+  budgeted `120 tries × 20 ms = 2400 ms`. `saveCallLog` is async and
+  fire-and-forget, so the row lands a tick after `persistAttemptLogs` returns;
+  under cold `tsx` spawn plus full-suite SQLite load the write had not committed
+  by 2634 ms — the null read is the **expired budget**, not a missing row.
+- **Corroborating evidence:** in the *same* raw log the three already-converted
+  subtests **passed** while taking **1229.4 / 2138.4 / 2414.7 ms** — all sitting
+  at the 2.4 s budget edge. Structural keying failures are deterministic (the
+  original bug reproduced 2/4 across 3 runs — see above), so one red against
+  three greens at load 276–448 (`athead-test-load.log`: 276.18 → 407.87;
+  `athead-gate-load.log` peak 448.91) indicates load sensitivity, not keying.
+- **Fix (`86ed0f96b4`, test-only):** widened `pollForCallLog` `tries` 120 → 500
+  (2.4 s → 10 s), mirroring the repo-canonical headroom in
+  `call-log-save-drain.test.ts` `waitForCallLogSaves(10_000)`, whose own comment
+  documents the same ~2.4 s cold-spawn flake. **No assertion changed:** all 4
+  `assert.ok(row)` are byte-identical before and after; no test skipped or
+  re-counted; production untouched.
+- **After fix:** `chatcore-attempt-logging` **6 pass / 0 fail ×2**; plus
+  `call-log-save-drain` **2/0** and `model-test-runner` **26/0**.
+
 ### Round-3 covering checks for changed public outputs
 
-Round 3 enumerated **43 changed outputs outside `tests/` and `docs/`**. Two
-previously-conflated lists are separated here:
+Round 3 enumerated **43 changed outputs outside `tests/` and `docs/`** (at
+final HEAD: `git diff origin/main...HEAD --name-only -- . ':(exclude)tests'
+':(exclude)docs'` = 43). Two previously-conflated lists are separated here:
 
 - **UNMAPPED** (rhino) = no covering check exists.
 - **UNOBSERVED** (palmtree) = a check exists but was never executed.
 
+**Authoritative Matrix-2 arithmetic (corrected):** **38 OBSERVED-PASS + 3
+OBSERVED-FAIL + 0 UNOBSERVED + 2 NO-CHECK-EXISTS = 43.** So **41 of the 43
+outputs have an OBSERVED result** and **2 have no covering check at all**. Full
+matrix: `~/.jcode/scratch/MATRIX-athead.md`.
+
+- **The 3 OBSERVED-FAILs:** `.env.example` (`check:env-doc-sync` — pre-existing
+  on *both* trees); the `changelog.d` fragment (`check:changelog-integrity`, sha
+  `2ec60c77` — pre-existing on *both* trees); and `chatcore-attempt-logging`
+  (observed fail at HEAD, fixed in `86ed0f96b4` — see the second finding above).
+- **The 2 NO-CHECK-EXISTS:**
+  - `@omniroute/opencode-plugin/src/index.ts` — `config-shim.test.ts:1285`
+    asserts a substring present in *both* the old and new messages, so it cannot
+    pin the change.
+  - `src/lib/evals/runtime.ts` — see the dedicated note below.
+
 Round 3 executed the remaining checks: `db/proxies/guards.ts` 2/2,
-`db/proxyLogs.ts` 6/6, `evals/runtime.ts` 3/3, `usage/migrations.ts` 6/6 all
-pass; the `changelog.d` fragment is covered by `check:changelog-integrity`
-(fails pre-existing, above). **42 of the 43 outputs now have an OBSERVED
-result.** The single residual gap is `opencode-plugin/src/index.ts` — **no
-covering check exists on either tree** (the opencode-plugin cache-age log;
-`config-shim.test.ts:1285` asserts a substring present in *both* the old and
-new messages, so it cannot discriminate).
+`db/proxyLogs.ts` 6/6, `usage/migrations.ts` 6/6 all pass; the `changelog.d`
+fragment is covered by `check:changelog-integrity` (fails pre-existing, above).
+
+**`src/lib/db/proxyLogs.ts` — OBSERVED-PASS, now raw-log backed.**
+`tests/unit/logs-export-streaming-13123.test.ts` = **6 pass / 0 fail / exit 0**
+(raw log `~/.jcode/scratch/backing-logs-export-streaming-13123.log`). It imports
+the **real** route `src/app/api/logs/export/route.ts`, which calls
+`countProxyLogsSince` (route:65) and `iterateProxyLogsSince` (route:66),
+asserting `totalAvailable = 3` and ordered `px-3`/`px-2` with `limit=2`. Genuine
+coverage.
+
+**`src/lib/evals/runtime.ts` — NO-CHECK-EXISTS (tautological test).**
+`tests/unit/eval-opt-out-13139.test.ts` does define 3 tests and they pass (**3/0,
+exit 0** — raw log `~/.jcode/scratch/backing-eval-opt-out-13139.log`), **but it
+never imports `src/lib/evals/runtime.ts`**. It constructs a local
+`new Headers({...})` carrying the same literals and asserts on that local object,
+so it cannot fail if `runtime.ts` is reverted. It is **tautological** and
+therefore provides **no coverage** of the changed lines (`runtime.ts` adds
+`x-omniroute-compression: off` and `x-omniroute-no-memory: true` at HEAD lines
+198–202). Disclosed as a known gap, with a recommended remedy: replace it with a
+test that imports `executeEvalCase`, or extract the header construction into an
+exported pure function.
+
+**Correction of an audit premise.** An intermediate audit claimed the two
+candidate covering files "define 9 + 4 and 8 tests, not 6 and 3". That is
+**wrong** — `grep` and the runner both confirm the files genuinely define
+**exactly 6 and 3** tests (`logs-export-streaming-13123.test.ts` → 6;
+`eval-opt-out-13139.test.ts` → 3). The real defect was never the count; it was
+that `eval-opt-out-13139` is tautological.
+
+**Prior figures withdrawn.** `39/3/0/1` and `37/3/2/1` were **both wrong**;
+`38/3/0/2` is authoritative. `39/3/0/1` counted `evals/runtime.ts` as
+OBSERVED-PASS on a tautological check (it is NO-CHECK-EXISTS) and treated
+`proxyLogs.ts` as merely doc-asserted. `37/3/2/1` moved `proxyLogs.ts` and
+`evals/runtime.ts` both to UNOBSERVED — but `proxyLogs.ts` **does** have a raw
+per-file log (`logs-export-streaming-13123`, 6/0), so it is OBSERVED-PASS, and
+`runtime.ts` is NO-CHECK-EXISTS rather than UNOBSERVED.
 
 Three of rhino's previously-UNMAPPED outputs now have new checks, each verified
 **both ways** (branch pass / pristine-main fail for the right reason):
@@ -209,8 +284,44 @@ Three of rhino's previously-UNMAPPED outputs now have new checks, each verified
   assertions) predated the five newly added test files; file counts corrected
   to 72 / 46 / 26 (22 branch-new); assertion totals have since been re-measured
   — 160 + 5 = 165 across the two runners (see below).
+- **"The first chatcore fix was incomplete" is WITHDRAWN (2026-10-07).** An
+  orchestrator intermediate message stated the first chatcore fix
+  (`2aee1c8a55`) was "incomplete" because assertion `:143` was not converted.
+  That is not correct: `2aee1c8a55` had **already** converted the fallback
+  subtest, and every row-read site (`:86`, `:110`, `:130`, `:142` at that
+  revision) already polls the supplied `traceId`. The `:143` failure was
+  **poll-budget exhaustion** (see the second chatcore finding above), not a
+  missed conversion. The flake diagnosis was correct; the "incomplete fix"
+  assertion was not.
 
 ## Test-suite verification
+
+### At-head verification (final HEAD)
+
+Re-run of the complete changed test surface at final HEAD, one process per file
+with the project's real runners. The runs were captured at HEAD `e759cdd8ff`;
+the only later commit, `86ed0f96b4`, is the **test-only** poll-budget widening of
+the second chatcore finding (it touches no source and no gate), so the figures
+below hold for final HEAD `86ed0f96b4` too.
+
+- **All 30 changed test files run at final HEAD** (`git diff origin/main...HEAD
+  --name-only` filtered to `^tests/` = 30, **exactly matching** the TSV below):
+  **29 exit 0, 1 exit 1** (chatcore-attempt-logging), **0 timed out**. Total
+  **176 tests passed / 1 failed** = 177 tests: 170 pass + 1 fail under
+  `node --test` (28 `.ts` files) and 5 + 1 pass under `vitest` (2 `.tsx` files).
+  Source: `~/.jcode/scratch/athead-test-results.tsv` (30 rows),
+  `~/.jcode/scratch/athead-test-raw/*.log`. The final-HEAD surface is 30 test
+  files (28 `.ts` + 2 `.tsx`), 25 branch-new; earlier rounds in this document
+  record 26, the pre-coverage-fix surface.
+- **All 8 quality gates at final HEAD, ZERO deviation from the recorded
+  baseline:** `typecheck:core` rc=0 / 0 errors; `check:known-symbols` rc=0;
+  `check:open-sse-typecheck` rc=1 / 201 errors / 79 entries; `check:env-doc-sync`
+  rc=1 / 42+6; `check:file-size` rc=1 / 15+22 = 37; `check:dead-code` rc=1 /
+  `DEAD_TOTAL=1023`; `check:migration-numbering` rc=1 / 1 obsolete (`121`);
+  `check:changelog-integrity` rc=1 / removed 20 + added 20.
+  Source: `~/.jcode/scratch/athead-gate-results.txt`.
+- **Packaging guard at HEAD:** `git diff origin/main...HEAD -- package.json
+  pnpm-lock.yaml .github` = **EMPTY** (0 lines).
 
 `pnpm test` on the branch: 21,398 tests, 18,323 pass, 234 fail, 2,823
 cancelled. This is a **pre-existing figure whose provenance is not recorded
@@ -411,6 +522,30 @@ afterwards, and should not treat a full disk as evidence of a test failure.
 `git fsck` was clean (exit 0, dangling objects only) after the event, and
 `package.json` and `pnpm-lock.yaml` are unmodified.
 
+### Worktree loss and recovery (2026-10-08)
+
+On 2026-10-08 ~01:07 both working directories
+(`~/.jcode/scratch/omniroute-cherry-v2` and `~/.jcode/scratch/main-accept`) were
+found **MISSING** — `cd` failed with "No such file or directory". The cause was
+not determined (this session performed no deletion; a prior cleanup process is
+suspected).
+
+- **No commits were lost.** Git worktrees share the parent repo's object store,
+  and the branch ref lives in the parent repo
+  `/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute`. Verified: branch
+  tip `86ed0f96b4`, 54 commits ahead of `origin/main`; `main` and `origin/main`
+  both still `843f342556`.
+- **The branch worktree was recreated at the same path** (`git worktree add`
+  after `git worktree prune`): HEAD `86ed0f96b4`, 54 commits, this doc 553
+  lines, `git status --porcelain` empty — matching the pre-loss state exactly.
+- **Constraint carried forward:** the recreated worktree has **no
+  `node_modules`**, so tests cannot be executed until dependencies are
+  reinstalled. This round is therefore documentation-only.
+- **CAUTION:** the parent repo's own checkout is **dirty** with many unrelated
+  modified files (`.cbmignore`, `.coderabbit.yaml`, `.dockerignore`,
+  `.env.example`, `.github/*`, …). Those are **not ours**; this session never
+  worked in the parent repo. Do not touch or clean them.
+
 ### Round-3 product defect: `call_logs` writes into the LIVE data dir
 
 A second, more serious live-directory exposure was found in round 3. Two test
@@ -541,9 +676,16 @@ Round 3 (2026-10-04) strengthens and extends this record:
 - **One branch regression found and fixed** (test-only): chatcore
   attempt-logging keyed on `pendingRequestId`, which `de2971ab2b` renamed to
   `traceId`; now 6/0.
-- **Coverage of changed public outputs closed to 42 of 43 observed**, via three
-  new A/B-discriminating tests; the residual gap is
-  `opencode-plugin/src/index.ts` (no covering check exists).
+- **Coverage of changed public outputs, corrected: 38 OBSERVED-PASS + 3
+  OBSERVED-FAIL + 0 UNOBSERVED + 2 NO-CHECK-EXISTS = 43** (41 observed). The 3
+  FAILs are `.env.example` and the `changelog.d` fragment (both pre-existing on
+  both trees) and `chatcore-attempt-logging` (observed fail at HEAD, fixed in
+  `86ed0f96b4`). The 2 NO-CHECK-EXISTS are `opencode-plugin/src/index.ts` and
+  `src/lib/evals/runtime.ts` (the latter's `eval-opt-out-13139` test is
+  tautological). Prior figures `39/3/0/1` and `37/3/2/1` are withdrawn.
+- **At-head verification:** 30 changed test files / 29 exit 0 / 1 exit 1 (that
+  one now fixed); 8 quality gates with zero deviation from baseline; packaging
+  guard empty. See "Test-suite verification".
 - **One live-directory product defect disclosed, not fixed:**
   `call_logs` writes into `~/.omniroute` because the #10428 guard covers only
   the DB path. Two stray test JSONs are left in place pending operator
