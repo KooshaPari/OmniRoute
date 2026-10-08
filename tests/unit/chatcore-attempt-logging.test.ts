@@ -53,7 +53,13 @@ function baseCtx(overrides: Record<string, unknown> = {}) {
   } as Parameters<typeof persistAttemptLogs>[1];
 }
 
-async function pollForCallLog(id: string, tries = 120) {
+// saveCallLog is async + fire-and-forget, so the persisted row lands a tick after
+// persistAttemptLogs returns. The first cold tsx worker spawn plus full-suite SQLite
+// load can push a single write past 2.4s: the at-head full-suite run had the row
+// still unpersisted when the original 120x20ms budget expired (assertion reported at
+// 2634ms), yielding a null read even though the row was written under the traceId.
+// 10s headroom mirrors call-log-save-drain.test.ts (waitForCallLogSaves(10_000)).
+async function pollForCallLog(id: string, tries = 500) {
   for (let i = 0; i < tries; i++) {
     const row = await getCallLogById(id);
     if (row) return row as Record<string, unknown>;
