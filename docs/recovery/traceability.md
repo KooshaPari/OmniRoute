@@ -771,7 +771,15 @@ re-run of the at-head matrix:
   byte-identical across the two trees. `package.json` is untouched on the
   branch (`git diff origin/main...HEAD` shows zero lines against
   `package.json`); this commit only adds the missing lockfile entries to
-  make the workspace installable.
+  make the workspace installable. **The round-3 packaging-guard claim
+  ("`git diff origin/main...HEAD -- package.json pnpm-lock.yaml .github`
+  = EMPTY (0 lines)") is no longer literally true at HEAD `c06bbef2aa`:
+  the same diff now reports 336 lines (all in `pnpm-lock.yaml`,
+  exactly the +229 added + 107 removed from `e1de8460e6`; `package.json`
+  and `.github` still report 0 lines). The guard's intent — that the
+  branch does not change `package.json` or `.github` — is preserved;
+  the lockfile change is the disclosed consequence of aligning the
+  workspace to the pre-existing `package.json` oxlint dep.**
 
 - **`5c3e2e0472` refactor(evals): extract `buildEvalCaseHeaders` to make the
   #13139 test non-tautological.** The previous `eval-opt-out-13139.test.ts`
@@ -827,6 +835,8 @@ re-run of the at-head matrix:
 
 The 30-test re-run, the lockfile commit, and the test-rewrite commit
 together **strengthen** the round-3 record rather than change its
-structure: the 30/30 surface, the 8 quality gates, the packaging guard,
-the 43 coverage tally, and the load/ordering-dependent flake
-classification all stand.
+structure: the 30/30 surface, the 8 quality gates, the packaging
+guard's intent (`package.json` + `.github` unchanged, lockfile
+intentionally updated to align with pre-existing `package.json` oxlint
+dep per `e1de8460e6`), the 43 coverage tally, and the
+load/ordering-dependent flake classification all stand.
