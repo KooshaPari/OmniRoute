@@ -758,3 +758,75 @@ Round 3 (2026-10-04) strengthens and extends this record:
 
 Commits are local on `feat/release-line-gap-recovery-v2-20260924`; nothing has
 been pushed.
+
+Round 4 (2026-10-08) — two commits after the round-3 doc freeze, plus a
+re-run of the at-head matrix:
+
+- **`e1de8460e6` chore(deps): align pnpm-lock.yaml.** The lockfile predated
+  the three pre-existing `oxlint` entries in `package.json` (lines 280/281/438)
+  so a fresh `origin/main` (843f342556) clone would have failed
+  `pnpm install --frozen-lockfile` with `ERR_PNPM_OUTDATED_LOCKFILE`. After
+  `pnpm install --no-frozen-lockfile` in both worktrees the lockfile
+  regenerated to **25,802 lines / 62 oxlint refs / +229 vs origin/main**,
+  byte-identical across the two trees. `package.json` is untouched on the
+  branch (`git diff origin/main...HEAD` shows zero lines against
+  `package.json`); this commit only adds the missing lockfile entries to
+  make the workspace installable.
+
+- **`5c3e2e0472` refactor(evals): extract `buildEvalCaseHeaders` to make the
+  #13139 test non-tautological.** The previous `eval-opt-out-13139.test.ts`
+  constructed `Headers` locally and asserted its own values, never importing
+  the actual runtime module — so a source regression that dropped the
+  opt-out headers would have left the test green. This commit exposes
+  `buildEvalCaseHeaders(apiKey)` as a tested export of
+  `src/lib/evals/runtime.ts`, and rewrites the test to assert against the
+  real module. Discrimination verified from each worktree: **branch 5/5
+  pass**, **origin/main 0/1 pass, 1/1 fail** (`SyntaxError: ... does not
+  provide an export named 'buildEvalCaseHeaders'`). Behavior is unchanged
+  on the production path: `executeEvalCase()` now calls
+  `buildEvalCaseHeaders(apiKey)` instead of inlining the same logic. The
+  round-3 line "`src/lib/evals/runtime.ts` (the latter's
+  `eval-opt-out-13139` test is tautological)" is now stale; the test is a
+  real regression check.
+
+- **Re-run of the at-head 30-test surface at HEAD `5c3e2e0472`:**
+  **30/30 test files exit 0, 0 timed out, 0 skipped.** The round-3
+  `chatcore-attempt-logging` "1 fail" was already fixed by `86ed0f96b4`
+  (poll-budget widening); a fresh re-run now gives **6/6 pass, exit 0**.
+  The two `.tsx` files in the surface
+  (`tests/unit/13462-credential-masker-data-uri.test.tsx` and
+  `tests/unit/ui/websearch-example-card-provider-body-13245.test.tsx`) are
+  not matched by the `package.json` `"test"` script globs (which are
+  `*.test.ts` + `*.test.mjs` only) and need `vitest` to execute. They give
+  **6/6 pass** under `vitest run` (5+1) and **0/2 pass** under
+  `node --test` — same runner-mismatch the round-3 section already
+  records. Effective per-test totals at HEAD `5c3e2e0472`: 28 `.ts` files
+  via `node --test` (173 pass / 0 fail; the +3 vs round-3's 170 is chatcore
+  1-fail→6-pass and `eval-opt-out-13139` 3 tests→5 tests from
+  `5c3e2e0472`) plus 2 `.tsx` files via `vitest` (6 pass / 0 fail) =
+  **179 pass / 0 fail, 30/30 test files exit 0**, across two runners per
+  the project configuration.
+
+- **Author delta:** the round-3 doc recorded the 56-commit recovery (49
+  Koosha + 7 Jcode). With these two commits the recovery totals
+  **58 = 51 Koosha + 7 Jcode**, i.e. 51 + 7 = 58, vs the round-3 figure
+  49 + 7 = 56. The 2-commit delta is exactly `e1de8460e6` and
+  `5c3e2e0472`.
+
+- **Hygiene:** 6 leftover `omni-attempt-logging-test-*` scratch dirs from
+  the round-4 chatcore re-runs and 4 `omni-testctx-*` dirs from the
+  round-4 vitest re-runs were removed. `/tmp/30run.log` (40 KB) and
+  `/tmp/30run2.log` (72 KB) are retained for postmortem.
+
+- **Model transport status (unchanged from round 3):** both `opencode-go`
+  and `openrouter` reachable but return `OpenAI-compatible chat request
+  failed` at the content layer; two fresh canary dispatches
+  (`turtle`/`rabbit`, both pinned to `mimo-v2.6-flash`) reproduced the
+  same failure seen in the prior 10 dispatches. All round-4 work was
+  therefore done inline.
+
+The 30-test re-run, the lockfile commit, and the test-rewrite commit
+together **strengthen** the round-3 record rather than change its
+structure: the 30/30 surface, the 8 quality gates, the packaging guard,
+the 43 coverage tally, and the load/ordering-dependent flake
+classification all stand.
