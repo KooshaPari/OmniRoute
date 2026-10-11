@@ -840,3 +840,96 @@ guard's intent (`package.json` + `.github` unchanged, lockfile
 intentionally updated to align with pre-existing `package.json` oxlint
 dep per `e1de8460e6`), the 43 coverage tally, and the
 load/ordering-dependent flake classification all stand.
+
+Round 5 (2026-10-08 → 2026-10-11) — post-relocation re-validation, plus a
+new live-directory disclosed item and a test-infrastructure fragility
+finding:
+
+- **Worktree relocation handled.** The worktree at
+  `~/.jcode/scratch/omniroute-cherry-v2` was deleted by an external
+  process between the prior proc cycle and the next. The branch ref
+  `feat/release-line-gap-recovery-v2-20260924` (HEAD `82829e98e5`, 60
+  ahead of `origin/main`) was preserved in the main repo
+  (`/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute`); a fresh
+  worktree was created from that ref via `git worktree add`. No commits
+  lost; the 4 session commits (e1de8460e6, 5c3e2e0472, c06bbef2aa,
+  82829e98e5) all reachable and verified by trailer inspection.
+
+- **End-to-end re-validation at the relocated worktree: 30/30 cherry-pick
+  test files pass.** Run with the correct runners per file extension:
+  28 `.ts` files via
+  `DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test <file>`;
+  2 `.tsx` files via `npx vitest run <file>` (the `--reporter=basic`
+  flag from the prior session's notes is invalid for vitest 4.1.11 and
+  causes `Failed to load url basic`; the default reporter is correct).
+  Effective individual test counts: 173 `.ts` tests pass / 0 fail (28
+  files), 2 `.tsx` files pass (vitest). Total **30/30 file exit 0**, 173
+  individual `.ts` tests pass, matching the round-4 claim.
+
+- **Test-infrastructure fragility, disclosed.** The worktree's
+  `node_modules` was symlinked to the main repo's
+  (`/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/node_modules`)
+  to provide `tsx` + `vitest` for the cherry-pick test surface. The main
+  repo's `node_modules` is shared state, and at the next proc (18h
+  later) the symlink target no longer contained `tsx` or
+  `.pnpm/tsx*`, so `node --import tsx/esm` failed with
+  `ERR_MODULE_NOT_FOUND: Cannot find package 'tsx'`. The cherry-pick
+  branch itself is unaffected (no source change), and the 4 session
+  commits are intact, but a fresh 30-test re-run at the relocated
+  worktree is now blocked on the missing `tsx` until either the main
+  repo's `node_modules` is restored or the worktree gets a self-contained
+  `node_modules`. **Recommendation:** future proc cycles that need to
+  re-run tests should first verify the symlink target contains
+  `node_modules/tsx/package.json`; if not, refresh the main repo's
+  install or install `tsx` locally in the worktree.
+
+- **New live-directory product defect disclosed: 6 JSONs at
+  `~/.omniroute/call_logs/2026-10-10/`.** Created at 2026-10-10
+  06:48–06:52 UTC (mtime 2026-10-09 23:48–23:52 PT) by the round-4
+  `model-test-runner.test.ts` exercise, which makes real HTTP calls
+  through the live OmniRoute server using the `model-test-timeout-regression`
+  account (`provider=openai`, `requestedModel=openai/gpt-4o`). The 6
+  files are 3 test iterations × 2 calls each (one `200`, one `504`
+  timeout, alternating) — the test's expected behavior is to time
+  out, so the `504`s are not failures. The `call_logs` write is the same
+  pre-existing product defect called out in round 1 (line 754): the
+  #10428 guard covers only the DB path, not the request-log path. **The
+  2 JSONs previously disclosed at `2026-10-09/` from the round-2/3 era
+  are now gone** — the server appears to rotate older date-dirs, so
+  disclosed items in this category have a short shelf life. The live
+  `~/.omniroute/storage.sqlite` is still untouched (mtime `Oct 7
+  18:32:48 2026`, 2,605,056 bytes, no change across the entire 60-commit
+  recovery).
+
+- **Author count unchanged from round 4:** 60 = 51 Koosha + 7 Jcode
+  cherry-pick commits + 2 Jcode post-freeze commits (e1de8460e6,
+  5c3e2e0472) — wait, that sums to 60; the round-4 doc's "51 + 7 = 58"
+  figure excludes the 2 round-3-clarify doc commits (c06bbef2aa,
+  82829e98e5) which are also Jcode. With all 4 session commits
+  included: 60 = 51 Koosha + 9 Jcode (3 post-freeze code commits
+  + 2 post-freeze doc commits... actually 2 post-freeze code commits
+  and 2 post-freeze doc commits = 4 Jcode session commits). The
+  round-4 author delta section's "51 + 7 = 58" is therefore a count of
+  the recovery-surface commits (the 56 cherry-picks + e1de8460e6 +
+  5c3e2e0472), excluding the 2 doc-only commits. Stated correctly:
+  60 = 51 Koosha + 9 Jcode (4 of which are session commits, 5 of
+  which are upstream Jcode co-authors in the cherry-pick surface).
+  (This corrects a minor over-counting in the round-4 "Author delta"
+  bullet, which said `51 + 7 = 58` and treated 7 as the total Jcode
+  count; that is the count of Jcode commits among the 58 cherry-pick
+  surface commits, not the branch total.)
+
+- **Hygiene:** no new session-local scratch dirs created in this round
+  (the parallel test runs that produced the 6 `2026-10-10` call_logs
+  JSONs wrote through the live server, not through the worktree's
+  per-test `DATA_DIR`). The 18 pre-existing scratch items in
+  `~/.jcode/scratch/` from prior sessions remain untouched (8
+  `omni-13483-lockout-*`, 8 `omni-embed-proxy-*`, 2
+  `omni-acceptance-*`, 2 `omni-accept2-*`, 1 `omniroute_install_start`
+  marker, 4 stale `cherry-*.txt` order files from the round-1 dry-run).
+  `/tmp/30run3.log` and `/tmp/30run4.log` are retained for postmortem.
+
+- **Model transport status (unchanged from rounds 3 and 4):** both
+  `opencode-go` and `openrouter` reachable but return
+  `OpenAI-compatible chat request failed` at the content layer; all
+  round-5 work was done inline.
