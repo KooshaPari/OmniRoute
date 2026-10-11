@@ -1043,3 +1043,84 @@ green at the new worktree:
   `opencode-go` and `openrouter` reachable but return
   `OpenAI-compatible chat request failed` at the content layer; all
   round-6 work was done inline.
+
+Round 7 (2026-10-11) — post-round-6 proc cycle (49 min after
+round-6 commit) surfaces a new live-directory disclosed item and
+confirms the 2026-10-10/ rotation:
+
+- **New live-directory product defect disclosed: 2 JSONs at
+  `~/.omniroute/call_logs/2026-10-11/`.** Created at 2026-10-11
+  01:52:48–01:52:49 UTC (mtime `Oct 10 18:52 PT`) by my own
+  round-6 30/30 re-run. Source confirmed by full content read:
+  the two JSONs are exactly the `model-test-runner.test.ts` test
+  pair that round-5 disclosed. Both share `account:
+  model-test-timeout-regression`, `provider: openai`,
+  `requestedModel: openai/gpt-4o`, `path: /v1/chat/completions`,
+  `connectionId: 4ff62981-5fe3-460f-8f7f-bc32a708bb0c`, request body
+  `{"model":"openai/gpt-4o","messages":[{"role":"user","content":"Reply
+  with exactly: pong"}],"max_tokens":64,"stream":true}`.
+
+  - JSON 1 (`2026-10-11T01-52-48.578Z_7c6fd3.json`, 918 bytes):
+    `status: 200`, `duration: 686ms`, `responseBody.choices[0].message.content
+    = "OK"`, `_streamed: true`. The test's happy-path probe.
+  - JSON 2 (`2026-10-11T01-52-49.621Z_c8c916.json`, 797 bytes):
+    `status: 504`, `duration: 778ms`, `responseBody: null`,
+    `error: "[504]: Model test deadline exceeded after 1000ms"`. The
+    test's regression check (deliberate 1-second timeout).
+
+  The 1.043-second gap between the two timestamps is the test's
+  expected behavior; the 504 is the regression being tested, not
+  a test failure. Same pre-existing #10428 product defect (the
+  guard covers the DB path but not the request-log path) called
+  out in round 1 (line 754) and round 5. **The 2 prior JSONs at
+  `2026-10-10/` from the round-4 disclosure are now gone** —
+  the server rotation predicted in round 5 happened between
+  `01:00` and `02:24` PT. Round-5's call that "disclosed items
+  in this category have a short shelf life" is now confirmed by
+  observation: a date-dir that goes ~1 day without new files is
+  rotated away.
+
+- **Worktree persistence holds across procs.** 3 consecutive procs
+  (round-6 verification at 01:58, proc at 02:24, this proc at
+  02:34–02:47) all hit the worktree intact at
+  `~/.jcode/scratch/omniroute-cherry-v2`. The prior external
+  deletions (between round-4 and round-5, and between round-5 and
+  round-6) appear to be on a longer cycle than 30 min; treating
+  the worktree as ephemeral-but-usable in the short term is the
+  right operational posture. The branch ref + committed doc
+  history remain the durable state if a future external deletion
+  does happen.
+
+- **Out-of-scope external activity in the main repo.** At
+  round-6 commit time the main repo (on `main` at `843f342556`)
+  had 10 unstaged-modified files. At this round-7 proc the count
+  is **3,738 modified files** (28-minute delta). Distribution
+  is mostly `^ M` (unstaged-modified) across the project. None
+  of these are from this session — the recovery worktree is on a
+  separate branch with porcelain clean, and the main repo is on
+  `main` with its own working tree. The activity is consistent
+  with an external bulk-touch process (possibly a hook, sync
+  job, or backup-restore). **Not touched** by this session —
+  outside the recovery branch's scope, and the operator has
+  not asked about it. Flagging here for situational awareness.
+
+- **Live `~/.omniroute/storage.sqlite` STILL untouched** across
+  rounds 1–7. mtime `Oct 7 18:32:48 2026`, 2,605,056 bytes,
+  unchanged across the entire 62→63-commit recovery + 7 doc
+  rounds. (The 2 JSONs at `~/.omniroute/call_logs/2026-10-11/`
+  disclosed in this round are still present, mtime `Oct 10
+  18:52:49 PT`, not yet rotated by the server; the round-5
+  `2026-10-10/` dir remains gone as of this proc.)
+
+- **Hygiene:** 2 new vitest run-time scratch dirs from the
+  round-6 30/30 re-run (`omni-13483-lockout-*` style) and from
+  the round-7 30/30 confidence-jump recheck were created under
+  `~/.jcode/scratch/`; per standing rule these are not session
+  artifacts and are not cleaned up unless the operator asks.
+  The 18 pre-existing scratch items + 2 new vitest dirs remain
+  in place. No `/tmp/` log files added in this round.
+
+- **Model transport status (unchanged from rounds 3, 4, 5, 6):**
+  both `opencode-go` and `openrouter` reachable but return
+  `OpenAI-compatible chat request failed` at the content layer;
+  all round-7 work was done inline.
