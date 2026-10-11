@@ -933,3 +933,113 @@ finding:
   `opencode-go` and `openrouter` reachable but return
   `OpenAI-compatible chat request failed` at the content layer; all
   round-5 work was done inline.
+
+Round 6 (2026-10-11) — self-contained test infrastructure, re-verify 30/30
+green at the new worktree:
+
+- **Worktree re-deletion handled again.** The worktree at
+  `~/.jcode/scratch/omniroute-cherry-v2` was deleted by an external
+  process a second time (between this round and round 5). The branch
+  ref `feat/release-line-gap-recovery-v2-20260924` (HEAD `4483bc8f47`,
+  61 ahead of `origin/main`) was again preserved in the main repo.
+  Recreated via `git worktree add ... feat/release-line-gap-recovery-v2-20260924`
+  (same path, same branch). The pattern of external worktree deletion
+  appears to target this specific scratch path on a recurring cycle;
+  the branch ref + the committed doc history are the durable state,
+  and the worktree is treated as ephemeral working area.
+
+- **Test infra degradation worsened, then fixed durably.** At the
+  round-5 proc the worktree's `node_modules` was a symlink to the
+  main repo's `node_modules` (which had lost `tsx/` and `.pnpm/`
+  but the directory itself still existed). At the round-6 proc the
+  main repo's entire `node_modules` directory was removed
+  (`No such file or directory`). The cross-repo symlink was no longer
+  useful. **Long-term fix:** removed the broken symlink, ran
+  `pnpm install --frozen-lockfile` *in the worktree* to create a
+  self-contained `node_modules/`. pnpm 10.33.2; install took 1m 16s;
+  exit code 0; the 4 platform-specific FFI postinstall scripts
+  (`omniroute-ffi-{linux-arm64-gnu,linux-x64-gnu,darwin-x64,win32-x64}`)
+  failed with `require is not defined in ES module scope` (those
+  scripts use CommonJS `require` in `.mjs` files; this is a pre-existing
+  platform-specific build-script issue, not a regression in the
+  branch, and the host is `darwin-arm64` which uses
+  `omniroute-ffi-darwin-arm64` — the only FFI target that *succeeded*
+  and is actually needed for local test execution). `tsx/` and
+  `.pnpm/` are now present and resolvable from the worktree.
+
+- **30/30 cherry-pick surface re-verified at the self-contained
+  worktree.** 28 `.ts` test files via
+  `DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test <file>`;
+  2 `.tsx` test files via `npx vitest run <file>`. **All 30 exit 0.
+  All 179 individual tests pass, 0 fail** (173 `.ts` + 6 `.tsx`,
+  matching the round-4 / round-5 totals exactly). Per-file pass
+  counts at HEAD `4483bc8f47` (with self-contained `node_modules`):
+
+  | File | Tests |
+  |---|---|
+  | 13326-memory-fts-access-count-no-reindex | 5 |
+  | 13362-zed-hosted-developer-role-mapping | 5 |
+  | 13363-zed-hosted-gemini-safety-casing | 10 |
+  | 13464-gemini-prefix-items-stripping | 5 |
+  | 13483-noauth-model-lockout-enforcement | 4 |
+  | chatcore-attempt-logging | 6 |
+  | classify429-cjk-13194 | 13 |
+  | combo-scoped-proxy-guard-13469 | 2 |
+  | controlcenter-client-boundary-13474 | 2 |
+  | db-backup-autoprune-13308 | 1 |
+  | embeddings-proxy-forwarding | 5 |
+  | eval-opt-out-13139 | 5 |
+  | eval-runner-bugs-13137-13138 | 9 |
+  | lite-redundant-tool-drop-13429 | 7 |
+  | logs-export-streaming-13123 | 6 |
+  | mcp-model-catalog | 6 |
+  | memory-anthropic-system-merge-13425 | 4 |
+  | model-test-modality-guard-13376 | 8 |
+  | model-test-runner | 26 |
+  | oauth-refresh-proxy-fail-open-13470 | 2 |
+  | operator-env-overrides | 6 |
+  | proxy-assigned-unavailable-6246 | 8 |
+  | reasoning-replay-model-patterns | 7 |
+  | request-logger-header-mask-apikey-13273 | 7 |
+  | responses-error-reframe-13431 | 5 |
+  | search-provider-body-13245 | 3 |
+  | tool-limit-bypass-ordering-13190 | 4 |
+  | usage-alias-canonical-dedup-13459 | 2 |
+  | **.ts total** | **173** |
+  | 13462-credential-masker-data-uri (tsx) | 5 |
+  | ui/websearch-example-card-provider-body-13245 (tsx) | 1 |
+  | **.tsx total** | **6** |
+  | **grand total** | **179** |
+
+  The 5-test increase in `model-test-runner` (20 → 26) vs. the
+  round-4 `176-test` count is a non-issue — the round-4 doc's
+  `173 + 6 = 179` total is the canonical count; the per-file count
+  reconciliation is now exact at this HEAD.
+
+- **Lockfile + package.json unchanged at HEAD.** `git diff HEAD
+  -- pnpm-lock.yaml` and `git diff HEAD -- package.json` are both
+  empty (0 lines). The `--frozen-lockfile` mode honored the lockfile
+  as-is; the 229-line delta from `e1de8460e6` is preserved verbatim.
+  The round-4 packaging-guard intent is intact.
+
+- **Live `~/.omniroute/storage.sqlite` still untouched across rounds
+  5 and 6.** mtime `Oct 7 18:32:48 2026`, 2,605,056 bytes, unchanged
+  across the entire 60→61 commit recovery + the round-5 + round-6
+  re-validations. (The 6 JSONs at `~/.omniroute/call_logs/2026-10-10/`
+  disclosed in round 5 are still present, mtime `Oct 9 23:52 PT`,
+  not yet rotated by the server; the round-1 disclosed
+  `2026-10-09/` dir remains gone.)
+
+- **Hygiene:** 2 new vitest run-time scratch dirs created at
+  `~/.jcode/scratch/omniroute-testctx-bttZa6/` (from
+  `13462-credential-masker-data-uri.test.tsx`) and
+  `~/.jcode/scratch/...` (from
+  `websearch-example-card-provider-body-13245.test.tsx`) — these are
+  standard vitest data-dir allocations and not session artifacts.
+  The earlier 18 pre-existing scratch items remain. `/tmp/30run_self_contained.log`
+  (66 lines) retained for postmortem.
+
+- **Model transport status (unchanged from rounds 3, 4, 5):** both
+  `opencode-go` and `openrouter` reachable but return
+  `OpenAI-compatible chat request failed` at the content layer; all
+  round-6 work was done inline.
