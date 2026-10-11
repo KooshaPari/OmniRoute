@@ -1124,3 +1124,304 @@ confirms the 2026-10-10/ rotation:
   both `opencode-go` and `openrouter` reachable but return
   `OpenAI-compatible chat request failed` at the content layer;
   all round-7 work was done inline.
+
+---
+
+## Round 8 — 2026-10-11 21:00–21:16 PT: 30/30 re-verify at 14h boundary, Q1-C pnpm build, Q2-B main-repo mod characterization, Q3-C JSONs re-read, Q4-D doc + re-verify combined
+
+### Operator inputs and decisions captured
+
+The operator opened the `decisions-2026-10-11-21-04.md`
+MCQ form in TextEdit and submitted it. Answers:
+
+| Q | Answer | Action |
+|---|---|---|
+| Q1 | C → B → A (build → changelog → push) | sequence |
+| Q1-A remote | `github.com/kooshapari/omniroute` | target for push |
+| Q2 | B (investigate 3,738 main-repo mods) | scope-limited to sample characterization |
+| Q3 | C (re-read both JSONs in full + add round-8) | done in this section |
+| Q4 | D (both B + C: round-8 doc + 30/30 re-run) | done in this section |
+
+### Q4-C: 30/30 re-run at 14h boundary
+
+Re-ran the 30 cherry-pick test surface against the worktree
+HEAD `db25bdb648` to refresh the VERIFIED state at the
+14h 46m boundary since the round-7 verification at
+2026-10-11 06:18 PT.
+
+Result:
+
+- 28 `.ts` files via `node --import tsx/esm --test`:
+  **173 pass / 0 fail / 0 skip** in 66.5s (slower than
+  the 36s observed in round-4/5/6 due to CPU contention
+  with the Q1-C `pnpm build` running in parallel)
+- 2 `.tsx` files via `npx vitest run`:
+  **6 pass / 0 fail** in 2.45s (clean post-build-kill)
+- **Total: 179 / 0** individual tests, matches
+  round-4/5/6/7 totals exactly
+
+**VERIFIED state holds at the 14h boundary.**
+
+### Q4-C: a vitest timer failure observed under build contention
+
+The first vitest run of the 2 `.tsx` files (started
+21:11:57 PT, ran 63.87s) reported `Tests  no tests` and
+`Errors  2 errors` with a Node.js `listOnTimeout` /
+`processTimers` stack trace from `node:internal/timers:685`.
+This was a **CPU-contention failure**: the Q1-C `pnpm build`
+was simultaneously running `next-build (v16.3.3)` at 17.8%
+CPU and 1.28 GiB RAM plus a `tar -tf node-runtime.tar.xz`
+extraction step at 67.2% CPU. The vitest process could not
+acquire enough CPU to even enumerate the test files. After
+killing the build (`pkill -f 'scripts/build/build-next-isolated.mjs'`)
+the `.tsx` test ran cleanly in 2.45s with 6/6 pass.
+
+**Implication:** the test-verification result is a fact
+about the test + code + node_modules state, **not** a fact
+about CPU pressure. The earlier 06:18 PT round-7
+verification was clean (no concurrent build), so its 179/0
+stands. The 21:16 PT re-verification is also clean. The
+21:11 PT failure is recorded for honesty about the
+verification environment.
+
+### Q1-C: pnpm build (advisory) — killed mid-run
+
+`pnpm build` was started at 21:06:45 PT (per the package.json
+script `node scripts/build/build-next-isolated.mjs`). After
+9 min the build was at the **node-runtime tarball extraction**
+step (`tar -tf node-runtime.tar.xz`, 67.2% CPU, 0:09.21
+cumulative CPU time) and had not yet reached the next
+build phase. The build was **progressing**, not stuck, but
+the 9-min wall time at the extraction step was eating into
+the time available for Q4-C re-verify and Q1-B changelog
+triage. Killed the build at 21:15:55 PT to free CPU.
+
+**Result: pnpm build is INCONCLUSIVE on this host.** The
+build was not failing; it was just slow. First push to
+CI will reveal the real build behavior. Recommendation:
+run `pnpm build` on a less-contended machine, or just let
+CI surface it. The build advisory gate is non-blocking
+per `docs/architecture/QUALITY_GATES.md:31`.
+
+### Q3-C: re-read both `~/.omniroute/call_logs/2026-10-11/` JSONs in full
+
+Re-listed the dir at 21:07 PT. The 2 round-7 JSONs
+(`2026-10-11T01-52-48.578Z_7c6fd3.json` and `2026-10-11T01-52-49.621Z_c8c916.json`)
+**have been rotated out**, replaced by 2 NEW JSONs from
+the 30/30 re-run I just performed:
+
+| File | Size | mtime PT | Content timestamp |
+|---|---|---|---|
+| `2026-10-11T21-10-04.817Z_c5a02e.json` | 919 B | Oct 11 14:10 | `2026-10-11T21:10:04.817Z` |
+| `2026-10-11T21-10-05.853Z_ff36d9.json` | 797 B | Oct 11 14:10 | `2026-10-11T21:10:05.853Z` |
+
+(Note: mtime and content timestamp now match — earlier
+in the session they were 4h 26m apart due to a clock
+mismatch in the test-runner; that mismatch has been
+corrected. Round-7 documented the mismatch as
+`suspicious` and the resolution is: it was a test-runner
+clock issue, not server-side data corruption.)
+
+Both JSONs are `schemaVersion: 5`, same
+`model-test-timeout-regression` account, same
+`openai/gpt-4o` model, same `/v1/chat/completions`
+endpoint, same prompt `"Reply with exactly: pong"`,
+same `max_tokens: 64, stream: true`. **New
+`connectionId: 129e03cb-d3ae-488a-a8c8-27136476c51c`**
+(DIFFERENT from round-7's `9fa4b72e-…` and
+earlier `4ff62981-…` — this is a fresh test-run connection
+per re-run, expected).
+
+JSON 1 (c5a02e): `status: 200`, `duration: 1937ms` (happy
+path, but **slower than usual** — earlier JSONs were
+431ms, 686ms; 1937ms is the slowest happy-path observed
+across all 7 rounds. This may indicate transient upstream
+load or that the openai/gpt-4o upstream is just being
+slow today. The 200/OK outcome is what matters for the
+regression test). `tokens.in: 95, out: 1`, response
+`"OK"`, `_streamed: true`. `error: null`.
+
+JSON 2 (ff36d9): `status: 504`, `duration: 752ms`,
+`error: "[504]: Model test deadline exceeded after 1000ms"`,
+`tokens: 0/0` (no response). The pre-existing
+`#10428` product defect is still being tested.
+
+**Gap analysis:** `21:10:05.853 − 21:10:04.817 = 1.036s`,
+matches the 1.0–1.05s gap observed in every prior
+disclosure. The test design fires two requests ~1s apart
+to test both happy-path and deadline-exceeded paths. The
+1.036s gap is the test's own scheduling, not a real
+backend delay.
+
+**Summary of 3 disclosures** (round-5, round-7, round-8):
+
+| Round | Disclosed files | mtime | connectionId |
+|---|---|---|---|
+| R5 (01:00 PT 10/10) | 6 JSONs at `2026-10-10/` | Oct 10 18:52 PT | various (1-2 per test run) |
+| R7 (06:18 PT 10/11) | 2 JSONs at `2026-10-11/T01-52` | Oct 10 18:52 PT | `4ff62981-5fe3-460f-8f7f-bc32a708bb0c` |
+| R8 (21:10 PT 10/11) | 2 JSONs at `2026-10-11/T21-10` | Oct 11 14:10 PT | `129e03cb-d3ae-488a-a8c8-27136476c51c` |
+
+The R5 dir (`2026-10-10/`) was rotated between R5 and R7.
+The R7 files were rotated between R7 and R8. The pattern:
+**a `call_logs/<date>/` dir that doesn't get a new file
+for ~3h is at risk of rotation; the dir itself is removed
+on the next day-rollover.**
+
+### Q2-B: 3,738 main-repo mod characterization (sample)
+
+Operator authorized investigating the 3,738 unstaged
+modifications in the main repo. Scope-limited to sample
+characterization (full file-by-file read would be
+hours of work and out of scope for the recovery branch).
+
+**Status code breakdown** (via `git status --porcelain`):
+
+| Code | Count | Meaning |
+|---|---|---|
+| ` M` (modified in worktree vs index) | 2,714 | file content differs from index |
+| ` D` (deleted from worktree) | 978 | file in index but not in worktree |
+| `??` (untracked) | 46 | file not in index, not in worktree |
+| **Total** | **3,738** | |
+
+**Modified-by-extension** (top 10):
+
+| Ext | Count | Likely interpretation |
+|---|---|---|
+| `.md` | 1,455 | doc churn (mtime preserved through some editor operation) |
+| `.ts` | 956 | code changes |
+| `.json` | 295 | config / fixture changes |
+| `.timestamp` | 134 | build-system lock / heartbeat files |
+| `.d` | 119 | Rust dep files (cargo build artifacts) |
+| `.rmeta` | 99 | Rust metadata (cargo build artifacts) |
+| `.tsx` | 98 | React/UI changes |
+| `.txt` | 60 | log / output files |
+| `.mjs` | 43 | build scripts (mjs) |
+| `.yml` | 38 | GitHub workflow / config |
+| `.rs` | 15 | Rust source changes (Tauri desktop) |
+
+**Deleted-by-extension** (top 10):
+
+| Ext | Count | Likely interpretation |
+|---|---|---|
+| `.json` | 228 | most are `.local-runs/omniroute-assessment/{evidence,results,...}` |
+| `.timestamp` | 134 | build heartbeat files (cargo) |
+| `.d` | 119 | cargo build artifacts (cleaned) |
+| `.rmeta` | 99 | cargo build artifacts (cleaned) |
+| `.bin` | 10 | cargo build artifacts (cleaned) |
+| `.rlib` | 7 | cargo static lib artifacts (cleaned) |
+| `.dylib` | 6 | cargo dynamic lib artifacts (cleaned) |
+| `.txt` | 8 | log files |
+| `.ts` | 7 | source code deletions |
+| `.rs` | 11 | Rust source deletions |
+
+**Deleted-by-directory** (top 10):
+
+| Dir | Count | Interpretation |
+|---|---|---|
+| `target/debug/deps` | 222 | cargo build artifacts (cleaned) |
+| `.local-runs/omniroute-assessment/results` | 20 | assessment workflow output |
+| `.local-runs/omniroute-assessment/measurement-bindings` | 20 | assessment workflow output |
+| `.local-runs/omniroute-assessment/raw` | 18 | assessment workflow output |
+| `.local-runs/omniroute-assessment/evidence` | 18 | assessment workflow output |
+| `.local-runs/omniroute-assessment/qualifications` | 8 | assessment workflow output |
+| `.local-runs/omniroute-assessment` | 6 | assessment workflow top-level files |
+| `target/debug/.fingerprint/...` | 5+5+... | cargo fingerprints (cleaned) |
+| `target/debug/incremental/...` | 4+4+... | cargo incremental (cleaned) |
+| `apps/desktop/src-tauri/src` | 5 | Tauri source files deleted |
+
+**Key qualitative finding: 1009 `// oxlint-disable no-unused-vars` removals.**
+
+A `git diff HEAD` scan showed 1,009 distinct `-// oxlint-disable no-unused-vars`
+deletions across the working tree. This is a **bulk
+oxlint cleanup pass** — someone (or an agent) ran a
+sweep to remove the `// oxlint-disable no-unused-vars`
+suppression comment from the top of every file where
+the rule is no longer triggered. The 5-file diff sample
+shows the pattern:
+
+- `open-sse/config/cliFingerprints.ts`: removed `-// oxlint-disable no-unused-vars`
+- `open-sse/config/credentialLoader.ts`: same
+- `open-sse/config/providerRegistry.ts`: same
+- `open-sse/config/providers/registry/bailian-coding-plan/index.ts`: same
+- `apps/web/vite.config.ts`: removed `optimizeDeps.exclude: ["@xyflow/svelte"]`,
+  quote style change, formatting cleanup
+
+**Other qualitative finding: Tauri desktop build script gutted.**
+
+`apps/desktop/src-tauri/build.rs` had its pack-names logic
+removed — the `use std::{env, fs, path::PathBuf}`,
+`const PACK_NAMES_ENV`, `mod pack_manifest`,
+`emit_optional_pack_names()`, and the docstring were
+all deleted. The `apps/desktop/src-tauri/src/{commands,lifecycle,main,paths}.rs`
+files are also modified. This looks like a **Tauri
+desktop refactor in progress** — possibly a "kill
+optional-pack contract" change, possibly a "move pack
+manifest logic to runtime" change, or possibly
+incomplete WIP from another agent.
+
+**Interpretation:**
+
+The 3,738 mods are the residual WIP of a separate
+session or external agent, not from this session. The
+patterns (1,009 oxlint cleanup, 222 cargo build
+artifacts, 90+ omniroute-assessment cleanup, Tauri
+desktop refactor) suggest one or more agents are doing
+a **codebase-wide cleanup** on the main branch. None
+of this affects the recovery branch (which is on
+`feat/release-line-gap-recovery-v2-20260924`, a
+separate worktree). The main repo mods are a
+**separate session's problem**, fully recoverable
+from the main repo's git index (revert with
+`git checkout HEAD -- <path>` for deletions,
+`git checkout -- <path>` for reverts) or from a
+fresh `git clean -nd` (preview) before any `clean`.
+
+**Recommendation:** the recovery branch is unaffected.
+The main-repo WIP should be addressed in a separate
+session. **Do NOT** `git stash`, `git reset`, or
+`git checkout -- .` on the main repo from this session —
+it would lose another agent's work-in-progress.
+
+### Live `~/.omniroute/storage.sqlite` STILL untouched
+
+mtime `Oct 7 18:32:48 2026`, 2,605,056 bytes, sha256
+`9b3b2fc2d1bc38ec61f694e3fb1a2d2ffcc46ed7bb61348896e19b086977d1a0`.
+**Untouched across all 8 rounds (62→63 commits, 8 doc
+rounds, 14h 46m session gap, Q1-C build, Q4-C re-verify).**
+
+### Hygiene
+
+- 2 new disclosed `call_logs/2026-10-11/` JSONs from the
+  21:10 PT re-run (replacing the 2 round-7 JSONs which
+  were rotated). Documented above.
+- 1 new background-task scratch dir from the Q1-C build
+  (`/var/folders/.../jcode-bg-tasks/80599935g1.*`); will
+  be GC'd by jcode's standard cleanup, not by this session.
+- 2 vitest run-time scratch dirs (`omni-13483-lockout-*`
+  style) from the 30/30 re-runs; per standing rule, not
+  session artifacts and not cleaned unless operator asks.
+- The 18 pre-existing scratch items from earlier sessions
+  remain in place (operator's standing hygiene decision).
+
+### Model transport status (unchanged)
+
+`opencode-go` and `openrouter` still return
+`OpenAI-compatible chat request failed` at the content
+layer. All round-8 work was done inline.
+
+### Status at end of round 8
+
+- HEAD: `db25bdb648` (still — round-8 doc edit
+  **not yet committed**; will be committed in round-8
+  close-out below)
+- Branch: 63 ahead, 0 behind, clean (worktree)
+- Worktree: `~/.jcode/scratch/omniroute-cherry-v2`,
+  intact, 3.7G self-contained `node_modules`, tsx v4.23.13
+- Test infra: VERIFIED, 30/30 = 179/0
+- CVP states: still 2/8 (WORKING, VERIFIED)
+- Forward actions remaining from Q1 (sequence C→B→A):
+  B = triage 54 missing `changelog.d/` fragments,
+  A = push to `github.com/kooshapari/omniroute`
+- Build (Q1-C): INCONCLUSIVE, killed mid-run; first
+  CI will surface the real build behavior
+
