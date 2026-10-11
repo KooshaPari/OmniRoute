@@ -1,0 +1,1 @@
+- **fix(responses):** re-frames upstream errors as Responses events in keepalive so clients get structured errors instead of dropped streams ([#13431](https://github.com/diegosouzapw/OmniRoute/pull/13431)) — thanks @KooshaPari.

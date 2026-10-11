@@ -1,0 +1,1 @@
+- **fix(backend):** eval runner opts out of output-style and memory injection so runs are not polluted by conversational context ([#13139](https://github.com/diegosouzapw/OmniRoute/pull/13139)) — thanks @KooshaPari.

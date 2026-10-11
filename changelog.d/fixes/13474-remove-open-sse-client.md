@@ -1,0 +1,1 @@
+- **fix(combos):** removes `open-sse` imports from `controlCenter.ts` so the client bundle boundary stays clean ([#13474](https://github.com/diegosouzapw/OmniRoute/pull/13474)) — thanks @KooshaPari.

@@ -1,0 +1,1 @@
+- **feat(mcp):** `list_models_catalog` now carries `context_length` through the MCP projection so clients see per-model context limits ([#12776](https://github.com/diegosouzapw/OmniRoute/pull/12776)) — thanks @KooshaPari.

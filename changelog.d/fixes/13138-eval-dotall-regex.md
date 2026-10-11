@@ -1,0 +1,1 @@
+- **fix(backend):** eval runner dotAll regex fix so `.` matches newlines when scoring outputs ([#13138](https://github.com/diegosouzapw/OmniRoute/pull/13138)) — thanks @KooshaPari.

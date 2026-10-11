@@ -1,0 +1,1 @@
+- **fix(providers):** forwards the API key on outbound embeddings requests for custom providers ([#13234](https://github.com/diegosouzapw/OmniRoute/pull/13234)) — thanks @KooshaPari.

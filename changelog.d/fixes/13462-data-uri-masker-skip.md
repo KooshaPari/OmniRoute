@@ -1,0 +1,1 @@
+- **fix(guardrails):** skips `data:` URI base64 payloads in CredentialMasker to prevent false-positive redaction ([#13462](https://github.com/diegosouzapw/OmniRoute/pull/13462)) — thanks @KooshaPari.

@@ -1,0 +1,1 @@
+- **fix(auth):** enforces model-only lockout for no-auth providers ([#13483](https://github.com/diegosouzapw/OmniRoute/pull/13483)) — thanks @KooshaPari.

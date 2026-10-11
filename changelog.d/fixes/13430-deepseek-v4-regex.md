@@ -1,0 +1,1 @@
+- **fix(reasoning):** expands the deepseek-v4 model regex to match v4.1 and adds the `command-code` provider ([#13430](https://github.com/diegosouzapw/OmniRoute/pull/13430)) — thanks @KooshaPari.

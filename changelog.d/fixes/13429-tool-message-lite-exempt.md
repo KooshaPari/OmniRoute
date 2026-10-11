@@ -1,0 +1,1 @@
+- **fix(compression):** exempts tool messages from the lite redundant-remove pass so tool payloads are not stripped ([#13429](https://github.com/diegosouzapw/OmniRoute/pull/13429)) — thanks @KooshaPari.

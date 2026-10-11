@@ -1,0 +1,1 @@
+- **fix(logging):** uses per-attempt `traceId` as the call log id to prevent UNIQUE constraint collisions on retries ([#13481](https://github.com/diegosouzapw/OmniRoute/pull/13481)) — thanks @KooshaPari.

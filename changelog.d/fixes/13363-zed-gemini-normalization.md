@@ -1,0 +1,1 @@
+- **fix(zed-hosted):** normalizes Gemini safety threshold and `tool_choice` casing for the Zed proxy ([#13363](https://github.com/diegosouzapw/OmniRoute/pull/13363)) — thanks @KooshaPari.
