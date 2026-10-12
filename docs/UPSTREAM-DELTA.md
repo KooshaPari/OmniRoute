@@ -114,7 +114,7 @@ These exist because the cherry-pick set could not be applied 1:1 onto the fork's
 - `8233223814` fix(sse): import the quota helpers `auth.ts` re-exports but also uses (import-shape fix discovered during application)
 - `e1de8460e6` chore(deps): align pnpm-lock.yaml with pre-existing package.json oxlint dep (lockfile parity)
 
-### 3. Test coverage additions (8 commits — regression-discriminating tests)
+### 3. Test coverage additions (9 commits — regression-discriminating tests)
 
 Added to lock the cherry-picks in and prove fork-vs-main deltas.
 
@@ -128,9 +128,9 @@ Added to lock the cherry-picks in and prove fork-vs-main deltas.
 - `f28b2d69b5` test(gap): cover 3 previously unmapped changed outputs
 - `86ed0f96b4` test(chatcore): widen call-log poll budget to survive full-suite load
 
-### 4. Documentation & session log (20 commits)
+### 4. Documentation & session log (21 commits)
 
-- **Recovery log (17 commits)**: `db25bdb648` round-7, `a0bac437dd` round-6, `4483bc8f47` round-5, `c06bbef2aa` round-4, `e759cdd8ff` round-3, `bdc640a965` at-HEAD, `915c277d9d` pnpm-lockfile, `82829e98e5` packaging-guard, `dd5dbb83f2` round-8 (14h boundary), `442b187930` traceability totals, `61a409b5e9` main-vs-branch compare, `097b6c5376` fabricated-count correction, `1ad8a05ecd` scratch-dir leak, `981f5b1ae3` 2,852-failing-file cascade, `3952e9f3c6` 4-gate re-confirm, `7636e51aa0` self-corrections, `c0581b2f8e` requirement-to-observation traceability, `57e55a922e` #13459 provenance
+- **Recovery log (18 commits)**: `db25bdb648` round-7, `a0bac437dd` round-6, `4483bc8f47` round-5, `c06bbef2aa` round-4, `e759cdd8ff` round-3, `bdc640a965` at-HEAD, `915c277d9d` pnpm-lockfile, `82829e98e5` packaging-guard, `dd5dbb83f2` round-8 (14h boundary), `442b187930` traceability totals, `61a409b5e9` main-vs-branch compare, `097b6c5376` fabricated-count correction, `1ad8a05ecd` scratch-dir leak, `981f5b1ae3` 2,852-failing-file cascade, `3952e9f3c6` 4-gate re-confirm, `7636e51aa0` self-corrections, `c0581b2f8e` requirement-to-observation traceability, `57e55a922e` #13459 provenance
 - **Changelog (1 commit)**: `05884d639c` round-9 — generate 28 missing cherry-pick fragments for first-push gate
 - **Env docs (2 commits)**: `f51b2edce1` correct `OMNIROUTE_MAX_TOOLS_LIMIT` description, `c7d53d8919` document tool-limit and PSI-disable env vars
 
@@ -228,6 +228,6 @@ These are correct on the merits but do not need a recording:
 
 ## Provenance
 
-- 28 cherry-pick fix commits, 9 fork-local recovery commits, 8 test commits, 20 doc commits, 1 refactor — all authored by agent on the recovery branch.
+- 27 cherry-pick fix commits, 7 fork-local recovery commits, 9 test commits, 21 doc commits, 1 refactor — all authored by agent on the recovery branch.
 - Branch **pushed** to `kooshapari/omniroute` at SHA `05884d639c7d82937fe6889348084643e75b694f` on 2026-10-12.
 - 18 background quality gates (lint, cargo check, go test, OpenAPI checks, etc.) running in this session for parallel code-level pass/fail signals — not part of the recovery push.
