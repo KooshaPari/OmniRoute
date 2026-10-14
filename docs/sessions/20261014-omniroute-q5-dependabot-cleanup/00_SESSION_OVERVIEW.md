@@ -47,20 +47,29 @@ alerts. 14 were patchable; 3 had no upstream fix at scan time.
 remediation"; 4.0.0 shipped with the `trailer.<token>.cmd` matcher and a fix for
 the other two simple-git unsafe-ops bypasses. simple-git 4.0.2 (latest) installed.
 
-### 2d — last patchable: http-cache-semantics (1 commit)
+### 2d — last patchable: http-cache-semantics + smol-toml override (2 commits)
 
 | Commit | Alerts | Package | Old → New |
 |---|---|---|---|
 | `7b42045bf7` | #390 (HIGH) | http-cache-semantics | 4.2.0 → 4.3.0 |
+| `9010b18583` | #398 (MED) | smol-toml (override) | 1.7.1 (transitive) → 1.9.0 |
 
-Dependabot's `first_patched_version` field still shows `-` for #390 (advisory
+#390: Dependabot's `first_patched_version` field still shows `-` (advisory
 DB hasn't been updated), but 4.3.0 is the only release newer than the
 vulnerable 4.2.0 and matches the max-stale fix timeline.
 
+#398: The earlier 2a9e7ddb83 direct-dep bump only updated the explicit
+`"smol-toml": "1.9.0"` entry. A transitive chain was still resolving to
+1.7.1 in the lock (false-no-fix — the direct-dep bump didn't reach the
+transitive resolver). The `smol-toml: >=1.9.0` pnpm.overrides entry
+forces every transitive to the fixed version.
+
 ## Net result
 
-- **19 Dependabot alerts closed** across 9 commits on main
-  (5 phase 1 + 14 phase 2; #403 was originally in KI-001, now resolved)
+- **20 Dependabot alerts closed** across 10 commits on main
+  (5 phase 1 + 15 phase 2; #403 was originally in KI-001, now resolved;
+  #398 was a false-no-fix that needed a pnpm.overrides entry because the
+  direct-dep bump didn't reach the transitive resolver)
 - **1 known-issue added then resolved** (KI-001 simple-git — superseded mid-session)
 - **3 known-issues remaining**: KI-002 (node-forge 1.4.0, braces 3.0.3, sprintf-js 1.1.3 — all latest available, no upstream fix)
 - All commits have ledger metadata (`tx-agent: jcode`, `tx-validated: manual`)
