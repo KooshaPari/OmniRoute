@@ -127,3 +127,64 @@ These should auto-close within 24-48 hours of the next Dependabot scheduled
 re-scan. The 62 medium/low open alerts are a similar mix (mostly stale-scan
 plus a few medium-severity no-fix items) and will be triaged in a future
 session if the re-scan doesn't close them.
+
+### Update 2026-10-14T23:50Z
+
+**67 stale-manifest items closed by package-lock.json cleanup (commit `a1660051df`):**
+After v3.8.53 release, a 13h-post recheck revealed that 67 of the original
+87 open Dependabot alerts were filed against `package-lock.json` — a
+stale npm lockfile that OmniRoute was tracking in addition to the active
+`pnpm-lock.yaml`. Resolution:
+1. Added `package-lock.json` to `.gitignore` (consistent with existing
+   `bun.lock` ignore policy)
+2. `git rm --cached package-lock.json` (soft delete — file remains on disk
+   at 1.4MB, mtime 2026-10-14 03:17 PDT)
+3. Committed + pushed `a1660051df`
+Expected outcome: all 67 alerts auto-close on next re-scan as 'manifest
+no longer tracked'. Combined with the 4 alerts closed by `3644f5fcdd`
+(rustls + rustls-webpki) and 4 by `558ac1b5e9` (hatchet), this brings
+the total from 87 → 12 expected open alerts.
+
+---
+
+## KI-004: 5 remaining actionable alerts (post-Q7 partial completion)
+
+**STATUS: OPEN — 8 of 13 actionable closed in this session (commits
+`3644f5fcdd`, `558ac1b5e9`); 5 remaining are all multi-step epics.**
+
+After the v3.8.53 + follow-up cleanup, 5 actionable alerts remain. Each
+requires deliberate engineering effort (API migration, multi-workspace
+test re-validation, or coordinated multi-package dep cascades).
+
+| Alert | Sev | Package | Current | Fix | Epic scope |
+|---|---|---|---|---|---|
+| #5 | MED | opentelemetry_sdk (omniroute-rs) | 0.27.1 | 0.32.1 | opentelemetry 0.27→0.32 is a 5-minor-version API migration; Cargo.toml constraints `opentelemetry = "0.27"`, `opentelemetry-otlp = "0.27"`, `tracing-opentelemetry = "0.28"` all block the version; requires coordinated multi-package bump + API rewrite. Estimated: 1-2 days. |
+| #165 | MED | glib (Tauri) | 0.18.5 | 0.20.0 | Tauri GTK bindings cascade: 30+ packages pinned to 0.18.x (atk, cairo, gdk, gtk, pango, webkit2gtk, soup3, javascriptcore-rs, libappindicator, gdkx11, gdkwayland). Coordinated multi-day GTK re-binding effort. |
+| #233 | MED | vitest (apps/bff) | 3.2.6 | 4.1.11 | MAJOR bump 3→4 with breaking changes to mocking, snapshot, and config APIs. Per-workspace test re-validation. ~4h per workspace. |
+| #234 | MED | vitest (apps/web) | 3.2.6 | 4.1.11 | Same as above, apps/web. |
+| #242 | MED | vitest (packages/api-contracts) | 3.2.6 | 4.1.11 | Same as above, packages/api-contracts. |
+
+### Recommended order (next session)
+
+1. **opentelemetry_sdk epic**: Bump opentelemetry + opentelemetry_sdk +
+   opentelemetry-otlp to 0.32, tracing-opentelemetry to 0.33. Test the
+   trace/metrics exporters. ~1-2 days. Closes #5.
+2. **glib/webkit2gtk epic**: Update all 30+ GTK bindings to 0.20.x track,
+   rebuild Tauri. ~2-3 days. Closes #165.
+3. **vitest MAJOR migration**: One workspace at a time. Start with
+   packages/api-contracts (smallest, most isolated). Bump to 4.1.11,
+   re-run tests, fix snapshot/mock breakages. Then apps/bff, then apps/web.
+   ~4h per workspace. Closes #233, #234, #242.
+4. **Pre-existing build errors** (NOT a Dependabot issue but worth noting):
+   `extensions/argis/plugins/{contextfolding,toolrouter,voyage}/` fail
+   to build because the local `./bifrost/core` replace directive has
+   a newer ChatMessage/ChatMessageContent API than the plugins expect.
+   These errors are unrelated to the hatchet bump in `558ac1b5e9` —
+   they fail identically on the unchanged go.mod. Separate epic.
+
+### Tracking
+
+- Dependabot alerts API: `gh api repos/KooshaPari/OmniRoute/dependabot/alerts?state=open&per_page=100 --paginate | jq`
+- This KI was written on 2026-10-14T23:50Z; re-check on next session start.
+
+---
