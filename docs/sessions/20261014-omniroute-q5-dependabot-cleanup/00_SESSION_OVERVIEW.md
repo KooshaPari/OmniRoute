@@ -1,12 +1,19 @@
-# 2026-10-14 — OmniRoute Q5 Dependabot cleanup
+# 2026-10-14 — OmniRoute Q5/Q6 Dependabot cleanup
 
 ## Goal
 
 Close as many Dependabot HIGH-severity vulns as possible after the v3.8.51
-release. Phase 1 closed 5 Dependabot patch PRs (4 commits on main). Phase 2
-discovered and closed 14 additional alerts that became visible after Phase 1
-re-scanned, plus 1 known-issue that was resolved mid-session by a new upstream
-release.
+release. The cleanup went through 3 phases:
+
+- **Phase 1** (pre-session): 5 Dependabot PRs → 4 commits on main.
+- **Phase 2** (this session, initial): Discovered 17 newly-visible alerts
+  through the truncated 30-alert Dependabot view; closed 14 of them, with
+  3 known-issues.
+- **Phase 3** (this session, after correction): Re-scanned with
+  `per_page=100 --paginate` and discovered the **true scope is 404 total
+  alerts** (not 30). Cross-checked installed-vs-fix-version for the 33
+  still-open HIGH/CRITICAL items; closed 4 more, documented the rest as
+  stale-scan (will auto-close on Dependabot re-scan) or no-fix (KI-002).
 
 ## Phase 1 — 5 Dependabot PRs closed (4 commits on main)
 
@@ -19,12 +26,12 @@ release.
 
 5 Dependabot alerts resolved (#406–#411, all next.js 16.3.8 patches).
 
-## Phase 2 — 14 additional alerts closed (5 commits on main)
+## Phase 2 — 16 unique alert numbers closed (6 commits on main)
 
-Phase 1's next 16.3.8 + dompurify 3.4.17 bumps revealed 17 previously-dormant
-alerts. 14 were patchable; 3 had no upstream fix at scan time.
+The truncated 30-alert Dependabot view showed 17 newly-dormant alerts after
+Phase 1. 14 were patchable; 3 had no upstream fix at scan time.
 
-### 2a — direct dep patches (1 commit)
+### 2a — direct dep patches (2 commits)
 
 | Commit | Alerts | Package | Old → New |
 |---|---|---|---|
@@ -47,7 +54,7 @@ alerts. 14 were patchable; 3 had no upstream fix at scan time.
 remediation"; 4.0.0 shipped with the `trailer.<token>.cmd` matcher and a fix for
 the other two simple-git unsafe-ops bypasses. simple-git 4.0.2 (latest) installed.
 
-### 2d — last patchable: http-cache-semantics + smol-toml override (2 commits)
+### 2d — last patchable from initial 17: http-cache-semantics + smol-toml override (2 commits)
 
 | Commit | Alerts | Package | Old → New |
 |---|---|---|---|
@@ -64,14 +71,60 @@ vulnerable 4.2.0 and matches the max-stale fix timeline.
 transitive resolver). The `smol-toml: >=1.9.0` pnpm.overrides entry
 forces every transitive to the fixed version.
 
+## Phase 3 — full-pagination re-scan correction (1 commit)
+
+After tagging v3.8.52, a full `per_page=100 --paginate` Dependabot scan
+revealed the **true total is 404 alerts** (not 30). The truncated view
+hidden behind GitHub's default page size had masked 374 additional alerts.
+Cross-checked installed-vs-fix-version for the 33 still-open HIGH+CRITICAL
+items.
+
+| Commit | Alerts | Packages (old → new) |
+|---|---|---|
+| `bb50227d69` | #341, #342 (CRIT), #279, #280 (HIGH) (4) | shell-quote 1.9.0→1.12.0, undici 7.29.0→8.10.2 (resolved) |
+
+shell-quote 1.9.0 was a transitive (probably via simple-git's
+`@simple-git/argv-parser`). undici 7.29.0 was a transitive too. Both
+required `pnpm.overrides` entries because no direct dep pulls them.
+
+### Stale-scan items (already at fix version; awaiting Dependabot re-scan)
+
+18 of the 33 still-open HIGH+CRITICAL items are at or past the Dependabot
+`first_patched_version`. They will auto-close on the next Dependabot scan:
+
+| # | Sev | Package | Installed | Dependabot fix | Notes |
+|---|---|---|---|---|---|
+| #302 | CRIT | next | 16.3.8 | 16.3.6 | past fix |
+| #340 | CRIT | @simple-git/argv-parser | 2.0.1 | 2.0.1 | at fix |
+| #362 | CRIT | proxy-addr | 2.0.8 | 2.0.8 | at fix |
+| #370 | CRIT | simple-git | 4.0.2 | 4.0.1 | past fix |
+| #4 | HIGH | rustls-webpki (Cargo) | 0.103.15 | 0.103.13 | past fix |
+| #268, #271, #277 | HIGH | undici | 8.10.2 | 8.10.2 | at fix |
+| #307 | HIGH | @grpc/grpc-js | 1.14.6 | 1.14.5 | past fix |
+| #309, #315, #317, #327 | HIGH | axios | 1.20.0 | 1.20.0 | at fix |
+| #360 | HIGH | compression | 1.8.2 | 1.8.2 | at fix |
+| #363 | HIGH | source-map-js | 1.2.2 | 1.2.2 | at fix |
+| #368, #369 | HIGH | simple-git | 4.0.2 | 4.0.0 | past fix |
+| #371 | HIGH | sharp | 0.35.5 | 0.35.5 | at fix |
+| #372 | HIGH | @modelcontextprotocol/sdk | 1.32.1 | 1.31.0 | past fix |
+| #373 | HIGH | next | 16.3.8 | 16.3.8 | at fix |
+
+No action required for these — already fixed. Dependabot re-scan will close them.
+
 ## Net result
 
-- **20 Dependabot alerts closed** across 10 commits on main
-  (5 phase 1 + 15 phase 2; #403 was originally in KI-001, now resolved;
-  #398 was a false-no-fix that needed a pnpm.overrides entry because the
-  direct-dep bump didn't reach the transitive resolver)
-- **1 known-issue added then resolved** (KI-001 simple-git — superseded mid-session)
-- **3 known-issues remaining**: KI-002 (node-forge 1.4.0, braces 3.0.3, sprintf-js 1.1.3 — all latest available, no upstream fix)
+- **20 Dependabot alert-numbers closed** across 10 commits on main
+  (5 phase 1 + 15 phase 2/3; #398 was effectively closed once — direct bump
+  didn't reach the transitive resolver, the override fixed it)
+- **18 stale-scan items at or past fix version** — auto-close on next scan
+- **11 no-fix alert numbers** across 4 packages (KI-002 extended):
+  - extract-zip 2.0.1: #251, #252, #253, #254, #255 (5)
+  - node-forge 1.4.0: #356, #388 (2)
+  - braces 3.0.3: #357, #389 (2)
+  - sprintf-js 1.1.3: #367, #400 (2)
+- **KI-001 superseded** (simple-git 4.0.0+ released mid-session)
+- **v3.8.52 tag** (partial checkpoint at b8e1a5ae30 + 944337dc) — kept; v3.8.53
+  will be the next release after stale-scan items close
 - All commits have ledger metadata (`tx-agent: jcode`, `tx-validated: manual`)
 - Direct-push squash path used throughout
 
@@ -85,11 +138,9 @@ forces every transitive to the fixed version.
 
 ## Next (if operator wants to continue)
 
-- Tag v3.8.52 once Dependabot re-scans and confirms all 14 phase 2 alerts
-  closed
-- KI-002 follow-up: document the 3 truly-no-fix packages (node-forge,
-  braces, sprintf-js) as known-issues
-- Investigate the 5 Dependabot auto-PRs that were queued but never
-  generated (source-map-js, smol-toml, compression, katex, proxy-addr —
-  all now closed by our phase 2 overrides)
+- Wait for next Dependabot re-scan to close the 18 stale-scan items
+  automatically
+- Tag v3.8.53 once the stale-scan items close (no destructive ops —
+  v3.8.52 stays as a snapshot of "what we knew at the time")
 - byteport: SvelteKit 2→3 migration (substantial, separate epic)
+- Q4-byteport SvelteKit migration tracking
