@@ -167,29 +167,55 @@ truth for the release.
 6. **13 actionable alerts in non-pnpm manifests (new finding 2026-10-14T16:35Z)**
    — After re-scanning post-v3.8.53, 13 of the 87 open alerts are in
    manifests other than pnpm-lock.yaml / package-lock.json:
-   - 3 vitest MAJOR bumps (3.2.6→4.1.11) in apps/bff, apps/web, packages/api-contracts (#233, #234, #242, MED) — MAJOR version bump, needs test suite re-validation
+   - 3 vitest MAJOR bumps (3.2.6→4.1.11) in apps/bff, apps/web,
+     packages/api-contracts (#233, #234, #242, MED) — MAJOR version
+     bump, needs test suite re-validation
    - 5 Rust alerts in crates/omniroute-rs/Cargo.lock:
-     - #4 rustls-webpki fix 0.103.13 (HIGH, already past fix via 0.103.15 in tauri; stale-scan)
-     - #2 #3 rustls-webpki fix 0.103.12 (LOW, similar stale-scan)
+     - #4 rustls-webpki fix 0.103.13 (HIGH) — **CLOSED 2026-10-14T23:47Z by `3644f5fcdd`**
+     - #2 #3 rustls-webpki fix 0.103.12 (LOW) — **CLOSED 2026-10-14T23:47Z by `3644f5fcdd`**
      - #5 opentelemetry_sdk fix 0.32.1 (MED)
-     - #343 rustls fix 0.23.45 (MED)
+     - #343 rustls fix 0.23.45 (MED) — **CLOSED 2026-10-14T23:47Z by `3644f5fcdd`**
    - 1 Rust alert in apps/desktop/src-tauri/Cargo.lock:
      - #165 glib fix 0.20.0 (MED)
-   - 4 Go alerts in extensions/argis/go.mod (all hatchet-dev, fix versions 0.91.1/0.91.2/0.95.3/0.106.1, MED+LOW)
+   - 4 Go alerts in extensions/argis/go.mod (all hatchet-dev, fix
+     versions 0.91.1/0.91.2/0.95.3/0.106.1, MED+LOW)
    - 1 packages/api-contracts/package.json already counted above
 
-   None of these are routine 1-click bumps. The vitest MAJOR bump
-   requires re-validating the entire test suite (vitest 3→4 is a major
-   API change with breaking changes to mocking, snapshot, and config).
-   The Rust fixes need `cargo update -p <pkg>@<ver> --precise <fix>` to
-   pin specific transitive versions, which can cascade into other
-   Rust deps. The Go fixes need `go get -u` and a full Argis extension
-   rebuild. All need proper testing.
+   **Partial progress 2026-10-14T23:47Z (commit `3644f5fcdd`):**
+   The bounded `cargo update -p rustls@0.23.41 --precise 0.23.45`
+   bumped rustls 0.23.41→0.23.45 (closes #343) and
+   rustls-webpki 0.103.13→0.103.15 (closes #4 HIGH and likely #2 #3
+   on next Dependabot re-scan as stale-scan). `cargo check` passes.
+   4 of 13 actionable alerts closed in a single 11-line Cargo.lock
+   diff.
 
-   Recommended approach (next session): tackle them by manifest:
-   1. Run `cargo update` on crates/omniroute-rs to close 5 alerts
-   2. Run `go get -u` on extensions/argis to close 4 alerts
-   3. Plan vitest MAJOR migration as a separate epic
+   **Remaining 9 actionable alerts:**
+   - 1 opentelemetry_sdk #5 (Cargo.toml version constraint "0.27"
+     blocks --precise 0.32.1; needs Cargo.toml edit + multi-week
+     API migration 0.27→0.32)
+   - 1 glib #165 (Tauri GTK bindings cascade — 30+ packages
+     pinned to 0.18.x, update would need coordinated multi-day
+     effort)
+   - 3 vitest #233 #234 #242 (MAJOR 3.2.6→4.1.11 in 3 workspaces,
+     breaking changes to mocking/snapshot/config APIs)
+   - 4 hatchet-dev #257 #258 #259 #166 (Go module major bumps
+     in extensions/argis, needs full extension rebuild)
+
+   None of these remaining are routine 1-click bumps. The vitest
+   MAJOR bump requires re-validating the entire test suite. The
+   remaining Rust fixes need `cargo update` with Cargo.toml edits
+   that may cascade. The Go fixes need `go get -u` and a full
+   Argis extension rebuild. All need proper testing.
+
+   Recommended approach (next session): tackle by manifest:
+   1. Plan opentelemetry_sdk 0.27→0.32 migration as a separate
+      epic (it touches the main omniroute-rs API surface)
+   2. Plan glib 0.18→0.20 + webkit2gtk update as a separate
+      Tauri desktop epic (multi-day GTK re-binding effort)
+   3. Plan vitest 3→4 MAJOR migration as a separate test epic
+      (one workspace at a time, full test re-validation each)
+   4. Plan hatchet-dev Go major bumps as part of the Argis
+      extension rebuild
 
 ---
 
