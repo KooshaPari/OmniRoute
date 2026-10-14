@@ -144,38 +144,25 @@ truth for the release.
    approval).
 4. **KI-002/003 recheck** — re-run the full pagination Dependabot scan
    after 24-48h to verify the 18 stale-scan items auto-closed.
-5. **Stale `package-lock.json` (new finding 2026-10-14T10:25Z)** — OmniRoute
-   has both `package-lock.json` and `pnpm-lock.yaml` in the repo. v3.8.53
-   closed #341 (shell-quote) and #279 (undici) via pnpm-lock.yaml overrides,
-   but Dependabot still tracks the package-lock.json manifest path for
-   #342 and #280 (same packages, same fix). Either the package-lock.json
-   is stale and should be deleted + added to .gitignore, or Dependabot's
-   manifest path tracking needs to be reconciled. Quick check: `ls -la
-   package-lock.json pnpm-lock.yaml` — if package-lock.json is older than
-   the most recent pnpm install, delete it.
-
-   **Recheck 2026-10-14T16:33 PDT (13h post-v3.8.53) — MUCH BIGGER FINDING:**
-   Of 87 open Dependabot alerts, 67 are in `package-lock.json` (77%).
-   Only 7 are in pnpm-lock.yaml. The other 13 are split across
-   `crates/omniroute-rs/Cargo.lock` (5), `extensions/argis/go.mod` (4),
-   `apps/web/package.json` (1), `apps/bff/package.json` (1),
-   `apps/desktop/src-tauri/Cargo.lock` (1), and
-   `packages/api-contracts/package.json` (1).
-   The package-lock.json is the dominant source of open Dependabot alerts.
-   It is git-tracked, lockfileVersion 3, 2,811 packages, NOT in .gitignore.
-   The pnpm-lock.yaml is the active lockfile (pnpm 9.0).
-
-   **Recommended cleanup (requires operator approval — public repo change):**
-   1. Verify `pnpm-lock.yaml` is the only lockfile `pnpm install` reads
-   2. Add `package-lock.json` to `.gitignore`
-   3. `git rm --cached package-lock.json` (soft delete, file remains on disk)
-   4. Commit + push
-   5. After Dependabot re-scans, all 67 package-lock.json alerts should
-      auto-close as "manifest file no longer tracked"
-
-   This is a high-leverage single-commit fix. It would drop open alerts
-   from 87 to ~20 (the Cargo.lock + go.mod + other package.json alerts
-   plus the 7 pnpm-lock.yaml no-fix ones in KI-002).
+5. **Stale `package-lock.json` — RESOLVED 2026-10-14T23:43 PDT by `a1660051df`**
+   — Originally: OmniRoute had both `package-lock.json` and
+   `pnpm-lock.yaml` in the repo, causing 67 of 87 open Dependabot
+   alerts to be filed against the stale npm lockfile. Resolution:
+   1. Verified pnpm 9.0 is the active package manager (pnpm-lock.yaml
+      has lockfileVersion '9.0'; package.json has no `packageManager`
+      field; no `npm install` in scripts; `bun.lock` is already
+      gitignored)
+   2. Added `package-lock.json` to `.gitignore` (consistent with
+      existing bun.lock ignore policy)
+   3. `git rm --cached package-lock.json` (soft delete — file
+      remains on disk, 1.4MB, mtime 2026-10-14 03:17 PDT)
+   4. Committed + pushed `a1660051df`
+   Expected: Dependabot auto-closes the 67 package-lock.json alerts
+   on the next scheduled re-scan as "manifest no longer tracked".
+   Drop in open alerts: 87 → ~20 (Cargo.lock + go.mod + other
+   package.json + 7 pnpm-lock.yaml no-fix).
+   Tag: v3.8.53 remains the latest; v3.8.54 will be tagged once
+   the auto-closures are confirmed.
 
 6. **13 actionable alerts in non-pnpm manifests (new finding 2026-10-14T16:35Z)**
    — After re-scanning post-v3.8.53, 13 of the 87 open alerts are in
