@@ -1,0 +1,2 @@
+- **fix(api):** `GET /api/logs/export` streams rows from the database instead of buffering them, fixing a V8 heap OOM on large tables ([#13123](https://github.com/diegosouzapw/OmniRoute/issues/13123)) — thanks @KooshaPari.
+**Breaking:** the `limit` query param now defaults to 10,000 rows (max 50,000); exports are silently truncated unless a larger explicit `limit` is passed, and capped responses report `capped`/`totalAvailable`.

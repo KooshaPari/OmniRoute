@@ -1,0 +1,1 @@
+- **fix:** `memory_fts_au` trigger no longer skips `access_count`-only updates, so FTS memory rows stay in sync ([#13326](https://github.com/diegosouzapw/OmniRoute/pull/13326)) — thanks @KooshaPari.

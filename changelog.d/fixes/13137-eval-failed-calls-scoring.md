@@ -1,0 +1,1 @@
+- **fix(backend):** eval runner no longer scores failed calls as passed, and uses a dotAll regex for correct multiline matching ([#13137](https://github.com/diegosouzapw/OmniRoute/pull/13137)) — thanks @KooshaPari.

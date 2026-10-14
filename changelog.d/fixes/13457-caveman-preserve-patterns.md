@@ -1,0 +1,1 @@
+- **fix:** runs caveman user `preservePatterns` before built-in patterns so user patterns take precedence ([#13457](https://github.com/diegosouzapw/OmniRoute/pull/13457)) — thanks @KooshaPari.

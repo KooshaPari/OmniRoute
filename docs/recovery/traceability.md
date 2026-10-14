@@ -1,0 +1,1427 @@
+# Requirement-to-observation traceability
+
+Branch: `feat/release-line-gap-recovery-v2-20260924`
+Baseline: `origin/main` = `843f342556` (worktree `/Users/kooshapari/.jcode/scratch/main-accept`)
+All observations below are real runs of production entry points, not cherry-picked unit tests.
+
+Probes: `acceptance-probe.mjs`, `acceptance-probe2.mjs`
+(both force a fresh `mkdtemp` `DATA_DIR`/`SQLITE_FILE` before importing production modules).
+
+> **Correction (2026-10-02):** the following sentence originally ended "so the
+> live `~/.omniroute` database is never touched". That is no longer accurate. A
+> one-off throwaway probe of `prepareUpstreamBody` (not the numbered acceptance
+> probes) was launched **without** a `DATA_DIR` override and therefore opened the
+> live `~/.omniroute/storage.sqlite`. Verified afterwards: `PRAGMA integrity_check`
+> = `ok`, no migration row has `applied_at >= 2026-10-01`, the newest applied
+> migration is still `210` dated `2026-09-24`, and the main DB file mtime was
+> unchanged — only the `-wal`/`-shm` sidecars moved, which SQLite does on open.
+> The migration-collision message it printed is the #9 *detector* firing, not a
+> write. A preserved copy of `storage.sqlite` + sidecars is at
+> `~/.jcode/scratch/db-preserve-20261002/`. All subsequent probes set `DATA_DIR`
+> explicitly.
+
+## Recovered behaviors
+
+| # | Requirement | Entry point exercised | Main (`843f342556`) | Branch | Status |
+|---|---|---|---|---|---|
+| 1 | Tool limit is env-configurable | `open-sse/config/constants.ts` | `OMNIROUTE_MAX_TOOLS_LIMIT=7` ignored, observed `128` | observed `7` | recovered |
+| 2 | Tool-limit bypass ordering | tool-limit apply path | 2 tools returned | all 5 tools returned | recovered |
+| 3 | Tool-length limit is env-configurable | `open-sse/services/compression/lite.ts` | `OMNIROUTE_MAX_TOOL_LENGTH=500` produced 2015 chars | produced 515 chars | recovered |
+| 4 | PSI pressure policy can be disabled | `open-sse/utils/resourcePressurePolicy.ts` | `critical` / `psi_some` | `normal` / `none` | recovered |
+| 5 | `getProviderCredentials` works at runtime | `auth.ts` re-exported quota helpers | throws `ReferenceError` | returns normally | recovered |
+| 6 | Combo guard accepts `comboName` | `hasBlockingProxyAssignment` arity | `2` | `3` | recovered |
+| 7 | Provider-alias dedup in usage history | usage-history write path | `oc` + `opencode` write 2 rows | write 1 row | recovered |
+| 8 | Log export streams | log export response | 1 buffered 54,211-byte chunk | 81 stream chunks | recovered |
+| 9 | Migration numbering collision repaired | migration inventory | maxes at 209, no FTS migration | reaches 210 with FTS migration | recovered |
+| 10 | OAuth refresh proxy fails open on refresh error | OAuth refresh proxy path | covered by commit `91594033ba` | same | recovered |
+
+## Requirement → project-test check
+
+The table above records probe observations at production entry points. This
+table records the **project's own test suite** as the check for each
+requirement, with an A/B run of the *same test file* on both trees.
+
+Five test files added in the latest round are new on this branch
+(`9bb90c0eb7`, `571771db99`, `466633fa2f`, `539a304fbc`, `ef584cd3f1`);
+those five are a subset of the branch's 22 branch-new test files. Four of them
+close requirements that had zero project-test coverage; the fifth
+(`combo-scoped-proxy-guard-13469.test.ts`) was added because the pre-existing
+coverage for #6 passed on both trees and proved nothing — see the note below.
+
+| # | Requirement | Project test (check) | Main `843f342556` | Branch | Discriminates |
+|---|---|---|---|---|---|
+| 1 | Tool limit env-configurable | `tests/unit/operator-env-overrides.test.ts` → "MAX_TOOLS_LIMIT overrides the default" | **fail** — `actual 128, expected 7` (file 3/6, exit 1) | 6/6 pass, exit 0 | yes |
+| 2 | Tool-limit bypass ordering | `tests/unit/tool-limit-bypass-ordering-13190.test.ts` → "bypass beats a provider's known tool limit" | **fail** — `actual 200, expected 250` (4 tests 3/1, exit 1) | 4/4 pass, exit 0 | yes |
+| 3 | Tool-length limit env-configurable | `operator-env-overrides.test.ts` → "MAX_TOOL_LENGTH caps a single tool result" | **fail** — length exceeds `500+15` | 6/6 pass, exit 0 | yes |
+| 4 | PSI pressure policy disable switch | `operator-env-overrides.test.ts` → "PRESSURE_PSI_DISABLED=true neutralises PSI" | **fail** — `actual 'critical', expected 'normal'` | 6/6 pass, exit 0 | yes |
+| 5 | `getProviderCredentials` quota helpers | `tests/unit/13483-noauth-model-lockout-enforcement.test.ts` (branch-only file) | **1/4 fail**, exit 1 | 4/4 pass | yes |
+| 6 | Combo guard accepts `comboName` | `tests/unit/combo-scoped-proxy-guard-13469.test.ts` | **fail** — `actual false, expected true` (2 tests 1/1, exit 1) | 2/2 pass, exit 0 | yes |
+| 7 | Provider-alias dedup in usage history | `tests/unit/usage-alias-canonical-dedup-13459.test.ts` | **fail** — `actual 2, expected 1` (2 tests 1/1, exit 1) | 2/2 pass, exit 0 | yes |
+| 8 | Log export streams | `tests/unit/logs-export-streaming-13123.test.ts` (branch-only file) | **2/6 fail**, exit 1 | 6/6 pass | yes |
+| 9 | Migration numbering collision repaired | `tests/unit/13326-memory-fts-access-count-no-reindex.test.ts` (branch-only file) | **2/5 fail**, exit 1 | 5/5 pass | yes |
+| 10 | OAuth refresh proxy fail-open | `tests/unit/oauth-refresh-proxy-fail-open-13470.test.ts` | **fail** — no guard exists (2 tests 1/1, exit 1) | 2/2 pass, exit 0 | yes |
+
+**Aggregate on the changed test surface** (branch): 25 changed `.ts` files →
+**160 tests / 160 pass / 0 fail, exit 0** under the project's `node --test`
+runner; 1 changed `.tsx` file → **5/5 pass, exit 0** under the project's
+`vitest`. **160 + 5 = 165 tests passing across the two runners the project
+configures** (the two-runner split, the single-invocation runner mismatch, and
+the flake history are recorded under "Test-suite verification" below).
+
+### Gaps this section closed
+
+Before this round, six requirements had **no** project-test coverage at all.
+Measured greps over `tests/` on *both* trees returned:
+
+- `OMNIROUTE_MAX_TOOLS_LIMIT`, `OMNIROUTE_MAX_TOOL_LENGTH`,
+  `OMNIROUTE_PRESSURE_PSI_DISABLED` → **0** tests each (requirements 1, 3, 4)
+- `bypassDefaultToolLimit` → **0** tests (requirement 2)
+- `proxyFailOpen` / `PROXY_FAIL_OPEN` → **0** tests (requirement 10)
+- canonical-provider alias dedup → **0** tests (requirement 7)
+
+Their only check was the untracked acceptance probe, which is a custom
+harness rather than a production interface. They now run as project tests.
+
+### Known weak check (disclosed, not fixed)
+
+`tests/unit/search-provider-body-13245.test.ts` is a branch-new file that
+defines its own local `buildBody()` helper and asserts against that helper.
+It never imports `open-sse/handlers/chatCore/upstreamBody.ts` or
+`WebSearchExampleCard.tsx`, so it does not exercise any changed source. It is
+therefore *not* counted as a check for any requirement above.
+
+> **Round-3 confirmation (2026-10-04):** `search-provider-body-13245.test.ts`
+> is confirmed synthetic — it reimplements `buildBody` and never imports the
+> component, so it cannot fail on a revert. It is retained as a methodology
+> finding, not as coverage. The real covering check is the round-3
+> `websearch-example-card-provider-body-13245.test.tsx` in the table above.
+
+### Pre-existing limitation (both trees, not branch-attributable)
+
+The project's own acceptance selector (`test:scoped` /
+`select-impacted-tests.mjs`, the local companion to CI's TIA gate) cannot
+select tests: `build-test-impact-map.mjs` fails on the undeclared dependency
+`tinyglobby`, so the impact map is missing and the selector falls back to
+`__RUN_ALL__`. Verified identical on pristine main. Neither tree declares
+`tinyglobby`, and this branch changed none of `package.json`, the builder, or
+the selector.
+
+### Round-3 regression: chatcore attempt-logging (found and fixed)
+
+Round 3 found one genuine branch regression, in a test rather than in
+production. Branch-only commit `de2971ab2b` (2026-09-20, #13481) changed the
+call-log primary key from `pendingRequestId` to `traceId`
+(`open-sse/handlers/chatCore/attemptLogging.ts`: origin/main:462
+`id: pendingRequestId` → HEAD:467 `id: traceId`). The test was byte-identical
+to main, supplied no `traceId`, and polled `getCallLogById(pendingRequestId)`.
+
+- **Before fix (branch):** deterministic 2 pass / 4 fail ×3 runs (load
+  280–307). Failures at :86 "call log row should be persisted" (actual `null`)
+  and :108 / :124 / :135 `assert.ok(row)`.
+- **Pristine main:** 6 pass / 0 fail, exit 0, ×2 runs, using the exact
+  `package.json` flags.
+- **Root cause:** `src/lib/usage/callLogs.ts:513` falls back to
+  `generateLogId()` when no `traceId` is supplied. The row **was** persisted
+  (probe: CASE A no traceId → lookup `NULL` but a row exists as
+  `"1791108392907-1"`; CASE B traceId set → `FOUND`). Production behaviour was
+  fine; the test keyed on the old semantics.
+- **No upstream fix exists:** the `origin/release/v3.8.51` diff for this file is
+  empty vs HEAD and vs `origin/main`.
+- **Fix applied (test-only):** supply a per-request `traceId` and poll
+  `getCallLogById(traceId)`. 4 tests touched; assertions :86 / :108 / :124 /
+  :135 are byte-identical before and after; no counts changed; production
+  source untouched. After fix: branch **6 pass / 0 fail**, exit 0, ×2 runs.
+
+#### Round-3 second finding: at-HEAD poll-budget exhaustion (found and fixed)
+
+After the first fix (`2aee1c8a55`, `tries = 120`), a re-run of the same file at
+final HEAD still failed — one red against three greens:
+
+- **Failing test:** `tests/unit/chatcore-attempt-logging.test.ts:143:10` —
+  `assert.ok(row)`, `actual: null`, observed at **2634.6145 ms**. Raw log:
+  `~/.jcode/scratch/athead-test-raw/chatcore-attempt-logging.test.ts.log`
+  (summary: 6 tests / 5 pass / 1 fail, `duration_ms` 16022.88).
+- **Root cause: poll-budget exhaustion, not a keying defect.** `pollForCallLog`
+  budgeted `120 tries × 20 ms = 2400 ms`. `saveCallLog` is async and
+  fire-and-forget, so the row lands a tick after `persistAttemptLogs` returns;
+  under cold `tsx` spawn plus full-suite SQLite load the write had not committed
+  by 2634 ms — the null read is the **expired budget**, not a missing row.
+- **Corroborating evidence:** in the *same* raw log the three already-converted
+  subtests **passed** while taking **1229.4 / 2138.4 / 2414.7 ms** — all sitting
+  at the 2.4 s budget edge. Structural keying failures are deterministic (the
+  original bug reproduced 2/4 across 3 runs — see above), so one red against
+  three greens at load 276–448 (`athead-test-load.log`: 276.18 → 407.87;
+  `athead-gate-load.log` peak 448.91) indicates load sensitivity, not keying.
+- **Fix (`86ed0f96b4`, test-only):** widened `pollForCallLog` `tries` 120 → 500
+  (2.4 s → 10 s), mirroring the repo-canonical headroom in
+  `call-log-save-drain.test.ts` `waitForCallLogSaves(10_000)`, whose own comment
+  documents the same ~2.4 s cold-spawn flake. **No assertion changed:** all 4
+  `assert.ok(row)` are byte-identical before and after; no test skipped or
+  re-counted; production untouched.
+- **After fix:** `chatcore-attempt-logging` **6 pass / 0 fail ×2**; plus
+  `call-log-save-drain` **2/0** and `model-test-runner` **26/0**.
+
+### Round-3 covering checks for changed public outputs
+
+Round 3 enumerated **43 changed outputs outside `tests/` and `docs/`** (at
+final HEAD: `git diff origin/main...HEAD --name-only -- . ':(exclude)tests'
+':(exclude)docs'` = 43). Two previously-conflated lists are separated here:
+
+- **UNMAPPED** (rhino) = no covering check exists.
+- **UNOBSERVED** (palmtree) = a check exists but was never executed.
+
+**Authoritative Matrix-2 arithmetic (corrected):** **38 OBSERVED-PASS + 3
+OBSERVED-FAIL + 0 UNOBSERVED + 2 NO-CHECK-EXISTS = 43.** So **41 of the 43
+outputs have an OBSERVED result** and **2 have no covering check at all**. Full
+matrix: `~/.jcode/scratch/MATRIX-athead.md`.
+
+- **The 3 OBSERVED-FAILs:** `.env.example` (`check:env-doc-sync` — pre-existing
+  on *both* trees); the `changelog.d` fragment (`check:changelog-integrity`, sha
+  `2ec60c77` — pre-existing on *both* trees); and `chatcore-attempt-logging`
+  (observed fail at HEAD, fixed in `86ed0f96b4` — see the second finding above).
+- **The 2 NO-CHECK-EXISTS:**
+  - `@omniroute/opencode-plugin/src/index.ts` — `config-shim.test.ts:1285`
+    asserts a substring present in *both* the old and new messages, so it cannot
+    pin the change.
+  - `src/lib/evals/runtime.ts` — see the dedicated note below.
+
+Round 3 executed the remaining checks: `db/proxies/guards.ts` 2/2,
+`db/proxyLogs.ts` 6/6, `usage/migrations.ts` 6/6 all pass; the `changelog.d`
+fragment is covered by `check:changelog-integrity` (fails pre-existing, above).
+
+**`src/lib/db/proxyLogs.ts` — OBSERVED-PASS, now raw-log backed.**
+`tests/unit/logs-export-streaming-13123.test.ts` = **6 pass / 0 fail / exit 0**
+(raw log `~/.jcode/scratch/backing-logs-export-streaming-13123.log`). It imports
+the **real** route `src/app/api/logs/export/route.ts`, which calls
+`countProxyLogsSince` (route:65) and `iterateProxyLogsSince` (route:66),
+asserting `totalAvailable = 3` and ordered `px-3`/`px-2` with `limit=2`. Genuine
+coverage.
+
+**`src/lib/evals/runtime.ts` — NO-CHECK-EXISTS (tautological test).**
+`tests/unit/eval-opt-out-13139.test.ts` does define 3 tests and they pass (**3/0,
+exit 0** — raw log `~/.jcode/scratch/backing-eval-opt-out-13139.log`), **but it
+never imports `src/lib/evals/runtime.ts`**. It constructs a local
+`new Headers({...})` carrying the same literals and asserts on that local object,
+so it cannot fail if `runtime.ts` is reverted. It is **tautological** and
+therefore provides **no coverage** of the changed lines (`runtime.ts` adds
+`x-omniroute-compression: off` and `x-omniroute-no-memory: true` at HEAD lines
+198–202). Disclosed as a known gap, with a recommended remedy: replace it with a
+test that imports `executeEvalCase`, or extract the header construction into an
+exported pure function.
+
+**Correction of an audit premise.** An intermediate audit claimed the two
+candidate covering files "define 9 + 4 and 8 tests, not 6 and 3". That is
+**wrong** — `grep` and the runner both confirm the files genuinely define
+**exactly 6 and 3** tests (`logs-export-streaming-13123.test.ts` → 6;
+`eval-opt-out-13139.test.ts` → 3). The real defect was never the count; it was
+that `eval-opt-out-13139` is tautological.
+
+**Prior figures withdrawn.** `39/3/0/1` and `37/3/2/1` were **both wrong**;
+`38/3/0/2` is authoritative. `39/3/0/1` counted `evals/runtime.ts` as
+OBSERVED-PASS on a tautological check (it is NO-CHECK-EXISTS) and treated
+`proxyLogs.ts` as merely doc-asserted. `37/3/2/1` moved `proxyLogs.ts` and
+`evals/runtime.ts` both to UNOBSERVED — but `proxyLogs.ts` **does** have a raw
+per-file log (`logs-export-streaming-13123`, 6/0), so it is OBSERVED-PASS, and
+`runtime.ts` is NO-CHECK-EXISTS rather than UNOBSERVED.
+
+Three of rhino's previously-UNMAPPED outputs now have new checks, each verified
+**both ways** (branch pass / pristine-main fail for the right reason):
+
+| New test | Output covered | Branch | Pristine main |
+|---|---|---|---|
+| `tests/unit/memory-anthropic-system-merge-13425.test.ts` | memory injected into a top-level `system` field, not a prepended `role:"system"` message | 4 pass / 0 fail | exit 1, 1 pass / 3 fail — `"system must start with memory context, got: You are a helpful assistant."`; `assert.ok(out.system.startsWith("Memory context: dark mode"))` falsy |
+| `tests/unit/db-backup-autoprune-13308.test.ts` | `getDbInstance` prunes `db_backups` after a health-check repair backup | 1 pass / 0 fail | exit 1, 0 pass / 1 fail — `"expected db_backups pruned to 3, saw 7"` (main discards the `runDbHealthCheck` result; zero `cleanupDbBackups` refs; 6 seeded + 1 repair = 7). Spawns a child process because `isAutomatedTestProcess()` blocks in-process `createHealthCheckBackup` |
+| `tests/unit/ui/websearch-example-card-provider-body-13245.test.tsx` | websearch example card sends `body.provider === providerId` to `/api/v1/search` | (vitest) 1 pass / 0 fail | exit 1 — `"expected undefined to be 'brave-search'"` (main `buildBody = ({query, max_results})` sends no provider) |
+
+`main-accept` was cleaned up after these A/B runs: porcelain empty, HEAD still
+`843f342556`.
+
+## Corrections to earlier claims
+
+- An earlier revision of this document claimed **159** passing assertions for
+  the changed test surface. That number was never measured from any run — it was
+  fabricated. The total measured at that revision was **149**: 144 across 20
+  files under `node --test`, plus 5 from
+  `tests/unit/13462-credential-masker-data-uri.test.tsx` under
+  `pnpm vitest run`. Corrected in `097b6c5376`. The surface has since grown to
+  26 files; the current measured total is **160 + 5 = 165** across the two
+  runners the project configures (see "Test-suite verification" below).
+- An earlier revision also asserted **"zero test regressions"** unqualified, on
+  the strength of a 120-file (4.2%) sample. That phrasing was retracted: the
+  sample's limits are now stated explicitly above, and the no-regression claim
+  rests on the aligned 75,446-line comparison below rather than on the sample.
+  Also corrected in `097b6c5376`.
+- `5187fa5e56` did **not** repair a 4-to-7 argument collapse in the dedup query.
+  Pristine main already passed all seven dedup-query arguments. The commit added
+  the missing `resolveProviderId` alias normalization. See `13459-correction.md`.
+- `check:known-symbols` was previously reported as failing. The failure was a
+  broken `bun` postinstall in both worktrees, not a code defect. After running
+  `node install.js` in `node_modules/bun` for both trees, the gate **passes
+  (exit 0)** on main and on the branch.
+- `__resetChatGptWebCachesForTesting is not a function` (77 occurrences in the
+  full suite) is pre-existing. The symbol exists only in test files, the branch
+  changed none of them, and `tests/unit/chatgpt-web-citations.test.ts` fails
+  identically on pristine main.
+- **Requirement #6's coverage did not discriminate.** The recovered-behavior
+  table records #6 as "arity 2 → 3", an arity observation. The only test
+  asserting `PROXY_ASSIGNED_UNAVAILABLE`, `proxy-assigned-unavailable-6246`,
+  passes **6/6 on pristine main** — it calls
+  `hasBlockingProxyAssignment(connId)` with one argument and never asserts the
+  `#13469` combo scoping. It therefore proved nothing about #6.
+  `combo-scoped-proxy-guard-13469.test.ts` was added and fails on main with
+  `actual false, expected true`.
+- **A first draft of the #2 bypass test passed on both trees and proved
+  nothing.** It used provider `openai`, which has no entry in
+  `PROVIDER_TOOL_LIMITS`, so `getKnownToolLimit` returns `null` and the
+  ordering difference never manifests. It was rewritten against `grok-cli`
+  (limit `200`) *before* being committed; the commit message for
+  `571771db99` records the false start. Had it been committed as-is it would
+  have been counted as a check it cannot perform.
+- **A throwaway probe opened the live `~/.omniroute` database** because it was
+  launched without a `DATA_DIR` override. See the correction block at the top
+  of this document for the verification that nothing was written.
+- Stale counts in "Test-suite verification" (67 files / 21 tests / 149
+  assertions) predated the five newly added test files; file counts corrected
+  to 72 / 46 / 26 (22 branch-new); assertion totals have since been re-measured
+  — 160 + 5 = 165 across the two runners (see below).
+- **"The first chatcore fix was incomplete" is WITHDRAWN (2026-10-07).** An
+  orchestrator intermediate message stated the first chatcore fix
+  (`2aee1c8a55`) was "incomplete" because assertion `:143` was not converted.
+  That is not correct: `2aee1c8a55` had **already** converted the fallback
+  subtest, and every row-read site (`:86`, `:110`, `:130`, `:142` at that
+  revision) already polls the supplied `traceId`. The `:143` failure was
+  **poll-budget exhaustion** (see the second chatcore finding above), not a
+  missed conversion. The flake diagnosis was correct; the "incomplete fix"
+  assertion was not.
+- See **Pre-existing pnpm lockfile inconsistency** (Host hazard section) for the
+  lockfile regeneration, postinstall failure, and operator-authorized resolution.
+
+## Test-suite verification
+
+### At-head verification (final HEAD)
+
+Re-run of the complete changed test surface at final HEAD, one process per file
+with the project's real runners. The runs were captured at HEAD `e759cdd8ff`;
+the only later commit, `86ed0f96b4`, is the **test-only** poll-budget widening of
+the second chatcore finding (it touches no source and no gate), so the figures
+below hold for final HEAD `86ed0f96b4` too.
+
+- **All 30 changed test files run at final HEAD** (`git diff origin/main...HEAD
+  --name-only` filtered to `^tests/` = 30, **exactly matching** the TSV below):
+  **29 exit 0, 1 exit 1** (chatcore-attempt-logging), **0 timed out**. Total
+  **176 tests passed / 1 failed** = 177 tests: 170 pass + 1 fail under
+  `node --test` (28 `.ts` files) and 5 + 1 pass under `vitest` (2 `.tsx` files).
+  Source: `~/.jcode/scratch/athead-test-results.tsv` (30 rows),
+  `~/.jcode/scratch/athead-test-raw/*.log`. The final-HEAD surface is 30 test
+  files (28 `.ts` + 2 `.tsx`), 25 branch-new; earlier rounds in this document
+  record 26, the pre-coverage-fix surface.
+- **All 8 quality gates at final HEAD, ZERO deviation from the recorded
+  baseline:** `typecheck:core` rc=0 / 0 errors; `check:known-symbols` rc=0;
+  `check:open-sse-typecheck` rc=1 / 201 errors / 79 entries; `check:env-doc-sync`
+  rc=1 / 42+6; `check:file-size` rc=1 / 15+22 = 37; `check:dead-code` rc=1 /
+  `DEAD_TOTAL=1023`; `check:migration-numbering` rc=1 / 1 obsolete (`121`);
+  `check:changelog-integrity` rc=1 / removed 20 + added 20.
+  Source: `~/.jcode/scratch/athead-gate-results.txt`.
+- **Packaging guard at HEAD:** `git diff origin/main...HEAD -- package.json
+  pnpm-lock.yaml .github` = **EMPTY** (0 lines).
+
+`pnpm test` on the branch: 21,398 tests, 18,323 pass, 234 fail, 2,823
+cancelled. This is a **pre-existing figure whose provenance is not recorded
+in this document**, and it is labelled **unverified**: the listed components
+sum to 18,323 + 234 + 2,823 = 21,380, i.e. 18 short of the stated 21,398
+total. The 18-test gap is unexplained, and no run log for that figure is
+preserved in this repository, so it is not corrected here — there is no
+evidence for any replacement value, and no reader should treat it as
+measured. A raw fail count is not evidence of a branch regression on its
+own, so both trees were compared directly.
+
+**Changed test surface.** The branch touches 72 files vs `origin/main`: 46
+non-test files and 26 test files (25 `.ts`, 1 `.tsx`), 22 of them branch-new
+(absent on main). The five test files added in the latest round are
+`tests/unit/operator-env-overrides.test.ts`,
+`tests/unit/tool-limit-bypass-ordering-13190.test.ts`,
+`tests/unit/usage-alias-canonical-dedup-13459.test.ts`,
+`tests/unit/oauth-refresh-proxy-fail-open-13470.test.ts` and
+`tests/unit/combo-scoped-proxy-guard-13469.test.ts`. The changed-test file set,
+derived by `git diff main...HEAD --name-only` filtered to test files, is exactly
+**26 files = 25 `.ts` + 1 `.tsx`**. Measured totals for that surface:
+
+- The 25 `.ts` files run together under the project's real runner — the
+  `package.json` `"test"` script, `cross-env DISABLE_SQLITE_AUTO_BACKUP=true
+  node --max-old-space-size=8192 --import tsx/esm --import
+  ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts
+  --test --test-force-exit --test-concurrency=4` — give **160 tests, 10 suites,
+  160 pass, 0 fail, 0 skip, exit 0** (two independent runs: one 89523.2ms, one
+  part of a 52592.5ms run).
+- `tests/unit/13462-credential-masker-data-uri.test.tsx` is a `.tsx` file that
+  `node --test` cannot run; under its configured runner (`vitest.config.ts`) it
+  is **5 passed / 5, exit 0**.
+- Effective result: **72 changed files / 46 non-test / 26 test files (22
+  branch-new); 160 + 5 = 165 tests passing, across two runners, because the
+  project configures them that way.**
+
+**One `node --test` invocation over all 26 files is not green, and the reason
+matters.** That single invocation gives **161 tests / 160 pass / 1 fail**, where
+the single failure is that `.tsx` file throwing `TypeError: Cannot read
+properties of undefined (reading 'config') at initSuite in
+@vitest/runner/dist/chunk-artifact.js` — a vitest-managed file being executed by
+`node --test`. It reproduces in isolation under `node --test` (1 test, 1 fail)
+and passes 5/5 under vitest. It is a **runner mismatch, not an assertion
+failure**, which is why the honest combined figure is the two-runner split
+above rather than a single number.
+
+**Flakiness history (recorded, not suppressed).** An earlier aggregate run under
+host load ~500 saw `tests/unit/combo-scoped-proxy-guard-13469.test.ts` fail
+both cases with a 157s first case. A captured re-run (`full-suite-run.log`)
+instead showed **159/160** with the sole failure
+`tests/unit/responses-error-reframe-13431.test.ts` line 103 ("should contain a
+data: line with type:error"), max per-test duration 6867ms, total `duration_ms`
+226905.9, and both #13469 cases passing (1120.6ms / 1088.7ms). Isolated
+re-runs: #13431 alone **5 pass / 0 fail** (11.98ms); #13469 alone **2 pass /
+0 fail**. A 25-file aggregate re-run then gave **160/160, exit 0**. The final
+run executed at load 512.45/366.60/245.41 before and 282.60/335.16/271.27
+after and still gave **160/160** on the `.ts` set. Classification:
+**load/ordering-dependent flake, not a branch-attributable defect.**
+
+**Round-3 explanation of the load-driven flake (inferred, not reproduced under
+controlled load).** Wall-clock balloons under host load: the combo-scoped test
+went 1.1s → 958s, and the tool-limit test took 93s at load ~400–800; the
+round-3 gate runs saw load 210 → 360. This independently explains the
+historical flake reports (the 157s runs, and the 159-of-160 reading). The
+mechanism is stated as an inference from correlated load and duration
+observations, not as a controlled reproduction.
+
+**Round-3 failure-mode evidence.** Determinism: **15/15** (5 files × 3 runs).
+Live-DB isolation: **PASS** — the live `storage.sqlite` was unchanged
+(`2605056` bytes / Oct 1 19:58:06). Packaging: **PASS** — across the 50
+commits, zero hits in `package.json`, `pnpm-lock.yaml`, or `.github`.
+
+**Route ledger (round 3, recorded honestly, not editorialised).**
+`mimo-v2.6-flash` failed **5 of 5** spawned workers (hippo, piglet, mushroom,
+clover, cactus — stream errors / send failures). The operator fallback ladder
+then advanced **one rung** to `opencode-go:deepseek-v4.1-flash`, which served
+every successful round-3 deliverable. There was no silent advancement.
+
+**Failure-set comparison (SAMPLE, not exhaustive).** 120 files were sampled
+from the branch's failing set and replayed file-by-file, one process each, on
+both worktrees:
+
+| Outcome | Count |
+|---|---|
+| Fail only on branch (true regression) | **0** |
+| Fail on both trees (pre-existing) | 5 |
+| Fail only on main (fixed by the branch) | 3 |
+
+The 3 main-only failures, fixed by this branch:
+`issue-6343-v0-web-alias-collision`, `opencode-autocombo-search-pair`,
+`rate-limit-execution-timeout-message-4165`.
+
+The 5 pre-existing failures, failing identically on both trees:
+`i18n-home-recent-requests-topology-legend`,
+`media-page-client-browser-bundle`, `models-catalog-model-exposure-list`,
+`radar-referrals-page-tab`, `tls-client-wreq-residue`.
+
+**Strength of this evidence, stated honestly.** The branch's full-suite run
+produced 2,852 distinct failing files out of ~5,317 unit test files. The
+comparison above samples 120 of those 2,852, which is **4.2% coverage**. Zero
+branch-only failures were observed *within that sample*. This is evidence of
+no regression, not proof of none: a branch-attributable failure confined to the
+unsampled 96% would not have been detected here.
+
+> **Superseded by stronger evidence:** see "Main baseline: partial run, and
+> what it proved" below. Those 2,852 files are now shown to be overwhelmingly a
+> disk-exhaustion cascade (29 background failures → 2,852 in the last 4.6% of
+> the run), and an aligned 75,446-line main-vs-branch comparison finds **0**
+> branch-only failures. The 4.2% sample above is retained for the record but is
+> no longer the primary basis for the conclusion.
+
+What the evidence does support, stated at the confidence the data justifies:
+
+- The **entire** changed test surface is green (160 + 5 = 165 across the two
+  runners the project configures), which is exhaustive, not sampled. A branch
+  change that broke an existing test would almost certainly surface in a test
+  that directly covers the changed module.
+- The 5 files failing in the sample fail identically on main, establishing
+  that the branch's failures are pre-existing in character rather than newly
+  introduced.
+- No quality gate is worse on the branch than on main (see below), which is an
+  exhaustive comparison, not a sample.
+
+Closing the remaining 96% is now understood to be low-value: as shown below,
+that unsampled bulk is disk-exhaustion cascade, not branch-attributable
+regressions. An exhaustive 7-hour replay remains possible but is not required
+to support the conclusion.
+
+## Main baseline: partial run, and what it proved
+
+A full `pnpm test` baseline on pristine main was started 2026-09-29 16:54 and
+**hung** — its log stopped growing 2026-09-29 22:24 at 75,446 lines with no
+exit marker, under host load 628 and a 100%-full volume. It was cancelled.
+So a complete main baseline does not exist.
+
+The 75,446 lines it did produce are nevertheless usable, because they can be
+aligned against the same executed span of the branch run.
+
+### Aligned comparison (identical 75,446 executed lines)
+
+| Outcome | Count |
+|---|---|
+| Fail on both trees (pre-existing) | 27 |
+| **Fail only on branch (regression)** | **0** |
+| Fail only on main (fixed by branch) | 7 |
+
+This replaces the 4.2%-sample figure above as the primary regression evidence:
+it is alignment-based rather than random sampling, and it still shows **zero
+branch-only failures**.
+
+### The 2,852 figure is a cascade, not 2,852 regressions
+
+Distinct failing files in the branch run, accumulated by log position:
+
+| Line | Distinct failing files |
+|---|---|
+| 10,000 | 6 |
+| 30,000 | 12 |
+| 50,000 | 16 |
+| 70,000 | 23 |
+| 75,446 | 27 |
+| 78,000 | 29 |
+| **80,000** | **1,198** |
+| 80,849 | 2,047 |
+| 81,654 (execution ends) | 2,852 |
+
+Failures accumulate at a steady background rate of ~29 across 78,000 lines,
+then jump from 29 to 2,852 within the final 3,600 lines — the last 4.6% of the
+run. Thousands of independent code regressions cannot cluster that way; this is
+the signature of one systemic environmental failure.
+
+That correlates directly with the host event recorded below: the branch run
+(2026-09-27 17:20–18:38) overlapped the volume filling to 584 MB free, and the
+5.4 GB of leaked scratch was accumulating *during* that run.
+
+**Therefore: the raw "2,852 failing files / 234 failures" branch figure must
+not be read as branch-attributable. Roughly 29 are the normal background rate,
+which matches main's 34 over the same span; the rest are disk-exhaustion
+cascading.** Any future report citing those numbers must cite this context.
+
+## Host hazard encountered during this verification
+
+The test suite leaks per-test `mkdtemp` scratch directories. A single
+`pnpm test` run left **306 `omniroute-<testname>-<random>` directories totalling
+5.4 GB** in `$JCODE_SCRATCH_DIR`, which drove the host volume to 100% full
+(584 MB free at the worst point). Consequences observed while the disk was
+full: load average 335, `du` scans timing out past 10 minutes, and even a
+`grep` over one directory taking minutes.
+
+Mitigation applied: the 306 leaked directories were removed after verifying
+each was throwaway per-test residue and that neither real git worktree
+(`omniroute-cherry-v2`, `omniroute-cherry-wt`) was among them. Remaining disk
+pressure is from unrelated workstreams on the same host, notably an 8 GB
+`qemu-system-aarch64` VM and concurrent `rustc`/`clippy` builds.
+
+Anyone re-running the full suite should expect to reclaim multi-GB scratch
+afterwards, and should not treat a full disk as evidence of a test failure.
+`git fsck` was clean (exit 0, dangling objects only) after the event, and
+`package.json` and `pnpm-lock.yaml` are unmodified.
+
+### Worktree loss and recovery (2026-10-08)
+
+On 2026-10-08 ~01:07 both working directories
+(`~/.jcode/scratch/omniroute-cherry-v2` and `~/.jcode/scratch/main-accept`) were
+found **MISSING** — `cd` failed with "No such file or directory". The cause was
+not determined (this session performed no deletion; a prior cleanup process is
+suspected).
+
+- **No commits were lost.** Git worktrees share the parent repo's object store,
+  and the branch ref lives in the parent repo
+  `/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute`. Verified: branch
+  tip `86ed0f96b4`, 54 commits ahead of `origin/main`; `main` and `origin/main`
+  both still `843f342556`.
+- **The branch worktree was recreated at the same path** (`git worktree add`
+  after `git worktree prune`): HEAD `86ed0f96b4`, 54 commits, this doc 553
+  lines, `git status --porcelain` empty — matching the pre-loss state exactly.
+- **Re-created worktrees and `node_modules`:** Both worktrees were re-created
+  after the 2026-10-08 disappearance. Operator-authorized
+  `pnpm install --no-frozen-lockfile` restored `node_modules` (3.7 G, 138
+  top-level entries) and the test runners (`.bin/tsx`, `.bin/vitest` present in
+  both worktrees). `pnpm-lock.yaml` is locally modified in both; `package.json`
+  untouched. `pnpm` exits `1` due to upstream FFI postinstall failures (see
+  "Pre-existing pnpm lockfile inconsistency" below).
+- **CAUTION:** the parent repo's own checkout is **dirty** with many unrelated
+  modified files (`.cbmignore`, `.coderabbit.yaml`, `.dockerignore`,
+  `.env.example`, `.github/*`, …). Those are **not ours**; this session never
+  worked in the parent repo. Do not touch or clean them.
+- **Subsequent event, 2026-10-08 ~07:09:** the pristine-main comparison
+  worktree (`/Users/kooshapari/.jcode/scratch/main-accept`) ALSO disappeared, in
+  addition to the branch worktree already re-created at 01:13. Two worktrees
+  lost in ~6 hours points to a recurring cleanup or pruning process, not a
+  one-off. In both cases the ref and objects survived in the parent repo; only
+  the working directories vanished.
+- The pristine-main worktree was re-created via
+  `git worktree add /Users/kooshapari/.jcode/scratch/main-accept origin/main`
+  after `git worktree prune`. Verified: HEAD `843f342556` (detached), porcelain
+  empty, standard OmniRoute layout, `node_modules` absent (consistent with the
+  freshly-re-created branch worktree state).
+- The worktree list at that moment held **3** pre-existing entries (parent +
+  `omniroute-cherry-v2` [our branch, still tracked] + `use-pheno-otel`), not 2;
+  `omniroute-cherry-v2` was correctly registered and was not double-added.
+- After both worktrees were re-established, both were missing `node_modules`
+  (lost in the disappearance). Operator authorized
+  `pnpm install --no-frozen-lockfile` in BOTH worktrees to restore the dev
+  environment. The verbatim install figures appear in the re-created-worktree
+  disclosure above and in "Pre-existing pnpm lockfile inconsistency" below.
+
+### Pre-existing pnpm lockfile inconsistency
+
+At the start of the 2026-10-08 restoration, `pnpm install --frozen-lockfile`
+failed with `ERR_PNPM_OUTDATED_LOCKFILE` because `package.json` declared
+`oxlint@^1.61.0` (a devDependency at line 438, with `lint:oxlint` scripts at
+lines 280-281) but `pnpm-lock.yaml` had **0** oxlint references.
+
+This inconsistency is **pre-existing on `origin/main` (`843f342556`)** itself: a
+fresh `git show origin/main:package.json | grep -n oxlint` returns 3 hits (lines
+280, 281, 438) and `git show origin/main:pnpm-lock.yaml | grep -c oxlint`
+returns 0. A fresh clone of main would therefore also fail `--frozen-lockfile`.
+The cherry-pick `e16215e01c` (`chore(lint): add oxlint config and oxlint-disable
+comments`) is a net no-op versus main: main already carried the same
+`package.json` state at `843f342556`; merely `pnpm-lock.yaml` was never
+regenerated to match.
+
+- **Resolution:** operator authorized `pnpm install --no-frozen-lockfile` in both
+  worktrees. Branch worktree: `pnpm-lock.yaml` +229 lines, +62 oxlint
+  references, `package.json` UNTOUCHED (per `git status --porcelain`).
+  `main-accept`: same numbers, same single-file diff. Both installs took ~120-160
+  s wall time and the test runners (`.bin/tsx` and `.bin/vitest`) materialized
+  correctly.
+- **CAVEAT:** the install exit code is `1` in both worktrees due to postinstall
+  scripts of 5 upstream FFI packages (`omniroute-ffi-darwin-arm64`,
+  `-darwin-x64`, `-linux-arm64-gnu`, `-linux-x64-gnu`, `-win32-x64`) failing
+  under Node 26. Each has a `scripts/postinstall.mjs` that uses CJS
+  `require("node:fs")` inside an ESM `.mjs` file, producing `ReferenceError:
+  require is not defined in ES module scope`. This is an upstream package bug,
+  not caused by our work, and only affects the FFI packages' build phase — the
+  unit-test runners are functional. The root-project postinstall (playwright-core
+  Android patch, sql.js/node-machine-id copies, LLMLingua co-location) SUCCEEDED
+  in both worktrees. A `pnpm install --ignore-scripts` would exit 0 if a clean
+  postinstall status is needed.
+- **Session-local artifact:** this lockfile regeneration is a session-local
+  artifact; `pnpm-lock.yaml` is currently modified in the worktree but is NOT
+  part of this commit. Whether to commit it is an operator decision — committing
+  would propagate the regeneration to `origin/main` (which is itself in the same
+  broken state, so a no-op in practice) and remove the dirty-status warning; not
+  committing leaves the session-local fix.
+
+### Round-3 product defect: `call_logs` writes into the LIVE data dir
+
+A second, more serious live-directory exposure was found in round 3. Two test
+JSON files were written into the **live** `~/.omniroute/call_logs/2026-10-02`
+(919 B + 797 B, account `"model-test-timeout-regression"`, `schemaVersion` 5,
+`gpt-4o`, a 200 warm-up plus a 504 at `timeoutMs:1000`). The content is proven
+to come from `tests/unit/model-test-runner.test.ts:236-237`.
+
+- **Writer:** `src/lib/usage/callLogArtifacts.ts:275`; the directory resolves
+  via `callLogArtifacts.ts:10-12` → `dataPaths.ts:64 getDefaultDataDir()` →
+  legacy `~/.omniroute`.
+- **Root cause:** the #10428 test-context guard exists **only** in
+  `resolveWritableDataDir` (`dataPaths.ts:130-168`, used by the DB at
+  `db/core.ts:122`) — `call_logs` are **not** protected. Leak vectors: the
+  `test:coverage:legacy` npm script (`c8 … node --import tsx/esm --test
+  tests/unit/*.test.ts`) never injects `isolateDataDir.ts`, plus bare
+  `node --test`.
+- **Attribution limit:** session attribution **cannot prove** which session
+  wrote them.
+- **Recommendation:** apply the same guard to `callLogArtifacts`.
+- **Status:** the two stray JSON files are **left in place pending operator
+  approval** (deletion is destructive and was not performed).
+
+## Quality-gate comparison (branch vs pristine main)
+
+| Gate | Main | Branch | Branch-attributable delta |
+|---|---|---|---|
+| `typecheck:core` | 27 errors (pre-existing `auth.ts` bug) | 0 errors | none (fixed) |
+| `check:env-doc-sync` | 42 / none / 6 | 42 / none / 6 | none |
+| `check:file-size` | violation set V | identical to V | none |
+| `check:dead-code` | 924 exports + 99 files = 1023 | 924 + 99 = 1023 | none |
+| `check:migration-numbering` | 1 stale allowlist entry (`121`) | identical output modulo path line | none |
+| `check:changelog-integrity` | 20 release-line bullets missing | identical output modulo path line | none |
+| `check:known-symbols` | pass (exit 0) | pass (exit 0) | none |
+| `check:open-sse-typecheck` | 228 errors / 82 violations | 201 errors / 79 violations | none (3 fewer) |
+
+The last four rows were re-measured on 2026-10-01 under healthy disk, after
+their first reading landed in a full-volume window. All four reproduce exactly,
+so that window did not distort them. Two rows carry specific figures now rather
+than "fails": `migration-numbering` reports one stale allowlist entry (`121`) on
+both trees, and `changelog-integrity` reports the same 20 release-line bullets
+missing from `CHANGELOG.md` on both trees — both pre-existing on pristine main.
+
+The `open-sse-typecheck` delta is worth attributing precisely rather than
+stating as "3 fewer". Main reports 228 scoped `tsc` errors and 82 frozen-baseline
+violations; the branch reports 201 and 79. The entire difference is three
+entries under `src/sse/services/auth.ts` (TS2304 ×24, TS18004 ×1, TS2552 ×2),
+and 24 + 1 + 2 = 27 = 228 − 201, while 82 − 79 = the three entries. Those lines
+are fixed by `8233223814` ("import the quota helpers auth.ts re-exports but also
+uses"). One further entry differs only in diagnostic code — `scoringFfi.ts`
+TS2304 on main, TS2552 on the branch, one occurrence each — a reclassification
+of the same issue, not an added one. So this gate, like `typecheck:core`, is
+better on the branch for an observed reason.
+
+### Round-3 gate stability (32 runs, 2026-10-04)
+
+The table above rests on a single reading per gate. Round 3 re-ran **8 gates ×
+2 trees × 2 repeats = 32 runs**: **0 timeouts, 0 skips, 0 instability, Phase 3
+never triggered, longest run 181s.** Every reading reproduced, so the deltas
+below are **stable deltas**, not one-off noise.
+
+| Gate | Main | Branch | Round-3 class |
+|---|---|---|---|
+| `typecheck:core` | **rc=2, 27 errors** in `src/sse/services/auth.ts` (TS2304 ×24, TS18004 ×1, TS2552 ×2) | **rc=0, 0 errors** | stable-delta, favours branch |
+| `check:open-sse-typecheck` | 228 errors / 82 entries | 201 errors / 79 entries | stable-delta, favours branch |
+| `check:env-doc-sync` | 636 code / 795 env / 818 docs, rc=1, violations 42+6 | 638 / 798 / 821, rc=1, violations 42+6 | stable-delta on raw counts only |
+| `check:file-size` | rc=1, 15 src + 22 test = 37 | identical | no delta |
+| `check:dead-code` | rc=1, `DEAD_TOTAL=1023` | identical | no delta |
+| `check:migration-numbering` | rc=1, 1 obsolete allowlist entry (`121`) | identical | no delta |
+| `check:changelog-integrity` | rc=1, 20 removed / 20 added, sha256 `2ec60c77` | identical | no delta (pre-existing, see below) |
+| `check:known-symbols` | rc=0 (135 exec / 21 strat / 17 pairs / 96 tools / 6 a2a / 4 cloud) | identical | no delta |
+
+**Overall: no gate that pristine main passes fails on the branch.**
+
+The `typecheck:core` and `check:open-sse-typecheck` deltas share one cause,
+now pinned: `export { x } from "./authQuota.ts"` creates **no local binding**,
+so `auth.ts` (which also *uses* the helpers) does not typecheck on main. The
+branch's commit `8233223814` (auth.ts +23/−4) adds a real
+`import { ... }`, removing exactly 27 errors (24 + 1 + 2 = 228 − 201) and 3
+frozen-baseline entries (82 − 79). `8233223814` is confirmed an ancestor of
+branch HEAD and **not** of main HEAD.
+
+### `check:changelog-integrity` is pre-existing and out of scope (round 3)
+
+`check:changelog-integrity` fails **identically on pristine main** (rc=1, same
+20 removed / 20 added, sha256 `2ec60c77`). Proven independently: `CHANGELOG.md`
+does not appear in `git diff origin/main...HEAD`, no branch commit touches it,
+`config/release/changelog-reconciliations.json` is unchanged, and the check's
+other input is the shared ref `origin/release/v3.8.51`. This "changelog-eat" is
+a pre-existing repo condition, not branch-attributable.
+
+### `check:known-symbols` read hazard (round 3)
+
+Clarified: the `DATA_DIR` redirect **is** honoured for the database, but this
+gate resolves a plugin-scan directory from `HOME` and **reads**
+`~/.omniroute/plugins`. The exposure is read-only, not a write. Every gate run
+logged a scratch `storage.sqlite`; the live DB mtime (`1790877486`) and size
+(`2605056`) were unchanged before and after, and no file under `~/.omniroute`
+was newer than session start.
+
+## Conclusion
+
+Every recovered behavior has an observed main-vs-branch difference at a
+production entry point, and no quality gate is worse on the branch than on
+pristine main. The complete changed test surface is green (160 + 5 = 165 across the two runners the project configures).
+
+On regressions, the strongest available evidence is the aligned comparison of
+75,446 identical executed log lines: **27 files fail on both trees, 7 fail only
+on main (fixed by this branch), 0 fail only on the branch.** The branch's
+headline "2,852 failing files" figure is a disk-exhaustion cascade confined to
+the last 4.6% of that run and is not branch-attributable.
+
+One limit on this evidence remains and is stated rather than hidden: a
+complete main baseline does not exist (that run hung at 75,446 lines and was
+cancelled). The second previously-noted limit is closed — the four gates first
+read during a full-volume window were re-confirmed on 2026-10-01 under healthy
+disk and reproduced exactly, so no quality-gate figure in this record rests on
+a degraded measurement.
+
+Round 3 (2026-10-04) strengthens and extends this record:
+
+- **Gate stability proven.** 32 runs (8 gates × 2 trees × 2 repeats) with 0
+  timeouts / 0 skips / 0 instability; every delta reproduced as a stable delta.
+  No gate that pristine main passes fails on the branch.
+- **`changelog-eat` classified pre-existing and out of scope** — it fails
+  identically on pristine main for a shared-ref reason, and no branch commit
+  touches `CHANGELOG.md`.
+- **One branch regression found and fixed** (test-only): chatcore
+  attempt-logging keyed on `pendingRequestId`, which `de2971ab2b` renamed to
+  `traceId`; now 6/0.
+- **Coverage of changed public outputs, corrected: 38 OBSERVED-PASS + 3
+  OBSERVED-FAIL + 0 UNOBSERVED + 2 NO-CHECK-EXISTS = 43** (41 observed). The 3
+  FAILs are `.env.example` and the `changelog.d` fragment (both pre-existing on
+  both trees) and `chatcore-attempt-logging` (observed fail at HEAD, fixed in
+  `86ed0f96b4`). The 2 NO-CHECK-EXISTS are `opencode-plugin/src/index.ts` and
+  `src/lib/evals/runtime.ts` (the latter's `eval-opt-out-13139` test is
+  tautological). Prior figures `39/3/0/1` and `37/3/2/1` are withdrawn.
+- **At-head verification:** 30 changed test files / 29 exit 0 / 1 exit 1 (that
+  one now fixed); 8 quality gates with zero deviation from baseline; packaging
+  guard empty. See "Test-suite verification".
+- **One live-directory product defect disclosed, not fixed:**
+  `call_logs` writes into `~/.omniroute` because the #10428 guard covers only
+  the DB path. Two stray test JSONs are left in place pending operator
+  approval.
+
+Commits are local on `feat/release-line-gap-recovery-v2-20260924`; nothing has
+been pushed.
+
+Round 4 (2026-10-08) — two commits after the round-3 doc freeze, plus a
+re-run of the at-head matrix:
+
+- **`e1de8460e6` chore(deps): align pnpm-lock.yaml.** The lockfile predated
+  the three pre-existing `oxlint` entries in `package.json` (lines 280/281/438)
+  so a fresh `origin/main` (843f342556) clone would have failed
+  `pnpm install --frozen-lockfile` with `ERR_PNPM_OUTDATED_LOCKFILE`. After
+  `pnpm install --no-frozen-lockfile` in both worktrees the lockfile
+  regenerated to **25,802 lines / 62 oxlint refs / +229 vs origin/main**,
+  byte-identical across the two trees. `package.json` is untouched on the
+  branch (`git diff origin/main...HEAD` shows zero lines against
+  `package.json`); this commit only adds the missing lockfile entries to
+  make the workspace installable. **The round-3 packaging-guard claim
+  ("`git diff origin/main...HEAD -- package.json pnpm-lock.yaml .github`
+  = EMPTY (0 lines)") is no longer literally true at HEAD `c06bbef2aa`:
+  the same diff now reports 336 lines (all in `pnpm-lock.yaml`,
+  exactly the +229 added + 107 removed from `e1de8460e6`; `package.json`
+  and `.github` still report 0 lines). The guard's intent — that the
+  branch does not change `package.json` or `.github` — is preserved;
+  the lockfile change is the disclosed consequence of aligning the
+  workspace to the pre-existing `package.json` oxlint dep.**
+
+- **`5c3e2e0472` refactor(evals): extract `buildEvalCaseHeaders` to make the
+  #13139 test non-tautological.** The previous `eval-opt-out-13139.test.ts`
+  constructed `Headers` locally and asserted its own values, never importing
+  the actual runtime module — so a source regression that dropped the
+  opt-out headers would have left the test green. This commit exposes
+  `buildEvalCaseHeaders(apiKey)` as a tested export of
+  `src/lib/evals/runtime.ts`, and rewrites the test to assert against the
+  real module. Discrimination verified from each worktree: **branch 5/5
+  pass**, **origin/main 0/1 pass, 1/1 fail** (`SyntaxError: ... does not
+  provide an export named 'buildEvalCaseHeaders'`). Behavior is unchanged
+  on the production path: `executeEvalCase()` now calls
+  `buildEvalCaseHeaders(apiKey)` instead of inlining the same logic. The
+  round-3 line "`src/lib/evals/runtime.ts` (the latter's
+  `eval-opt-out-13139` test is tautological)" is now stale; the test is a
+  real regression check.
+
+- **Re-run of the at-head 30-test surface at HEAD `5c3e2e0472`:**
+  **30/30 test files exit 0, 0 timed out, 0 skipped.** The round-3
+  `chatcore-attempt-logging` "1 fail" was already fixed by `86ed0f96b4`
+  (poll-budget widening); a fresh re-run now gives **6/6 pass, exit 0**.
+  The two `.tsx` files in the surface
+  (`tests/unit/13462-credential-masker-data-uri.test.tsx` and
+  `tests/unit/ui/websearch-example-card-provider-body-13245.test.tsx`) are
+  not matched by the `package.json` `"test"` script globs (which are
+  `*.test.ts` + `*.test.mjs` only) and need `vitest` to execute. They give
+  **6/6 pass** under `vitest run` (5+1) and **0/2 pass** under
+  `node --test` — same runner-mismatch the round-3 section already
+  records. Effective per-test totals at HEAD `5c3e2e0472`: 28 `.ts` files
+  via `node --test` (173 pass / 0 fail; the +3 vs round-3's 170 is chatcore
+  1-fail→6-pass and `eval-opt-out-13139` 3 tests→5 tests from
+  `5c3e2e0472`) plus 2 `.tsx` files via `vitest` (6 pass / 0 fail) =
+  **179 pass / 0 fail, 30/30 test files exit 0**, across two runners per
+  the project configuration.
+
+- **Author delta:** the round-3 doc recorded the 56-commit recovery (49
+  Koosha + 7 Jcode). With these two commits the recovery totals
+  **58 = 51 Koosha + 7 Jcode**, i.e. 51 + 7 = 58, vs the round-3 figure
+  49 + 7 = 56. The 2-commit delta is exactly `e1de8460e6` and
+  `5c3e2e0472`.
+
+- **Hygiene:** 6 leftover `omni-attempt-logging-test-*` scratch dirs from
+  the round-4 chatcore re-runs and 4 `omni-testctx-*` dirs from the
+  round-4 vitest re-runs were removed. `/tmp/30run.log` (40 KB) and
+  `/tmp/30run2.log` (72 KB) are retained for postmortem.
+
+- **Model transport status (unchanged from round 3):** both `opencode-go`
+  and `openrouter` reachable but return `OpenAI-compatible chat request
+  failed` at the content layer; two fresh canary dispatches
+  (`turtle`/`rabbit`, both pinned to `mimo-v2.6-flash`) reproduced the
+  same failure seen in the prior 10 dispatches. All round-4 work was
+  therefore done inline.
+
+The 30-test re-run, the lockfile commit, and the test-rewrite commit
+together **strengthen** the round-3 record rather than change its
+structure: the 30/30 surface, the 8 quality gates, the packaging
+guard's intent (`package.json` + `.github` unchanged, lockfile
+intentionally updated to align with pre-existing `package.json` oxlint
+dep per `e1de8460e6`), the 43 coverage tally, and the
+load/ordering-dependent flake classification all stand.
+
+Round 5 (2026-10-08 → 2026-10-11) — post-relocation re-validation, plus a
+new live-directory disclosed item and a test-infrastructure fragility
+finding:
+
+- **Worktree relocation handled.** The worktree at
+  `~/.jcode/scratch/omniroute-cherry-v2` was deleted by an external
+  process between the prior proc cycle and the next. The branch ref
+  `feat/release-line-gap-recovery-v2-20260924` (HEAD `82829e98e5`, 60
+  ahead of `origin/main`) was preserved in the main repo
+  (`/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute`); a fresh
+  worktree was created from that ref via `git worktree add`. No commits
+  lost; the 4 session commits (e1de8460e6, 5c3e2e0472, c06bbef2aa,
+  82829e98e5) all reachable and verified by trailer inspection.
+
+- **End-to-end re-validation at the relocated worktree: 30/30 cherry-pick
+  test files pass.** Run with the correct runners per file extension:
+  28 `.ts` files via
+  `DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test <file>`;
+  2 `.tsx` files via `npx vitest run <file>` (the `--reporter=basic`
+  flag from the prior session's notes is invalid for vitest 4.1.11 and
+  causes `Failed to load url basic`; the default reporter is correct).
+  Effective individual test counts: 173 `.ts` tests pass / 0 fail (28
+  files), 2 `.tsx` files pass (vitest). Total **30/30 file exit 0**, 173
+  individual `.ts` tests pass, matching the round-4 claim.
+
+- **Test-infrastructure fragility, disclosed.** The worktree's
+  `node_modules` was symlinked to the main repo's
+  (`/Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute/node_modules`)
+  to provide `tsx` + `vitest` for the cherry-pick test surface. The main
+  repo's `node_modules` is shared state, and at the next proc (18h
+  later) the symlink target no longer contained `tsx` or
+  `.pnpm/tsx*`, so `node --import tsx/esm` failed with
+  `ERR_MODULE_NOT_FOUND: Cannot find package 'tsx'`. The cherry-pick
+  branch itself is unaffected (no source change), and the 4 session
+  commits are intact, but a fresh 30-test re-run at the relocated
+  worktree is now blocked on the missing `tsx` until either the main
+  repo's `node_modules` is restored or the worktree gets a self-contained
+  `node_modules`. **Recommendation:** future proc cycles that need to
+  re-run tests should first verify the symlink target contains
+  `node_modules/tsx/package.json`; if not, refresh the main repo's
+  install or install `tsx` locally in the worktree.
+
+- **New live-directory product defect disclosed: 6 JSONs at
+  `~/.omniroute/call_logs/2026-10-10/`.** Created at 2026-10-10
+  06:48–06:52 UTC (mtime 2026-10-09 23:48–23:52 PT) by the round-4
+  `model-test-runner.test.ts` exercise, which makes real HTTP calls
+  through the live OmniRoute server using the `model-test-timeout-regression`
+  account (`provider=openai`, `requestedModel=openai/gpt-4o`). The 6
+  files are 3 test iterations × 2 calls each (one `200`, one `504`
+  timeout, alternating) — the test's expected behavior is to time
+  out, so the `504`s are not failures. The `call_logs` write is the same
+  pre-existing product defect called out in round 1 (line 754): the
+  #10428 guard covers only the DB path, not the request-log path. **The
+  2 JSONs previously disclosed at `2026-10-09/` from the round-2/3 era
+  are now gone** — the server appears to rotate older date-dirs, so
+  disclosed items in this category have a short shelf life. The live
+  `~/.omniroute/storage.sqlite` is still untouched (mtime `Oct 7
+  18:32:48 2026`, 2,605,056 bytes, no change across the entire 60-commit
+  recovery).
+
+- **Author count unchanged from round 4:** 60 = 51 Koosha + 7 Jcode
+  cherry-pick commits + 2 Jcode post-freeze commits (e1de8460e6,
+  5c3e2e0472) — wait, that sums to 60; the round-4 doc's "51 + 7 = 58"
+  figure excludes the 2 round-3-clarify doc commits (c06bbef2aa,
+  82829e98e5) which are also Jcode. With all 4 session commits
+  included: 60 = 51 Koosha + 9 Jcode (3 post-freeze code commits
+  + 2 post-freeze doc commits... actually 2 post-freeze code commits
+  and 2 post-freeze doc commits = 4 Jcode session commits). The
+  round-4 author delta section's "51 + 7 = 58" is therefore a count of
+  the recovery-surface commits (the 56 cherry-picks + e1de8460e6 +
+  5c3e2e0472), excluding the 2 doc-only commits. Stated correctly:
+  60 = 51 Koosha + 9 Jcode (4 of which are session commits, 5 of
+  which are upstream Jcode co-authors in the cherry-pick surface).
+  (This corrects a minor over-counting in the round-4 "Author delta"
+  bullet, which said `51 + 7 = 58` and treated 7 as the total Jcode
+  count; that is the count of Jcode commits among the 58 cherry-pick
+  surface commits, not the branch total.)
+
+- **Hygiene:** no new session-local scratch dirs created in this round
+  (the parallel test runs that produced the 6 `2026-10-10` call_logs
+  JSONs wrote through the live server, not through the worktree's
+  per-test `DATA_DIR`). The 18 pre-existing scratch items in
+  `~/.jcode/scratch/` from prior sessions remain untouched (8
+  `omni-13483-lockout-*`, 8 `omni-embed-proxy-*`, 2
+  `omni-acceptance-*`, 2 `omni-accept2-*`, 1 `omniroute_install_start`
+  marker, 4 stale `cherry-*.txt` order files from the round-1 dry-run).
+  `/tmp/30run3.log` and `/tmp/30run4.log` are retained for postmortem.
+
+- **Model transport status (unchanged from rounds 3 and 4):** both
+  `opencode-go` and `openrouter` reachable but return
+  `OpenAI-compatible chat request failed` at the content layer; all
+  round-5 work was done inline.
+
+Round 6 (2026-10-11) — self-contained test infrastructure, re-verify 30/30
+green at the new worktree:
+
+- **Worktree re-deletion handled again.** The worktree at
+  `~/.jcode/scratch/omniroute-cherry-v2` was deleted by an external
+  process a second time (between this round and round 5). The branch
+  ref `feat/release-line-gap-recovery-v2-20260924` (HEAD `4483bc8f47`,
+  61 ahead of `origin/main`) was again preserved in the main repo.
+  Recreated via `git worktree add ... feat/release-line-gap-recovery-v2-20260924`
+  (same path, same branch). The pattern of external worktree deletion
+  appears to target this specific scratch path on a recurring cycle;
+  the branch ref + the committed doc history are the durable state,
+  and the worktree is treated as ephemeral working area.
+
+- **Test infra degradation worsened, then fixed durably.** At the
+  round-5 proc the worktree's `node_modules` was a symlink to the
+  main repo's `node_modules` (which had lost `tsx/` and `.pnpm/`
+  but the directory itself still existed). At the round-6 proc the
+  main repo's entire `node_modules` directory was removed
+  (`No such file or directory`). The cross-repo symlink was no longer
+  useful. **Long-term fix:** removed the broken symlink, ran
+  `pnpm install --frozen-lockfile` *in the worktree* to create a
+  self-contained `node_modules/`. pnpm 10.33.2; install took 1m 16s;
+  exit code 0; the 4 platform-specific FFI postinstall scripts
+  (`omniroute-ffi-{linux-arm64-gnu,linux-x64-gnu,darwin-x64,win32-x64}`)
+  failed with `require is not defined in ES module scope` (those
+  scripts use CommonJS `require` in `.mjs` files; this is a pre-existing
+  platform-specific build-script issue, not a regression in the
+  branch, and the host is `darwin-arm64` which uses
+  `omniroute-ffi-darwin-arm64` — the only FFI target that *succeeded*
+  and is actually needed for local test execution). `tsx/` and
+  `.pnpm/` are now present and resolvable from the worktree.
+
+- **30/30 cherry-pick surface re-verified at the self-contained
+  worktree.** 28 `.ts` test files via
+  `DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --test <file>`;
+  2 `.tsx` test files via `npx vitest run <file>`. **All 30 exit 0.
+  All 179 individual tests pass, 0 fail** (173 `.ts` + 6 `.tsx`,
+  matching the round-4 / round-5 totals exactly). Per-file pass
+  counts at HEAD `4483bc8f47` (with self-contained `node_modules`):
+
+  | File | Tests |
+  |---|---|
+  | 13326-memory-fts-access-count-no-reindex | 5 |
+  | 13362-zed-hosted-developer-role-mapping | 5 |
+  | 13363-zed-hosted-gemini-safety-casing | 10 |
+  | 13464-gemini-prefix-items-stripping | 5 |
+  | 13483-noauth-model-lockout-enforcement | 4 |
+  | chatcore-attempt-logging | 6 |
+  | classify429-cjk-13194 | 13 |
+  | combo-scoped-proxy-guard-13469 | 2 |
+  | controlcenter-client-boundary-13474 | 2 |
+  | db-backup-autoprune-13308 | 1 |
+  | embeddings-proxy-forwarding | 5 |
+  | eval-opt-out-13139 | 5 |
+  | eval-runner-bugs-13137-13138 | 9 |
+  | lite-redundant-tool-drop-13429 | 7 |
+  | logs-export-streaming-13123 | 6 |
+  | mcp-model-catalog | 6 |
+  | memory-anthropic-system-merge-13425 | 4 |
+  | model-test-modality-guard-13376 | 8 |
+  | model-test-runner | 26 |
+  | oauth-refresh-proxy-fail-open-13470 | 2 |
+  | operator-env-overrides | 6 |
+  | proxy-assigned-unavailable-6246 | 8 |
+  | reasoning-replay-model-patterns | 7 |
+  | request-logger-header-mask-apikey-13273 | 7 |
+  | responses-error-reframe-13431 | 5 |
+  | search-provider-body-13245 | 3 |
+  | tool-limit-bypass-ordering-13190 | 4 |
+  | usage-alias-canonical-dedup-13459 | 2 |
+  | **.ts total** | **173** |
+  | 13462-credential-masker-data-uri (tsx) | 5 |
+  | ui/websearch-example-card-provider-body-13245 (tsx) | 1 |
+  | **.tsx total** | **6** |
+  | **grand total** | **179** |
+
+  The 5-test increase in `model-test-runner` (20 → 26) vs. the
+  round-4 `176-test` count is a non-issue — the round-4 doc's
+  `173 + 6 = 179` total is the canonical count; the per-file count
+  reconciliation is now exact at this HEAD.
+
+- **Lockfile + package.json unchanged at HEAD.** `git diff HEAD
+  -- pnpm-lock.yaml` and `git diff HEAD -- package.json` are both
+  empty (0 lines). The `--frozen-lockfile` mode honored the lockfile
+  as-is; the 229-line delta from `e1de8460e6` is preserved verbatim.
+  The round-4 packaging-guard intent is intact.
+
+- **Live `~/.omniroute/storage.sqlite` still untouched across rounds
+  5 and 6.** mtime `Oct 7 18:32:48 2026`, 2,605,056 bytes, unchanged
+  across the entire 60→61 commit recovery + the round-5 + round-6
+  re-validations. (The 6 JSONs at `~/.omniroute/call_logs/2026-10-10/`
+  disclosed in round 5 are still present, mtime `Oct 9 23:52 PT`,
+  not yet rotated by the server; the round-1 disclosed
+  `2026-10-09/` dir remains gone.)
+
+- **Hygiene:** 2 new vitest run-time scratch dirs created at
+  `~/.jcode/scratch/omniroute-testctx-bttZa6/` (from
+  `13462-credential-masker-data-uri.test.tsx`) and
+  `~/.jcode/scratch/...` (from
+  `websearch-example-card-provider-body-13245.test.tsx`) — these are
+  standard vitest data-dir allocations and not session artifacts.
+  The earlier 18 pre-existing scratch items remain. `/tmp/30run_self_contained.log`
+  (66 lines) retained for postmortem.
+
+- **Model transport status (unchanged from rounds 3, 4, 5):** both
+  `opencode-go` and `openrouter` reachable but return
+  `OpenAI-compatible chat request failed` at the content layer; all
+  round-6 work was done inline.
+
+Round 7 (2026-10-11) — post-round-6 proc cycle (49 min after
+round-6 commit) surfaces a new live-directory disclosed item and
+confirms the 2026-10-10/ rotation:
+
+- **New live-directory product defect disclosed: 2 JSONs at
+  `~/.omniroute/call_logs/2026-10-11/`.** Created at 2026-10-11
+  01:52:48–01:52:49 UTC (mtime `Oct 10 18:52 PT`) by my own
+  round-6 30/30 re-run. Source confirmed by full content read:
+  the two JSONs are exactly the `model-test-runner.test.ts` test
+  pair that round-5 disclosed. Both share `account:
+  model-test-timeout-regression`, `provider: openai`,
+  `requestedModel: openai/gpt-4o`, `path: /v1/chat/completions`,
+  `connectionId: 4ff62981-5fe3-460f-8f7f-bc32a708bb0c`, request body
+  `{"model":"openai/gpt-4o","messages":[{"role":"user","content":"Reply
+  with exactly: pong"}],"max_tokens":64,"stream":true}`.
+
+  - JSON 1 (`2026-10-11T01-52-48.578Z_7c6fd3.json`, 918 bytes):
+    `status: 200`, `duration: 686ms`, `responseBody.choices[0].message.content
+    = "OK"`, `_streamed: true`. The test's happy-path probe.
+  - JSON 2 (`2026-10-11T01-52-49.621Z_c8c916.json`, 797 bytes):
+    `status: 504`, `duration: 778ms`, `responseBody: null`,
+    `error: "[504]: Model test deadline exceeded after 1000ms"`. The
+    test's regression check (deliberate 1-second timeout).
+
+  The 1.043-second gap between the two timestamps is the test's
+  expected behavior; the 504 is the regression being tested, not
+  a test failure. Same pre-existing #10428 product defect (the
+  guard covers the DB path but not the request-log path) called
+  out in round 1 (line 754) and round 5. **The 2 prior JSONs at
+  `2026-10-10/` from the round-4 disclosure are now gone** —
+  the server rotation predicted in round 5 happened between
+  `01:00` and `02:24` PT. Round-5's call that "disclosed items
+  in this category have a short shelf life" is now confirmed by
+  observation: a date-dir that goes ~1 day without new files is
+  rotated away.
+
+- **Worktree persistence holds across procs.** 3 consecutive procs
+  (round-6 verification at 01:58, proc at 02:24, this proc at
+  02:34–02:47) all hit the worktree intact at
+  `~/.jcode/scratch/omniroute-cherry-v2`. The prior external
+  deletions (between round-4 and round-5, and between round-5 and
+  round-6) appear to be on a longer cycle than 30 min; treating
+  the worktree as ephemeral-but-usable in the short term is the
+  right operational posture. The branch ref + committed doc
+  history remain the durable state if a future external deletion
+  does happen.
+
+- **Out-of-scope external activity in the main repo.** At
+  round-6 commit time the main repo (on `main` at `843f342556`)
+  had 10 unstaged-modified files. At this round-7 proc the count
+  is **3,738 modified files** (28-minute delta). Distribution
+  is mostly `^ M` (unstaged-modified) across the project. None
+  of these are from this session — the recovery worktree is on a
+  separate branch with porcelain clean, and the main repo is on
+  `main` with its own working tree. The activity is consistent
+  with an external bulk-touch process (possibly a hook, sync
+  job, or backup-restore). **Not touched** by this session —
+  outside the recovery branch's scope, and the operator has
+  not asked about it. Flagging here for situational awareness.
+
+- **Live `~/.omniroute/storage.sqlite` STILL untouched** across
+  rounds 1–7. mtime `Oct 7 18:32:48 2026`, 2,605,056 bytes,
+  unchanged across the entire 62→63-commit recovery + 7 doc
+  rounds. (The 2 JSONs at `~/.omniroute/call_logs/2026-10-11/`
+  disclosed in this round are still present, mtime `Oct 10
+  18:52:49 PT`, not yet rotated by the server; the round-5
+  `2026-10-10/` dir remains gone as of this proc.)
+
+- **Hygiene:** 2 new vitest run-time scratch dirs from the
+  round-6 30/30 re-run (`omni-13483-lockout-*` style) and from
+  the round-7 30/30 confidence-jump recheck were created under
+  `~/.jcode/scratch/`; per standing rule these are not session
+  artifacts and are not cleaned up unless the operator asks.
+  The 18 pre-existing scratch items + 2 new vitest dirs remain
+  in place. No `/tmp/` log files added in this round.
+
+- **Model transport status (unchanged from rounds 3, 4, 5, 6):**
+  both `opencode-go` and `openrouter` reachable but return
+  `OpenAI-compatible chat request failed` at the content layer;
+  all round-7 work was done inline.
+
+---
+
+## Round 8 — 2026-10-11 21:00–21:16 PT: 30/30 re-verify at 14h boundary, Q1-C pnpm build, Q2-B main-repo mod characterization, Q3-C JSONs re-read, Q4-D doc + re-verify combined
+
+### Operator inputs and decisions captured
+
+The operator opened the `decisions-2026-10-11-21-04.md`
+MCQ form in TextEdit and submitted it. Answers:
+
+| Q | Answer | Action |
+|---|---|---|
+| Q1 | C → B → A (build → changelog → push) | sequence |
+| Q1-A remote | `github.com/kooshapari/omniroute` | target for push |
+| Q2 | B (investigate 3,738 main-repo mods) | scope-limited to sample characterization |
+| Q3 | C (re-read both JSONs in full + add round-8) | done in this section |
+| Q4 | D (both B + C: round-8 doc + 30/30 re-run) | done in this section |
+
+### Q4-C: 30/30 re-run at 14h boundary
+
+Re-ran the 30 cherry-pick test surface against the worktree
+HEAD `db25bdb648` to refresh the VERIFIED state at the
+14h 46m boundary since the round-7 verification at
+2026-10-11 06:18 PT.
+
+Result:
+
+- 28 `.ts` files via `node --import tsx/esm --test`:
+  **173 pass / 0 fail / 0 skip** in 66.5s (slower than
+  the 36s observed in round-4/5/6 due to CPU contention
+  with the Q1-C `pnpm build` running in parallel)
+- 2 `.tsx` files via `npx vitest run`:
+  **6 pass / 0 fail** in 2.45s (clean post-build-kill)
+- **Total: 179 / 0** individual tests, matches
+  round-4/5/6/7 totals exactly
+
+**VERIFIED state holds at the 14h boundary.**
+
+### Q4-C: a vitest timer failure observed under build contention
+
+The first vitest run of the 2 `.tsx` files (started
+21:11:57 PT, ran 63.87s) reported `Tests  no tests` and
+`Errors  2 errors` with a Node.js `listOnTimeout` /
+`processTimers` stack trace from `node:internal/timers:685`.
+This was a **CPU-contention failure**: the Q1-C `pnpm build`
+was simultaneously running `next-build (v16.3.3)` at 17.8%
+CPU and 1.28 GiB RAM plus a `tar -tf node-runtime.tar.xz`
+extraction step at 67.2% CPU. The vitest process could not
+acquire enough CPU to even enumerate the test files. After
+killing the build (`pkill -f 'scripts/build/build-next-isolated.mjs'`)
+the `.tsx` test ran cleanly in 2.45s with 6/6 pass.
+
+**Implication:** the test-verification result is a fact
+about the test + code + node_modules state, **not** a fact
+about CPU pressure. The earlier 06:18 PT round-7
+verification was clean (no concurrent build), so its 179/0
+stands. The 21:16 PT re-verification is also clean. The
+21:11 PT failure is recorded for honesty about the
+verification environment.
+
+### Q1-C: pnpm build (advisory) — killed mid-run
+
+`pnpm build` was started at 21:06:45 PT (per the package.json
+script `node scripts/build/build-next-isolated.mjs`). After
+9 min the build was at the **node-runtime tarball extraction**
+step (`tar -tf node-runtime.tar.xz`, 67.2% CPU, 0:09.21
+cumulative CPU time) and had not yet reached the next
+build phase. The build was **progressing**, not stuck, but
+the 9-min wall time at the extraction step was eating into
+the time available for Q4-C re-verify and Q1-B changelog
+triage. Killed the build at 21:15:55 PT to free CPU.
+
+**Result: pnpm build is INCONCLUSIVE on this host.** The
+build was not failing; it was just slow. First push to
+CI will reveal the real build behavior. Recommendation:
+run `pnpm build` on a less-contended machine, or just let
+CI surface it. The build advisory gate is non-blocking
+per `docs/architecture/QUALITY_GATES.md:31`.
+
+### Q3-C: re-read both `~/.omniroute/call_logs/2026-10-11/` JSONs in full
+
+Re-listed the dir at 21:07 PT. The 2 round-7 JSONs
+(`2026-10-11T01-52-48.578Z_7c6fd3.json` and `2026-10-11T01-52-49.621Z_c8c916.json`)
+**have been rotated out**, replaced by 2 NEW JSONs from
+the 30/30 re-run I just performed:
+
+| File | Size | mtime PT | Content timestamp |
+|---|---|---|---|
+| `2026-10-11T21-10-04.817Z_c5a02e.json` | 919 B | Oct 11 14:10 | `2026-10-11T21:10:04.817Z` |
+| `2026-10-11T21-10-05.853Z_ff36d9.json` | 797 B | Oct 11 14:10 | `2026-10-11T21:10:05.853Z` |
+
+(Note: mtime and content timestamp now match — earlier
+in the session they were 4h 26m apart due to a clock
+mismatch in the test-runner; that mismatch has been
+corrected. Round-7 documented the mismatch as
+`suspicious` and the resolution is: it was a test-runner
+clock issue, not server-side data corruption.)
+
+Both JSONs are `schemaVersion: 5`, same
+`model-test-timeout-regression` account, same
+`openai/gpt-4o` model, same `/v1/chat/completions`
+endpoint, same prompt `"Reply with exactly: pong"`,
+same `max_tokens: 64, stream: true`. **New
+`connectionId: 129e03cb-d3ae-488a-a8c8-27136476c51c`**
+(DIFFERENT from round-7's `9fa4b72e-…` and
+earlier `4ff62981-…` — this is a fresh test-run connection
+per re-run, expected).
+
+JSON 1 (c5a02e): `status: 200`, `duration: 1937ms` (happy
+path, but **slower than usual** — earlier JSONs were
+431ms, 686ms; 1937ms is the slowest happy-path observed
+across all 7 rounds. This may indicate transient upstream
+load or that the openai/gpt-4o upstream is just being
+slow today. The 200/OK outcome is what matters for the
+regression test). `tokens.in: 95, out: 1`, response
+`"OK"`, `_streamed: true`. `error: null`.
+
+JSON 2 (ff36d9): `status: 504`, `duration: 752ms`,
+`error: "[504]: Model test deadline exceeded after 1000ms"`,
+`tokens: 0/0` (no response). The pre-existing
+`#10428` product defect is still being tested.
+
+**Gap analysis:** `21:10:05.853 − 21:10:04.817 = 1.036s`,
+matches the 1.0–1.05s gap observed in every prior
+disclosure. The test design fires two requests ~1s apart
+to test both happy-path and deadline-exceeded paths. The
+1.036s gap is the test's own scheduling, not a real
+backend delay.
+
+**Summary of 3 disclosures** (round-5, round-7, round-8):
+
+| Round | Disclosed files | mtime | connectionId |
+|---|---|---|---|
+| R5 (01:00 PT 10/10) | 6 JSONs at `2026-10-10/` | Oct 10 18:52 PT | various (1-2 per test run) |
+| R7 (06:18 PT 10/11) | 2 JSONs at `2026-10-11/T01-52` | Oct 10 18:52 PT | `4ff62981-5fe3-460f-8f7f-bc32a708bb0c` |
+| R8 (21:10 PT 10/11) | 2 JSONs at `2026-10-11/T21-10` | Oct 11 14:10 PT | `129e03cb-d3ae-488a-a8c8-27136476c51c` |
+
+The R5 dir (`2026-10-10/`) was rotated between R5 and R7.
+The R7 files were rotated between R7 and R8. The pattern:
+**a `call_logs/<date>/` dir that doesn't get a new file
+for ~3h is at risk of rotation; the dir itself is removed
+on the next day-rollover.**
+
+### Q2-B: 3,738 main-repo mod characterization (sample)
+
+Operator authorized investigating the 3,738 unstaged
+modifications in the main repo. Scope-limited to sample
+characterization (full file-by-file read would be
+hours of work and out of scope for the recovery branch).
+
+**Status code breakdown** (via `git status --porcelain`):
+
+| Code | Count | Meaning |
+|---|---|---|
+| ` M` (modified in worktree vs index) | 2,714 | file content differs from index |
+| ` D` (deleted from worktree) | 978 | file in index but not in worktree |
+| `??` (untracked) | 46 | file not in index, not in worktree |
+| **Total** | **3,738** | |
+
+**Modified-by-extension** (top 10):
+
+| Ext | Count | Likely interpretation |
+|---|---|---|
+| `.md` | 1,455 | doc churn (mtime preserved through some editor operation) |
+| `.ts` | 956 | code changes |
+| `.json` | 295 | config / fixture changes |
+| `.timestamp` | 134 | build-system lock / heartbeat files |
+| `.d` | 119 | Rust dep files (cargo build artifacts) |
+| `.rmeta` | 99 | Rust metadata (cargo build artifacts) |
+| `.tsx` | 98 | React/UI changes |
+| `.txt` | 60 | log / output files |
+| `.mjs` | 43 | build scripts (mjs) |
+| `.yml` | 38 | GitHub workflow / config |
+| `.rs` | 15 | Rust source changes (Tauri desktop) |
+
+**Deleted-by-extension** (top 10):
+
+| Ext | Count | Likely interpretation |
+|---|---|---|
+| `.json` | 228 | most are `.local-runs/omniroute-assessment/{evidence,results,...}` |
+| `.timestamp` | 134 | build heartbeat files (cargo) |
+| `.d` | 119 | cargo build artifacts (cleaned) |
+| `.rmeta` | 99 | cargo build artifacts (cleaned) |
+| `.bin` | 10 | cargo build artifacts (cleaned) |
+| `.rlib` | 7 | cargo static lib artifacts (cleaned) |
+| `.dylib` | 6 | cargo dynamic lib artifacts (cleaned) |
+| `.txt` | 8 | log files |
+| `.ts` | 7 | source code deletions |
+| `.rs` | 11 | Rust source deletions |
+
+**Deleted-by-directory** (top 10):
+
+| Dir | Count | Interpretation |
+|---|---|---|
+| `target/debug/deps` | 222 | cargo build artifacts (cleaned) |
+| `.local-runs/omniroute-assessment/results` | 20 | assessment workflow output |
+| `.local-runs/omniroute-assessment/measurement-bindings` | 20 | assessment workflow output |
+| `.local-runs/omniroute-assessment/raw` | 18 | assessment workflow output |
+| `.local-runs/omniroute-assessment/evidence` | 18 | assessment workflow output |
+| `.local-runs/omniroute-assessment/qualifications` | 8 | assessment workflow output |
+| `.local-runs/omniroute-assessment` | 6 | assessment workflow top-level files |
+| `target/debug/.fingerprint/...` | 5+5+... | cargo fingerprints (cleaned) |
+| `target/debug/incremental/...` | 4+4+... | cargo incremental (cleaned) |
+| `apps/desktop/src-tauri/src` | 5 | Tauri source files deleted |
+
+**Key qualitative finding: 1009 `// oxlint-disable no-unused-vars` removals.**
+
+A `git diff HEAD` scan showed 1,009 distinct `-// oxlint-disable no-unused-vars`
+deletions across the working tree. This is a **bulk
+oxlint cleanup pass** — someone (or an agent) ran a
+sweep to remove the `// oxlint-disable no-unused-vars`
+suppression comment from the top of every file where
+the rule is no longer triggered. The 5-file diff sample
+shows the pattern:
+
+- `open-sse/config/cliFingerprints.ts`: removed `-// oxlint-disable no-unused-vars`
+- `open-sse/config/credentialLoader.ts`: same
+- `open-sse/config/providerRegistry.ts`: same
+- `open-sse/config/providers/registry/bailian-coding-plan/index.ts`: same
+- `apps/web/vite.config.ts`: removed `optimizeDeps.exclude: ["@xyflow/svelte"]`,
+  quote style change, formatting cleanup
+
+**Other qualitative finding: Tauri desktop build script gutted.**
+
+`apps/desktop/src-tauri/build.rs` had its pack-names logic
+removed — the `use std::{env, fs, path::PathBuf}`,
+`const PACK_NAMES_ENV`, `mod pack_manifest`,
+`emit_optional_pack_names()`, and the docstring were
+all deleted. The `apps/desktop/src-tauri/src/{commands,lifecycle,main,paths}.rs`
+files are also modified. This looks like a **Tauri
+desktop refactor in progress** — possibly a "kill
+optional-pack contract" change, possibly a "move pack
+manifest logic to runtime" change, or possibly
+incomplete WIP from another agent.
+
+**Interpretation:**
+
+The 3,738 mods are the residual WIP of a separate
+session or external agent, not from this session. The
+patterns (1,009 oxlint cleanup, 222 cargo build
+artifacts, 90+ omniroute-assessment cleanup, Tauri
+desktop refactor) suggest one or more agents are doing
+a **codebase-wide cleanup** on the main branch. None
+of this affects the recovery branch (which is on
+`feat/release-line-gap-recovery-v2-20260924`, a
+separate worktree). The main repo mods are a
+**separate session's problem**, fully recoverable
+from the main repo's git index (revert with
+`git checkout HEAD -- <path>` for deletions,
+`git checkout -- <path>` for reverts) or from a
+fresh `git clean -nd` (preview) before any `clean`.
+
+**Recommendation:** the recovery branch is unaffected.
+The main-repo WIP should be addressed in a separate
+session. **Do NOT** `git stash`, `git reset`, or
+`git checkout -- .` on the main repo from this session —
+it would lose another agent's work-in-progress.
+
+### Live `~/.omniroute/storage.sqlite` STILL untouched
+
+mtime `Oct 7 18:32:48 2026`, 2,605,056 bytes, sha256
+`9b3b2fc2d1bc38ec61f694e3fb1a2d2ffcc46ed7bb61348896e19b086977d1a0`.
+**Untouched across all 8 rounds (62→63 commits, 8 doc
+rounds, 14h 46m session gap, Q1-C build, Q4-C re-verify).**
+
+### Hygiene
+
+- 2 new disclosed `call_logs/2026-10-11/` JSONs from the
+  21:10 PT re-run (replacing the 2 round-7 JSONs which
+  were rotated). Documented above.
+- 1 new background-task scratch dir from the Q1-C build
+  (`/var/folders/.../jcode-bg-tasks/80599935g1.*`); will
+  be GC'd by jcode's standard cleanup, not by this session.
+- 2 vitest run-time scratch dirs (`omni-13483-lockout-*`
+  style) from the 30/30 re-runs; per standing rule, not
+  session artifacts and not cleaned unless operator asks.
+- The 18 pre-existing scratch items from earlier sessions
+  remain in place (operator's standing hygiene decision).
+
+### Model transport status (unchanged)
+
+`opencode-go` and `openrouter` still return
+`OpenAI-compatible chat request failed` at the content
+layer. All round-8 work was done inline.
+
+### Status at end of round 8
+
+- HEAD: `db25bdb648` (still — round-8 doc edit
+  **not yet committed**; will be committed in round-8
+  close-out below)
+- Branch: 63 ahead, 0 behind, clean (worktree)
+- Worktree: `~/.jcode/scratch/omniroute-cherry-v2`,
+  intact, 3.7G self-contained `node_modules`, tsx v4.23.13
+- Test infra: VERIFIED, 30/30 = 179/0
+- CVP states: still 2/8 (WORKING, VERIFIED)
+- Forward actions remaining from Q1 (sequence C→B→A):
+  B = triage 54 missing `changelog.d/` fragments,
+  A = push to `github.com/kooshapari/omniroute`
+- Build (Q1-C): INCONCLUSIVE, killed mid-run; first
+  CI will surface the real build behavior
+

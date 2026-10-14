@@ -1,0 +1,1 @@
+- **fix(memory):** merges `memory` into the top-level `system` field when present instead of dropping it ([#13425](https://github.com/diegosouzapw/OmniRoute/pull/13425)) — thanks @KooshaPari.

@@ -1,0 +1,1 @@
+- **fix:** skips non-chat generation models in "Test all models" so image/audio endpoints are not probed as chat models ([#13376](https://github.com/diegosouzapw/OmniRoute/pull/13376)) — thanks @KooshaPari.

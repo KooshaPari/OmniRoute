@@ -1,0 +1,1 @@
+- **fix(logging):** masks `*-api-key` headers in the request-log pipeline so secrets are not persisted in logs ([#13273](https://github.com/diegosouzapw/OmniRoute/pull/13273)) — thanks @KooshaPari.

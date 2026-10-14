@@ -1,0 +1,1 @@
+- **fix(usage):** normalizes provider aliases to canonical id in `usage_history` so usage rows are attributed correctly ([#13459](https://github.com/diegosouzapw/OmniRoute/pull/13459)) — thanks @KooshaPari.

@@ -1,0 +1,1 @@
+- **fix(proxy):** threads `comboName` through `safeResolveProxy` so the fail-closed proxy guard is combo-scoped ([#13469](https://github.com/diegosouzapw/OmniRoute/pull/13469)) — thanks @KooshaPari.

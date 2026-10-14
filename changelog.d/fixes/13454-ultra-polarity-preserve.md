@@ -1,0 +1,1 @@
+- **fix(compression):** preserves polarity words and newlines in the ultra heuristic ([#13454](https://github.com/diegosouzapw/OmniRoute/pull/13454)) — thanks @KooshaPari.

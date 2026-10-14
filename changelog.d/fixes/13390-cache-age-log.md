@@ -1,0 +1,1 @@
+- **fix(opencode-plugin):** surfaces cache age in the disk fallback log and escalates log level with staleness ([#13390](https://github.com/diegosouzapw/OmniRoute/pull/13390)) — thanks @KooshaPari.

@@ -20,6 +20,13 @@ interface LiteCompressionOptions {
   compressToolResults?: boolean;
 }
 
+// Maximum length of a single tool-result message before truncation. Override
+// via OMNIROUTE_MAX_TOOL_LENGTH.
+const MAX_TOOL_LENGTH = (() => {
+  const n = Number(process.env.OMNIROUTE_MAX_TOOL_LENGTH);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 2000;
+})();
+
 function normalizeMessageWhitespace(content: string): string {
   if (!content) return "";
   return content.replace(/\n{3,}/g, "\n\n").replace(/[ \t]+$/gm, "");
@@ -123,7 +130,6 @@ export function compressToolResults(body: ChatBody): {
   applied: boolean;
 } {
   if (!body.messages) return { body, applied: false };
-  const MAX_TOOL_LENGTH = 2000;
   let applied = false;
   const messages = body.messages.map((msg) => {
     if (msg.role !== "tool" || typeof msg.content !== "string") return msg;
@@ -155,8 +161,15 @@ export function removeRedundantContent(
       continue;
     }
     const contentStr = typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content);
+    // #13429: Never collapse consecutive tool messages — even when their
+    // content is byte-identical (e.g. two empty strings), they carry
+    // distinct tool_call_id values. Dropping one orphans an assistant
+    // tool_call entry and triggers a 400 "insufficient tool messages"
+    // from strict upstream validators (DeepSeek-class endpoints).
     if (
       i > 0 &&
+      msg.role !== "tool" &&
+      body.messages[i - 1].role !== "tool" &&
       body.messages[i - 1].role === msg.role &&
       typeof body.messages[i - 1].content === "string" &&
       body.messages[i - 1].content === contentStr

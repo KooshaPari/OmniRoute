@@ -1,0 +1,1 @@
+- **fix(gemini):** strips JSON-Schema 2020-12 `prefixItems`/`additionalItems` from tool schemas so Gemini accepts them ([#13464](https://github.com/diegosouzapw/OmniRoute/pull/13464)) — thanks @KooshaPari.

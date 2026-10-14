@@ -1,0 +1,1 @@
+- **fix(pii):** adds OpenRouter metadata keys to the PII sanitizer skip list so they are not flagged ([#13488](https://github.com/diegosouzapw/OmniRoute/pull/13488)) — thanks @KooshaPari.

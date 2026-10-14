@@ -1,0 +1,1 @@
+- **fix(websearch):** adds Antigravity to the native web search bypass list ([#13447](https://github.com/diegosouzapw/OmniRoute/pull/13447)) — thanks @KooshaPari.

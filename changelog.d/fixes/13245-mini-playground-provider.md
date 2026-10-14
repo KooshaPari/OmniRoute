@@ -1,0 +1,1 @@
+- **fix(dashboard):** mini-playground web search now sends `provider` in the request body ([#13245](https://github.com/diegosouzapw/OmniRoute/pull/13245)) — thanks @KooshaPari.

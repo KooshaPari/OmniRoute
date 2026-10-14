@@ -4,7 +4,7 @@
 
 # OmniRoute
 
-A self-hosted AI gateway that routes requests across 350+ LLM providers through a single OpenAI-compatible endpoint. Smart fallback, cost optimization, token compression, and a built-in dashboard.
+A self-hosted AI gateway that routes requests across 358 LLM providers through a single OpenAI-compatible endpoint. Smart fallback, cost optimization, token compression, and a built-in dashboard.
 
 **One endpoint. Every provider. Automatic failover.**
 
@@ -74,7 +74,7 @@ OmniRoute sits between your AI tools and providers, handling routing, failover, 
 - **Auto-combo routing** -- `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline` modes with 16-factor scoring
 - **12-engine token compression** -- RTK, Caveman, LLMLingua-2, GCF, OmniGlyph and more
 - **3-layer resilience** -- circuit breakers, key cooldown, model lockout with exponential backoff
-- **MCP Server** -- 110 tools, 32 scopes for agent integration
+- **MCP Server** -- 110 tools, 33 scopes for agent integration
 - **A2A Protocol** -- v0.3 JSON-RPC 2.0 + SSE for multi-agent orchestration
 - **Local-first** -- SQLite with WAL journaling, AES-256-GCM encrypted keys, no telemetry
 
