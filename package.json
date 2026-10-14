@@ -346,7 +346,7 @@
     "recharts": "^3.8.1",
     "safe-regex": "^2.1.1",
     "selfsigned": "^5.5.0",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "smol-toml": "1.8.0",
     "socks": "^2.8.7",
     "sql.js": "^1.14.2",
