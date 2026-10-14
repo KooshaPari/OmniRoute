@@ -181,15 +181,17 @@ truth for the release.
      versions 0.91.1/0.91.2/0.95.3/0.106.1, MED+LOW)
    - 1 packages/api-contracts/package.json already counted above
 
-   **Partial progress 2026-10-14T23:47Z (commit `3644f5fcdd`):**
-   The bounded `cargo update -p rustls@0.23.41 --precise 0.23.45`
-   bumped rustls 0.23.41→0.23.45 (closes #343) and
-   rustls-webpki 0.103.13→0.103.15 (closes #4 HIGH and likely #2 #3
-   on next Dependabot re-scan as stale-scan). `cargo check` passes.
-   4 of 13 actionable alerts closed in a single 11-line Cargo.lock
-   diff.
+   **Partial progress 2026-10-14T23:50Z (commit `558ac1b5e9`):**
+   The bounded `go get github.com/hatchet-dev/hatchet@v0.106.1`
+   bumped hatchet 0.90.2→0.106.1 (closes #166, #257, #258, #259).
+   Verified `go build ./infra/hatchet/...` and `go vet ./infra/hatchet/...`
+   both pass with the new version. The pre-existing build errors
+   in plugins/{contextfolding,toolrouter,voyage}/ are unrelated to
+   this commit — they fail identically on the unchanged go.mod at
+   v0.90.2 (caused by local ./bifrost/core replace directive API
+   drift). 8 of 13 actionable alerts closed across this session.
 
-   **Remaining 9 actionable alerts:**
+   **Remaining 5 actionable alerts:**
    - 1 opentelemetry_sdk #5 (Cargo.toml version constraint "0.27"
      blocks --precise 0.32.1; needs Cargo.toml edit + multi-week
      API migration 0.27→0.32)
@@ -198,8 +200,6 @@ truth for the release.
      effort)
    - 3 vitest #233 #234 #242 (MAJOR 3.2.6→4.1.11 in 3 workspaces,
      breaking changes to mocking/snapshot/config APIs)
-   - 4 hatchet-dev #257 #258 #259 #166 (Go module major bumps
-     in extensions/argis, needs full extension rebuild)
 
    None of these remaining are routine 1-click bumps. The vitest
    MAJOR bump requires re-validating the entire test suite. The
@@ -214,8 +214,9 @@ truth for the release.
       Tauri desktop epic (multi-day GTK re-binding effort)
    3. Plan vitest 3→4 MAJOR migration as a separate test epic
       (one workspace at a time, full test re-validation each)
-   4. Plan hatchet-dev Go major bumps as part of the Argis
-      extension rebuild
+   4. Pre-existing plugins/{contextfolding,toolrouter,voyage}
+      build errors in extensions/argis are NOT hatchet-related;
+      they need a separate bifrost-core API migration epic
 
 ---
 
