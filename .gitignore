@@ -292,3 +292,6 @@ native-clients/macos-tray/.build/
 # Scratch files from agent sessions
 extract_*.py
 mcheck.txt
+
+# npm lockfile (pnpm is the package manager; bun.lock also ignored)
+package-lock.json
