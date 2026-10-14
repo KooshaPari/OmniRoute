@@ -177,6 +177,33 @@ truth for the release.
    from 87 to ~20 (the Cargo.lock + go.mod + other package.json alerts
    plus the 7 pnpm-lock.yaml no-fix ones in KI-002).
 
+6. **13 actionable alerts in non-pnpm manifests (new finding 2026-10-14T16:35Z)**
+   — After re-scanning post-v3.8.53, 13 of the 87 open alerts are in
+   manifests other than pnpm-lock.yaml / package-lock.json:
+   - 3 vitest MAJOR bumps (3.2.6→4.1.11) in apps/bff, apps/web, packages/api-contracts (#233, #234, #242, MED) — MAJOR version bump, needs test suite re-validation
+   - 5 Rust alerts in crates/omniroute-rs/Cargo.lock:
+     - #4 rustls-webpki fix 0.103.13 (HIGH, already past fix via 0.103.15 in tauri; stale-scan)
+     - #2 #3 rustls-webpki fix 0.103.12 (LOW, similar stale-scan)
+     - #5 opentelemetry_sdk fix 0.32.1 (MED)
+     - #343 rustls fix 0.23.45 (MED)
+   - 1 Rust alert in apps/desktop/src-tauri/Cargo.lock:
+     - #165 glib fix 0.20.0 (MED)
+   - 4 Go alerts in extensions/argis/go.mod (all hatchet-dev, fix versions 0.91.1/0.91.2/0.95.3/0.106.1, MED+LOW)
+   - 1 packages/api-contracts/package.json already counted above
+
+   None of these are routine 1-click bumps. The vitest MAJOR bump
+   requires re-validating the entire test suite (vitest 3→4 is a major
+   API change with breaking changes to mocking, snapshot, and config).
+   The Rust fixes need `cargo update -p <pkg>@<ver> --precise <fix>` to
+   pin specific transitive versions, which can cascade into other
+   Rust deps. The Go fixes need `go get -u` and a full Argis extension
+   rebuild. All need proper testing.
+
+   Recommended approach (next session): tackle them by manifest:
+   1. Run `cargo update` on crates/omniroute-rs to close 5 alerts
+   2. Run `go get -u` on extensions/argis to close 4 alerts
+   3. Plan vitest MAJOR migration as a separate epic
+
 ---
 
 ## Q2-A: byteport status (unchanged, out of scope)
