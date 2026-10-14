@@ -31,6 +31,7 @@ overrides:
   tinypool: '>=2.1.2'
   katex: '>=0.18.2'
   http-cache-semantics: '>=4.3.0'
+  smol-toml: '>=1.9.0'
 
 importers:
 
@@ -235,7 +236,7 @@ importers:
         specifier: '>=0.35.4'
         version: 0.35.5(@types/node@26.5.1)
       smol-toml:
-        specifier: 1.9.0
+        specifier: '>=1.9.0'
         version: 1.9.0
       socks:
         specifier: ^2.8.7
@@ -10956,10 +10957,6 @@ packages:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
     engines: {node: '>= 6.0.0', npm: '>= 3.0.0'}
 
-  smol-toml@1.7.1:
-    resolution: {integrity: sha512-PPlsspAZ4jbMBu5DMFhfUGDQLu/vrL4SyBROVS37x8ynnVmFIs1VPBz1Co8Xks3TvpIaZXmU85y4DrQ+UyVFoQ==}
-    engines: {node: '>= 18'}
-
   smol-toml@1.9.0:
     resolution: {integrity: sha512-hpd+HLON7HdZXqYchMM/+LaTTbdK0AU3NngIJ4KVyWbY9bfQqdL9cD+4yf6dUoU2Ap4VsU0JkQi6FxAI1B2mXQ==}
     engines: {node: '>= 18'}
@@ -15134,7 +15131,7 @@ snapshots:
       pdfjs-dist: 6.2.108
       react: 19.2.4
       semver: 7.8.5
-      smol-toml: 1.7.1
+      smol-toml: 1.9.0
     transitivePeerDependencies:
       - '@types/node'
       - '@types/react'
@@ -24202,9 +24199,6 @@ snapshots:
       is-fullwidth-code-point: 5.1.0
 
   smart-buffer@4.2.0: {}
-
-  smol-toml@1.7.1:
-    optional: true
 
   smol-toml@1.9.0: {}
 

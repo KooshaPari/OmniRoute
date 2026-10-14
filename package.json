@@ -481,7 +481,8 @@
       "simple-git": ">=4.0.1",
       "tinypool": ">=2.1.2",
       "katex": ">=0.18.2",
-      "http-cache-semantics": ">=4.3.0"
+      "http-cache-semantics": ">=4.3.0",
+      "smol-toml": ">=1.9.0"
     }
   },
   "allowScripts": {
