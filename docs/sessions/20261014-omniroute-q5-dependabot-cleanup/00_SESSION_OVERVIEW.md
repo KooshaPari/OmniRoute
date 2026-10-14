@@ -144,6 +144,15 @@ truth for the release.
    approval).
 4. **KI-002/003 recheck** — re-run the full pagination Dependabot scan
    after 24-48h to verify the 18 stale-scan items auto-closed.
+5. **Stale `package-lock.json` (new finding 2026-10-14T10:25Z)** — OmniRoute
+   has both `package-lock.json` and `pnpm-lock.yaml` in the repo. v3.8.53
+   closed #341 (shell-quote) and #279 (undici) via pnpm-lock.yaml overrides,
+   but Dependabot still tracks the package-lock.json manifest path for
+   #342 and #280 (same packages, same fix). Either the package-lock.json
+   is stale and should be deleted + added to .gitignore, or Dependabot's
+   manifest path tracking needs to be reconciled. Quick check: `ls -la
+   package-lock.json pnpm-lock.yaml` — if package-lock.json is older than
+   the most recent pnpm install, delete it.
 
 ---
 
