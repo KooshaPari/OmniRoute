@@ -154,6 +154,29 @@ truth for the release.
    package-lock.json pnpm-lock.yaml` — if package-lock.json is older than
    the most recent pnpm install, delete it.
 
+   **Recheck 2026-10-14T16:33 PDT (13h post-v3.8.53) — MUCH BIGGER FINDING:**
+   Of 87 open Dependabot alerts, 67 are in `package-lock.json` (77%).
+   Only 7 are in pnpm-lock.yaml. The other 13 are split across
+   `crates/omniroute-rs/Cargo.lock` (5), `extensions/argis/go.mod` (4),
+   `apps/web/package.json` (1), `apps/bff/package.json` (1),
+   `apps/desktop/src-tauri/Cargo.lock` (1), and
+   `packages/api-contracts/package.json` (1).
+   The package-lock.json is the dominant source of open Dependabot alerts.
+   It is git-tracked, lockfileVersion 3, 2,811 packages, NOT in .gitignore.
+   The pnpm-lock.yaml is the active lockfile (pnpm 9.0).
+
+   **Recommended cleanup (requires operator approval — public repo change):**
+   1. Verify `pnpm-lock.yaml` is the only lockfile `pnpm install` reads
+   2. Add `package-lock.json` to `.gitignore`
+   3. `git rm --cached package-lock.json` (soft delete, file remains on disk)
+   4. Commit + push
+   5. After Dependabot re-scans, all 67 package-lock.json alerts should
+      auto-close as "manifest file no longer tracked"
+
+   This is a high-leverage single-commit fix. It would drop open alerts
+   from 87 to ~20 (the Cargo.lock + go.mod + other package.json alerts
+   plus the 7 pnpm-lock.yaml no-fix ones in KI-002).
+
 ---
 
 ## Q2-A: byteport status (unchanged, out of scope)
