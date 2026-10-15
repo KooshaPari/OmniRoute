@@ -783,11 +783,11 @@ that needs integration?
    - `26e5241a93 refactor: decompose chat.ts (2461→2223 lines) into 5 sub-modules` (2026-09-15)
 3. **The untracked file names do not match the tracked ones.** The
    actual refactor shipped with these names:
-   | Untracked (D)               | Tracked (already on main)       |
+   | Untracked (D) | Tracked (already on main) |
    | --------------------------- | ------------------------------- |
-   | `dbHealthCheck.ts` (100 L)  | `dbHealthScheduler.ts` (191 L)  |
+   | `dbHealthCheck.ts` (100 L) | `dbHealthScheduler.ts` (191 L) |
    | `chatComboUtils.ts` (145 L) | `chatComboValidation.ts` (64 L) |
-   | `chatValidation.ts` (87 L)  | `chatBodyValidation.ts` (85 L)  |
+   | `chatValidation.ts` (87 L) | `chatBodyValidation.ts` (85 L) |
 4. **The tracked modules have wider scope.** `dbHealthScheduler.ts`
    covers "Health-check scheduler, managed backups, and legacy
    encryption migration" — the untracked `dbHealthCheck.ts` only
@@ -1324,6 +1324,7 @@ verifications were exercised end-to-end:
    working end-to-end.**
 
 The check is now exercised on three real interfaces:
+
 - the lefthook pre-commit path (developer loop)
 - the GitHub Actions workflow path (CI path)
 - the bun CLI path (org-survey path, 2 different
@@ -1356,14 +1357,16 @@ commit). This section validates it with the new
 hash-based check.
 
 **Validation method:**
+
 - Run `bun scripts/check/check-resurrection-patterns.mjs
-  --working-tree-only --json` on the spike
+--working-tree-only --json` on the spike
 - Filter matches to `newPath` starting with
   `docs/research/`
 - Confirm: count = 41, single source commit,
   source commit message matches the saga's claim
 
 **Validation result:**
+
 ```
 docs/research/ matches: 41
 by source commit: { "4a5a535": 41 }
@@ -1386,11 +1389,12 @@ bulletproof.
 **Cross-validation of sub-cats C and G (negative controls):**
 
 Sub-cat C (4 electron icon files) was the opposite
-concern: files that *look* like resurrections but the
+concern: files that _look_ like resurrections but the
 hash check does NOT flag them. Validation:
+
 - `git log --all --diff-filter=D --name-only
-  --pretty=format:'%h %s' -- 'electron/assets/icon.*'
-  'electron/assets/tray-icon.png'`
+--pretty=format:'%h %s' -- 'electron/assets/icon.*'
+'electron/assets/tray-icon.png'`
   shows they were deleted in `bedb7d1db6`
   "chore(desktop): remove Electron stack per
   ZERO-electron decision, sync Tauri version"
@@ -1405,6 +1409,7 @@ Sub-cat G (providerHandlers + others) is "new files at
 similar path" — different path suffix
 (`.disabled-by-tier1-cleanup/`), created Oct 13 17:53
 2026 (after the saga's main deletion events).
+
 - `git log --all --diff-filter=D --name-only` shows
   no deletion of `providerHandlers/`
 - mtime confirms these are newly-created files, not
@@ -1439,6 +1444,7 @@ would not be blocked, the 28 files would need separate
 disposition (e.g. tracked-add or gitignore).
 
 **Caveats on the simulation:**
+
 - 6 sub-cat G files (near-resurrections) remain as
   untracked; the check intentionally does not flag
   them (a `--fuzzy` mode is a future extension)
@@ -1451,17 +1457,17 @@ disposition (e.g. tracked-add or gitignore).
 
 **Saga conclusion (post-KI-028):**
 
-| Layer | State | Verified by |
-|---|---|---|
-| Analysis (7 sub-cats) | ✅ | KI-020..026, KI-028 |
-| F reclassification | ✅ | KI-028 hash check |
-| C/G negative controls | ✅ | KI-028 cross-validation |
-| Prevention design | ✅ | KI-026 design + tests |
-| Prevention enforcement | ✅ | lefthook + actionlint |
-| Portability | ✅ | KI-027 org survey |
-| Post-cleanup state | ✅ | KI-028 simulation |
-| Destructive cleanup | ⏳ | OPERATOR-GATED (inbox) |
-| Dependabot dismissals | ⏳ | OPERATOR-GATED (inbox) |
+| Layer                  | State | Verified by             |
+| ---------------------- | ----- | ----------------------- |
+| Analysis (7 sub-cats)  | ✅    | KI-020..026, KI-028     |
+| F reclassification     | ✅    | KI-028 hash check       |
+| C/G negative controls  | ✅    | KI-028 cross-validation |
+| Prevention design      | ✅    | KI-026 design + tests   |
+| Prevention enforcement | ✅    | lefthook + actionlint   |
+| Portability            | ✅    | KI-027 org survey       |
+| Post-cleanup state     | ✅    | KI-028 simulation       |
+| Destructive cleanup    | ⏳    | OPERATOR-GATED (inbox)  |
+| Dependabot dismissals  | ⏳    | OPERATOR-GATED (inbox)  |
 
 The saga is at hard conclusion for the autonomous-agent
 scope. The remaining 2 items are operator-only and
@@ -1507,18 +1513,20 @@ main?" This KI adds two new modes that close that gap.
 **Audit results on OmniRoute (run 2026-10-15):**
 
 `--tracked --json` with default 6-month window:
+
 - 18,671 candidates (all tracked files)
 - 975 deletion-set entries (after empty-file filter)
 - 4 matches → 2 allowlisted + 2 real
 
-| Path | Type | Status |
-|---|---|---|
-| `.github/workflows/semgrep.yml` (1215 bytes) | **Real resurrection** | **OPERATOR ATTENTION** |
+| Path                                                                                       | Type                  | Status                 |
+| ------------------------------------------------------------------------------------------ | --------------------- | ---------------------- |
+| `.github/workflows/semgrep.yml` (1215 bytes)                                               | **Real resurrection** | **OPERATOR ATTENTION** |
 | `docs/sessions/20260912-omniroute-fork-audit/08_BIFROST_INTEGRATION_PLAN.md` (14898 bytes) | **Real resurrection** | **OPERATOR ATTENTION** |
-| `extensions/argis/CLAUDE.md` (109922 bytes) | Intentional re-use | Allowlisted |
-| `extensions/argis/WARP.md` (109920 bytes) | Intentional re-use | Allowlisted |
+| `extensions/argis/CLAUDE.md` (109922 bytes)                                                | Intentional re-use    | Allowlisted            |
+| `extensions/argis/WARP.md` (109920 bytes)                                                  | Intentional re-use    | Allowlisted            |
 
 **Independent content verification (not just hash check):**
+
 - `semgrep.yml` pre-image SHA (from `2ee56e4^`):
   `d6185b94cd04223b933e21cf46b0528cdc7d04e5bc43ac5cd7cbd59ba4df4250`
 - `semgrep.yml` current SHA: same. **Confirmed exact match.**
@@ -1530,6 +1538,7 @@ main?" This KI adds two new modes that close that gap.
 **The 2 real resurrections are unrelated to the
 128-file spike.** They are independent findings of the
 new mode:
+
 - `semgrep.yml` was removed in `2ee56e4` (2026-09-13)
   "chore(ci): remove 7 one-time workflows and 4
   redundant pairs" and has since come back on main.
@@ -1543,6 +1552,7 @@ NOT in the 116-file KI-024 cleanup plan (which covers
 untracked spike files only).
 
 **The 2 allowlisted entries (extensions/argis/{CLAUDE,WARP}.md):**
+
 - Added in `5affb095b8` "feat(extensions): absorb
   argis-extensions (Bifrost plugin plane) into
   extensions/argis/"
@@ -1554,6 +1564,7 @@ untracked spike files only).
   not a bug
 
 **`--historical-scan` results:**
+
 - Same 4 matches (OmniRoute is <6 months old, so 6m
   window covers all of main; full-history walk is a
   no-op additional set)
@@ -1562,18 +1573,18 @@ untracked spike files only).
 
 **Saga phases — post-KI-029:**
 
-| Layer | State |
-|---|---|
-| Analysis (7 sub-cats) | ✅ |
-| F reclassification | ✅ |
-| C/G negative controls | ✅ |
-| Prevention design | ✅ |
-| Prevention enforcement | ✅ |
-| Portability | ✅ |
-| Post-cleanup state | ✅ |
-| Historical audit | ✅ NEW (KI-029) |
-| Destructive cleanup (116 untracked) | ⏳ OPERATOR-GATED |
-| Dependabot dismissals (5 alerts) | ⏳ OPERATOR-GATED |
+| Layer                                  | State                      |
+| -------------------------------------- | -------------------------- |
+| Analysis (7 sub-cats)                  | ✅                         |
+| F reclassification                     | ✅                         |
+| C/G negative controls                  | ✅                         |
+| Prevention design                      | ✅                         |
+| Prevention enforcement                 | ✅                         |
+| Portability                            | ✅                         |
+| Post-cleanup state                     | ✅                         |
+| Historical audit                       | ✅ NEW (KI-029)            |
+| Destructive cleanup (116 untracked)    | ⏳ OPERATOR-GATED          |
+| Dependabot dismissals (5 alerts)       | ⏳ OPERATOR-GATED          |
 | **2 historical-resurrection disposal** | ⏳ **NEW: OPERATOR-GATED** |
 
 The 2 new operator-gated items (semgrep.yml + bifrost
@@ -1585,12 +1596,13 @@ would re-trigger the resurrection check at the
 lefthook pre-commit gate.
 
 **Implementation summary (2 commits):**
+
 - `add --tracked / --historical-scan modes to
-  resurrection check (KI-029)` — 8 edits in
+resurrection check (KI-029)` — 8 edits in
   scripts/check/check-resurrection-patterns.mjs
   (~50 lines)
 - `allowlist intentional re-use from argis rebrand
-  (KI-029)` — 2 entries in
+(KI-029)` — 2 entries in
   config/quality/resurrection-allowlist.json
 
 The historical-resurrection detection adds ~1-2 min
@@ -1632,7 +1644,7 @@ This KI records three independent defects that prevented the
 resurrection-patterns guard (KI-026) from ever firing despite
 `08_HANDOFF.md` (this saga) documenting it as "wired into
 lefthook + CI workflow". All three were discovered while
-preparing a verification step that *executed* the guard rather
+preparing a verification step that _executed_ the guard rather
 than grepping for its presence.
 
 ### Defect A — pre-commit guard never ran
@@ -1643,11 +1655,12 @@ so husky owns git hooks and lefthook's pre-commit never
 executes.
 
 **Evidence (verified 2026-10-15):**
+
 - `git config --local core.hooksPath` → `.husky/_`
 - `lefthook run resurrection-patterns` → `Error: hook
-  resurrection-patterns doesn't exist in the config`
+resurrection-patterns doesn't exist in the config`
 - lefthook itself reports `core.hooksPath is set locally to
-  '.husky/_'` when run
+'.husky/_'` when run
 
 **Fix (applied):** `.husky/pre-commit` now calls
 `bun scripts/check/check-resurrection-patterns.mjs --staged-only`,
@@ -1665,8 +1678,9 @@ not registered as a top-level lefthook hook. As a result, neither
 `lefthook run resurrection-patterns` could target it.
 
 **Evidence:**
+
 - `lefthook run resurrection-patterns` → `Error: hook
-  resurrection-patterns doesn't exist in the config`
+resurrection-patterns doesn't exist in the config`
 - The former block lived at `lefthook.yml:69-81` under
   `pre-commit.commands.`, not under a top-level
   `resurrection-patterns:` key. Even with lefthook installed and
@@ -1703,6 +1717,7 @@ tree, so every candidate hash missed and the job could only
 ever pass vacuously.
 
 **Evidence:**
+
 - Original workflow line: `ref: main` (visible in the diff
   that introduced the PR-ref checkout)
 - `hashFile` returns `null` for any path absent from the
@@ -1750,27 +1765,57 @@ bun scripts/check/check-resurrection-patterns.mjs --staged-only
 is the canonical check for "the guard works." Grep-for-config
 checks are no longer accepted in this saga's handoff.
 
+### Negative-control proof (verified 2026-10-15 by orchestrator)
+
+The negative control was performed in the main working tree on a
+throwaway branch `test/negative-control`:
+
+**Resurrection test (exit 1 — blocked):**
+
+- File: `src/lib/db/oneproxy.ts` (deleted in `843f342`, 2026-09-19,
+  "refactor(1proxy): migrate to free-proxies API + delete legacy island")
+- Verbatim content restored from `843f342~1:src/lib/db/oneproxy.ts`
+  (2686 bytes, not present in working tree prior to test)
+- Staged with `git add`, then `bun scripts/check/check-resurrection-patterns.mjs --staged-only --json`
+- Result: `candidatesScanned: 1`, `matchesReal: 1`, exit 1
+- JSON matched path `src/lib/db/oneproxy.ts`, deletion commit
+  `843f342556101d3638966658aa4da3d3a31c4b1f`, message
+  "refactor(1proxy): migrate to free-proxies API + delete legacy island"
+
+**Benign control (exit 0 — passed):**
+
+- File: `docs/test-benign-file.md` (novel content, not a resurrection)
+- Staged, same command run
+- Result: `candidatesScanned: 1`, `matchesReal: 0`, exit 0
+
+**Full-hook chain caveat:** the `.husky/pre-commit` chain runs
+`lint-staged` first, and `eslint` is not installed in this environment
+(ENOENT), so the hook fails before reaching the resurrection guard.
+The resurrection check itself was verified by invoking the exact
+command `.husky/pre-commit` runs:
+`bun scripts/check/check-resurrection-patterns.mjs --staged-only`.
+
+**Cleanup verified:** throwaway branch `test/negative-control` deleted
+with `git branch -d`, test files removed, `git status --porcelain`
+confirms 46 untracked entries (baseline = 46, unchanged).
+
 ### What this KI does NOT claim
 
-- It does NOT assert that the prevention layer is now proven
-  to fire on every commit and PR.
-- It does NOT assert that the `--staged-only` husky guard has
-  caught a real-world resurrection (the 100-file untracked
-  spike is excluded from `--staged-only` by design, so no real
-  commit can serve as the proof until someone tries to re-add
-  one of those 100 paths as a staged change).
-- A separate worker is establishing end-to-end enforcement
-  with a negative-control commit. Until that lands, treat the
-  fixes as **applied but not yet proven effective**.
+- It does NOT assert that the full `.husky/pre-commit` chain
+  (lint-staged → docs-sync → check-any-budget → check-tracked-artifacts
+  → resurrection) executes cleanly end-to-end in this environment.
+  `eslint` is not installed, so `lint-staged` fails first. The
+  resurrection guard itself was proven in isolation by invoking the
+  exact command the hook calls.
 
 ### Cross-references
 
 - KI-026: original check design + 100-resurrection detection
-  + F reclassification (corrected)
+  - F reclassification (corrected)
 - KI-028: F reclassification hash validation
 - KI-029: `--tracked` / `--historical-scan` modes
 - `08_HANDOFF.md`: closing-note overclaim corrected;
-  re-verification command #4 replaced with one that *executes*
+  re-verification command #4 replaced with one that _executes_
   the guard; TL;DR adjusted; alert count and Dependabot
   endpoint corrected
 - `scripts/check/check-resurrection-patterns.mjs:88`

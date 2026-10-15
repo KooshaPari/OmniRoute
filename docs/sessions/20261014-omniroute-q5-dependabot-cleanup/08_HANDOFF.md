@@ -15,16 +15,17 @@ operator-gated** via the pre_tool "DEFERRED to inbox" hook —
 you cannot execute them autonomously.
 
 Your job, in priority order:
+
 1. **Do NOT re-run the spike discard or Dependabot dismissals.**
    The pre_tool hook will block these. Document the gate
    honestly; do not try to bypass it.
-2. **The prevention layer is being fixed (KI-031)** — the
-   guard never fired in the prior wiring; fixes are applied
-   to `.husky/pre-commit`, `scripts/check/check-resurrection-patterns.mjs`,
-   and the CI workflow. A separate worker is establishing
-   end-to-end enforcement via a negative-control commit. Do
-   not claim "the guard fires on every commit" until that
-   proof lands; see `08_HANDOFF.md` correction #4 and KI-031.
+2. **The prevention layer has been fixed AND proven (KI-031)** —
+   the guard never fired in the prior wiring; fixes are applied
+   to `.husky/pre-commit`,
+   `scripts/check/check-resurrection-patterns.mjs`, and the CI
+   workflow. A negative control confirmed the guard blocks
+   verbatim re-adds of deleted files (exit 1) and passes novel
+   files (exit 0). See KI-031 for the full proof.
 3. **Address the 2 NEW operator-gated items from KI-029**
    (`.github/workflows/semgrep.yml` and
    `08_BIFROST_INTEGRATION_PLAN.md`) if/when the operator
@@ -60,18 +61,19 @@ prevention only" — it is both.
 
 **Session commits this arc (7 new, all pushed):**
 
-| SHA | What |
-|---|---|
-| `ca757a7ad5` | `check-resurrection-patterns.mjs` (KI-026) |
-| `46c411dd3d` | Wire check into lefthook + new CI workflow |
-| `e143efffbe` | YAML fix: block scalar for `run:` value |
-| `51dc982e35` | maxBuffer 1 MiB → 64 MiB (ENOBUFS fix) |
-| `ce85781ae8` | KI-027: org-wide untracked-file survey |
+| SHA          | What                                           |
+| ------------ | ---------------------------------------------- |
+| `ca757a7ad5` | `check-resurrection-patterns.mjs` (KI-026)     |
+| `46c411dd3d` | Wire check into lefthook + new CI workflow     |
+| `e143efffbe` | YAML fix: block scalar for `run:` value        |
+| `51dc982e35` | maxBuffer 1 MiB → 64 MiB (ENOBUFS fix)         |
+| `ce85781ae8` | KI-027: org-wide untracked-file survey         |
 | `7abf6934da` | Real-interface verifications (KI-026 addendum) |
-| `721e1f1194` | KI-028: F reclassification validation |
-| `0aaee69be6` | KI-029: --tracked / --historical-scan modes |
+| `721e1f1194` | KI-028: F reclassification validation          |
+| `0aaee69be6` | KI-029: --tracked / --historical-scan modes    |
 
 **Working tree state:**
+
 - 46 untracked entries (the 128-file spike minus 100, plus
   build artifacts and session-related files)
 - 0 modified tracked files
@@ -85,20 +87,20 @@ operator owns the destructive phase.
 
 ## Saga Phases (final state)
 
-| Phase | State | Verified by |
-|---|---|---|
-| Analysis (7 sub-cats) | ✅ | KI-020 → KI-026 |
-| F reclassification (41 router-docs → discard) | ✅ | KI-028 hash check |
-| C/G negative controls (binary icons, new files at different paths) | ✅ | KI-028 cross-validation |
-| Prevention design (check + allowlist + maxBuffer) | ✅ | KI-026 + tests |
-| Prevention enforcement (lefthook + CI workflow + actionlint) | ✅ | actionlint 0 errors, end-to-end lefthook test |
-| Portability (8 active repos surveyed) | ✅ | KI-027 |
-| Post-cleanup state simulation | ✅ | KI-028 logic simulation |
-| Historical audit (resurrections on main) | ✅ | KI-029 |
-| **Destructive cleanup: 116 untracked spike files** | ⏳ | **OPERATOR-GATED** |
-| **Dependabot dismissals: 9 alerts** | ⏳ | **OPERATOR-GATED** |
-| **Historical resurrection: `.github/workflows/semgrep.yml`** | ⏳ | **OPERATOR-GATED (NEW from KI-029)** |
-| **Historical resurrection: `08_BIFROST_INTEGRATION_PLAN.md`** | ⏳ | **OPERATOR-GATED (NEW from KI-029)** |
+| Phase                                                              | State | Verified by                                  |
+| ------------------------------------------------------------------ | ----- | -------------------------------------------- |
+| Analysis (7 sub-cats)                                              | ✅    | KI-020 → KI-026                              |
+| F reclassification (41 router-docs → discard)                      | ✅    | KI-028 hash check                            |
+| C/G negative controls (binary icons, new files at different paths) | ✅    | KI-028 cross-validation                      |
+| Prevention design (check + allowlist + maxBuffer)                  | ✅    | KI-026 + tests                               |
+| Prevention enforcement (lefthook + CI workflow + actionlint)       | ✅    | actionlint 0 errors, KI-031 negative control |
+| Portability (8 active repos surveyed)                              | ✅    | KI-027                                       |
+| Post-cleanup state simulation                                      | ✅    | KI-028 logic simulation                      |
+| Historical audit (resurrections on main)                           | ✅    | KI-029                                       |
+| **Destructive cleanup: 116 untracked spike files**                 | ⏳    | **OPERATOR-GATED**                           |
+| **Dependabot dismissals: 9 alerts**                                | ⏳    | **OPERATOR-GATED**                           |
+| **Historical resurrection: `.github/workflows/semgrep.yml`**       | ⏳    | **OPERATOR-GATED (NEW from KI-029)**         |
+| **Historical resurrection: `08_BIFROST_INTEGRATION_PLAN.md`**      | ⏳    | **OPERATOR-GATED (NEW from KI-029)**         |
 
 ---
 
@@ -134,17 +136,17 @@ handoff's command #5). State verified 2026-10-15:
 
 Open alert numbers and severities (verified 2026-10-15):
 
-| # | Severity | GHSA ID |
-|---|----------|---------|
-| 389 | high   | GHSA-vfj7-8cjw-p6xm (braces) |
-| 388 | high   | GHSA-86w9-cpqp-85rv |
-| 259 | medium | GHSA-992g-9cr3-vm5x |
-| 258 | low    | GHSA-9q4h-f4x5-ffq8 |
-| 257 | medium | GHSA-g26x-m427-f48f |
-| 255 | high   | GHSA-7pqw-9j4j-h8q3 |
-| 254 | high   | GHSA-jmr9-qjv8-65gv |
-| 166 | medium | GHSA-8x7x-83cf-c3pg |
-| 165 | medium | GHSA-wrw7-89jp-8q8g |
+| #   | Severity | GHSA ID                      |
+| --- | -------- | ---------------------------- |
+| 389 | high     | GHSA-vfj7-8cjw-p6xm (braces) |
+| 388 | high     | GHSA-86w9-cpqp-85rv          |
+| 259 | medium   | GHSA-992g-9cr3-vm5x          |
+| 258 | low      | GHSA-9q4h-f4x5-ffq8          |
+| 257 | medium   | GHSA-g26x-m427-f48f          |
+| 255 | high     | GHSA-7pqw-9j4j-h8q3          |
+| 254 | high     | GHSA-jmr9-qjv8-65gv          |
+| 166 | medium   | GHSA-8x7x-83cf-c3pg          |
+| 165 | medium   | GHSA-wrw7-89jp-8q8g          |
 
 ### 3. `.github/workflows/semgrep.yml` (KI-029 NEW)
 
@@ -178,16 +180,24 @@ system-enforced. A workaround is not a real workaround.**
 ## Key Files (read these first)
 
 **The check (your main artifact):**
+
 - `scripts/check/check-resurrection-patterns.mjs` (387 lines)
 - `config/quality/resurrection-allowlist.json` (2 entries:
   argis rebrand)
 
 **Wiring (the prevention layer):**
-- `lefthook.yml` lines 69-81 (`resurrection-patterns:` block)
-- `.github/workflows/resurrection-patterns.yml` (107 lines,
-  PR-triggered, `--pr-base origin/${{ github.base_ref }}`)
+
+- `.husky/pre-commit` lines 13-32 (the KI-031 guard, now the
+  single source of truth for the pre-commit hook)
+- `lefthook.yml` — the `resurrection-patterns` block was
+  removed (2026-10-15); a NOTE comment occupies lines 69-81.
+  Husky owns the hook (`core.hooksPath=.husky/_`); lefthook
+  never runs here.
+- `.github/workflows/resurrection-patterns.yml` (131 lines,
+  PR-triggered, `--pr-base "${BASE}"` with HEAD/main fallback)
 
 **Saga documentation (the source of truth):**
+
 - `docs/sessions/20261014-omniroute-q5-dependabot-cleanup/00_SESSION_OVERVIEW.md`
   (overall saga context)
 - `docs/sessions/20261014-omniroute-q5-dependabot-cleanup/05_KNOWN_ISSUES.md`
@@ -196,6 +206,7 @@ system-enforced. A workaround is not a real workaround.**
   (KI-027, 8 repos surveyed)
 
 **Operator handoff (cleanup script, never run):**
+
 - `scripts/cleanup/discard-spike-2026-10-13.sh`
 
 ---
@@ -246,6 +257,7 @@ gh api repos/KooshaPari/OmniRoute/dependabot/alerts --paginate \
 
 **1. The pre_tool "DEFERRED to inbox" hook is system-enforced.**
 It blocks:
+
 - `rm` of untracked files (even with --force)
 - `gh api PATCH` on `repos/.../dependabot/alerts/...`
 - `git push --force`, `git reset --hard`, `git clean -fd`,
@@ -304,6 +316,7 @@ This is operator policy, not a saga-specific quirk.
 ## What You Should Do (and NOT do) on Session Start
 
 **DO:**
+
 1. Run the 5 re-verification commands above. Confirm
    state.
 2. Read `00_SESSION_OVERVIEW.md` and `05_KNOWN_ISSUES.md`
@@ -314,6 +327,7 @@ This is operator policy, not a saga-specific quirk.
    KI-030+ and commit. Do not silently change prior KIs.
 
 **DO NOT:**
+
 1. Do not execute any of the 4 operator-gated items.
 2. Do not rewrite prior KIs (KI-001 → KI-029). Append, do
    not replace.
@@ -324,20 +338,19 @@ This is operator policy, not a saga-specific quirk.
    claims; use real tool calls.
 5. Do not move or rename the session directory. The
    `20261014-...` timestamp is part of the cross-reference.
-6. Do not assume the saga is "done" just because
-   destructive ops are gated. The prevention layer
-   *should* be doing real work now (KI-031 fixes applied to
-   `.husky/pre-commit` and the CI workflow), but it had
-   never fired in the prior wiring — verify with the
-   re-verification command #4 in this doc before claiming
-   "fires on every commit"; do not treat prior session
-   statements as evidence.
+6. The prevention layer has been proven effective by a
+   negative control (KI-031). The guard correctly blocks
+   verbatim re-adds of deleted files (exit 1, names the
+   path and deletion commit) and passes novel files (exit 0).
+   Re-verification command #4 above confirms the guard
+   executes. Do not re-verify with grep-for-config checks.
 
 ---
 
 ## Cross-References (in case you need to dig further)
 
 **In this saga:**
+
 - KI-008: 128-file spike umbrella
 - KI-019: Dependabot alerts (original saga trigger)
 - KI-020: Sub-cat A is resurrection (PARTIAL, refined by KI-025)
@@ -352,6 +365,7 @@ This is operator policy, not a saga-specific quirk.
 - KI-029: --tracked / --historical-scan modes + 2 new findings
 
 **Outside this saga (relevant to operator):**
+
 - Operator-level harness policy: 3-harness, VP-Eng model,
   Tier 1/2/3 routing (M3 / mimo-v2.5-pro / deepseek-v4.1-flash)
 - The full operator philosophy: see `~/AGENTS.md` (this
@@ -362,6 +376,7 @@ This is operator policy, not a saga-specific quirk.
   `~/.jcode/memories/`
 
 **In the harness:**
+
 - The `herdr` org model: see `~/AGENTS.md` "Herdr Org
   Model" section + `~/.jcode/memories/global/herdr-org-model.md`
 - The `pre_tool` "DEFERRED to inbox" hook is the gating
@@ -419,10 +434,10 @@ enforcement paths were dead.
 **Fixes have landed** to `.husky/pre-commit`,
 `scripts/check/check-resurrection-patterns.mjs`, and
 `.github/workflows/resurrection-patterns.yml`. **Enforcement
-has NOT yet been proven end-to-end by a real blocked
-commit.** A separate worker is establishing that with a
-negative-control commit. Until that proof is in, treat the
-prevention layer as **applied but unproven effective**.
+has been proven end-to-end by a negative control** (KI-031):
+`src/lib/db/oneproxy.ts` was restored verbatim from
+`843f342~1`, staged, and the guard exited 1 naming the path,
+deletion commit, and its subject. A benign novel file exited 0. The prevention layer is now **proven effective**.
 
 The remaining work is operator-gated (the 4 destructive
 items, plus the 2 historical resurrections noted in KI-029).
@@ -432,9 +447,9 @@ If the operator comes back with new direction, read this
 doc + the saga KIs and act within the constraints. If the
 operator goes silent for weeks, this doc + the
 analysis/audit artifacts is enough to keep the saga
-interpretable; the prevention layer is **applied but
-unproven effective** (see Correction above and KI-031), so
-do not let prior-session claims of "lefthook fires on every
-commit" stand unverified.
+interpretable; the prevention layer is **proven effective**
+(see KI-031 negative control). Re-verification command #4
+confirms the guard executes; do not use grep-for-config
+checks.
 
 End of handoff.
