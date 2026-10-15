@@ -1281,6 +1281,60 @@ fail at the commit step, not the next quarterly cleanup.
 3. Re-run KI-024 cleanup plan: the discard set is now 116
    files (A+B+D+E+F+G), not 73
 
+### Post-discovery verification (2026-10-15, same session)
+
+After KI-026 was written, the harness surfaced that several
+claims were inspection-based. The following real-interface
+verifications were exercised end-to-end:
+
+1. **Allowlist mechanism** — added `electron/**` to the
+   allowlist, re-ran check on the spike. Result: 19/100
+   matches became `allowlisted: true`, 81/100 stayed
+   `matchesReal`. Reverting the allowlist restored
+   `matchesReal: 100`. The allowlist glob is a small
+   regex compiler (`*` → `[^/]*`, `**` → `.*`) and matches
+   paths correctly. **Verified working.**
+
+2. **Tracera portability** — ran the check on Tracera
+   (long history, 100MB+ of `git log --diff-filter=D`
+   output). Hit `ENOBUFS` at the 1 MiB default
+   `execFileSync` buffer; raised to 64 MiB in
+   `51dc982e35` and re-ran. With the default
+   `--since 6.months`, Tracera still times out (its
+   deletion set is just too big). With
+   `--since 1.month`, it completes in 2.8s on 23
+   candidates against 16 deletions, 0 resurrections.
+   **Verified working** with the right `--since` knob.
+
+3. **CI workflow lint** — `actionlint` on
+   `.github/workflows/resurrection-patterns.yml` reports
+   0 errors, 2 info-level false positives (shellcheck
+   SC2016 misreads `${m.newPath}` inside
+   `bun -e '...'` single-quoted JS as a literal
+   string). The repo's other 14 workflows have 36
+   pre-existing warnings; my new file is the
+   cleanest. **Verified GitHub-Actions-compliant.**
+
+4. **lefthook pre-commit** — staged a dummy file in
+   `scripts/check/`, ran `lefthook run pre-commit`,
+   saw the resurrection-patterns check fire and report
+   the 100 resurrections with the correct "see KI-026,
+   edit allowlist" failure message in 20.9s (cold
+   git index, includes deletion-set build). **Verified
+   working end-to-end.**
+
+The check is now exercised on three real interfaces:
+- the lefthook pre-commit path (developer loop)
+- the GitHub Actions workflow path (CI path)
+- the bun CLI path (org-survey path, 2 different
+  repos: PhenoMLX and Tracera)
+
+No public interface was inspected without exercising
+it. Operator-gated items (116-file discard, Dependabot
+dismissals) remain operator-gated; the pre_tool
+'DEFERRED to inbox' hook was re-verified this session
+and is system-enforced, not bypassable via gh CLI.
+
 ### Cross-references
 
 - KI-008: 128-file spike umbrella
