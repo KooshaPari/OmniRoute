@@ -1,0 +1,5 @@
+{
+  "_comment": "Allowlist for check-resurrection-patterns.mjs. Add a path glob (e.g. 'packages/*/src/contracts/**') to permit verbatim re-adds that are intentional (e.g. shared monorepo modules mirrored in multiple package sub-trees). Keep this list SHORT and document each entry in 'reason'.",
+  "allow": [],
+  "reason": {}
+}

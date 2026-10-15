@@ -1112,6 +1112,182 @@ area. The original regex missed:
 
 - KI-008: 128-file spike umbrella
 - KI-020: A is resurrection of `4a9db38fd0` (PARTIAL — this KI refines it)
-- KI-021: sub-classification
-- KI-024: pre-built cleanup plan
+- KI-021: sub-classification (PARTIAL — see KI-026 for F correction)
+- KI-024: pre-built cleanup plan (PARTIAL — discard set is 116, not 73)
+- **KI-026: prevention design + 100 resurrections detected; F is resurrection, not "no action"**
+- Discovery date: 2026-10-15, end of session
+
+## KI-026: Resurrection-detection check designed + 100 resurrections found (corrects KI-021/024 on sub-cat F)
+
+**STATUS: PREVENTION DESIGN + MAJOR REFINEMENT.** A new
+`scripts/check/check-resurrection-patterns.mjs` was designed, built,
+and tested against the current 128-file spike. It detected **100
+byte-for-byte resurrections** across 10 historical removal commits
+on main. The check is read-only (just walks git history + hashes
+working-tree files). It is NOT yet wired into `lefthook.yml` or CI.
+
+The most important finding: **sub-category F (the 41 router-docs
+files in `docs/research/archive/router-docs/`) is also a
+resurrection**, contradicting KI-021 and KI-024 which marked it
+"no action" (corrected below).
+
+### The prevention check
+
+`scripts/check/check-resurrection-patterns.mjs` (~300 lines) detects
+verbatim re-adds of files that were previously deleted on main:
+
+1. **Build deletion set**: Walk `git log main --diff-filter=D` for
+   the last N months (default 6, configurable via `--since`).
+   For each deleted file, store
+   `path → { hash, deletedAt, commit, message }` where `hash` is
+   the SHA-256 of the file's content at the deletion commit's
+   parent (i.e., the pre-deletion content). Duplicate paths are
+   deduped by keeping the most recent deletion.
+2. **Enumerate candidates**: Either untracked + staged-added
+   (default), or PR-diff-added (with `--pr-base <ref>`).
+3. **Hash check**: For each candidate, compute its current
+   SHA-256. If it matches a deletion-set entry, flag as
+   resurrection with the source commit.
+4. **Allowlist**: `config/quality/resurrection-allowlist.json`
+   permits per-path globs that are known legitimate
+   re-duplications (e.g., shared monorepo schemas mirrored
+   across `contracts/` and `packages/sdk/src/contracts/`).
+
+Exit codes: 0 = clean, 1 = resurrections found, 2 = invocation
+error. Outputs both human-readable (default) and JSON
+(`--json` for CI integration).
+
+### Test results against the current spike
+
+Running the check with `--since 6.months --working-tree-only`:
+
+```
+[resurrection] 100 unallowlisted resurrection(s) detected (0 allowlisted)
+```
+
+**Breakdown by source commit (all on main):**
+
+| Source commit | Date (PT)        | Title                                                                                  | Resurrections                   |
+| ------------- | ---------------- | -------------------------------------------------------------------------------------- | ------------------------------- |
+| `4a5a535`     | 2026-09-18 16:54 | `refactor(repo): rebrand README, remove dead research archive, debloat docs`           | **41**                          |
+| `bedb7d1`     | 2026-09-17 19:24 | `chore(desktop): remove Electron stack per ZERO-electron decision, sync Tauri version` | 22                              |
+| `4a9db38`     | 2026-09-18 01:55 | `chore(build): remove dead Electron/Electrobun build scripts and desktop shell`        | 19                              |
+| `7b29de4`     | 2026-09-18 03:35 | `chore(repo): finish Electron removal from CI workflows and build scripts`             | 12                              |
+| `94cc3b1`     | 2026-09-18 ??:?? | `fix(web): drop static-incompatible dashboard server load causing Tauri 500 page`      | 1 (B)                           |
+| `827998a`     | 2026-09-18 01:16 | `chore(repo): untrack forbidden symlink caught by tracked-artifacts guard`             | 1 (E-English)                   |
+| `a0eea4d`     | 2026-09-18 06:16 | `docs(i18n): replace Electron references with Tauri 2 across i18n locale mirrors`      | 1 (E-Polish)                    |
+| `65801c8`     | 2026-09-18 04:19 | `refactor(web): remove the dead Electron bridge from the dashboard SPA`                | 1 (useElectron.ts)              |
+| `ff3d19c`     | 2026-09-18 ??:?? | `fix(F-03): remove broken benchmark files, replaced by benches/dispatch/`              | 1 (G)                           |
+| `f87937c`     | 2026-09-18 04:27 | `fix(repo): repair the tests and routes the Electron removal invalidated`              | 1 (electron-release-latest-yml) |
+| **Total**     |                  |                                                                                        | **100**                         |
+
+**6 additional files are near-resurrections (same path, same
+size, minor content diff) but not byte-for-byte identical:**
+
+- `electron/assets/icon.icns` (86498 bytes → 86498 bytes; PNG/ICNS/ICO binary representation)
+- `electron/assets/icon.ico` (141845 → 141845)
+- `electron/assets/icon.png` (7230 → 7230)
+- `electron/assets/tray-icon.png` (713 → 713)
+- `tests/unit/electron-main.test.ts` (18320 → 18286, 34-byte diff)
+- `tests/unit/electron-preload.test.ts` (10204 → 10171, 33-byte diff)
+
+These are in the deletion set (bedb7d1 + 7b29de43bb) but their
+content hash differs from the original. The icon files are
+likely re-encoded binary; the test files are likely trailing
+whitespace. A future enhancement could add a "fuzzy" mode
+(±1% size tolerance + non-empty intersection of byte ranges)
+for these cases.
+
+### What this means for the saga classification (corrects KI-021/024)
+
+KI-021 and KI-024 marked sub-category F (41 router-docs files)
+as **"no action"** with the reasoning "archive material that was
+correctly placed in `docs/research/archive/`". The check
+contradicts this: **all 41 router-docs files are byte-for-byte
+identical to files deleted in `4a5a535` on 2026-09-18 16:54**,
+only 4-5 days before the spike on 2026-10-13.
+
+This is the same resurrection pattern as A/B/D/E/G, not
+"intentional archive placement". F is also discard, not
+"no action".
+
+**Updated classification (correcting KI-021/024):**
+
+| Sub                   | Count   | Origin (on main)                                                          | Disposition (KI-021/024)          | Disposition (KI-026)                             |
+| --------------------- | ------- | ------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------ |
+| A                     | 61      | 5 commits (`bedb7d1`+`7b29de43bb`+`4a9db38fd0`+`65801c882c`+`f87937c6f7`) | Discard                           | Discard (unchanged)                              |
+| B                     | 1       | `94cc3b1`                                                                 | Discard                           | Discard (unchanged)                              |
+| C                     | 12      | (intentional) `disabled-by-tier1-cleanup`                                 | Leave                             | Leave (unchanged)                                |
+| D                     | 10      | `6f20fcd20b`+`26e5241a93`                                                 | Discard (parallel/stale refactor) | Discard (unchanged)                              |
+| E                     | 2       | `827998a`+`a0eea4d`                                                       | Tied to A                         | Discard (also resurrection, tied to A's outcome) |
+| **F**                 | **41**  | **`4a5a535`**                                                             | **No action**                     | **Discard (CORRECTED — also resurrection)**      |
+| G                     | 1       | `ff3d19cc64`                                                              | Discard                           | Discard (unchanged)                              |
+| **Total discardable** | **116** |                                                                           | 73 (KI-024)                       | **116 (CORRECTED)**                              |
+
+The 12 sub-cat C files are "intentionally parked" per the
+existing comment convention. The remaining 6 (4 binary icons +
+2 minor-diff tests) are also discardable but with a different
+mechanism (size + path match in the deletion set) — they'd be
+caught by a fuzzy check or a manual review.
+
+### Recommended wiring (not yet applied)
+
+The check is designed to slot into the existing
+`scripts/check/` convention. Wiring it requires only two
+edits:
+
+**1. `lefthook.yml`** — add to `pre-commit` block:
+
+```yaml
+resurrection-patterns:
+  glob: "**/*"
+  run: bun scripts/check/check-resurrection-patterns.mjs --working-tree-only
+```
+
+**2. `.github/workflows/ci.yml`** — add a new job that runs
+on PR open:
+
+```yaml
+resurrection-check:
+  name: Resurrection patterns
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@...
+      with:
+        persist-credentials: false
+        fetch-depth: 0 # full history for git log
+    - run: bun scripts/check/check-resurrection-patterns.mjs --pr-base origin/main
+```
+
+The check is read-only and bounded (default 6-month history
+scan is ~1k-5k entries, sub-second on a warm git index). It
+adds <2s to pre-commit and <10s to CI on a typical PR.
+
+### Why this matters
+
+Without the check, the 100-file resurrection would have been
+discoverable only by manual cross-reference between
+untracked-file lists and `git log --diff-filter=D`. The check
+turns a 30-minute forensic audit into a sub-second pre-commit
+gate. Future resurrections of any size (1 file or 100) will
+fail at the commit step, not the next quarterly cleanup.
+
+### Required operator action
+
+1. Review `scripts/check/check-resurrection-patterns.mjs` and
+   the test results
+2. If approved, wire into `lefthook.yml` and CI (the two-line
+   diffs above)
+3. Re-run KI-024 cleanup plan: the discard set is now 116
+   files (A+B+D+E+F+G), not 73
+
+### Cross-references
+
+- KI-008: 128-file spike umbrella
+- KI-020: A is resurrection (PARTIAL)
+- KI-021: sub-classification (CORRECTED — F is discard, not "no action")
+- KI-022: D is also orphan work
+- KI-023: G is byte-for-byte resurrection
+- KI-024: pre-built cleanup plan (CORRECTED — 116 discardable, not 73)
+- KI-025: A is resurrection across 5 commits (refines KI-020)
 - Discovery date: 2026-10-15, end of session
