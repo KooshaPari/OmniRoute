@@ -557,8 +557,76 @@ bumping:
   1.4.0 is the latest published. The v1.x line is abandoned; the
   v2.x line (`node-forge@^2`) is a different package.
 
-**Net session-9-13 result: 6 alerts closed via 5 commits, all
-without `--no-verify`.** (Phase 13 adds #335 fast-copy.)
+## Phase 14 (1 alert, 1 commit) — KI-004 braces depth-guard patch
+
+- **Commit:** `639da1c453` (3 files: package.json +3, pnpm-lock.yaml
+  reformat, patches/braces@3.0.3.patch new file 33 lines)
+- **Alert:** #389 braces 3.0.3 (CVE-2026-93687, GHSA-vfj7-8cjw-p6xm,
+  stack-exhaustion DoS via deeply nested patterns, CVSS 7.5/8.7)
+- **Root cause:** `braces 3.0.3` is the latest published version
+  (2024-05-21). The `compile()` function in `lib/compile.js` has a
+  recursive `walk()` that doesn't bound depth. A 60-level nested
+  pattern like `{{{{...a...}}}}` (60 deep) exhausts the V8 stack
+  and crashes the process. Upstream maintainer (jonschlinkert) has
+  not released a fix; `pnpm view braces versions` shows only 4
+  versions (3.0.0-3.0.3). The v4 lineage is the separate package
+  `brace-expansion` (already overridden to >=5.0.12 elsewhere).
+- **Chain:** `braces` <- `micromatch@4.0.8` <- `fast-glob` and
+  `http-proxy-middleware` (transitive in many dev toolchains)
+- **Fix:** First pnpm.patchedDependencies entry in this repo.
+  Added `patches/braces@3.0.3.patch` (33 lines, ~15 lines of code)
+  that adds a depth guard to the recursive AST walker:
+  - `walk(node, parent, depth = 0)` — adds depth parameter
+  - `if (depth > MAX_DEPTH) throw` — throws at depth 50
+  - `walk(child, node, depth + 1)` — increments in recursion
+  - `MAX_DEPTH = 50` — well above any realistic bash pattern
+    (typical patterns have depth 5-10; 50 is 10x safety margin)
+- **Validation:** Tested with a 60-level nested pattern:
+  - Without patch: process crashes with `RangeError: Maximum call
+stack size exceeded`
+  - With patch: `braces(deep)` throws `Error: braces: pattern
+exceeds maximum nesting depth of 50`
+  - micromatch: returns `[]` (catches throw gracefully, no crash)
+  - Normal patterns unchanged: `{a,b,c}` -> `(a|b|c)`, `*.js`
+    still matches `a.js`
+- **Reproducibility:** `pnpm install --force` rebuilds the patched
+  virtual store at `node_modules/.pnpm/braces@3.0.3_patch_hash=...`.
+  Patch is content-addressed; the hash in pnpm-lock.yaml
+  (`e17e00c234...`) is the SHA-256 of the patched file.
+- **Caveat:** Dependabot may not auto-close #389 since the package
+  version is still 3.0.3 (not bumped). If not auto-closes, manually
+  dismiss as `wontfix`/`risk_accepted` with rationale = "patched
+  via local pnpm.patchedDependencies".
+- This is alert #7 mitigated in this session.
+
+## Live Dependabot state at end of Phase 14
+
+**98 of 100 Dependabot alerts resolved** (97 fixed/patched +
+1 auto-dismissed + 1 no-upstream-fix remaining):
+
+| State           | Count | Examples                                   |
+| --------------- | ----- | ------------------------------------------ |
+| fixed           | 96    | All closed this saga + earlier             |
+| patched (local) | 1     | #389 braces (Phase 14)                     |
+| open            | 1     | #388 node-forge (no upstream fix, complex) |
+| auto_dismissed  | 1     | #330 basic-ftp (false positive)            |
+
+**1 alert genuinely remains** post Phase 14:
+
+- **#388 node-forge 1.4.0** (high): vulnerable `<= 1.4.0`,
+  first_patched `null`. Pulled by `jks-js@1.1.7` (used by
+  `promptfoo@0.122.2` for JKS keystore parsing in the test/eval
+  toolchain). Multiple CVEs (ASN.1 parsing, signature forgery,
+  etc.) make a single-line patch impractical. Options:
+  1. Patch jks-js to use a node-forge alternative (large)
+  2. Replace promptfoo with a tool that doesn't need jks-js (large)
+  3. File a Dependabot wontfix dismissal with risk-accepted
+     rationale (small)
+     Out of scope for this single-commit cleanup; documented for
+     future triage.
+
+**Net session-9-14 result: 7 alerts closed/mitigated via 6 commits,
+all without `--no-verify`.**
 
 **Session-wide commit log:**
 
@@ -573,3 +641,5 @@ without `--no-verify`.** (Phase 13 adds #335 fast-copy.)
 | `5dc77836f7` | 12     | onnxruntime-node >=1.26.0 override (closes #400 sprintf-js)         |
 | `9367aab9de` | 12 doc | Session doc Phase 12                                                |
 | `afa94dec39` | 13     | fast-copy >=4.1.0 override (closes #335 stack exhaustion)           |
+| `332fc54799` | 13 doc | Session doc Phase 13                                                |
+| `639da1c453` | 14     | braces depth-guard patch (mitigates #389 CVE-2026-93687)            |
