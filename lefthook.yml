@@ -72,12 +72,13 @@ pre-commit:
       # and fails if a match is found. Allowlist at
       # config/quality/resurrection-allowlist.json for legitimate duplicates.
       # Read-only + bounded (~1k-5k deletion entries, sub-second warm).
-      run: bun scripts/check/check-resurrection-patterns.mjs --working-tree-only || {
-        echo "[resurrection] pre-commit hook FAILED — see KI-026 for details";
-        echo "  If this is a legitimate re-add, add the path to";
-        echo "  config/quality/resurrection-allowlist.json with a reason.";
-        exit 1;
-      }
+      run: |
+        bun scripts/check/check-resurrection-patterns.mjs --working-tree-only || {
+          echo "[resurrection] pre-commit hook FAILED — see KI-026 for details"
+          echo "  If this is a legitimate re-add, add the path to"
+          echo "  config/quality/resurrection-allowlist.json with a reason."
+          exit 1
+        }
 
 pre-push:
   parallel: true
