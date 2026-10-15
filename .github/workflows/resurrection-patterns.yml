@@ -1,0 +1,113 @@
+name: Resurrection Patterns
+
+# KI-026: detect verbatim re-adds of files previously deleted on main.
+#
+# Background: the 2026-10-15 untracked-file investigation found 100
+# files in the OmniRoute working tree that were byte-for-byte identical
+# to code deleted 25 days earlier across 5+ separate removal commits
+# (see docs/sessions/20261014-omniroute-q5-dependabot-cleanup/05_KNOWN_ISSUES.md
+# KI-026). This CI job prevents the same recurrence by checking every
+# PR's added files against a 6-month deletion set on main.
+#
+# The check is read-only, bounded (default 6-month deletion set is
+# ~1k-5k entries, sub-second on a warm git index), and has an allowlist
+# for legitimate duplicates at config/quality/resurrection-allowlist.json.
+#
+# Runs on: pull_request (opened, synchronize, reopened, ready_for_review)
+# Skipped on: direct push to main (the working tree there is already
+# canonical; resurrections would be flagged at the developer's local
+# pre-commit instead, which also runs this check via lefthook).
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      since:
+        description: 'Override the deletion-set lookback window (default: 6.months)'
+        required: false
+        default: '6.months'
+
+# Concurrency group is branch-scoped so PR updates cancel in-flight runs.
+# Direct push to main would never trigger this workflow (we only run on PRs),
+# so we don't need to worry about cancelling running checks on main.
+concurrency:
+  group: resurrection-patterns-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  OMNIROUTE_SKIP_SYSTEM_TRUST: "1"
+  CI_NODE_VERSION: "24"
+
+jobs:
+  resurrection:
+    name: Resurrection pattern check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          # fetch-depth: 0 required for git log --diff-filter=D to work
+          fetch-depth: 0
+          # Filter to just main — the deletion set is computed against
+          # main, not against any merged branch. Reduces clone size.
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+
+      - name: Install Bun (for check runner)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.1.42
+
+      - name: Run resurrection check on PR diff
+        env:
+          SINCE: ${{ github.event.inputs.since || '6.months' }}
+        # --pr-base origin/${{ github.base_ref }} checks only the files
+        # added in this PR (three-dot diff against the base branch).
+        # This is intentionally tighter than the working-tree check
+        # used by lefthook (which sees untracked + staged).
+        run: |
+          set +e
+          bun scripts/check/check-resurrection-patterns.mjs \
+            --pr-base "origin/${{ github.base_ref }}" \
+            --since "$SINCE" \
+            --json > resurrection-report.json
+          EXIT=$?
+          set -e
+          if [ "$EXIT" -ne 0 ]; then
+            echo "::group::Resurrection check failed"
+            bun -e '
+              const data = JSON.parse(await Bun.file("resurrection-report.json").text());
+              for (const m of data.matches) {
+                console.log(`::error file=${m.newPath}::resurrection of ${m.deletedPath} (deleted at ${m.deletedAt} in ${m.deletionCommit.slice(0,7)})`);
+              }
+              console.log(`${data.matchesReal} unallowlisted resurrection(s) \u2014 see docs/sessions/20261014-omniroute-q5-dependabot-cleanup/05_KNOWN_ISSUES.md KI-026`);
+              if (data.matchesReal > 0) {
+                console.log("To allowlist a legitimate re-add, edit config/quality/resurrection-allowlist.json and add a path glob with a reason.");
+              }
+            '
+            echo "::endgroup::"
+            exit "$EXIT"
+          fi
+          bun -e '
+            const data = JSON.parse(await Bun.file("resurrection-report.json").text());
+            console.log(`::notice::No resurrections detected. Scanned ${data.candidatesScanned} PR-added file(s) against ${data.deletionSetSize} deletion(s).`);
+          '
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resurrection-report
+          path: resurrection-report.json
+          retention-days: 7
