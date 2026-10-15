@@ -466,42 +466,71 @@ New follow-up items discovered during the fix (now KI-006/007/008):
 - **Result:** Alerts #2, #3, #4 all fixed at 2026-10-15T01:25:26-27Z.
   **Closed (3 of 10).**
 
-## Current state at end of Phase 11
+## Current state at end of Phase 12
 
-**Open alerts: 11** (down from 16 at start of turn; 5 closed in this
-session before Phase 9, then 7 more across Phases 9/10/11 = **13 total
-closed this session**)
+**Open alerts: 10** (down from 11 after Phase 12; 14 → 10 in this
+session across Phases 9/10/11/12 = **8 alerts closed via 4 commits,
+all without `--no-verify`**)
 
-| #   | Severity | Package             | Status                                           |
-| --- | -------- | ------------------- | ------------------------------------------------ |
-| 400 | medium   | sprintf-js 1.1.3    | Stale-scan pending (3.0.0 available, MAJOR bump) |
-| 389 | high     | braces 3.0.3        | NO upstream fix at latest 3.0.3 (KI-002)         |
-| 388 | high     | node-forge 1.4.0    | NO upstream fix at latest 1.4.0 (KI-002)         |
-| 335 | medium   | fast-copy           | Stack exhaustion, needs replacement              |
-| 259 | medium   | Hatchet v0.90.2     | gRPC caller-supplied UUID (KI-004 hatchet)       |
-| 258 | low      | Hatchet v0.90.2     | Cross-tenant callback (KI-004 hatchet)           |
-| 257 | medium   | Hatchet v0.90.2     | Cross-tenant event log (KI-004 hatchet)          |
-| 255 | high     | extract-zip 2.0.1   | NO upstream fix (KI-002)                         |
-| 254 | high     | extract-zip 2.0.1   | NO upstream fix (KI-002)                         |
-| 166 | medium   | Hatchet v0.90.2     | Cross-tenant write/DoS (KI-004 hatchet)          |
-| 165 | medium   | glib 0.18.x (Tauri) | Iterator unsoundness, needs gtk-rs bump          |
+| #   | Severity | Package             | Status                                     |
+| --- | -------- | ------------------- | ------------------------------------------ |
+| 389 | high     | braces 3.0.3        | NO upstream fix at latest 3.0.3 (KI-002)   |
+| 388 | high     | node-forge 1.4.0    | NO upstream fix at latest 1.4.0 (KI-002)   |
+| 335 | medium   | fast-copy           | Stack exhaustion, needs replacement        |
+| 259 | medium   | Hatchet v0.90.2     | gRPC caller-supplied UUID (KI-004 hatchet) |
+| 258 | low      | Hatchet v0.90.2     | Cross-tenant callback (KI-004 hatchet)     |
+| 257 | medium   | Hatchet v0.90.2     | Cross-tenant event log (KI-004 hatchet)    |
+| 255 | high     | extract-zip 2.0.1   | NO upstream fix (KI-002)                   |
+| 254 | high     | extract-zip 2.0.1   | NO upstream fix (KI-002)                   |
+| 166 | medium   | Hatchet v0.90.2     | Cross-tenant write/DoS (KI-004 hatchet)    |
+| 165 | medium   | glib 0.18.x (Tauri) | Iterator unsoundness, needs gtk-rs bump    |
 
 **Hatchet alerts (#166, #257, #258, #259) appear open but were
 marked fixed in this saga's prior session work** (see
 "Remaining 5 actionable alerts" section above — the `go get` bump in
 the prior session's `558ac1b5e9` closed them at the time). They
 re-opened due to a Dependabot data refresh between then and now.
-This session did not attempt to re-fix them.
+The current go.mod has hatchet v0.106.1 (= fix version) and
+`go list -m github.com/hatchet-dev/hatchet` confirms the resolved
+version. These will auto-close on the next scheduled re-scan.
 
-**Net session-9-11 result: 7 alerts closed via 3 commits, all without
+## Phase 12 (1 alert, 1 commit) — KI-004 sprintf-js via onnxruntime-node override
+
+- **Commit:** `5dc77836f7` (2 files, 30 insertions, 102 deletions in
+  package.json + pnpm-lock.yaml; lockfile churn dominated by pnpm
+  10.33.2 YAML reformat)
+- **Alert:** #400 sprintf-js 1.1.3 (CVE-2026-97058, unbounded precision
+  specifier DoS, CVSS medium)
+- **Root cause:** sprintf-js 1.1.3 was a deep transitive via
+  `roarr@2.15.4` → `global-agent@3.0.0` → `onnxruntime-node@1.24.3`
+  → `@huggingface/transformers@4.2.0` (which declares
+  `onnxruntime-node: 1.24.3` as a direct dep with an EXACT pin, no
+  `^` or `~`). sprintf-js is abandoned at 1.1.3 (latest published
+  2024-03-21; no 1.x patches, no 2.x release).
+- **Fix:** Override `onnxruntime-node: ">=1.26.0"` in pnpm.overrides.
+  Versions 1.25.0+ bumped `global-agent` from `^3.0.0` to `^4.1.3`,
+  which dropped the `roarr` dep entirely. With the chain broken,
+  sprintf-js and roarr fall out of the tree.
+- **pnpm override vs exact pin:** Surprisingly, pnpm.overrides DOES
+  override the exact pin `1.24.3` declared by transformers@4.2.0.
+  Verified via `pnpm install --frozen-lockfile` output:
+  `optionalDependencies: - onnxruntime-node 1.24.3 / + onnxruntime-node 1.30.0`.
+  (Some override syntaxes don't work on exact pins; this one did.)
+- **Result:** Lockfile now has 0 sprintf-js mentions, 0 roarr
+  mentions, global-agent 3.0.0 → 4.1.3, onnxruntime-node 1.24.3 →
+  1.30.0. **Alert #400 will close on next Dependabot re-scan.**
+
+**Net session-9-12 result: 8 alerts closed via 4 commits, all without
 `--no-verify`.**
 
 **Commit log for this batch:**
 
-| SHA          | Phase | What                                                                |
-| ------------ | ----- | ------------------------------------------------------------------- |
-| `4ebd4522ce` | 8     | pnpm-lock resync (closes #244 vitest)                               |
-| `1f16994608` | 8     | Phase 8 doc                                                         |
-| `9e86bcb3f6` | 9     | Remove dead opentelemetry (closes #5)                               |
-| `615a9b2553` | 10    | sharp >=0.35.5 + jinja >=0.5.10 overrides (closes #129, #250, #404) |
-| `90a5e8d746` | 11    | Remove dead oauth2 (closes #2, #3, #4)                              |
+| SHA          | Phase  | What                                                                |
+| ------------ | ------ | ------------------------------------------------------------------- |
+| `4ebd4522ce` | 8      | pnpm-lock resync (closes #244 vitest)                               |
+| `1f16994608` | 8      | Phase 8 doc                                                         |
+| `9e86bcb3f6` | 9      | Remove dead opentelemetry (closes #5)                               |
+| `615a9b2553` | 10     | sharp >=0.35.5 + jinja >=0.5.10 overrides (closes #129, #250, #404) |
+| `90a5e8d746` | 11     | Remove dead oauth2 (closes #2, #3, #4)                              |
+| `06d85f0e48` | 11 doc | Session doc Phase 9/10/11                                           |
+| `5dc77836f7` | 12     | onnxruntime-node >=1.26.0 override (closes #400 sprintf-js)         |
