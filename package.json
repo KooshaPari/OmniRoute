@@ -483,7 +483,9 @@
       "http-cache-semantics": ">=4.3.0",
       "smol-toml": ">=1.9.0",
       "shell-quote": ">=1.11.0",
-      "undici": ">=7.29.1"
+      "undici": ">=7.29.1",
+      "@huggingface/jinja": ">=0.5.10",
+      "sharp": ">=0.35.5"
     }
   },
   "allowScripts": {
