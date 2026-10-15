@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.8.53] — 2026-10-14
+
 ### New Features
 
 - **feat(dashboard):** adaptive context-budget dial on the compression settings panel — mode (`off` / `floor` / `replace-autotrigger`) and policy (`reserve-output` / `percentage` / `absolute`) persist via `PUT /api/settings/compression` `contextBudget`. Completes the dashboard half of #7005 (API + DB already shipped in #7183).
@@ -89,6 +91,26 @@
 - **feat(providers):** restore the operator-owned upstream timeout tier per connection via `providerSpecificData.timeoutMs` (preempts the maintainer-only model/provider registry tiers and the global `FETCH_TIMEOUT_MS`), and make the combo per-target timeout ceiling follow the selected connection
 - **feat(cli):** run `omniroute serve --tray` as a detached desktop process after server and tray readiness, with graphical login auto-start support.
 - **feat(routing):** add client-, provider-, and model-neutral exclusive managed session connection leases with API-key-bound generation fencing, durable SQLite ownership, explicit allowlist policy, and bounded 429 capacity retry semantics.
+
+## [3.8.52] — 2026-10-14
+
+_Dependabot-only release — closes 22 Dependabot alerts via `pnpm.overrides` patches, security-only direct dep bumps, and removal of the stale `package-lock.json` that was reporting 67 phantom alerts. No user-facing features._
+
+### Release by the numbers
+
+| Metric | Value |
+| --- | ---: |
+| Commits in the cycle | **13** |
+| Dependabot alerts closed | **22** |
+| Direct dep bumps | 4 (`sharp`, `@modelcontextprotocol/sdk`, `http-cache-semantics`, `smol-toml`) |
+| `pnpm.overrides` introduced | 7 (`dompurify`, `shell-quote`, `undici`, `http-cache-semantics`, `smol-toml`, + 3 MAJOR) |
+| Manifest changes | 1 (removed stale `package-lock.json` — see [a1660051df](https://github.com/diegosouzapw/OmniRoute/commit/a1660051df)) |
+| User-facing features | **0** |
+| User-facing fixes | **0** |
+
+### Dependabot alerts closed in 3.8.52
+
+Closed in this release: **#279**, **#280**, **#341**, **#342**, **#390**, **#398**, **#404**, **#405** + 14 transitive patches via `pnpm.overrides`. See [the Q5 Dependabot cleanup session](docs/sessions/20261014-omniroute-q5-dependabot-cleanup/00_SESSION_OVERVIEW.md) for the full per-alert attribution.
 
 ## [3.8.51] — TBD
 

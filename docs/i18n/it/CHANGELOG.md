@@ -5,6 +5,30 @@
 
 
 
+## [3.8.53] — 2026-10-14
+
+_See the root [CHANGELOG.md](../../../CHANGELOG.md#3853--2026-10-14) for the full entry list. Translations land in a follow-up pass._
+
+### New Features
+
+### Bug Fixes
+
+### Maintenance
+
+---
+
+## [3.8.52] — 2026-10-14
+
+_Dependabot-only release — see root [CHANGELOG.md](../../../CHANGELOG.md#3852--2026-10-14). No user-facing features._
+
+### New Features
+
+### Bug Fixes
+
+### Maintenance
+
+---
+
 ## [3.8.51] — TBD
 
 _Living section — cycle opened at the v3.8.50 freeze (parallel-cycle model). Bullets are aggregated from `changelog.d/` fragments at each `/generate-release` phase._
