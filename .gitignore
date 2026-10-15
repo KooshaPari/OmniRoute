@@ -295,3 +295,6 @@ mcheck.txt
 
 # npm lockfile (pnpm is the package manager; bun.lock also ignored)
 package-lock.json
+
+# Rust build artifacts (cargo target dir)
+/target/
