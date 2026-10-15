@@ -1879,10 +1879,30 @@ hook fix in KI-031 — it rewrites dependency resolution across
 `next`, `@next/swc-*` (7 platforms), `sharp`, `dompurify`,
 `@modelcontextprotocol/sdk`, and adds `oxlint`. It carries
 `postinstall` native-build risk (see
-`scripts/build/postinstall.mjs` and helpers), and CI currently
-shows every run stuck in `queued` with no conclusions, so a
-regenerated lockfile could not be validated. Deferred for
+`scripts/build/postinstall.mjs` and helpers). Deferred for
 operator sign-off.
+
+**CI status (measured 2026-10-15, corrected):** the first draft of
+this KI said CI runs were "stuck queued". That was imprecise and
+understated. Actual measurement over the last 100 runs:
+
+- 56 completed: 13 `success`, 31 `startup_failure`, 12 `failure`
+- 44 still `queued` (all Dependabot version-bump runs)
+- **`ci.yml` has not produced a non-`startup_failure` run since
+  2026-10-05** — 10 days. Every `ci.yml` run since is a
+  `startup_failure`, which fails before dispatching any job (the
+  runs report zero jobs), i.e. it never reaches a runner.
+- The only check that runs on commits today is `Socket Security:
+  Project Report` (app `socket-security`), which succeeds.
+
+So the lockfile drift cannot currently be caught by CI: the
+pipeline that would catch it has been failing at startup for ~10
+days. **The drift is therefore NOT validated as harmless, and a
+regenerated lockfile cannot be validated by CI until the
+`startup_failure` is resolved.** `ci.yml` startup failures are a
+separate, higher-priority problem than this lockfile drift.
+Cause of `startup_failure` not yet determined (Actions billing API
+returns 404 for this repo; likely billing/quota/concurrency).
 
 **Impact on KI-031:** none. The guard was proven independently
 (via direct execution of the committed hook and of
