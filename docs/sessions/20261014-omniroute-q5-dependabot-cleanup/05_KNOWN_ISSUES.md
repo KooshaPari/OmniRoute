@@ -519,6 +519,7 @@ it from main, gives the operator a clear review target.
 - KI-020: the spike is RESURRECTED work (Electron/Electrobun surface deleted 2026-09-18 in `4a9db38fd0`)
 - KI-021: 6-sub-category classification of the 128 files
 - KI-022: sub-category D files are also orphan work (parallel/stale refactor extracts)
+- KI-023: sub-category G (the "misc" perf test) is a 4th resurrection pattern (`ff3d19cc64` F-03 fix)
 
 ---
 
@@ -840,3 +841,82 @@ misc/mixed) for further triage or operator review.
 - `6f20fcd20b refactor(db): extract dbHealthScheduler.ts from core.ts (1738→1614)` (on main, 2026-09-15)
 - `26e5241a93 refactor: decompose chat.ts (2461→2223 lines) into 5 sub-modules` (on main, 2026-09-15)
 - Discovery date: 2026-10-15 during KI-021 follow-up
+
+---
+
+## KI-023: KI-008 misc untracked perf test is a 4th resurrection pattern
+
+**Discovered:** 2026-10-15 (after KI-022, while reclassifying the
+"misc" tail of the 128 untracked files)
+
+**Sub-category:** G (1 file: `tests/performance/provider-routing-benchmark.test.ts`)
+
+### Discovery
+
+After KI-021, the 128 untracked files had been classified into
+A-F, leaving exactly 1 file unclassified: the performance
+benchmark. The header said "Performance benchmarks for OmniRoute
+provider routing hot paths" — sounded like a legitimate new perf
+test. Then I checked the history.
+
+### Evidence
+
+1. **The file was officially removed in `ff3d19cc64 fix(F-03): remove broken benchmark files, replaced by benches/dispatch/`** (2026-09-16, ON MAIN).
+   Commit message: _"The vitest-based benchmarks timed out on import. Replaced with self-contained benchmark in `benches/dispatch/provider-routing.bench.ts` that follows the existing ADR-032 infrastructure."_
+2. **`ff3d19cc64` removed exactly 2 files: `tests/performance/provider-routing-benchmark.test.ts` (524 lines) and `tests/performance/provider-routing.bench.ts` (336 lines) — 860 total deletions.** Both were broken; the replacement is on main.
+3. **The untracked version is BYTE-FOR-BYTE IDENTICAL to the deleted version.** Verified: `diff <(git show ff3d19cc64^:tests/performance/provider-routing-benchmark.test.ts) tests/performance/provider-routing-benchmark.test.ts` returns empty.
+4. **Re-introducing it would re-add a documented broken benchmark** (the `timeout on import` bug). The replacement at `benches/dispatch/provider-routing.bench.ts` is tracked, has a different (working) implementation, and is the canonical location per F-03.
+
+### Conclusion
+
+The "misc" untracked file is **NOT misc**. It is a 4th resurrection
+pattern, alongside:
+
+| #   | Sub-category      | Original commit         | Removed in (on main)                                                              | What                                 |
+| --- | ----------------- | ----------------------- | --------------------------------------------------------------------------------- | ------------------------------------ |
+| 1   | **A** (~61 files) | `a7fe493169` 2026-05-31 | `4a9db38fd0` 2026-09-18                                                           | Electron/Electrobun build surface    |
+| 2   | **B** (1 file)    | (older)                 | `94cc3b1b3e` 2026-09-17                                                           | Tauri-incompatible `+page.server.ts` |
+| 3   | **D** (10 files)  | parallel attempt        | (actual refactor in `6f20fcd20b` + `26e5241a93` 2026-09-15, different file names) | db/chat refactor extracts            |
+| 4   | **G** (1 file)    | `37df3663d6` 2026-09-15 | `ff3d19cc64` 2026-09-16                                                           | Broken vitest-based perf test        |
+
+### Updated KI-008 totals (this turn)
+
+After this discovery, the 128-file classification is complete:
+
+| Sub-category | Files   | Status                                            | Recommended disposition |
+| ------------ | ------- | ------------------------------------------------- | ----------------------- |
+| **A**        | 61      | Resurrection of `4a9db38fd0` Electron/Electrobun  | **Discard** (KI-020)    |
+| **B**        | 1       | Byte-for-byte identical to `94cc3b1b3e` deletion  | **Discard** (KI-021)    |
+| **C**        | 12      | Intentional parking (`disabled-by-tier1-cleanup`) | **Leave**               |
+| **D**        | 10      | Parallel/stale refactor extracts                  | **Discard** (KI-022)    |
+| **E**        | 2       | English + Polish Electron guide                   | Tied to A               |
+| **F**        | 41      | Router-docs archive (already in place)            | **No action**           |
+| **G**        | 1       | Byte-for-byte identical to `ff3d19cc64` deletion  | **Discard** (KI-023)    |
+| **Total**    | **128** |                                                   |                         |
+
+**Recommended action set: discard 73 files (A+B+D+G), keep 12 (C), no-action 41 (F), tied 2 (E).** Remaining ambiguity: zero.
+
+### Required operator action
+
+1. Approve the discard of the G file plus the existing A/B/D discards
+   (~73 files total, all destructive ops gated)
+2. Optionally: consider the meta-pattern. The 1-minute burst on
+   2026-10-13 re-authored 4 separate "resurrection" sets, all
+   pointing at the same root cause: work was done, then deliberately
+   removed via `fix(F-XX)` or migration commits, but the removed
+   state was not respected. Branch-protection rules to consider:
+   (a) require rebase onto main before merge to detect resurrection
+   early, (b) protect deletion commits with a code review gate, (c)
+   add a CI check that detects when files are recreated verbatim
+   after removal.
+
+### References
+
+- KI-008: original 128-file spike entry
+- KI-020: Electrobun/Electron resurrection
+- KI-021: sub-classification
+- KI-022: sub-cat D orphan work
+- `ff3d19cc64 fix(F-03): remove broken benchmark files, replaced by benches/dispatch/` (on main, 2026-09-16)
+- `37df3663d6 test(perf): add provider routing performance benchmarks` (on main, 2026-09-15, since removed)
+- `benches/dispatch/provider-routing.bench.ts` (tracked, the canonical replacement)
+- Discovery date: 2026-10-15 during KI-022 follow-up
