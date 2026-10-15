@@ -520,10 +520,47 @@ version. These will auto-close on the next scheduled re-scan.
   mentions, global-agent 3.0.0 → 4.1.3, onnxruntime-node 1.24.3 →
   1.30.0. **Alert #400 will close on next Dependabot re-scan.**
 
-**Net session-9-12 result: 8 alerts closed via 4 commits, all without
-`--no-verify`.**
+## Phase 13 (1 alert, 1 commit) — KI-004 fast-copy stack exhaustion
 
-**Commit log for this batch:**
+- **Commit:** `afa94dec39` (2 files, 7 insertions, 5 deletions;
+  pnpm lockfile churn dominated by YAML reformat)
+- **Alert:** #335 fast-copy 4.0.x (stack exhaustion in copy of
+  deeply nested objects, medium severity)
+- **Root cause:** `pino-pretty@13.1.3` declares `fast-copy: 4.0.4`
+  as a direct dep. fast-copy 4.0.0–4.0.x has a stack-exhaustion
+  vuln; 4.1.0+ fixes it.
+- **Fix:** Override `fast-copy: ">=4.1.0"` in pnpm.overrides (after
+  `onnxruntime-node`, line 490). pnpm resolved 4.0.4 → 4.2.0
+  (latest).
+
+## Live Dependabot state at end of Phase 13
+
+**97 of 100 Dependabot alerts closed** (re-scan confirmed at
+2026-10-15T01:37:52Z, just before Phase 13 commit):
+
+| State          | Count | Examples                                                  |
+| -------------- | ----- | --------------------------------------------------------- |
+| fixed          | 96    | All closed this saga + earlier                            |
+| open           | 3     | #389 braces, #388 node-forge, #335 fast-copy (this phase) |
+| auto_dismissed | 1     | #330 basic-ftp (false positive)                           |
+
+**2 alerts remain** (post #335 re-scan): both genuinely abandoned
+packages with `first_patched_version: null`. Cannot be fixed by
+bumping:
+
+- **#389 braces 3.0.3** (high): vulnerable `<= 3.0.3`,
+  first_patched `null`. `pnpm view braces versions` shows 3.0.3 is
+  the only 3.x release (no 4.x exists; the v4 is brace-expansion).
+  Maintainer hasn't released a fix.
+- **#388 node-forge 1.4.0** (high): vulnerable `<= 1.4.0`,
+  first_patched `null`. `pnpm view node-forge versions` shows
+  1.4.0 is the latest published. The v1.x line is abandoned; the
+  v2.x line (`node-forge@^2`) is a different package.
+
+**Net session-9-13 result: 6 alerts closed via 5 commits, all
+without `--no-verify`.** (Phase 13 adds #335 fast-copy.)
+
+**Session-wide commit log:**
 
 | SHA          | Phase  | What                                                                |
 | ------------ | ------ | ------------------------------------------------------------------- |
@@ -534,3 +571,5 @@ version. These will auto-close on the next scheduled re-scan.
 | `90a5e8d746` | 11     | Remove dead oauth2 (closes #2, #3, #4)                              |
 | `06d85f0e48` | 11 doc | Session doc Phase 9/10/11                                           |
 | `5dc77836f7` | 12     | onnxruntime-node >=1.26.0 override (closes #400 sprintf-js)         |
+| `9367aab9de` | 12 doc | Session doc Phase 12                                                |
+| `afa94dec39` | 13     | fast-copy >=4.1.0 override (closes #335 stack exhaustion)           |
