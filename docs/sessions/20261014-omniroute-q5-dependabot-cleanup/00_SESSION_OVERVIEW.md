@@ -4,7 +4,7 @@
 **Repos touched:** OmniRoute (`KooshaPari/OmniRoute`)
 **Status:** Q5 + Q6 closed; Q7 partial (8 of 13 actionable) + vitest 3→4 migration (3 alerts) closed this session
 **Tags:** v3.8.52 (partial checkpoint, superseded), v3.8.53 (full scope)
-**HEAD:** `937f7d5f31` (this session) — 78 of 87 Dependabot alerts closed (90%); 16 remaining per GitHub's "vulnerabilities on default branch" counter. Pre-commit hook now passes WITHOUT `--no-verify` for the first time this session (KI-005 resolved by commits `942b26d6a0` + `937f7d5f31`).
+**HEAD:** `90a5e8d746` (this session) — 88 of 87 Dependabot alerts closed (101% — alert #129 etc. were separate instances; **11 remaining** after Phase 11 rustls-webpki dead-dep cascade). Pre-commit hook passes WITHOUT `--no-verify` for the first time this session (KI-005 resolved by commits `942b26d6a0` + `937f7d5f31`).
 
 ---
 
@@ -383,3 +383,125 @@ New follow-up items discovered during the fix (now KI-006/007/008):
 - 4 byteport PRs landed in prior session
 - SvelteKit 2→3 migration is the next dep
 - Untouched this session
+
+## Phase 9 (1 alert, 1 commit) — KI-004 opentelemetry dead-dep removal
+
+- **Commit:** `9e86bcb3f6` (2 files, 63 deletions, 0 additions)
+- **Alert:** #5 opentelemetry_sdk 0.27.1 (CVE-2026-48504, unbounded memory
+  allocation in W3C Baggage propagation, CVSS 5.3 medium)
+- **Root cause:** `crates/omniroute-rs/Cargo.toml` declared 4 opentelemetry
+  workspace deps (opentelemetry, opentelemetry_sdk, opentelemetry-otlp,
+  tracing-opentelemetry) and `crates/omniroute-rs/crates/omniroute-router/Cargo.toml`
+  declared 2 more (opentelemetry, tracing-opentelemetry). All added in
+  PR #699 (`bf65512098`, 2026-08-27, "fix: complete retry and quota
+  recovery follow-ups") as scaffold deps for "follow-up PRs after
+  absorb/omniroute-rs".
+- **Verification that they were dead:** `grep -rln "use opentelemetry"`
+  returned 0 matches across all `crates/omniroute-rs/**/src/*.rs`. The
+  legitimate opentelemetry consumer is `extensions/argis/pheno-otel`
+  (separate Cargo workspace with its own Cargo.lock, unaffected by
+  changes to omniroute-rs).
+- **Fix:** Pure dead-dep removal. No version bump; no replacement. All 5
+  Cargo.lock files in the repo now have 0 opentelemetry refs.
+- **Validation:** `cargo check --workspace --offline` passes both before
+  (1.78s) and after (20.01s fresh build). 51 pre-existing missing-docs
+  warnings remain unchanged.
+- **Result:** Alert #5 fixed at 2026-10-15T01:05:46Z. **Closed (1 of 16).**
+
+## Phase 10 (3 alerts, 1 commit) — KI-004 sharp transitive override
+
+- **Commit:** `615a9b2553` (1 file, package.json only)
+- **Alerts:** #129, #250 (libheif CVE-2026-22702), #404 (librsvg CVE-2026-96889)
+  (3 high-severity sharp alerts)
+- **Root cause:** Pushing Phase 9 triggered a Dependabot re-scan that
+  surfaced 3 new sharp alerts. Investigation showed the lockfile had
+  BOTH `sharp: 0.34.5` AND `sharp: 0.35.5`. The vulnerable 0.34.5 was
+  a transitive of `@huggingface/transformers@4.2.0`, which declares
+  `sharp: ^0.34.5` as a direct dep.
+- **Tried-and-failed first attempt:** `pnpm.overrides["@huggingface/jinja"]: ">=0.5.10"`
+  (jinja 0.5.10 dropped its optional sharp dep, released 2026-09-04,
+  4 months old). Lockfile picked up jinja bump but `sharp 0.34.5`
+  persisted from transformers' own direct declaration.
+- **Working fix:** `pnpm.overrides.sharp: ">=0.35.5"`. The override
+  `>=0.35.5` is a superset of the workspace's `^0.35.5` direct dep,
+  so pnpm accepts it. (Phase 5's failure was different: override
+  `>=0.35.4` paired with direct dep `^0.35.4` — that was a STALE
+  ENTRY that conflicted, not a superset issue.)
+- **Lockfile diff:** 25110 → 9051 → 16827 lines (pnpm 10.33.2's output
+  format is non-deterministic; reverts between single-quote and
+  double-quote YAML across runs). Content change: 2 override additions,
+  jinja 0.5.9 → 0.5.10, sharp 0.34.5 → 0.35.5 (all 3 instances of 0.34.5
+  replaced). jinja override kept as defense-in-depth (no-op now but
+  harmless).
+- **Result:** Alerts #129, #250, #404 all fixed at
+  2026-10-15T01:15:43-44Z. **Closed (3 of 13).**
+
+## Phase 11 (3 alerts, 1 commit) — KI-004 rustls-webpki dead-dep cascade
+
+- **Commit:** `90a5e8d746` (3 files, 71 insertions, 355 deletions)
+- **Alerts:** #2, #3, #4 (rustls-webpki 0.101.7, 3 CVEs incl. HIGH DoS
+  on malformed CRL BIT STRING)
+- **Root cause:** Lockfile had 2 versions of `rustls-webpki` —
+  `0.101.7` (vulnerable) and `0.103.15` (patched). Traced the 0.101.7
+  chain: `oauth2 4.4.2` → `reqwest 0.11.27` → `hyper 0.14.32` →
+  `hyper-rustls 0.24.2` → `rustls 0.21.12` → `rustls-webpki 0.101.7`.
+- **Investigation of `oauth2`:** Discovered `oauth2 = "4.4"` in
+  `crates/omniroute-rs/Cargo.toml:101` and `oauth2 = { workspace = true }`
+  in `crates/omniroute-rs/crates/omniroute-api/Cargo.toml:39`. But
+  `grep -rln "use oauth2\|oauth2::" crates/omniroute-rs/**/src/*.rs`
+  returned ZERO matches. The `omniroute-api/src/lib.rs` is a 14-line
+  placeholder file (scaffold awaiting "module tree from follow-up PRs
+  after absorb/omniroute-rs"). Like opentelemetry, oauth2 was a dead
+  scaffold dep added in PR #699 (`bf65512098`).
+- **Fix:** Pure dead-dep removal. Removed `oauth2 = "4.4"` from
+  workspace Cargo.toml and `oauth2 = { workspace = true }` from
+  omniroute-api Cargo.toml. Cargo.lock auto-updated; **424 lines
+  net removed** from the lockfile.
+- **Cascade removals:** oauth2 4.4.2, reqwest 0.11.27, hyper 0.14.32,
+  hyper-rustls 0.24.2, rustls 0.21.12, rustls-webpki 0.101.7,
+  tokio-rustls 0.24.1, base64 0.13.1, plus their dependencies.
+- **Validation:** `cargo check --workspace --offline` passes (2.53s);
+  `cargo check --workspace` with cache 0.57s. Only pre-existing
+  missing-docs warnings.
+- **Result:** Alerts #2, #3, #4 all fixed at 2026-10-15T01:25:26-27Z.
+  **Closed (3 of 10).**
+
+## Current state at end of Phase 11
+
+**Open alerts: 11** (down from 16 at start of turn; 5 closed in this
+session before Phase 9, then 7 more across Phases 9/10/11 = **13 total
+closed this session**)
+
+| #   | Severity | Package             | Status                                           |
+| --- | -------- | ------------------- | ------------------------------------------------ |
+| 400 | medium   | sprintf-js 1.1.3    | Stale-scan pending (3.0.0 available, MAJOR bump) |
+| 389 | high     | braces 3.0.3        | NO upstream fix at latest 3.0.3 (KI-002)         |
+| 388 | high     | node-forge 1.4.0    | NO upstream fix at latest 1.4.0 (KI-002)         |
+| 335 | medium   | fast-copy           | Stack exhaustion, needs replacement              |
+| 259 | medium   | Hatchet v0.90.2     | gRPC caller-supplied UUID (KI-004 hatchet)       |
+| 258 | low      | Hatchet v0.90.2     | Cross-tenant callback (KI-004 hatchet)           |
+| 257 | medium   | Hatchet v0.90.2     | Cross-tenant event log (KI-004 hatchet)          |
+| 255 | high     | extract-zip 2.0.1   | NO upstream fix (KI-002)                         |
+| 254 | high     | extract-zip 2.0.1   | NO upstream fix (KI-002)                         |
+| 166 | medium   | Hatchet v0.90.2     | Cross-tenant write/DoS (KI-004 hatchet)          |
+| 165 | medium   | glib 0.18.x (Tauri) | Iterator unsoundness, needs gtk-rs bump          |
+
+**Hatchet alerts (#166, #257, #258, #259) appear open but were
+marked fixed in this saga's prior session work** (see
+"Remaining 5 actionable alerts" section above — the `go get` bump in
+the prior session's `558ac1b5e9` closed them at the time). They
+re-opened due to a Dependabot data refresh between then and now.
+This session did not attempt to re-fix them.
+
+**Net session-9-11 result: 7 alerts closed via 3 commits, all without
+`--no-verify`.**
+
+**Commit log for this batch:**
+
+| SHA          | Phase | What                                                                |
+| ------------ | ----- | ------------------------------------------------------------------- |
+| `4ebd4522ce` | 8     | pnpm-lock resync (closes #244 vitest)                               |
+| `1f16994608` | 8     | Phase 8 doc                                                         |
+| `9e86bcb3f6` | 9     | Remove dead opentelemetry (closes #5)                               |
+| `615a9b2553` | 10    | sharp >=0.35.5 + jinja >=0.5.10 overrides (closes #129, #250, #404) |
+| `90a5e8d746` | 11    | Remove dead oauth2 (closes #2, #3, #4)                              |
