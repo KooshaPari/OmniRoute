@@ -389,35 +389,106 @@ authoritative. This is a follow-up.
 
 ---
 
-## KI-008: 46 untracked build/test fixture files
+## KI-008: Electrobun desktop spike (46 untracked files, ~1.7MB)
 
-**STATUS: OPEN — pre-existing, low priority cleanup.**
+**STATUS: OPEN — pre-existing in-progress feature work discovered
+2026-10-15T00:30Z. NOT scratch files. NOT build outputs. This is a
+real architecture-decision-record spike that was never committed.**
 
-Working tree has 46 unstaged untracked files, mostly build outputs and
-test fixtures. Sample (from `git status --short`):
+### Discovery
 
-```
-?? tests/unit/electron-smoke-script.test.ts
-?? tests/unit/electron-sqlite-prebuild.test.ts
-?? tests/unit/electron-window-close-policy.test.ts
-?? ... (43 more)
-```
+While cleaning up untracked working-tree noise after KI-005, the 46
+untracked files turned out to be a **coherent, time-bounded spike** (not
+random untracked files):
 
-Most appear to be `*.test.ts` files in `tests/unit/` that should be
-either:
+- Authored 2026-10-13 17:52-17:53 PDT (single focused burst, ~1 minute)
+- Top-level README in `desktop-electrobun/README.md` describes the
+  intent (Electrobun framework evaluation as a third desktop path
+  alongside existing Tauri `apps/desktop/src-tauri/` and Electron
+  `electron/`)
+- Self-contained with its own `package.json`, `tsconfig.json`, `justfile`
+- Has explicit **selection gates** that must pass before merging
+- References **ADR-ECO-015** ("hybrid gateway app layer")
+- Total weight: ~1.7MB (mostly `docs/research/`, a 14KB user guide, 16+
+  test files, 8 new `src/lib/db/*.ts` modules)
 
-- Tracked (if they belong to the test suite)
-- Added to `.gitignore` (if they're scratch files or test fixtures that
-  should never be committed)
-- Deleted (if they're stale outputs)
+### Spike contents (46 items)
 
-### Resolution
+| Category                           | Count | Examples                                                                                                                        |
+| ---------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Sub-project: `desktop-electrobun/` | 1 dir | package.json, tsconfig.json, justfile, README, src/bun/index.ts, tests/lifecycle.test.ts                                        |
+| Sub-project: `electron/` (legacy)  | 1 dir | 504KB (likely packaging scripts + config)                                                                                       |
+| Sub-project: `docs/research/`      | 1 dir | 1.7MB (research notes; mostly markdown)                                                                                         |
+| Sub-project: `tests/performance/`  | 1 dir | 20K (perf test scaffolding)                                                                                                     |
+| User docs                          | 2     | `docs/guides/ELECTRON_GUIDE.md` (14KB) + Polish translation                                                                     |
+| CI workflows                       | 2     | `.github/workflows/desktop-electrobun.yml`, `electron-release.yml`                                                              |
+| Build scripts                      | 6     | `scripts/build/electron*.mjs`, `scripts/dev/smoke-electron-packaged.mjs`, `scripts/release/merge-mac-update-manifest.mjs`       |
+| Electron test files                | 16    | `tests/unit/electron-*.test.ts`                                                                                                 |
+| DB module additions                | 8     | `src/lib/db/{dbSchema,dbBackup,dbCaptureRestore,dbCoreTypes,dbHealthCheck,dbJsonMigration,dbLegacyMigration,coreDriverInfo}.ts` |
+| SSE chat handlers                  | 2     | `src/sse/handlers/chat/{chatComboUtils,chatValidation}.ts`                                                                      |
+| Misc code                          | 2     | `src/shared/hooks/useElectron.ts`, `apps/web/src/routes/dashboard/+page.server.ts`                                              |
+| Refactor staging                   | 1 dir | `src/app/api/providers/[id]/models/providerHandlers.disabled-by-tier1-cleanup/` (104K)                                          |
 
-1. `git status --short | grep '^??'` for the full list
-2. For each: decide tracked/untracked/stale
-3. If untracked scratch: add to `.gitignore` or delete
-4. If legitimate: `git add` and commit
+### Spike's stated intent (from `desktop-electrobun/README.md`)
 
-Likely ~30 minutes of work. Best done as a focused cleanup commit.
+> **Status:** Selection-gate spike (ADR-ECO-015 hybrid gateway app layer)
+> **Registry choice:** FFI + Electrobun → canonical path `apps/desktop/`
+> (this tree promoted from repo root)
+>
+> Electrobun + Bun shell that wraps the OmniRoute web UI with optional
+> one-click `process-compose` service boot. This is the **canonical
+> desktop spike** (not Electron, not Tauri-on-main). Legacy Electron
+> remains in `../electron/` for packaging until this spike passes the
+> gate below; CI Electron smoke is path-filtered and is not the required
+> desktop gate.
+
+### Selection gates (must pass before merging)
+
+1. **Tray / menu-bar UX** — CLI proxy control from a native tray or
+   menu-bar affordance (harvest from vibeproxy `apps/macos/`)
+2. **Local OpenAI endpoint** — App exposes an OpenAI-compatible local
+   base URL wired to phenotype-gateway planes
+3. **macOS build** — Reproducible signed or ad-hoc `.app` from
+   `bun run build:release` on macOS (P0). Linux build optional (P1)
+
+### Why this is not just "noise"
+
+- 46 files all authored in a single 1-minute burst on 2026-10-13
+- All have related logical content (one ADR-driven spike, not random)
+- Has explicit author intent (gates, ADR reference, README)
+- ~1.7MB of research notes
+- Code is self-contained, doesn't import tracked modules
+  (verified: no `from '@lib/db/...'` imports in tracked `src/`)
+
+### Resolution (operator decision required)
+
+Three options:
+
+1. **Commit the spike as-is** (commits 46 files, ~1.7MB; the spike
+   stays in the working tree but is now tracked). Makes the spike
+   discoverable via git history. **Risk:** adds 1.7MB to repo.
+
+2. **Move the spike to a feature branch** (cleaner, doesn't pollute
+   main). `git checkout -b spike/electrobun-gate-2026-10-13` then
+   `git add` all 46 files and commit. Operator can decide later.
+
+3. **Discard the spike** (delete 46 files). Only do this if the operator
+   has reviewed the spike and decided to abandon it. **Risk:** loses
+   ~5 days of work.
+
+4. **Leave as-is** (do nothing). Continues to be working-tree noise
+   (the 46 untracked entries in `git status`).
+
+Recommended: option 2 (feature branch) — preserves the work, isolates
+it from main, gives the operator a clear review target.
+
+### References
+
+- Spike README: `desktop-electrobun/README.md`
+- ADR reference: ADR-ECO-015
+- Existing Tauri desktop (tracked): `apps/desktop/src-tauri/`
+- Existing Electron (tracked, separate from new `electron/` subdir):
+  legacy Electron integration in `src/`
+- Time of authoring: 2026-10-13 17:52-17:53 PDT (single burst)
 
 ---

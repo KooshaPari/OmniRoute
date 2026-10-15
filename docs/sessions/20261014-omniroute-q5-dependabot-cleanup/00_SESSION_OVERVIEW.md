@@ -283,8 +283,49 @@ New follow-up items discovered during the fix (now KI-006/007/008):
   untrack.
 - **KI-007**: `[3.8.51] — TBD` placeholder date in root CHANGELOG + 51
   i18n mirrors. Pre-existing debt, not blocking.
-- **KI-008**: 46 untracked build/test fixture files. Pre-existing,
-  low-priority cleanup.
+- **KI-008**: 46 untracked files are a **real Electrobun desktop
+  spike** (ADR-ECO-015), authored 2026-10-13 17:52-17:53 in a single
+  burst, never committed. ~1.7MB total (mostly `docs/research/`).
+  Self-contained, does not break Tauri build. **Operator decision
+  required** — see 05_KNOWN_ISSUES.md KI-008 for 4 options
+  (commit-to-main / feature-branch / discard / leave-as-is).
+
+## Phase 6 (0 alerts, 1 commit) — KI-007 TBD date fix
+
+- **Commit:** `f60b97e39b` (52 files)
+- **Scope:** root `CHANGELOG.md` + 51 i18n CHANGELOGs
+- **Change:** `## [3.8.51] — TBD` → `## [3.8.51] — 2026-10-13`
+  (real date from `git log -1 --format="%ai" v3.8.51`)
+- **Tool:** `replace` tool for 51 i18n files (glob `docs/i18n/**/CHANGELOG.md`)
+  - manual `edit` for root `CHANGELOG.md`
+- **Note on format:** The actual CHANGELOG header uses em-dash (U+2014)
+  not regular hyphen. Initial grep for `## [3.8.51] - TBD` returned 0
+  matches. Verified via `xxd` on a matched line: `e2 80 94` is em-dash
+  bytes. Always confirm dash format before regex.
+- **Verification:** check-docs-sync still passes; no functional change.
+
+## Phase 7 (0 alerts, 0 commits) — KI-008 re-discovery as Electrobun spike
+
+- **No commit this phase.** Operator decision pending.
+- **Finding:** The 46 untracked files I had categorized as "build/test
+  fixture noise" in Phase 5 are actually a coherent Electrobun desktop
+  framework evaluation spike (ADR-ECO-015), authored in a single
+  1-minute burst on 2026-10-13 17:52-17:53 PDT.
+- **What it is:** Third desktop option alongside the existing
+  Tauri (`apps/desktop/src-tauri/`) and Electron (`electron/`)
+  implementations. Self-contained with own `package.json`, `tsconfig.json`,
+  `justfile`, README, src/bun/index.ts, tests/, and 1.7MB of research notes.
+- **Selection gates (per spike README):**
+  1. Tray / menu-bar UX (harvest from vibeproxy `apps/macos/`)
+  2. Local OpenAI endpoint wired to gateway planes
+  3. Reproducible macOS build (P0)
+- **Risk of auto-committing:** adds 1.7MB to repo and bakes in a spike
+  whose gates haven't passed. Risk of NOT committing: 5 days of work
+  sits untracked indefinitely.
+- **Verdict:** Flag to operator, do NOT auto-commit. Updated
+  `05_KNOWN_ISSUES.md` KI-008 with the correct framing and 4 explicit
+  options (commit-to-main / feature-branch / discard / leave-as-is).
+  Recommended: feature branch (option 2).
 
 ---
 
