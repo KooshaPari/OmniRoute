@@ -449,6 +449,15 @@ random untracked files):
 > gate below; CI Electron smoke is path-filtered and is not the required
 > desktop gate.
 
+**WARNING — this is RESURRECTED work, not fresh architecture:**
+See KI-020. The current 128-file spike is a re-creation of code
+that was explicitly deleted 25 days earlier (2026-09-18,
+`4a9db38fd0 chore(build): remove dead Electron/Electrobun build
+scripts and desktop shell`) as part of the **ZERO-electron/Tauri
+migration**. Re-committing any of these files would reverse that
+migration. Operator must read KI-020 before making the KI-008
+decision.
+
 ### Selection gates (must pass before merging)
 
 1. **Tray / menu-bar UX** — CLI proxy control from a native tray or
@@ -485,6 +494,16 @@ Three options:
 
 4. **Leave as-is** (do nothing). Continues to be working-tree noise
    (the 46 top-level untracked entries in `git status`, 128 total).
+
+### If the operator chooses option 2 (feature branch)
+
+**CRITICAL CONTEXT:** the feature branch would re-introduce work
+that was deliberately retired 2026-09-18. See KI-020 for the full
+history. The branch should probably be named
+`spike/electrobun-resurrection-2026-10-13` (not `electrobun-gate`)
+to reflect the actual semantic, and the PR description should
+explicitly call out the reversal of the ZERO-electron/Tauri
+migration.
 
 Recommended: option 2 (feature branch) — preserves the work, isolates
 it from main, gives the operator a clear review target.
@@ -540,5 +559,114 @@ If the operator wants zero-inbox-action Dependabot state changes, the
 without inbox approval. That policy change is itself an operator
 action (in the harness policy itself), not achievable from this
 session.
+
+---
+
+## KI-020: KI-008 is RESURRECTED work, not fresh architecture
+
+**STATUS: CRITICAL CONTEXT for KI-008 decision.**
+
+The current 128 untracked files in `desktop-electrobun/`, `electron/`,
+`scripts/build/electron*.mjs`, `tests/unit/electron-*.test.ts`, and
+`.github/workflows/{desktop-electrobun,electron-release}.yml` are
+**not a fresh architecture spike** — they are a re-creation of code
+that was **explicitly deleted 25 days earlier** as part of the
+**ZERO-electron/Tauri migration**.
+
+### Timeline
+
+| Date       | SHA            | Event                                                                                                                                                                                    |
+| ---------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-31 | `a7fe493169`   | `feat(desktop): native Electrobun shell (HMR) for OmniRoute (#13)` — first Electrobun shell added                                                                                        |
+| 2026-06-18 | `aa1aa2c621`   | `docs: Electrobun desktop spike scaffold (ADR-ECO-015)` — ADR-driven spike scaffold added                                                                                                |
+| 2026-09-18 | `4a9db38fd0`   | `chore(build): remove dead Electron/Electrobun build scripts and desktop shell` — **all Electrobun + Electron build surface deleted as part of ZERO-electron/Tauri migration** (on main) |
+| 2026-10-13 | (working tree) | The 128 files were re-authored in a single ~1-minute burst                                                                                                                               |
+| 2026-10-15 | (this session) | Discovery: this is a resurrection, not new architecture                                                                                                                                  |
+
+**Neither `a7fe493169` nor `aa1aa2c621` is reachable from main.**
+Only `4a9db38fd0` (the deletion) is on main.
+
+### What was deleted in `4a9db38fd0`
+
+```
+.github/workflows/desktop-electrobun.yml                    (122 lines)
+desktop-electrobun/.env.example                              (15 lines)
+desktop-electrobun/.gitignore                                (5 lines)
+desktop-electrobun/README.md                                 (84 lines)
+desktop-electrobun/bun.lock                                 (134 lines)
+desktop-electrobun/electrobun.config.ts                     (54 lines)
+desktop-electrobun/justfile                                 (17 lines)
+desktop-electrobun/package.json                             (24 lines)
+desktop-electrobun/src/bun/index.ts                         (271 lines)
+desktop-electrobun/src/views/index.html                     (30 lines)
+desktop-electrobun/tests/lifecycle.test.ts                  (33 lines)
+desktop-electrobun/tsconfig.json                            (14 lines)
+scripts/build/afterpack-copy-node-modules.mjs               (34 lines)
+scripts/build/electronRebuildPlan.mjs                       (73 lines)
+scripts/build/electronRuntimeDocs.mjs                       (81 lines)
+scripts/build/prepare-electrobun-web.mjs                    (93 lines)
+scripts/build/prepare-electron-standalone.mjs               (241 lines)
+tests/unit/electron-packaging.test.ts                       (144 lines)
+tests/unit/electron-rebuild-spawn-win.test.ts               (22 lines)
+tests/unit/electron-sqlite-prebuild.test.ts                 (86 lines)
+```
+
+The current spike's `desktop-electrobun/README.md` is **byte-for-byte**
+identical to the deleted `aa1aa2c621:desktop-electrobun/README.md`
+(verified via `git show aa1aa2c621:desktop-electrobun/README.md`).
+
+### What this means for KI-008
+
+**The framing changes from "keep/discard a new architecture spike" to
+"reverse the 2026-09-18 ZERO-electron/Tauri migration".**
+
+The four KI-008 options now have different weights:
+
+1. **Commit the spike as-is** (reverses 4a9db38fd0; recommits
+   ~1.7MB). Reasonable only if the operator has decided to reverse
+   the Tauri migration.
+2. **Move to a feature branch** (preserves the work for review).
+   Same as before, but the PR description should explicitly call
+   out the reversal of ZERO-electron/Tauri migration.
+3. **Discard the spike** (delete 128 files). This is the
+   **ZERO-electron/Tauri-aligned** choice. Loses ~1.7MB of work
+   but is consistent with the most recent architectural decision.
+4. **Leave as-is** (do nothing). Continues to be working-tree noise
+   that looks like new architecture but is actually resurrected
+   retired work. The longer this sits, the higher the risk of
+   someone committing it without realizing the deletion history.
+
+### Why this was easy to miss
+
+- The original session discovery (2026-10-15) classified the 46
+  untracked files as a "coherent spike" without cross-referencing
+  the deletion commit. Without that cross-reference, the spike
+  looked like a fresh architecture exploration.
+- The deletion commit `4a9db38fd0` is on main but the work being
+  resurrected is not in any reachable ref, so `git log --all` is
+  required to surface the history.
+- The 25-day window between deletion and resurrection is short
+  enough to be plausibly explained as "I forgot I deleted this"
+  but long enough to suggest an intentional reversal.
+
+### Required operator action
+
+Before choosing a KI-008 option, the operator should explicitly
+decide whether to reverse the 2026-09-18 ZERO-electron/Tauri
+migration. If the answer is "no, Tauri is still canonical", the
+correct KI-008 choice is **option 3 (discard)**. If the answer is
+"yes, reverse the migration", the spike is the wrong starting
+point — the right path is to revert `4a9db38fd0` (which gives a
+clean, reviewed history) rather than re-committing a re-typed
+version of the same files.
+
+### References
+
+- Deletion commit: `4a9db38fd0 chore(build): remove dead Electron/Electrobun build scripts and desktop shell` (on main)
+- First shell: `a7fe493169 feat(desktop): native Electrobun shell (HMR) for OmniRoute (#13)` (not on main)
+- ADR scaffold: `aa1aa2c621 docs: Electrobun desktop spike scaffold (ADR-ECO-015)` (not on main)
+- Currently active desktop: `apps/desktop/src-tauri/` (Tauri 2, tracked)
+- Original KI-008 entry: see above
+- Discovery date: 2026-10-15 during the Dependabot cleanup saga
 
 ---
