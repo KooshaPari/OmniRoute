@@ -920,3 +920,89 @@ After this discovery, the 128-file classification is complete:
 - `37df3663d6 test(perf): add provider routing performance benchmarks` (on main, 2026-09-15, since removed)
 - `benches/dispatch/provider-routing.bench.ts` (tracked, the canonical replacement)
 - Discovery date: 2026-10-15 during KI-022 follow-up
+
+---
+
+## KI-024: Pre-built operator-ready cleanup plan (non-destructive preview)
+
+**Discovered:** 2026-10-15 (synthesis of KI-020 through KI-023)
+
+After 4 commits investigating the 128 untracked files, the
+classification is complete and the recommended discard set is
+**73 files** (A+B+D+G). The remaining 55 files split as:
+
+- 12 (C) intentional parking — leave
+- 2 (E) Polish + English Electron guide — tied to A
+- 41 (F) router-docs archive — no action
+
+### Ready-to-execute cleanup script (operator-gated, run as-is)
+
+The following command sequence is non-destructive preview; the
+actual `rm` requires operator approval. **Destructive, single
+command, no undo.**
+
+```bash
+# 1. Preview (read-only, no changes)
+cd /Users/kooshapari/CodeProjects/Phenotype/repos/OmniRoute
+git status --porcelain | grep '^??' | wc -l  # should show 128 currently
+git clean -nd 2>&1 | head -5   # just shows what would happen
+
+# 2. Discard the 73 confirmed-resurrection files
+#    (cat the file list, then pipe through xargs + rm)
+git ls-files --others --exclude-standard \
+  | grep -vE "^(src/app/api/providers/\[id\]/models/providerHandlers\.disabled-by-tier1-cleanup|docs/research/archive/router-docs|docs/i18n/pl/docs/guides/ELECTRON_GUIDE)" \
+  | grep -vE "^docs/guides/ELECTRON_GUIDE" \
+  | xargs -I{} sh -c 'echo "DISCARD: {}" && rm "{}"'
+
+# 3. Verify
+git status --porcelain | grep '^??' | wc -l  # should show 55 now
+git status
+```
+
+### Files in the discard set (73 total)
+
+| Sub-cat | Count | Reason                                            |
+| ------- | ----- | ------------------------------------------------- |
+| A       | 61    | Resurrection of `4a9db38fd0` Electron/Electrobun  |
+| B       | 1     | Byte-for-byte identical to `94cc3b1b3e` Tauri fix |
+| D       | 10    | Parallel/stale refactor extracts (KI-022)         |
+| G       | 1     | Byte-for-byte identical to `ff3d19cc64` F-03 fix  |
+
+### Files NOT in the discard set (55 total, to keep)
+
+| Sub-cat | Count | Path                                                                             |
+| ------- | ----- | -------------------------------------------------------------------------------- |
+| C       | 12    | `src/app/api/providers/[id]/models/providerHandlers.disabled-by-tier1-cleanup/*` |
+| E       | 2     | `docs/guides/ELECTRON_GUIDE.md` + `docs/i18n/pl/docs/guides/ELECTRON_GUIDE.md`   |
+| F       | 41    | `docs/research/archive/router-docs/**`                                           |
+
+### Why this is now safe to execute
+
+- Each of the 73 files in the discard set has a documented
+  origin on main and a documented reason for removal (KI-020
+  through KI-023)
+- The 55 files NOT in the discard set are either intentionally
+  parked (C), already correctly placed archive material (F), or
+  tied to A's outcome (E)
+- No tracked code depends on the 73 files (KI-020 through KI-023
+  all verify this)
+- The Dependabot saga is unaffected by the discard (no security
+  implications; this is just working-tree cleanup)
+
+### What this does NOT do
+
+- Does not touch `git history` (no `git reset`, no `rebase`, no
+  `filter-branch`)
+- Does not commit anything new
+- Does not push anything
+- Does not dismiss the 9 remaining Dependabot alerts (those
+  require separate inbox approval)
+
+### Cross-references
+
+- KI-008: 128-file spike umbrella
+- KI-020: A is resurrection of `4a9db38fd0`
+- KI-021: sub-classification
+- KI-022: D is parallel/stale refactor extracts
+- KI-023: G is byte-for-byte resurrection of F-03 fix
+- Discovery date: 2026-10-15, end of session
