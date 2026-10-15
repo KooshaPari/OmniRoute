@@ -118,10 +118,16 @@ function isAllowlisted(filepath) {
 // --- git helpers ---------------------------------------------------------
 
 function git(...args) {
+  // maxBuffer: 64 MiB. The default 1 MiB is too small for `git log
+  // --diff-filter=D --name-only` on a long-lived repo with many
+  // deletions (e.g. Tracera, observed ENOBUFS 2026-10-15 on its
+  // first scan). 64 MiB comfortably covers a 6-month window even
+  // on a busy monorepo.
   return execFileSync("git", args, {
     cwd: ROOT,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
+    maxBuffer: 64 * 1024 * 1024,
   });
 }
 
