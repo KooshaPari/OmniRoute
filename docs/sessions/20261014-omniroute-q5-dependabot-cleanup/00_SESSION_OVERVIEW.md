@@ -3,8 +3,16 @@
 **Date:** 2026-10-14 → 2026-10-15
 **Repos touched:** OmniRoute (`KooshaPari/OmniRoute`)
 **Status:** Q5 + Q6 closed; Q7 partial (8 of 13 actionable) + vitest 3→4 migration (3 alerts) closed this session
-**Tags:** v3.8.53 (full scope)
-**HEAD:** `90a5e8d746` (this session) — 88 of 87 Dependabot alerts closed (101% — alert #129 etc. were separate instances; **11 remaining** after Phase 11 rustls-webpki dead-dep cascade). Pre-commit hook passes WITHOUT `--no-verify` for the first time this session (KI-005 resolved by commits `942b26d6a0` + `937f7d5f31`).
+**Tags:** v3.8.53 (full scope); v3.8.52 deleted as obsolete
+**HEAD:** `2cde11e793` (Phase 15) — **9 alerts remain open** of 108+ total (1+ pages; exact total not retrievable due to API pagination limits; original session-scoped count was 404 per `627bac0c43`). Pre-commit hook passes WITHOUT `--no-verify` for the first time this session (KI-005 resolved by commits `942b26d6a0` + `937f7d5f31`).
+
+**9 open alerts (post-Phase 15 audit):**
+
+- 4 hatchet (already fixed in manifest; Dependabot re-scan lag): #166, #257, #258, #259
+- 3 promptfoo-chain (no upstream fix; need UI dismissal): #388 node-forge, #254 extract-zip, #255 extract-zip
+- 2 patched-in-place (no upstream fix; need UI dismissal): #389 braces (Phase 14), #165 glib
+
+**Operator action pending:** dismiss 7 alerts in Dependabot UI (4 hatchet should auto-close; 5 promptfoo-cluster + 2 patched-in-place need manual `not_used` / `tolerable_risk` dismissal). Same inbox-approval gate that blocked KI-015 applies.
 
 ---
 
