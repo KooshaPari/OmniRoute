@@ -344,6 +344,53 @@ New follow-up items discovered during the fix (now KI-006/007/008):
   options (commit-to-main / feature-branch / discard / leave-as-is).
   Recommended: feature branch (option 2).
 
+### KI-008 detailed inventory (2026-10-15)
+
+The 46-file estimate from Phase 7 was a top-level view. A full
+`git ls-files --others --exclude-standard` reveals **128 untracked
+files** across 8 root-level directories. Categorized:
+
+| Root dir                                                                        | Count   | Purpose                                                                                                                                                                                                                                                                       | Decision hint                                                                                                          |
+| ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `desktop-electrobun/`                                                           | 10      | **The Electrobun spike** (ADR-ECO-015) — package.json, tsconfig, justfile, README, src/bun/index.ts, tests/lifecycle.test.ts, etc.                                                                                                                                            | **Feature branch (option 2)** — this is the canonical new desktop target                                               |
+| `electron/`                                                                     | 23      | **Legacy Electron desktop** — 7 lib/_.js, 5 assets/_.{icns,ico,png,html}, 1 README, 10 misc. The "legacy desktop until spike passes" tree.                                                                                                                                    | **Feature branch, then delete** — once desktop-electrobun/ passes the 3 gates, electron/ is obsolete                   |
+| `scripts/build/` + `scripts/dev/` + `scripts/release/` (untracked portion)      | 7       | Build/dev/release helpers for the new desktop apps (`afterpack-copy-node-modules.mjs`, `electronRebuildPlan.mjs`, `electronRuntimeDocs.mjs`, `prepare-electrobun-web.mjs`, `prepare-electron-standalone.mjs`, `smoke-electron-packaged.mjs`, `merge-mac-update-manifest.mjs`) | **Feature branch** — needed for the new desktop builds                                                                 |
+| `.github/workflows/` (untracked portion)                                        | 2       | `desktop-electrobun.yml` + `electron-release.yml` — CI for the new desktop apps                                                                                                                                                                                               | **Feature branch** — CI must move with the code                                                                        |
+| `apps/web/src/routes/dashboard/+page.server.ts`                                 | 1       | Dashboard server route                                                                                                                                                                                                                                                        | **Investigate** — could be related to a feature flag, the context-budget dial, or the dashboard work from this session |
+| `docs/research/archive/router-docs/`                                            | 41      | **Historical research from archived `KooshaPari/router-docs` repo (Nov 2025)** — 25 reference/_.md (architecture, agentic latency, smartcp, Go plugins, Python DSL, tool discovery, etc.) + 12 research/_.md + 1 README + 3 misc                                              | **Ignore via .gitignore or keep as-is** — these are reference material, not active project docs                        |
+| `src/app/api/providers/[id]/models/providerHandlers.disabled-by-tier1-cleanup/` | ~10     | **DISABLED handler code from an earlier cleanup** (excluded from `tsconfig.typecheck.json`) — 104K of code parked for future refactor (per `05_KNOWN_ISSUES.md` KI-005 "Refactor staging")                                                                                    | **Keep** — explicitly tracked in KNOWN_ISSUES as staged refactor code                                                  |
+| `tests/` (untracked portion)                                                    | ~19     | All `tests/unit/electron-*` (legacy Electron tests) + 1 `tests/performance/provider-routing-benchmark.test.ts`                                                                                                                                                                | **Feature branch** — go with the electron/ migration                                                                   |
+| `docs/i18n/pl/docs/guides/ELECTRON_GUIDE.md`                                    | 1       | Polish translation of the Electron guide (277 lines, mirrors English)                                                                                                                                                                                                         | **Feature branch** — but should NOT be committed until the English guide is also committed (i18n drift)                |
+| **Total**                                                                       | **128** |                                                                                                                                                                                                                                                                               |                                                                                                                        |
+
+**Recommended operator decision (4 options re-stated):**
+
+1. **Commit to main** (risk: 1.7MB spike bakes in before gates pass)
+2. **Feature branch** (recommended: `feature/electrobun-spike` —
+   keeps the work visible, no main risk, easy to rebase when
+   spike is ready)
+3. **Discard** (lose 5 days of work)
+4. **Leave as-is** (5 days of work sits untracked indefinitely,
+   clutters every `git status`)
+
+The session doc's existing recommendation (Phase 7 above)
+remains **option 2 — feature branch**.
+
+**Note on the disabled-by-tier1-cleanup directory:** it is
+referenced in `tsconfig.typecheck-api.json` (`exclude` list) and
+cataloged in `05_KNOWN_ISSUES.md` as "Refactor staging — 104K".
+This is NOT a "delete me" — it's intentional parking. Do not
+auto-remove.
+
+**Note on the i18n Polish guide:** the Polish
+`docs/i18n/pl/docs/guides/ELECTRON_GUIDE.md` (277 lines) is a
+direct translation of the English `docs/guides/ELECTRON_GUIDE.md`
+(also 277 lines). It should only be committed if/when the English
+guide is committed too — i18n policy is to keep translations
+in lock-step with their source. If electron/ is being phased
+out, both guides may become obsolete; consider translating
+the Electrobun guide instead.
+
 ## Phase 8 (0 alerts confirmed, 1 commit) — KI-004 vitest transitive cleanup via pnpm install
 
 - **Commit:** `4ebd4522ce` (1 file, 17025 insertions, 9652 deletions)
