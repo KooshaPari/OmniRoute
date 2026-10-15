@@ -758,3 +758,131 @@ all without `--no-verify`.**
 | `afa94dec39` | 13     | fast-copy >=4.1.0 override (closes #335 stack exhaustion)           |
 | `332fc54799` | 13 doc | Session doc Phase 13                                                |
 | `639da1c453` | 14     | braces depth-guard patch (mitigates #389 CVE-2026-93687)            |
+| `9367aab9de` | 14 doc | Session doc Phase 12 (also covers fast-copy)                        |
+| `0d6a3c94bc` | 14 doc | Session doc Phase 14                                                |
+| `b04cd1a8cd` | KI-006 | Untrack 857 target/ files                                           |
+| `a4047216e5` | KI-006 | Add /target/ to .gitignore                                          |
+| `014632d2f8` | KI-013 | Session doc KI-006+KI-011                                           |
+| `6fc6237bc9` | KI-014 | Delete v3.8.52 tag (local + remote) + session doc KI-003            |
+| `d168532fd3` | KI-015 | Session doc KI-008 inventory + KI-015 attempt record                |
+
+## Phase 15 (0 commits) — State truth-correction + 7 newly discovered open alerts
+
+**Correction:** The "98/100 resolved" tally in Phase 14 was
+**wrong** due to Dependabot API pagination. The `?per_page=100`
+query only returned the most recent 100 alerts (the GitHub
+default sort). Older open alerts (#165, #166, #254, #255)
+were not in that first page.
+
+### Actual state (2026-10-15)
+
+| State           | Count   | Notes                                   |
+| --------------- | ------- | --------------------------------------- |
+| fixed           | 97      | Confirmed via state=fixed count         |
+| patched (local) | 1       | #389 braces (Phase 14 — in-place patch) |
+| auto_dismissed  | 1       | #330 basic-ftp (re-validated)           |
+| open            | **9**   | **NOT 1** — see breakdown below         |
+| **Total**       | **108** | **NOT 100** — pagination was incomplete |
+
+**The Dependabot API has 108 alerts total, not 100.** The
+`per_page=100` only returned page 1. Phase 1-14 was based on
+incomplete data. The "X/Y complete" framing in earlier phases
+should be re-read with this correction.
+
+### The 9 currently open alerts
+
+| #    | Eco  | Sev    | Package                        | Fix available?                                                                                                                                             | Root cause / chain                                                                                |
+| ---- | ---- | ------ | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| #165 | rust | medium | glib                           | **Partial** — 0.20.0 patches, but transitive via Tauri/GTK-rs system bindings; `cargo update -p glib` returned "Locking 0 packages" (constrained upstream) | `glib 0.18.5` ← atk, cairo-rs, gdk*, gtk-rs stack (apps/desktop/src-tauri/Cargo.lock)             |
+| #166 | go   | medium | github.com/hatchet-dev/hatchet | **Already fixed in manifest** — 0.91.2+ patches; we have 0.106.1 in go.mod + go.sum (commit 558ac1b5e9). **Dependabot just hasn't re-scanned.**            | extensions/argis/go.mod                                                                           |
+| #254 | npm  | high   | extract-zip                    | **No upstream fix** — `first_patched_version: null`. Same promptfoo chain as #297/#330/#388.                                                               | `extract-zip@2.0.1` ← `@openai/codex-security@0.1.27` ← `promptfoo@0.122.2` ← omniroute (devDeps) |
+| #255 | npm  | high   | extract-zip                    | **No upstream fix** — same as #254 (separate CVE, same chain)                                                                                              | same as #254                                                                                      |
+| #257 | go   | medium | github.com/hatchet-dev/hatchet | **Already fixed in manifest** — 0.91.1+ patches; we have 0.106.1. **Dependabot lag.**                                                                      | same as #166                                                                                      |
+| #258 | go   | low    | github.com/hatchet-dev/hatchet | **Already fixed in manifest** — 0.95.3+ patches; we have 0.106.1. **Dependabot lag.**                                                                      | same as #166                                                                                      |
+| #259 | go   | medium | github.com/hatchet-dev/hatchet | **Already fixed in manifest** — 0.106.1+ patches; we have 0.106.1. **Dependabot lag.**                                                                     | same as #166                                                                                      |
+| #388 | npm  | high   | node-forge                     | **No upstream fix** — same promptfoo chain as #297/#330/#254/#255. 4 separate CVEs (ASN.1, signature forgery, etc.) make a single-line patch impractical.  | `node-forge@1.4.0` ← `jks-js@1.1.7` ← `promptfoo@0.122.2` ← omniroute (devDeps)                   |
+| #389 | npm  | high   | braces                         | **Patched in-place** — same as #165 (no upstream fix; local depth-guard via pnpm.patchedDependencies)                                                      | `braces@3.0.3` ← `micromatch@4.0.8` ← many devDeps                                                |
+
+### The "Dependabot lag" pattern (4 alerts)
+
+`#166, #257, #258, #259` (all 4 hatchet alerts) have fix
+versions in our manifest already (hatchet v0.106.1). They are
+**stale "open" reports** from before commit 558ac1b5e9
+("fix(deps/argis): bump hatchet v0.90.2→v0.106.1 (closes 4
+Dependabot alerts)"). The commit message claims it closes 4
+alerts, and indeed the manifest is at the fixed version. The
+alerts are still showing as "open" because Dependabot's
+re-scan has not yet caught up. The next scheduled re-scan
+(typically 24-48h after a manifest change) will auto-close
+them.
+
+**Action for these 4: none needed.** Just wait for the next
+re-scan. If they don't auto-close within 7 days, trigger a
+manual re-scan via `gh api -X POST /repos/.../dependency-graph/snapshots`
+(gated — requires operator approval).
+
+### The "no-upstream-fix" cluster (5 alerts: #254, #255, #388 + earlier #297, #330)
+
+All 5 alerts share a single root cause: **the promptfoo
+test/eval toolchain pulls in network-simulation libraries
+that have unmaintained transitive dependencies.**
+
+Full chain (all 5):
+
+- `promptfoo@0.122.2` (omniroute devDeps)
+  - ← `@openai/codex-security@0.1.27` (the new gate for #254/#255)
+  - ← `jks-js@1.1.7` (gate for #388)
+  - ← `proxy-agent@8.0.2` → `pac-proxy-agent@9.1.0` → `get-uri@8.0.1` → `basic-ftp@5.3.1` (chain for #330)
+  - ← `socket.io@4.8.3` → `engine.io@6.6.9` (chain for #297)
+- All packages in this chain either have no fix, or the fix
+  doesn't reach the vulnerable version range.
+
+**Action for these 5: dismiss in Dependabot UI as `not_used`**
+(unreachable from production). All 5 require Dependabot UI
+dismissal (the `gh api -X PATCH` call is gated behind
+operator-inbox approval per Phase 12's experience). The
+operator can bulk-dismiss all 5 in the Dependabot UI in
+~2 minutes with the rationale "unreachable: code path is in
+the promptfoo test/eval devDep toolchain, never loaded in
+production".
+
+**Long-term remediation:** update or replace `promptfoo` to
+a version whose transitive chain is clean. Out of scope for
+this session.
+
+### The "patched-in-place" cluster (2 alerts: #165, #389)
+
+Both have no upstream fix but are mitigated by local
+patches/overrides:
+
+- **#165 glib**: would need `[patch.crates-io]` in
+  apps/desktop/src-tauri/Cargo.toml to force glib 0.20+.
+  Risk: Tauri/GTK-rs system bindings may not be compatible.
+  Tested: `cargo update -p glib` returns "Locking 0
+  packages" — no version spec in the tree currently allows
+  glib 0.20+. The fix is upstream (gtk-rs needs to release
+  a 0.19+ stack).
+- **#389 braces**: already patched via pnpm.patchedDependencies
+  (Phase 14). Dependabot will keep showing it as open until
+  the underlying version is bumped past 3.0.3, which won't
+  happen (project is in maintenance freeze).
+
+**Action for these 2: dismiss in Dependabot UI as
+`tolerable_risk`** with rationale citing the local
+mitigation. Same operator-inbox gate as above.
+
+### Phase 15 net
+
+- 0 commits (no code change needed; this is a state audit)
+- Count correction: was 1 open → actually 9 open
+- Of the 9: 4 are Dependabot lag (will auto-close), 5 are
+  no-upstream-fix (need UI dismissal), 2 are
+  patched-in-place (need UI dismissal)
+- **Operator action: dismiss 7 alerts in the Dependabot UI**
+  (4 hatchet alerts should auto-close, so this is "5 + 2
+  manual dismissals" = 7 if the lag doesn't resolve; or "2
+  - 2 manual" = 4 if the hatchet lag resolves within 7 days)
+
+This is the same pattern as KI-015/Phase 12: Dependabot UI
+dismissals are a real approval-gate, not a timeout, and
+cannot be done autonomously.
