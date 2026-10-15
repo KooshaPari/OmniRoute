@@ -45,6 +45,18 @@
 //   bun scripts/check/check-resurrection-patterns.mjs --working-tree-only
 //   bun scripts/check/check-resurrection-patterns.mjs --since 6.months
 //   bun scripts/check/check-resurrection-patterns.mjs --since 12.months --json
+//   bun scripts/check/check-resurrection-patterns.mjs --tracked  # current main
+//   bun scripts/check/check-resurrection-patterns.mjs --historical-scan  # full audit
+//
+// --tracked: enumerate tracked files (git ls-files) instead of untracked.
+//   Catches resurrections that have ALREADY landed on main (historical
+//   bug audit). Combined with --since 10.years this is a one-time full
+//   audit. Default --working-tree-only mode is for the pre-commit loop.
+//
+// --historical-scan: shorthand for --tracked --since 100.years.
+//   Walks ALL of main's history and ALL tracked files; reports any file
+//   on HEAD whose content is byte-for-byte identical to a previous
+//   deletion. Slow (~1 min for 3k tracked files) but read-only.
 //
 // Performance: deletion-set build is O(history × files-per-commit) but
 // bounded by `--since`. New-file hashing is O(1) per file via
@@ -73,9 +85,17 @@ function boolFlag(name) {
 
 const SINCE = flag("--since", "6.months"); // matches git log's relative format
 const WORKING_TREE_ONLY = boolFlag("--working-tree-only");
+const TRACKED = boolFlag("--tracked");
+const HISTORICAL_SCAN = boolFlag("--historical-scan");
 const PR_BASE = flag("--pr-base", null);
 const JSON_OUTPUT = boolFlag("--json");
 const VERBOSE = boolFlag("--verbose") || boolFlag("-v");
+
+// --historical-scan is shorthand for --tracked --since 100.years
+// (we use 100.years as a sentinel "all of main" value)
+const EFFECTIVE_SINCE = HISTORICAL_SCAN ? "100.years" : SINCE;
+const EFFECTIVE_TRACKED = HISTORICAL_SCAN || TRACKED;
+const SKIP_SINCE = HISTORICAL_SCAN; // when true, omit --since entirely (all of main)
 
 // --- allowlist -----------------------------------------------------------
 
@@ -145,6 +165,10 @@ function hashFile(filepath) {
     const full = path.join(ROOT, filepath);
     const stat = statSync(full);
     if (!stat.isFile()) return null;
+    // Skip 0-byte files: they all hash to the same value, producing
+    // false-positive matches against any deleted empty file. Most
+    // .gitkeep / placeholder files are 0 bytes.
+    if (stat.size === 0) return null;
     const buf = readFileSync(full);
     return createHash("sha256").update(buf).digest("hex");
   } catch (err) {
@@ -167,14 +191,15 @@ function hashAtRev(rev, filepath) {
 function buildDeletionSet() {
   // git log --diff-filter=D --name-only --pretty=format:'COMMIT:%H %ci%nSUBJECT:%s'
   // produces a parseable stream. We accumulate per-commit deletions.
-  const raw = git(
-    "log",
-    "main",
-    `--since=${SINCE}`,
+  // when --historical-scan is set, omit --since entirely to walk ALL of main
+  const logArgs = ["log", "main"];
+  if (!SKIP_SINCE) logArgs.push(`--since=${EFFECTIVE_SINCE}`);
+  logArgs.push(
     "--diff-filter=D",
     "--name-only",
     "--pretty=format:COMMIT:%H	%ci	%s"
   );
+  const raw = git(...logArgs);
   if (!raw.trim()) return new Map();
 
   const map = new Map();
@@ -191,6 +216,12 @@ function buildDeletionSet() {
       const parent = `${current.hash}^`;
       const hash = hashAtRev(parent, filepath);
       if (!hash) continue;
+      // Skip 0-byte (empty) files: they all hash to the same value
+      // (e3b0c44298fc... = SHA-256 of empty input). Including them
+      // produces 100+ false-positive matches on every .gitkeep /
+      // placeholder file. Sub-cat C/empty fix (2026-10-15).
+      const isEmptyHash = hash === "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+      if (isEmptyHash) continue;
       // only keep the most recent deletion per path
       const prev = map.get(filepath);
       if (!prev || prev.deletedAt < current.date) {
@@ -203,7 +234,7 @@ function buildDeletionSet() {
       }
     }
   }
-  if (VERBOSE) console.error(`[resurrection] deletion set: ${map.size} entries from last ${SINCE}`);
+  if (VERBOSE) console.error(`[resurrection] deletion set: ${map.size} entries from last ${EFFECTIVE_SINCE}`);
   return map;
 }
 
@@ -211,6 +242,14 @@ function buildDeletionSet() {
 
 function listUntracked() {
   const raw = git("ls-files", "--others", "--exclude-standard");
+  return raw
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function listTracked() {
+  const raw = git("ls-files");
   return raw
     .split("\n")
     .map((s) => s.trim())
@@ -238,6 +277,10 @@ function gatherCandidates() {
   if (PR_BASE) {
     const pr = listPRAdded(PR_BASE);
     return { candidates: pr, source: `pr-base ${PR_BASE}` };
+  }
+  if (EFFECTIVE_TRACKED) {
+    const tracked = listTracked();
+    return { candidates: tracked, source: "tracked files (historical scan)" };
   }
   const untracked = WORKING_TREE_ONLY || !PR_BASE ? listUntracked() : [];
   const staged = WORKING_TREE_ONLY || !PR_BASE ? listStagedAdded() : [];
@@ -294,7 +337,8 @@ if (JSON_OUTPUT) {
         matchesTotal: matches.length,
         matchesAllowlisted: allowlisted.length,
         matchesReal: real.length,
-        since: SINCE,
+        since: EFFECTIVE_SINCE,
+        scanMode: EFFECTIVE_TRACKED ? "tracked" : "untracked",
         matches: matches.map((m) => ({
           newPath: m.newPath,
           deletedPath: m.deletedPath,
@@ -337,3 +381,7 @@ console.log(
     ? ""
     : `[resurrection] OK — scanned ${candidates.length} new file(s) against ${deletionSet.size} deletion(s); no resurrections`
 );
+
+// Note: --historical-scan may produce a non-trivial result count on
+// long-lived repos; allowlist handling is the same. The scan is
+// read-only and never auto-fixes.

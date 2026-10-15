@@ -1468,3 +1468,133 @@ scope. The remaining 2 items are operator-only and
 system-enforced via the pre_tool "DEFERRED to inbox"
 hook; no `rm` or `gh api PATCH` can run without
 operator approval.
+
+### KI-029: --tracked / --historical-scan modes (2026-10-15)
+
+The original check only caught resurrections in
+**untracked** files (the spike). It could not answer:
+"have any historical resurrections already landed on
+main?" This KI adds two new modes that close that gap.
+
+**New flags:**
+
+- `--tracked` — enumerate `git ls-files` (tracked files
+  on HEAD) instead of untracked. Catches resurrections
+  that have already landed on main.
+- `--historical-scan` — shorthand for
+  `--tracked --since 100.years` (effectively "all of
+  main"). Read-only audit, ~1-2 min for a 2-year repo
+  with 3k+ tracked files.
+
+**Side effect fixes bundled in this KI:**
+
+1. Empty-file false-positive cluster — 7 of the 11
+   initial `--tracked` matches were 0-byte files
+   (`.gitkeep`, placeholder lock files). All empty files
+   hash to the same SHA-256
+   (`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`).
+   The check now skips 0-byte files in both the deletion
+   set and the candidate set. Fix drops 7 false-positives
+   with no regression in the untracked-spike baseline
+   (still 100/100 real).
+
+2. `--since=100.years` rejected by git — git's relative
+   date format doesn't accept "100.years" as a sentinel.
+   The fix: when `--historical-scan` is set, omit
+   `--since` from the `git log` invocation entirely,
+   which walks all of main by default.
+
+**Audit results on OmniRoute (run 2026-10-15):**
+
+`--tracked --json` with default 6-month window:
+- 18,671 candidates (all tracked files)
+- 975 deletion-set entries (after empty-file filter)
+- 4 matches → 2 allowlisted + 2 real
+
+| Path | Type | Status |
+|---|---|---|
+| `.github/workflows/semgrep.yml` (1215 bytes) | **Real resurrection** | **OPERATOR ATTENTION** |
+| `docs/sessions/20260912-omniroute-fork-audit/08_BIFROST_INTEGRATION_PLAN.md` (14898 bytes) | **Real resurrection** | **OPERATOR ATTENTION** |
+| `extensions/argis/CLAUDE.md` (109922 bytes) | Intentional re-use | Allowlisted |
+| `extensions/argis/WARP.md` (109920 bytes) | Intentional re-use | Allowlisted |
+
+**Independent content verification (not just hash check):**
+- `semgrep.yml` pre-image SHA (from `2ee56e4^`):
+  `d6185b94cd04223b933e21cf46b0528cdc7d04e5bc43ac5cd7cbd59ba4df4250`
+- `semgrep.yml` current SHA: same. **Confirmed exact match.**
+- `08_BIFROST_INTEGRATION_PLAN.md` pre-image SHA
+  (from `c46cccc^`):
+  `5b754ceb2b402f8a68feedd48aa70f2b2a89335119dbc29048834a3d08ab63d5`
+- `08_BIFROST_INTEGRATION_PLAN.md` current SHA: same. **Confirmed exact match.**
+
+**The 2 real resurrections are unrelated to the
+128-file spike.** They are independent findings of the
+new mode:
+- `semgrep.yml` was removed in `2ee56e4` (2026-09-13)
+  "chore(ci): remove 7 one-time workflows and 4
+  redundant pairs" and has since come back on main.
+- `08_BIFROST_INTEGRATION_PLAN.md` was removed in
+  `c46cccc` (2026-09-12) "chore: unstage session doc
+  that leaked into commit" and has since come back on
+  main.
+
+Both are operator-gated disposal decisions. They are
+NOT in the 116-file KI-024 cleanup plan (which covers
+untracked spike files only).
+
+**The 2 allowlisted entries (extensions/argis/{CLAUDE,WARP}.md):**
+- Added in `5affb095b8` "feat(extensions): absorb
+  argis-extensions (Bifrost plugin plane) into
+  extensions/argis/"
+- Content is byte-for-byte identical to
+  `docs/research/archive/router-docs/reference/{CLAUDE,WARP}.md`
+  deleted in `4a5a535` (the same F-reclassification
+  commit that deleted the 41 router-docs files)
+- Different path, same content = legitimate rebrand,
+  not a bug
+
+**`--historical-scan` results:**
+- Same 4 matches (OmniRoute is <6 months old, so 6m
+  window covers all of main; full-history walk is a
+  no-op additional set)
+- Confirms: no resurrections from older history
+  (>6 months) exist on main
+
+**Saga phases — post-KI-029:**
+
+| Layer | State |
+|---|---|
+| Analysis (7 sub-cats) | ✅ |
+| F reclassification | ✅ |
+| C/G negative controls | ✅ |
+| Prevention design | ✅ |
+| Prevention enforcement | ✅ |
+| Portability | ✅ |
+| Post-cleanup state | ✅ |
+| Historical audit | ✅ NEW (KI-029) |
+| Destructive cleanup (116 untracked) | ⏳ OPERATOR-GATED |
+| Dependabot dismissals (5 alerts) | ⏳ OPERATOR-GATED |
+| **2 historical-resurrection disposal** | ⏳ **NEW: OPERATOR-GATED** |
+
+The 2 new operator-gated items (semgrep.yml + bifrost
+plan) are independent of the saga's main 116-file
+discard. They were not visible to the untracked-only
+check. The new `--tracked` mode is now part of the
+prevention layer: a future PR adding either file
+would re-trigger the resurrection check at the
+lefthook pre-commit gate.
+
+**Implementation summary (2 commits):**
+- `add --tracked / --historical-scan modes to
+  resurrection check (KI-029)` — 8 edits in
+  scripts/check/check-resurrection-patterns.mjs
+  (~50 lines)
+- `allowlist intentional re-use from argis rebrand
+  (KI-029)` — 2 entries in
+  config/quality/resurrection-allowlist.json
+
+The historical-resurrection detection adds ~1-2 min
+to the audit cycle and is **read-only** — never
+auto-fixes. The lefthook pre-commit and CI workflow
+do not invoke --tracked; they continue to use the
+default untracked mode for the developer loop.

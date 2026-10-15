@@ -1,5 +1,11 @@
 {
   "_comment": "Allowlist for check-resurrection-patterns.mjs. Add a path glob (e.g. 'packages/*/src/contracts/**') to permit verbatim re-adds that are intentional (e.g. shared monorepo modules mirrored in multiple package sub-trees). Keep this list SHORT and document each entry in 'reason'.",
-  "allow": [],
-  "reason": {}
+  "allow": [
+    "extensions/argis/CLAUDE.md",
+    "extensions/argis/WARP.md"
+  ],
+  "reason": {
+    "extensions/argis/CLAUDE.md": "Intentional re-use from docs/research/archive/router-docs/reference/CLAUDE.md (deleted in 4a5a535 'rebrand README, remove dead research archive, debloat docs'). The argis extension absorbed the content in 5affb095b8 'feat(extensions): absorb argis-extensions (Bifrost plugin plane) into extensions/argis/'. Same hash, different path = legitimate rebrand, not a resurrection. KI-029.",
+    "extensions/argis/WARP.md": "Intentional re-use from docs/research/archive/router-docs/reference/WARP.md (deleted in 4a5a535). Same argis rebrand as CLAUDE.md above. KI-029."
+  }
 }
