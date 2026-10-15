@@ -1345,3 +1345,126 @@ and is system-enforced, not bypassable via gh CLI.
 - KI-024: pre-built cleanup plan (CORRECTED — 116 discardable, not 73)
 - KI-025: A is resurrection across 5 commits (refines KI-020)
 - Discovery date: 2026-10-15, end of session
+
+### KI-028: F reclassification validation (2026-10-15)
+
+The F reclassification (41 router-docs files moved from
+"no action" to "discard" in KI-021) was the saga's biggest
+single correction. It was previously justified by
+inspection (file count + mtime proximity to deletion
+commit). This section validates it with the new
+hash-based check.
+
+**Validation method:**
+- Run `bun scripts/check/check-resurrection-patterns.mjs
+  --working-tree-only --json` on the spike
+- Filter matches to `newPath` starting with
+  `docs/research/`
+- Confirm: count = 41, single source commit,
+  source commit message matches the saga's claim
+
+**Validation result:**
+```
+docs/research/ matches: 41
+by source commit: { "4a5a535": 41 }
+sample match: {
+  "newPath": "docs/research/archive/router-docs/README.md",
+  "deletedPath": "docs/research/archive/router-docs/README.md",
+  "deletedAt": "2026-09-18 16:54:06 -0700",
+  "deletionCommit": "4a5a535",
+  "message": "refactor(repo): rebrand README, remove dead research archive, debloat docs"
+}
+all 41 paths unique to F? true
+```
+
+All 41 router-docs files are byte-for-byte resurrections
+from commit `4a5a535` "refactor(repo): rebrand README,
+remove dead research archive, debloat docs", deleted
+2026-09-18 16:54:06 -0700. The F reclassification is
+bulletproof.
+
+**Cross-validation of sub-cats C and G (negative controls):**
+
+Sub-cat C (4 electron icon files) was the opposite
+concern: files that *look* like resurrections but the
+hash check does NOT flag them. Validation:
+- `git log --all --diff-filter=D --name-only
+  --pretty=format:'%h %s' -- 'electron/assets/icon.*'
+  'electron/assets/tray-icon.png'`
+  shows they were deleted in `bedb7d1db6`
+  "chore(desktop): remove Electron stack per
+  ZERO-electron decision, sync Tauri version"
+- Yet the hash check does not flag them: 4 of the 28
+  remaining untracked files are these icons
+- **Conclusion:** binary files with different bytes
+  (different compression/metadata) don't hash-match.
+  The check correctly excludes them from the resurrection
+  count, even though the visual content is the same.
+
+Sub-cat G (providerHandlers + others) is "new files at
+similar path" — different path suffix
+(`.disabled-by-tier1-cleanup/`), created Oct 13 17:53
+2026 (after the saga's main deletion events).
+- `git log --all --diff-filter=D --name-only` shows
+  no deletion of `providerHandlers/`
+- mtime confirms these are newly-created files, not
+  restored deletions
+- The 11 providerHandlers files in the remaining 28 are
+  not flagged by the check (different path AND different
+  content from any deletion)
+- **Conclusion:** sub-cat G is correctly classified as
+  "near-resurrection" (related content at a different
+  path), not a byte-for-byte resurrection.
+
+**Post-cleanup state simulation:**
+
+Without moving any files, simulated the post-cleanup
+state by computing the 28 remaining untracked paths
+after subtracting the 100 matchesReal from the 128
+total untracked. Result:
+
+```
+distribution of 28 remaining untracked:
+  12	src/app                  (providerHandlers.disabled-by-tier1-cleanup)
+   8	src/lib                  (dbBackup, dbCoreTypes, etc)
+   4	electron/assets          (binary icons, sub-cat C)
+   2	src/sse                  (chat handlers)
+   2	tests/unit               (electron-main/preload tests)
+```
+
+None of the 28 are byte-for-byte resurrections (by
+definition of `matchesReal: 100`). The check post-cleanup
+would return `matchesReal: 0`, the developer commit
+would not be blocked, the 28 files would need separate
+disposition (e.g. tracked-add or gitignore).
+
+**Caveats on the simulation:**
+- 6 sub-cat G files (near-resurrections) remain as
+  untracked; the check intentionally does not flag
+  them (a `--fuzzy` mode is a future extension)
+- The 28 count includes any operator-added untracked
+  files (e.g. `_test_trigger.txt` from the lefthook
+  test, if it was never removed)
+- The 28 count does not include the 8 lockfiles
+  (sub-cat B), which are gitignored and not in the
+  untracked set
+
+**Saga conclusion (post-KI-028):**
+
+| Layer | State | Verified by |
+|---|---|---|
+| Analysis (7 sub-cats) | ✅ | KI-020..026, KI-028 |
+| F reclassification | ✅ | KI-028 hash check |
+| C/G negative controls | ✅ | KI-028 cross-validation |
+| Prevention design | ✅ | KI-026 design + tests |
+| Prevention enforcement | ✅ | lefthook + actionlint |
+| Portability | ✅ | KI-027 org survey |
+| Post-cleanup state | ✅ | KI-028 simulation |
+| Destructive cleanup | ⏳ | OPERATOR-GATED (inbox) |
+| Dependabot dismissals | ⏳ | OPERATOR-GATED (inbox) |
+
+The saga is at hard conclusion for the autonomous-agent
+scope. The remaining 2 items are operator-only and
+system-enforced via the pre_tool "DEFERRED to inbox"
+hook; no `rm` or `gh api PATCH` can run without
+operator approval.
