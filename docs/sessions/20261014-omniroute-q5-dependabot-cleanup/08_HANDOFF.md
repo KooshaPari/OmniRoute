@@ -18,9 +18,13 @@ Your job, in priority order:
 1. **Do NOT re-run the spike discard or Dependabot dismissals.**
    The pre_tool hook will block these. Document the gate
    honestly; do not try to bypass it.
-2. **Run the saga as-is on the next server reload** — the
-   prevention check is wired into lefthook + CI. Any new
-   resurrection will be caught automatically.
+2. **The prevention layer is being fixed (KI-031)** — the
+   guard never fired in the prior wiring; fixes are applied
+   to `.husky/pre-commit`, `scripts/check/check-resurrection-patterns.mjs`,
+   and the CI workflow. A separate worker is establishing
+   end-to-end enforcement via a negative-control commit. Do
+   not claim "the guard fires on every commit" until that
+   proof lands; see `08_HANDOFF.md` correction #4 and KI-031.
 3. **Address the 2 NEW operator-gated items from KI-029**
    (`.github/workflows/semgrep.yml` and
    `08_BIFROST_INTEGRATION_PLAN.md`) if/when the operator
@@ -92,7 +96,7 @@ operator owns the destructive phase.
 | Post-cleanup state simulation | ✅ | KI-028 logic simulation |
 | Historical audit (resurrections on main) | ✅ | KI-029 |
 | **Destructive cleanup: 116 untracked spike files** | ⏳ | **OPERATOR-GATED** |
-| **Dependabot dismissals: 5 alerts** | ⏳ | **OPERATOR-GATED** |
+| **Dependabot dismissals: 9 alerts** | ⏳ | **OPERATOR-GATED** |
 | **Historical resurrection: `.github/workflows/semgrep.yml`** | ⏳ | **OPERATOR-GATED (NEW from KI-029)** |
 | **Historical resurrection: `08_BIFROST_INTEGRATION_PLAN.md`** | ⏳ | **OPERATOR-GATED (NEW from KI-029)** |
 
@@ -116,12 +120,31 @@ resurrections; the other 16 are sub-cat B lockfiles or
 near-resurrections). Pre_tool "DEFERRED to inbox" hook
 blocks `rm` even with --force.
 
-### 2. 5 Dependabot alerts (KI-019)
+### 2. 9 Dependabot alerts (KI-019)
 
-The Q5 Dependabot dismissals (5 alerts at time of session
-end). The pre_tool hook blocks `gh api PATCH` on
-`repos/.../dependabot-alerts/...`. State of the alerts was
-9 open, 2 auto_dismissed, 393 fixed at last read.
+The Q5 Dependabot dismissals (9 alerts verified 2026-10-15;
+was 5 at session end — the count grew as stale-manifest
+re-scans re-classified entries into "open"). The pre_tool
+hook blocks `gh api PATCH` on
+`repos/KooshaPari/OmniRoute/dependabot/alerts/<n>` — note
+the slash (the path `dependabot-alerts` without a slash
+returns HTTP 404 Not Found; that bug was in the prior
+handoff's command #5). State verified 2026-10-15:
+**9 open, 2 auto_dismissed, 0 dismissed, 393 fixed.**
+
+Open alert numbers and severities (verified 2026-10-15):
+
+| # | Severity | GHSA ID |
+|---|----------|---------|
+| 389 | high   | GHSA-vfj7-8cjw-p6xm (braces) |
+| 388 | high   | GHSA-86w9-cpqp-85rv |
+| 259 | medium | GHSA-992g-9cr3-vm5x |
+| 258 | low    | GHSA-9q4h-f4x5-ffq8 |
+| 257 | medium | GHSA-g26x-m427-f48f |
+| 255 | high   | GHSA-7pqw-9j4j-h8q3 |
+| 254 | high   | GHSA-jmr9-qjv8-65gv |
+| 166 | medium | GHSA-8x7x-83cf-c3pg |
+| 165 | medium | GHSA-wrw7-89jp-8q8g |
 
 ### 3. `.github/workflows/semgrep.yml` (KI-029 NEW)
 
@@ -198,16 +221,23 @@ bun scripts/check/check-resurrection-patterns.mjs --tracked --json 2>/dev/null \
 # Expected: matchesReal=2, matchesAllowlisted=2
 # (semgrep.yml + bifrost plan real; argis/{CLAUDE,WARP} allowlisted)
 
-# 4. Confirm CI workflow + lefthook are wired
-grep -q "resurrection-patterns" lefthook.yml && \
-  test -f .github/workflows/resurrection-patterns.yml && \
-  echo "WIRING OK"
-# Expected: WIRING OK
+# 4. Confirm the pre-commit guard executes end-to-end (NOT a grep
+#    check — grep-for-config was a false-positive verifier; see
+#    KI-031 meta-lesson). The guard must execute as the hook does:
+bun scripts/check/check-resurrection-patterns.mjs --staged-only
+# Expected: exit 0 (nothing staged, no matches).
+# If the script is missing/broken, exit code is non-zero and the
+# command surfaces the failure. CI workflow correctness is
+# separately exercised by opening a PR with a known-deletion
+# resurrection; do not attempt that here.
 
-# 5. Confirm Dependabot still 5+ alerts (the operator-gated item)
-gh api repos/KooshaPari/OmniRoute/dependabot-alerts \
-  --jq '.[] | select(.state == "open") | .number' | wc -l
-# Expected: 5 (or more if state changed)
+# 5. Confirm Dependabot still 9+ alerts (the operator-gated item)
+#    The endpoint requires pagination, not just the first page.
+gh api repos/KooshaPari/OmniRoute/dependabot/alerts --paginate \
+  --jq '[.[] | select(.state == "open")] | length'
+# Expected: 9 (or fewer if state changed)
+# Note: the path is dependabot/alerts (slash), NOT dependabot-alerts.
+# The latter returns HTTP 404 Not Found.
 ```
 
 ---
@@ -217,7 +247,7 @@ gh api repos/KooshaPari/OmniRoute/dependabot-alerts \
 **1. The pre_tool "DEFERRED to inbox" hook is system-enforced.**
 It blocks:
 - `rm` of untracked files (even with --force)
-- `gh api PATCH` on `dependabot-alerts/...`
+- `gh api PATCH` on `repos/.../dependabot/alerts/...`
 - `git push --force`, `git reset --hard`, `git clean -fd`,
   `git branch -D`, `gh repo delete`
 
@@ -295,10 +325,13 @@ This is operator policy, not a saga-specific quirk.
 5. Do not move or rename the session directory. The
    `20261014-...` timestamp is part of the cross-reference.
 6. Do not assume the saga is "done" just because
-   destructive ops are gated. The prevention layer is
-   doing real work (lefthook fires on every commit,
-   CI workflow fires on every PR); you should re-verify
-   it still works at session start.
+   destructive ops are gated. The prevention layer
+   *should* be doing real work now (KI-031 fixes applied to
+   `.husky/pre-commit` and the CI workflow), but it had
+   never fired in the prior wiring — verify with the
+   re-verification command #4 in this doc before claiming
+   "fires on every commit"; do not treat prior session
+   statements as evidence.
 
 ---
 
@@ -344,8 +377,8 @@ This is operator policy, not a saga-specific quirk.
 # Authored at scripts/cleanup/discard-spike-2026-10-13.sh
 # BLOCKED: pre_tool "DEFERRED to inbox" on every rm call
 
-# 2. Dependabot dismissals (5 alerts)
-gh api repos/KooshaPari/OmniRoute/dependabot-alerts/<n> \
+# 2. Dependabot dismissals (9 alerts)
+gh api repos/KooshaPari/OmniRoute/dependabot/alerts/<n> \
   -X PATCH -f state=dismissed -f dismissed_reason=...
 # BLOCKED: pre_tool "DEFERRED to inbox" on gh api PATCH
 
@@ -365,17 +398,43 @@ in your todos; do not attempt workarounds.
 
 ## Closing Note
 
-The saga has done its job. The check is wired, the audit
-ran, the F reclassification is bulletproof, the
-historical-resurrection detection is real, and the
-prevention layer will keep the repo clean on every future
-commit. The remaining work is operator-gated and you
-cannot do it.
+The saga has done most of its job. The check is designed,
+the F reclassification is bulletproof, the
+historical-resurrection detection is real, and most of the
+analysis + portability layers are verified.
+
+**Correction (2026-10-15, KI-031):** the prior closing-note
+claim that the "prevention layer will keep the repo clean on
+every future commit" was FALSE — the guard had never fired
+once. Three independent defects (Defects A/B/C in KI-031)
+prevented it: lefthook never ran in this repo
+(`core.hooksPath=.husky/_`), the nested lefthook hook was
+unaddressable by name, and the CI workflow checked out `main`
+so PR-added paths were absent from disk and every candidate
+hash missed vacuously. The original re-verification command
+that "confirmed" wiring was a grep-for-config check — a
+false-positive verifier that reported OK while all three
+enforcement paths were dead.
+
+**Fixes have landed** to `.husky/pre-commit`,
+`scripts/check/check-resurrection-patterns.mjs`, and
+`.github/workflows/resurrection-patterns.yml`. **Enforcement
+has NOT yet been proven end-to-end by a real blocked
+commit.** A separate worker is establishing that with a
+negative-control commit. Until that proof is in, treat the
+prevention layer as **applied but unproven effective**.
+
+The remaining work is operator-gated (the 4 destructive
+items, plus the 2 historical resurrections noted in KI-029).
+Do not attempt any of them.
 
 If the operator comes back with new direction, read this
 doc + the saga KIs and act within the constraints. If the
-operator goes silent for weeks, this doc + the prevention
-layer is enough to keep the saga in a healthy state
-without active intervention.
+operator goes silent for weeks, this doc + the
+analysis/audit artifacts is enough to keep the saga
+interpretable; the prevention layer is **applied but
+unproven effective** (see Correction above and KI-031), so
+do not let prior-session claims of "lefthook fires on every
+commit" stand unverified.
 
 End of handoff.

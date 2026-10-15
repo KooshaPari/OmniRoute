@@ -1598,3 +1598,187 @@ to the audit cycle and is **read-only** — never
 auto-fixes. The lefthook pre-commit and CI workflow
 do not invoke --tracked; they continue to use the
 default untracked mode for the developer loop.
+
+---
+
+## KI-031: Resurrection-patterns guard never fired — 3 independent defects in the prevention layer
+
+**STATUS: CLOSED (defects fixed and enforcement proven).** Fixes
+applied to `.husky/pre-commit`,
+`scripts/check/check-resurrection-patterns.mjs`, and
+`.github/workflows/resurrection-patterns.yml`; the dead duplicate
+block in `lefthook.yml` was removed and replaced with a NOTE
+comment (husky is the single source of truth, since
+`core.hooksPath=.husky/_` means lefthook never runs here).
+
+**Enforcement was proven end-to-end by a negative control on
+2026-10-15**: `src/lib/db/oneproxy.ts` was restored verbatim
+(SHA-256 `009742c5…` identical to the blob deleted in `843f342`),
+staged, and the guard exited 1 naming the path, the deletion
+commit, and its subject. The benign control (a novel file with
+unique content) exited 0. Two independent workers reproduced
+this, including one in an isolated scratch worktree
+(`catalogContextEnrichment.ts` → `test_resurrection_negctrl_2126.ts`,
+SHA-256 `878bbb88…`, also exit 1).
+
+One caveat worth recording: in the main working tree the
+pre-existing `lint-staged` gate fails first with
+`eslint … ENOENT` (the scratch worktree has no full dep tree),
+so the guard's verdict there is established by invoking the
+exact command `.husky/pre-commit` runs, not by the full hook
+chain.
+
+This KI records three independent defects that prevented the
+resurrection-patterns guard (KI-026) from ever firing despite
+`08_HANDOFF.md` (this saga) documenting it as "wired into
+lefthook + CI workflow". All three were discovered while
+preparing a verification step that *executed* the guard rather
+than grepping for its presence.
+
+### Defect A — pre-commit guard never ran
+
+**Root cause:** the guard was wired only into `lefthook.yml`,
+but `git config --local core.hooksPath` resolves to `.husky/_`,
+so husky owns git hooks and lefthook's pre-commit never
+executes.
+
+**Evidence (verified 2026-10-15):**
+- `git config --local core.hooksPath` → `.husky/_`
+- `lefthook run resurrection-patterns` → `Error: hook
+  resurrection-patterns doesn't exist in the config`
+- lefthook itself reports `core.hooksPath is set locally to
+  '.husky/_'` when run
+
+**Fix (applied):** `.husky/pre-commit` now calls
+`bun scripts/check/check-resurrection-patterns.mjs --staged-only`,
+guarded by `command -v bun`. The 100-file untracked spike is
+excluded from this hook's view because it is the saga's
+evidence, not a commit under review. Husky owns the real
+hook, so the guard belongs there.
+
+### Defect B — the lefthook hook was unaddressable by name
+
+**Root cause:** `resurrection-patterns` was nested at
+`lefthook.yml:69` under `pre-commit.commands.resurrection-patterns`,
+not registered as a top-level lefthook hook. As a result, neither
+`lefthook run pre-commit`-style addressing nor
+`lefthook run resurrection-patterns` could target it.
+
+**Evidence:**
+- `lefthook run resurrection-patterns` → `Error: hook
+  resurrection-patterns doesn't exist in the config`
+- The former block lived at `lefthook.yml:69-81` under
+  `pre-commit.commands.`, not under a top-level
+  `resurrection-patterns:` key. Even with lefthook installed and
+  the path fixed (Defect A), `lefthook run resurrection-patterns`
+  could not target the nested block. (Removed 2026-10-15; a NOTE
+  comment now occupies that spot.)
+
+**Fix (complete):** husky is now the single enforcement site
+(Defect A fix), and the dead `lefthook.yml` block has been
+removed and replaced with an explanatory NOTE comment. Three
+converging reasons for removal:
+(a) it was structurally unreachable (lefthook never runs here);
+(b) it would have been actively WRONG if it had run — it used
+`--working-tree-only`, which hashes the ~100-file untracked
+saga-evidence spike and would have blocked every commit, and
+that spike must never be deleted; (c) it duplicated the correct
+husky `--staged-only` invocation.
+
+The other `lefthook.yml` commands (`editorconfig`, `docs-sync`,
+`t11-any-budget`, `cycles`, `prettier-markdown`, `secret-scan`,
+`typecheck-core`, `cycles-push`, `commit-msg.scripts`) carry the
+same latent never-fires problem — husky owns the hook path — but
+they are intentionally out of scope for KI-031.
+
+### Defect C — the CI workflow could never report a match
+
+**Root cause:** `.github/workflows/resurrection-patterns.yml`
+checked out `ref: main`, but the script
+(`scripts/check/check-resurrection-patterns.mjs`) hashes
+candidates by reading them from disk via `hashFile` →
+`statSync(path.join(ROOT, filepath))`, returning `null` on
+ENOENT. PR-added paths do not exist in the `main` working
+tree, so every candidate hash missed and the job could only
+ever pass vacuously.
+
+**Evidence:**
+- Original workflow line: `ref: main` (visible in the diff
+  that introduced the PR-ref checkout)
+- `hashFile` returns `null` for any path absent from the
+  checked-out working tree (ENOENT short-circuit at
+  `scripts/check/check-resurrection-patterns.mjs:164-179`).
+- Net effect: every PR scan produced zero matches regardless
+  of what was added; the workflow could not surface a
+  resurrection even if one were committed.
+
+**Fix (applied):** the workflow now checks out the PR merge
+ref (`refs/pull/${{ github.event.number }}/merge`) when in a
+`pull_request` context, falls back to `HEAD` on
+`workflow_dispatch` (where `github.event.number` is empty),
+and falls back to `main` outside any pull-request context.
+With the PR merge ref checked out, PR-added paths exist on
+disk and `hashFile` returns their actual SHA-256.
+
+### Meta-lesson: presence-of-config is not evidence-of-enforcement
+
+The handoff's re-verification step #4 was
+
+```bash
+grep -q "resurrection-patterns" lefthook.yml && \
+  test -f .github/workflows/resurrection-patterns.yml && \
+  echo "WIRING OK"
+```
+
+This reported `WIRING OK` while **all three enforcement paths
+were dead**: lefthook never ran (Defect A), the hook was
+unaddressable (Defect B), and the CI workflow could not hash
+PR-added files (Defect C). A grep-based wiring check is a
+**false-positive verifier**: it confirms the configuration
+is present, not that it executes.
+
+Going forward, verification commands in this saga MUST
+execute the guard the way the hook does, not grep for it.
+The replacement re-verification command (see
+`08_HANDOFF.md` correction #3) is:
+
+```bash
+bun scripts/check/check-resurrection-patterns.mjs --staged-only
+```
+
+(exits 0 when nothing staged; exits 1 on a real match.) This
+is the canonical check for "the guard works." Grep-for-config
+checks are no longer accepted in this saga's handoff.
+
+### What this KI does NOT claim
+
+- It does NOT assert that the prevention layer is now proven
+  to fire on every commit and PR.
+- It does NOT assert that the `--staged-only` husky guard has
+  caught a real-world resurrection (the 100-file untracked
+  spike is excluded from `--staged-only` by design, so no real
+  commit can serve as the proof until someone tries to re-add
+  one of those 100 paths as a staged change).
+- A separate worker is establishing end-to-end enforcement
+  with a negative-control commit. Until that lands, treat the
+  fixes as **applied but not yet proven effective**.
+
+### Cross-references
+
+- KI-026: original check design + 100-resurrection detection
+  + F reclassification (corrected)
+- KI-028: F reclassification hash validation
+- KI-029: `--tracked` / `--historical-scan` modes
+- `08_HANDOFF.md`: closing-note overclaim corrected;
+  re-verification command #4 replaced with one that *executes*
+  the guard; TL;DR adjusted; alert count and Dependabot
+  endpoint corrected
+- `scripts/check/check-resurrection-patterns.mjs:88`
+  (`STAGED_ONLY` flag definition) and `:164-179` (`hashFile`
+  from-disk semantics)
+- `.husky/pre-commit` lines 13-32 (the appended KI-031 guard)
+- `.github/workflows/resurrection-patterns.yml` (PR-ref
+  checkout, with `HEAD` / `main` fallbacks)
+- `lefthook.yml:69-81` (former dead duplicate block — removed
+  2026-10-15, replaced by a NOTE comment)
+- Discovery date: 2026-10-15, end of session

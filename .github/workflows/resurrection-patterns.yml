@@ -16,7 +16,7 @@ name: Resurrection Patterns
 # Runs on: pull_request (opened, synchronize, reopened, ready_for_review)
 # Skipped on: direct push to main (the working tree there is already
 # canonical; resurrections would be flagged at the developer's local
-# pre-commit instead, which also runs this check via lefthook).
+# pre-commit instead, which also runs this check via .husky/pre-commit).
 
 on:
   pull_request:
@@ -55,9 +55,17 @@ jobs:
           persist-credentials: false
           # fetch-depth: 0 required for git log --diff-filter=D to work
           fetch-depth: 0
-          # Filter to just main — the deletion set is computed against
-          # main, not against any merged branch. Reduces clone size.
-          ref: main
+          # MUST check out the PR merge ref, NOT main. The check hashes
+          # PR-added files by reading them from disk (hashFile in
+          # scripts/check/check-resurrection-patterns.mjs), so the working
+          # tree has to actually contain the files being examined.
+          # Checking out main here made every candidate hash miss
+          # (statSync ENOENT -> null) and the job could never report a
+          # match. See KI-031. main is still available as the local ref
+          # for buildDeletionSet(), which is what --pr-base diffs against.
+          # On workflow_dispatch there is no pull_request event; fall back
+          # to HEAD so the tree still matches what gets diffed.
+          ref: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/merge', github.event.number) || 'HEAD' }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -72,14 +80,24 @@ jobs:
       - name: Run resurrection check on PR diff
         env:
           SINCE: ${{ github.event.inputs.since || '6.months' }}
-        # --pr-base origin/${{ github.base_ref }} checks only the files
-        # added in this PR (three-dot diff against the base branch).
-        # This is intentionally tighter than the working-tree check
-        # used by lefthook (which sees untracked + staged).
+          # On workflow_dispatch there is no pull_request event, so
+          # github.event.number / github.base_ref are empty. Fall back to
+          # HEAD..main (everything this branch adds relative to main) and
+          # check out HEAD. See KI-031.
+          PR_BASE: origin/${{ github.base_ref }}
+        # --pr-base diffs only the files added in this PR (three-dot diff
+        # against the base branch). The working tree must contain those
+        # files, because the check hashes them by reading from disk.
         run: |
           set +e
+          if [ "${PR_BASE}" = "origin/" ] || [ -z "${PR_BASE#origin/}" ]; then
+            echo "::notice::workflow_dispatch (no pull_request context) — diffing HEAD against main."
+            BASE="main"
+          else
+            BASE="${PR_BASE}"
+          fi
           bun scripts/check/check-resurrection-patterns.mjs \
-            --pr-base "origin/${{ github.base_ref }}" \
+            --pr-base "${BASE}" \
             --since "$SINCE" \
             --json > resurrection-report.json
           EXIT=$?

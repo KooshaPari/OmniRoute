@@ -58,6 +58,13 @@
 //   on HEAD whose content is byte-for-byte identical to a previous
 //   deletion. Slow (~1 min for 3k tracked files) but read-only.
 //
+// --staged-only: judge ONLY files staged for the current commit (git
+//   diff --cached --diff-filter=A); skip untracked. Intended for the
+//   pre-commit hook, where the working tree may hold unrelated operator
+//   evidence that must not gate the commit. Ignored when --pr-base or
+//   --tracked/--historical-scan is set (those modes use the PR diff or
+//   git ls-files, not staged contents).
+//
 // Performance: deletion-set build is O(history × files-per-commit) but
 // bounded by `--since`. New-file hashing is O(1) per file via
 // `git cat-file --batch`. For a 2-year-old repo with default 6-month
@@ -85,6 +92,7 @@ function boolFlag(name) {
 
 const SINCE = flag("--since", "6.months"); // matches git log's relative format
 const WORKING_TREE_ONLY = boolFlag("--working-tree-only");
+const STAGED_ONLY = boolFlag("--staged-only");
 const TRACKED = boolFlag("--tracked");
 const HISTORICAL_SCAN = boolFlag("--historical-scan");
 const PR_BASE = flag("--pr-base", null);
@@ -282,10 +290,15 @@ function gatherCandidates() {
     const tracked = listTracked();
     return { candidates: tracked, source: "tracked files (historical scan)" };
   }
-  const untracked = WORKING_TREE_ONLY || !PR_BASE ? listUntracked() : [];
-  const staged = WORKING_TREE_ONLY || !PR_BASE ? listStagedAdded() : [];
+  const untracked = STAGED_ONLY ? [] : listUntracked();
+  const staged = WORKING_TREE_ONLY || STAGED_ONLY || !PR_BASE ? listStagedAdded() : [];
   const merged = Array.from(new Set([...untracked, ...staged])).sort();
-  return { candidates: merged, source: WORKING_TREE_ONLY ? "working tree" : "working tree + PR" };
+  const source = STAGED_ONLY
+    ? "staged only"
+    : WORKING_TREE_ONLY
+      ? "working tree"
+      : "working tree + PR";
+  return { candidates: merged, source };
 }
 
 // --- step 3: check for resurrection -------------------------------------

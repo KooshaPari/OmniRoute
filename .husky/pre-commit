@@ -12,3 +12,22 @@ npx lint-staged
 node scripts/check/check-docs-sync.mjs
 npm run check:any-budget:t11
 node scripts/check/check-tracked-artifacts.mjs
+
+# KI-031: resurrection-patterns guard. This used to live only in
+# lefthook.yml, but core.hooksPath=.husky/_ means lefthook's pre-commit
+# is never executed, so the guard had never run once. Husky owns the real
+# hook, so the guard belongs here. --staged-only keeps the 100-file
+# untracked spike out of scope (it is the saga's evidence, not a commit
+# under review); only files in this commit are judged.
+if command -v bun >/dev/null 2>&1; then
+  bun scripts/check/check-resurrection-patterns.mjs --staged-only || {
+    echo "[resurrection] pre-commit FAILED — verbatim re-add of a file deleted on main."
+    echo "  If this re-add is legitimate, add the path to"
+    echo "  config/quality/resurrection-allowlist.json with a reason."
+    echo "  See docs/sessions/20261014-omniroute-q5-dependabot-cleanup/05_KNOWN_ISSUES.md KI-026/KI-031."
+    exit 1
+  }
+else
+  echo "⚠️  bun not found in PATH — skipping resurrection-patterns guard."
+  echo "   Run: bun scripts/check/check-resurrection-patterns.mjs --staged-only"
+fi
