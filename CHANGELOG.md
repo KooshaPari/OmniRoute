@@ -112,7 +112,7 @@ _Dependabot-only release — closes 22 Dependabot alerts via `pnpm.overrides` pa
 
 Closed in this release: **#279**, **#280**, **#341**, **#342**, **#390**, **#398**, **#404**, **#405** + 14 transitive patches via `pnpm.overrides`. See [the Q5 Dependabot cleanup session](docs/sessions/20261014-omniroute-q5-dependabot-cleanup/00_SESSION_OVERVIEW.md) for the full per-alert attribution.
 
-## [3.8.51] — TBD
+## [3.8.51] — 2026-10-13
 
 _Living section — reconciled 2026-09-07 from all cycle commits (`release/v3.8.50` tip `091589089c` → `release/v3.8.51` tip `d6f315018a`, 696 non-merge commits). Bullets carry the merged PR and its author; direct pushes are listed with their commit hash. Regenerated at each `/generate-release` phase._
 

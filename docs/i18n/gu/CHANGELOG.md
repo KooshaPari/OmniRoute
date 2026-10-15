@@ -29,7 +29,7 @@ _Dependabot-only release — see root [CHANGELOG.md](../../../CHANGELOG.md#3852-
 
 ---
 
-## [3.8.51] — TBD
+## [3.8.51] — 2026-10-13
 
 _Living section — cycle opened at the v3.8.50 freeze (parallel-cycle model). Bullets are aggregated from `changelog.d/` fragments at each `/generate-release` phase._
 
