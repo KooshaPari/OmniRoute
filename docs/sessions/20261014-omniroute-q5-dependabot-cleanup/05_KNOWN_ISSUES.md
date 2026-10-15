@@ -516,6 +516,9 @@ it from main, gives the operator a clear review target.
 - Existing Electron (tracked, separate from new `electron/` subdir):
   legacy Electron integration in `src/`
 - Time of authoring: 2026-10-13 17:52-17:53 PDT (single burst)
+- KI-020: the spike is RESURRECTED work (Electron/Electrobun surface deleted 2026-09-18 in `4a9db38fd0`)
+- KI-021: 6-sub-category classification of the 128 files
+- KI-022: sub-category D files are also orphan work (parallel/stale refactor extracts)
 
 ---
 
@@ -680,18 +683,19 @@ insufficient; the operator should make per-sub-category decisions.
 
 ### Sub-classification (verified 2026-10-15)
 
-| Sub-category                                        | Files                                                                                                                                                                                                     | Status                                                                                                                                                                                                                                                                                                                       | Recommended disposition                                     |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| **A. Deleted Electrobun/Electron build surface**    | ~30 files in `desktop-electrobun/`, `electron/`, `scripts/build/electron*`, `tests/unit/electron-*`, `.github/workflows/{desktop-electrobun,electron-release}.yml`                                        | **Resurrection of `4a9db38fd0`** (ZERO-electron/Tauri migration, on main)                                                                                                                                                                                                                                                    | Discard (KI-020)                                            |
-| **B. Deleted Tauri-incompatible `+page.server.ts`** | 1 file: `apps/web/src/routes/dashboard/+page.server.ts`                                                                                                                                                   | **Byte-for-byte identical to file deleted in `94cc3b1b3e`** (`fix(web): drop static-incompatible dashboard server load causing Tauri 500 page`, 2026-09-17, on main). Re-adding would re-introduce the Tauri 500 page bug. Verified: `+page.svelte` does NOT use `bffHealthy` data; values are hardcoded as `"pending BFF"`. | Discard (Tauri-aligned)                                     |
-| **C. Intentional parking**                          | 12 files in `src/app/api/providers/[id]/models/providerHandlers.disabled-by-tier1-cleanup/`                                                                                                               | Already excluded from `tsconfig.typecheck-api.json` + cataloged in `05_KNOWN_ISSUES.md`                                                                                                                                                                                                                                      | Leave as-is                                                 |
-| **D. New code in adjacent areas**                   | 8 `src/lib/db/*.ts` (dbSchema, dbBackup, dbCaptureRestore, dbCoreTypes, dbHealthCheck, dbJsonMigration, dbLegacyMigration, coreDriverInfo) + 2 `src/sse/handlers/chat/{chatComboUtils,chatValidation}.ts` | **Not in any prior commit** (need separate review). May be legitimate new work; cannot be classified as resurrection without more analysis.                                                                                                                                                                                  | Review individually                                         |
-| **E. Polish translation of an Electron guide**      | 1 file: `docs/i18n/pl/.../ELECTRON_GUIDE.md`                                                                                                                                                              | Polish i18n of a guide for a deprecated surface. If the guide itself is being resurrected (sub-category A), the translation is consistent with that. If the guide is being discarded, the translation should follow.                                                                                                         | Tied to A                                                   |
-| **F. Reference docs (router-docs archive)**         | 40 files in `docs/research/archive/router-docs/{reference,research}/`                                                                                                                                     | Imported from the archived `KooshaPari/router-docs` repo (Nov 2025). Reference material only.                                                                                                                                                                                                                                | Move to docs/research/archive (already there) or keep as-is |
+| Sub-category                                        | Files                                                                                                                                                                                                     | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Recommended disposition                                     |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **A. Deleted Electrobun/Electron build surface**    | ~30 files in `desktop-electrobun/`, `electron/`, `scripts/build/electron*`, `tests/unit/electron-*`, `.github/workflows/{desktop-electrobun,electron-release}.yml`                                        | **Resurrection of `4a9db38fd0`** (ZERO-electron/Tauri migration, on main)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Discard (KI-020)                                            |
+| **B. Deleted Tauri-incompatible `+page.server.ts`** | 1 file: `apps/web/src/routes/dashboard/+page.server.ts`                                                                                                                                                   | **Byte-for-byte identical to file deleted in `94cc3b1b3e`** (`fix(web): drop static-incompatible dashboard server load causing Tauri 500 page`, 2026-09-17, on main). Re-adding would re-introduce the Tauri 500 page bug. Verified: `+page.svelte` does NOT use `bffHealthy` data; values are hardcoded as `"pending BFF"`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Discard (Tauri-aligned)                                     |
+| **C. Intentional parking**                          | 12 files in `src/app/api/providers/[id]/models/providerHandlers.disabled-by-tier1-cleanup/`                                                                                                               | Already excluded from `tsconfig.typecheck-api.json` + cataloged in `05_KNOWN_ISSUES.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Leave as-is                                                 |
+| **D. Stale/parallel refactor extracts**             | 8 `src/lib/db/*.ts` (dbSchema, dbBackup, dbCaptureRestore, dbCoreTypes, dbHealthCheck, dbJsonMigration, dbLegacyMigration, coreDriverInfo) + 2 `src/sse/handlers/chat/{chatComboUtils,chatValidation}.ts` | **NOT new work** — parallel/stale extracts from refactors that already shipped to main. Verified: (1) **zero tracked importers** of any D file (agentgrep full repo), (2) headers say "Extracted from core.ts"/"Extracted from chat.ts" but those extractions were ALREADY done on main in `6f20fcd20b refactor(db): extract dbHealthScheduler.ts` (2026-09-15) and `26e5241a93 refactor: decompose chat.ts (2461→2223 lines) into 5 sub-modules` (2026-09-15) — both ON MAIN, (3) untracked file names **do not match** the tracked ones: `dbHealthCheck.ts` (untracked, 100 lines) vs `dbHealthScheduler.ts` (tracked, 191 lines); `chatComboUtils.ts` (untracked, 145 lines) vs `chatComboValidation.ts` (tracked, 64 lines); `chatValidation.ts` (untracked, 87 lines) vs `chatBodyValidation.ts` (tracked, 85 lines), (4) `chat.ts` does NOT re-export from the untracked modules but DOES re-export from the tracked equivalents. | **Discard**                                                 |
+| **E. Polish translation of an Electron guide**      | 1 file: `docs/i18n/pl/.../ELECTRON_GUIDE.md`                                                                                                                                                              | Polish i18n of a guide for a deprecated surface. If the guide itself is being resurrected (sub-category A), the translation is consistent with that. If the guide is being discarded, the translation should follow.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Tied to A                                                   |
+| **F. Reference docs (router-docs archive)**         | 40 files in `docs/research/archive/router-docs/{reference,research}/`                                                                                                                                     | Imported from the archived `KooshaPari/router-docs` repo (Nov 2025). Reference material only.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Move to docs/research/archive (already there) or keep as-is |
 
 ### Key cross-references
 
 - **KI-020** covers sub-category A (the major resurrection finding)
+- **KI-022** covers sub-category D (parallel/stale refactor extracts; new finding this turn)
 - **KI-008** is the umbrella; should be **split** into KI-008A
   (sub-category A) and KI-008B (sub-category D + others) so the
   operator can act on each independently
@@ -703,23 +707,26 @@ insufficient; the operator should make per-sub-category decisions.
 
 The original options are now too coarse:
 
-- **Option 1 (commit as-is)** is now **doubly wrong**: it would
-  resurrect the Electron/Electrobun surface AND re-break the
-  Tauri 500-page fix.
+- **Option 1 (commit as-is)** is now **triply wrong**: it would
+  resurrect the Electron/Electrobun surface, re-break the Tauri
+  500-page fix, AND add ~10 orphan files that duplicate already-shipped
+  refactors.
 - **Option 2 (feature branch)** is still the most flexible but
   needs a per-sub-category plan rather than a blanket commit.
-- **Option 3 (discard)** is the right choice for A and B but
-  wrong for D (potentially legitimate new work) and C
-  (intentional parking should not be discarded).
+- **Option 3 (discard)** is the right choice for A, B, and D, but
+  wrong for C (intentional parking should not be discarded).
 - **Option 4 (leave as-is)** is acceptable for C but perpetuates
-  risk for A, B, and the operators review burden for D.
+  risk for A, B, and D.
 
-**Recommended refined approach:** discard A + B, keep C as-is,
-review D, move F to its current location (no action), tie E to
-A's outcome. Implementation: a single `git clean -nd` to preview
-followed by per-pattern `git rm --cached` or `rm` operations —
-but **none of this is autonomous** because the operator should
-decide on D before any destructive action.
+**Updated recommended refined approach (this turn):** discard A + B
+
+- D, keep C as-is, move F to its current location (no action), tie
+  E to A's outcome. This reduces the 128 untracked files by ~41
+  (30 A + 1 B + 10 D), leaving 87 (12 C + 1 E + 40 F + ~34 misc/mixed).
+  Implementation: a single `git clean -nd` to preview followed by
+  per-pattern `git rm --cached` or `rm` operations — but **none of
+  this is autonomous** because the operator should decide on the
+  remaining ~87 files before any destructive action.
 
 ### Files that were re-added verbatim (not in KI-020)
 
@@ -742,3 +749,94 @@ scripts and desktop shell` (on main, 2026-09-18)
 - Discovery date: 2026-10-15 during KI-020 follow-up
 
 ---
+
+## KI-022: KI-021 sub-category D is also orphan work, not new code
+
+**Discovered:** 2026-10-15 (during KI-021 follow-up, after the
+initial 6-sub-category framework was committed)
+
+**Sub-category:** D (10 files: 8 `src/lib/db/*.ts` + 2
+`src/sse/handlers/chat/*.ts`)
+
+### Discovery
+
+After committing the KI-021 sub-classification with D marked as
+"Review individually", deeper investigation of the untracked D
+files revealed the headers explicitly say "Extracted from core.ts"
+or "Extracted from chat.ts" — i.e., the files claim to be
+refactoring extracts. The investigation then asked: did the
+refactor actually ship, or is the untracked file a fresh attempt
+that needs integration?
+
+### Evidence (all on main)
+
+1. **Zero tracked importers.** `agentgrep` for the exact import
+   patterns `from ['"]\$lib/db/(dbSchema|dbBackup|dbCaptureRestore|dbCoreTypes|dbHealthCheck|dbJsonMigration|dbLegacyMigration|coreDriverInfo)['"]`
+   and `from ['"]\$sse/handlers/chat/(chatComboUtils|chatValidation)['"]`
+   across the entire tracked tree returns 0 matches in 0 files.
+   The D files have NO production importers.
+2. **The actual refactor is already on main, with different file
+   names.** `git log --all --grep="extract.*core\|extract.*chat\|refactor.*core\|refactor.*chat" --oneline`
+   surfaces the canonical commits, all on main:
+   - `6f20fcd20b refactor(db): extract dbHealthScheduler.ts from core.ts (1738→1614)` (2026-09-15)
+   - `26e5241a93 refactor: decompose chat.ts (2461→2223 lines) into 5 sub-modules` (2026-09-15)
+3. **The untracked file names do not match the tracked ones.** The
+   actual refactor shipped with these names:
+   | Untracked (D)               | Tracked (already on main)       |
+   | --------------------------- | ------------------------------- |
+   | `dbHealthCheck.ts` (100 L)  | `dbHealthScheduler.ts` (191 L)  |
+   | `chatComboUtils.ts` (145 L) | `chatComboValidation.ts` (64 L) |
+   | `chatValidation.ts` (87 L)  | `chatBodyValidation.ts` (85 L)  |
+4. **The tracked modules have wider scope.** `dbHealthScheduler.ts`
+   covers "Health-check scheduler, managed backups, and legacy
+   encryption migration" — the untracked `dbHealthCheck.ts` only
+   covers "Periodic database health check scheduling", a strict
+   subset.
+5. **`chat.ts` does NOT re-export from the untracked modules.**
+   `grep -E "chatComboUtils|chatValidation" src/sse/handlers/chat.ts`
+   returns 0 matches. `grep -E "chatComboValidation|chatBodyValidation|chatConnectionUtils" src/sse/handlers/chat.ts`
+   returns 3 matches. The source file imports the tracked modules,
+   not the untracked ones.
+
+### Conclusion
+
+Sub-category D files are **NOT new work**. They are a **parallel
+or stale attempt** at the same refactoring that already shipped
+to main in 2026-09-15, but with a different file naming scheme
+and (for the db set) a narrower scope. The actual refactor was
+integrated into `core.ts` / `chat.ts` and exported from there.
+
+**No tracked code paths the untracked files. The 10 D files are
+orphaned.**
+
+### What this means for KI-008 options
+
+Option 1 (commit as-is) is now **triply wrong** instead of doubly
+wrong:
+
+1. Resurrects Electron/Electrobun (KI-020) — ~30 files
+2. Re-breaks the Tauri 500-page fix (KI-021 B) — 1 file
+3. Adds 10 orphan files that duplicate already-shipped refactors — 10 files
+
+Recommended refined approach (revised this turn): **discard A + B + D**
+(~41 files), keep C as-is, move F to current location, tie E to A's
+outcome. This leaves 87 untracked files (12 C + 1 E + 40 F + ~34
+misc/mixed) for further triage or operator review.
+
+### Required operator action
+
+1. Approve the discard of the 10 D files (a destructive operation
+   is gated; needs operator sign-off)
+2. Optionally: investigate WHY the D files were created in the
+   first place — was this an attempted refactor that was
+   superseded by the 2026-09-15 main commits, or some other
+   planning artifact? Knowing the origin may inform future
+   branch-protection rules to prevent the same pattern.
+
+### References
+
+- KI-008: original 128-file spike entry
+- KI-021: sub-classification (D row updated this turn)
+- `6f20fcd20b refactor(db): extract dbHealthScheduler.ts from core.ts (1738→1614)` (on main, 2026-09-15)
+- `26e5241a93 refactor: decompose chat.ts (2461→2223 lines) into 5 sub-modules` (on main, 2026-09-15)
+- Discovery date: 2026-10-15 during KI-021 follow-up
