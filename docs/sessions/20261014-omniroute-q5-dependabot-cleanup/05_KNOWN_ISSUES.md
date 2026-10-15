@@ -1827,3 +1827,73 @@ confirms 46 untracked entries (baseline = 46, unchanged).
 - `lefthook.yml:69-81` (former dead duplicate block — removed
   2026-10-15, replaced by a NOTE comment)
 - Discovery date: 2026-10-15, end of session
+
+## KI-032: `node_modules` is empty and `package-lock.json` has drifted — the pre-commit chain cannot run
+
+**STATUS: OPEN (pre-existing; unrelated to KI-031).** Found while
+proving KI-031's fix. This is NOT caused by the KI-031 change and
+predates it.
+
+**Symptom:** committing any `*.{js,jsx,ts,tsx,mjs}` file aborts in
+the `lint-staged` stage of `.husky/pre-commit` with:
+
+```
+x Task failed to spawn: eslint --fix --no-error-on-unmatched-pattern ...
+ENOENT
+husky - pre-commit script failed (code 1)
+```
+
+Because `lint-staged` runs BEFORE the KI-031 resurrection guard in
+the hook chain, this failure masks the guard entirely. A commit that
+should have been blocked by the guard is instead blocked by
+`eslint` — for the wrong reason, with no useful message.
+
+**Root cause (two layers):**
+
+1. `node_modules/` exists but contains **0 entries** — the
+   dependency tree is simply absent. It is gitignored
+   (`.gitignore:59`), so this is an uninstalled local state, not
+   tracked damage.
+
+2. Restoring it fails. `npm ci` (the canonical installer, per
+   `.github/actions/npm-ci-retry`) aborts with `EUSAGE`:
+
+   ```
+   Invalid: lock file's next@16.3.3 does not satisfy next@16.3.8
+   Invalid: lock file's @modelcontextprotocol/sdk@1.30.0 does not
+             satisfy @modelcontextprotocol/sdk@1.32.1
+   Missing: oxlint@1.88.0 from lock file
+   Invalid: lock file's sharp@0.35.4 does not satisfy sharp@0.35.5
+   Missing: sharp@0.34.5 from lock file
+   ```
+
+   `package-lock.json` is out of sync with `package.json`. The repo
+   also carries a `pnpm-lock.yaml` that is NEWER than
+   `package-lock.json` (Oct 14 18:53 vs Oct 14 03:17), and CI's
+   `ci.yml` jobs use `cache: npm` + `npm-ci-retry`, so npm is the
+   authoritative PM — the drift is real, not a PM mismatch.
+
+**Why it was not fixed here:** regenerating `package-lock.json`
+(`npm install`) is a materially different change class from the
+hook fix in KI-031 — it rewrites dependency resolution across
+`next`, `@next/swc-*` (7 platforms), `sharp`, `dompurify`,
+`@modelcontextprotocol/sdk`, and adds `oxlint`. It carries
+`postinstall` native-build risk (see
+`scripts/build/postinstall.mjs` and helpers), and CI currently
+shows every run stuck in `queued` with no conclusions, so a
+regenerated lockfile could not be validated. Deferred for
+operator sign-off.
+
+**Impact on KI-031:** none. The guard was proven independently
+(via direct execution of the committed hook and of
+`bun scripts/check/check-resurrection-patterns.mjs --staged-only`),
+so its correctness does not depend on `eslint` being installed.
+What is degraded is the *convenience* of the hook chain: a real
+commit attempt trips `eslint` before reaching the guard.
+
+**Suggested remediation (operator):** run `npm install` to
+regenerate the lockfile, land that separately from any KI-031
+follow-up, and consider whether `pnpm-lock.yaml` should be
+removed or the repo standardized on one PM.
+
+- Discovery date: 2026-10-15
