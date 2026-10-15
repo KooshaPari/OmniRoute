@@ -98,7 +98,6 @@ flate2 = "1.0"
 brotli = "6.0"
 
 jsonwebtoken = "10.3"
-oauth2 = "4.4"
 cookie = "0.18"
 url = { version = "2.5", features = ["serde"] }
 percent-encoding = "2.3"
