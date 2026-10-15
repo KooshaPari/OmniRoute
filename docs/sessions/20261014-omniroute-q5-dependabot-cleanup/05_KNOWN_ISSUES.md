@@ -670,3 +670,75 @@ version of the same files.
 - Discovery date: 2026-10-15 during the Dependabot cleanup saga
 
 ---
+
+## KI-021: The 128 files are not homogeneous — sub-classification matters
+
+**STATUS: FOLLOWS KI-020.** The 128 untracked files break into at
+least 6 distinct sub-categories with **different disposition
+recommendations**. A blanket KI-008 option (1, 2, 3, or 4) is
+insufficient; the operator should make per-sub-category decisions.
+
+### Sub-classification (verified 2026-10-15)
+
+| Sub-category                                        | Files                                                                                                                                                                                                     | Status                                                                                                                                                                                                                                                                                                                       | Recommended disposition                                     |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **A. Deleted Electrobun/Electron build surface**    | ~30 files in `desktop-electrobun/`, `electron/`, `scripts/build/electron*`, `tests/unit/electron-*`, `.github/workflows/{desktop-electrobun,electron-release}.yml`                                        | **Resurrection of `4a9db38fd0`** (ZERO-electron/Tauri migration, on main)                                                                                                                                                                                                                                                    | Discard (KI-020)                                            |
+| **B. Deleted Tauri-incompatible `+page.server.ts`** | 1 file: `apps/web/src/routes/dashboard/+page.server.ts`                                                                                                                                                   | **Byte-for-byte identical to file deleted in `94cc3b1b3e`** (`fix(web): drop static-incompatible dashboard server load causing Tauri 500 page`, 2026-09-17, on main). Re-adding would re-introduce the Tauri 500 page bug. Verified: `+page.svelte` does NOT use `bffHealthy` data; values are hardcoded as `"pending BFF"`. | Discard (Tauri-aligned)                                     |
+| **C. Intentional parking**                          | 12 files in `src/app/api/providers/[id]/models/providerHandlers.disabled-by-tier1-cleanup/`                                                                                                               | Already excluded from `tsconfig.typecheck-api.json` + cataloged in `05_KNOWN_ISSUES.md`                                                                                                                                                                                                                                      | Leave as-is                                                 |
+| **D. New code in adjacent areas**                   | 8 `src/lib/db/*.ts` (dbSchema, dbBackup, dbCaptureRestore, dbCoreTypes, dbHealthCheck, dbJsonMigration, dbLegacyMigration, coreDriverInfo) + 2 `src/sse/handlers/chat/{chatComboUtils,chatValidation}.ts` | **Not in any prior commit** (need separate review). May be legitimate new work; cannot be classified as resurrection without more analysis.                                                                                                                                                                                  | Review individually                                         |
+| **E. Polish translation of an Electron guide**      | 1 file: `docs/i18n/pl/.../ELECTRON_GUIDE.md`                                                                                                                                                              | Polish i18n of a guide for a deprecated surface. If the guide itself is being resurrected (sub-category A), the translation is consistent with that. If the guide is being discarded, the translation should follow.                                                                                                         | Tied to A                                                   |
+| **F. Reference docs (router-docs archive)**         | 40 files in `docs/research/archive/router-docs/{reference,research}/`                                                                                                                                     | Imported from the archived `KooshaPari/router-docs` repo (Nov 2025). Reference material only.                                                                                                                                                                                                                                | Move to docs/research/archive (already there) or keep as-is |
+
+### Key cross-references
+
+- **KI-020** covers sub-category A (the major resurrection finding)
+- **KI-008** is the umbrella; should be **split** into KI-008A
+  (sub-category A) and KI-008B (sub-category D + others) so the
+  operator can act on each independently
+- **Sub-category B** is the most actionable finding from this turn:
+  the new `+page.server.ts` would re-introduce a Tauri 500-page
+  bug that was deliberately fixed in `94cc3b1b3e` 28 days ago
+
+### What this means for the 4 KI-008 options
+
+The original options are now too coarse:
+
+- **Option 1 (commit as-is)** is now **doubly wrong**: it would
+  resurrect the Electron/Electrobun surface AND re-break the
+  Tauri 500-page fix.
+- **Option 2 (feature branch)** is still the most flexible but
+  needs a per-sub-category plan rather than a blanket commit.
+- **Option 3 (discard)** is the right choice for A and B but
+  wrong for D (potentially legitimate new work) and C
+  (intentional parking should not be discarded).
+- **Option 4 (leave as-is)** is acceptable for C but perpetuates
+  risk for A, B, and the operators review burden for D.
+
+**Recommended refined approach:** discard A + B, keep C as-is,
+review D, move F to its current location (no action), tie E to
+A's outcome. Implementation: a single `git clean -nd` to preview
+followed by per-pattern `git rm --cached` or `rm` operations —
+but **none of this is autonomous** because the operator should
+decide on D before any destructive action.
+
+### Files that were re-added verbatim (not in KI-020)
+
+Discovered while writing this entry. The new
+`apps/web/src/routes/dashboard/+page.server.ts` is identical to
+the file deleted in `94cc3b1b3e` 2026-09-17. This is a separate
+regression risk from the Electrobun resurrection.
+
+### References
+
+- KI-008: original 128-file spike entry
+- KI-020: Electrobun/Electron resurrection finding
+- `94cc3b1b3e fix(web): drop static-incompatible dashboard server
+load causing Tauri 500 page` (on main, 2026-09-17)
+- `4a9db38fd0 chore(build): remove dead Electron/Electrobun build
+scripts and desktop shell` (on main, 2026-09-18)
+- `apps/web/src/routes/dashboard/+page.svelte` (tracked, does not
+  use `bffHealthy` data — hardcoded `"pending BFF"` values
+  confirm BFF integration is incomplete in the UI)
+- Discovery date: 2026-10-15 during KI-020 follow-up
+
+---
