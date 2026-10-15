@@ -1,0 +1,33 @@
+diff --git a/lib/compile.js b/lib/compile.js
+index dce69beb90ece5c3b0ca234a949418f9f34eedbc..3945d257410c3fcd061ab80a589c36a57e548a56 100644
+--- a/lib/compile.js
++++ b/lib/compile.js
+@@ -3,8 +3,18 @@
+ const fill = require('fill-range');
+ const utils = require('./utils');
+ 
++// CVE-2026-93687: stack-exhaustion DoS through deeply nested patterns.
++// Patched by OmniRoute: add a depth guard to the recursive AST walker.
++// Upstream braces@3.0.3 has no fix; this local patch mirrors the
++// workaround recommended in the CVE record (limit nesting depth).
++const MAX_DEPTH = 50;
++
+ const compile = (ast, options = {}) => {
+-  const walk = (node, parent = {}) => {
++  const walk = (node, parent = {}, depth = 0) => {
++    if (depth > MAX_DEPTH) {
++      throw new Error('braces: pattern exceeds maximum nesting depth of ' + MAX_DEPTH);
++    }
++
+     const invalidBlock = utils.isInvalidBrace(parent);
+     const invalidNode = node.invalid === true && options.escapeInvalid === true;
+     const invalid = invalidBlock === true || invalidNode === true;
+@@ -47,7 +57,7 @@ const compile = (ast, options = {}) => {
+ 
+     if (node.nodes) {
+       for (const child of node.nodes) {
+-        output += walk(child, node);
++        output += walk(child, node, depth + 1);
+       }
+     }
+ 

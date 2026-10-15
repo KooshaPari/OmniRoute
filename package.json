@@ -488,6 +488,9 @@
       "sharp": ">=0.35.5",
       "onnxruntime-node": ">=1.26.0",
       "fast-copy": ">=4.1.0"
+    },
+    "patchedDependencies": {
+      "braces@3.0.3": "patches/braces@3.0.3.patch"
     }
   },
   "allowScripts": {
