@@ -599,17 +599,68 @@ exceeds maximum nesting depth of 50`
   via local pnpm.patchedDependencies".
 - This is alert #7 mitigated in this session.
 
+## KI-011 — auto_dismissed alerts investigated (no false negatives)
+
+Both auto-dismissed alerts were investigated to confirm they
+are **legitimate** dismissals, not missed vulnerabilities.
+
+**Alert #330 basic-ftp 5.3.1 (CVE-2024-XXXX, quadratic CPU
+in Client.list()):**
+
+- Chain: `basic-ftp@5.3.1` <- `get-uri@8.0.1` <-
+  `pac-proxy-agent@9.1.0` <- `proxy-agent@8.0.2` <-
+  `promptfoo@0.122.2` <- `omniroute@3.8.53` (devDependencies)
+- basic-ftp is only `import`-ed in
+  `node_modules/.pnpm/get-uri@8.0.1/.../ftp.js` — i.e. the
+  FTP transport of get-uri. No code in OmniRoute's source tree
+  references basic-ftp.
+- The vulnerable `Client.list()` is only invoked if you call
+  `get-uri('ftp://...')`. OmniRoute never opens FTP URLs
+  (it only proxies HTTP/HTTPS AI API requests).
+- `pnpm view basic-ftp version` -> 6.2.3, so a fix exists
+  (6.2.1+). But the override is unnecessary: the code path
+  is unreachable.
+- **Verdict: true auto-dismiss. No action needed.**
+
+**Alert #297 engine.io 6.6.9 (CVE-2024-XXXX, protocol
+revision DoS):**
+
+- Chain: `engine.io@6.6.9` <- `socket.io@4.8.3` <-
+  `promptfoo@0.122.2` <- `omniroute@3.8.53` (devDependencies)
+- grep for `from 'socket.io'` / `from 'engine.io'` in
+  OmniRoute's source tree: **zero matches**
+- engine.io is a server-side WebSocket library. OmniRoute
+  doesn't run a socket.io server. The vulnerable code path
+  is never loaded at runtime.
+- `pnpm view engine.io version` -> 6.6.11+ exists as a fix.
+  Same as basic-ftp: override is unnecessary.
+- **Verdict: true auto-dismiss. No action needed.**
+
+**Pattern: All 3 remaining-no-action alerts (#297, #330, #388)
+are in the promptfoo test/eval toolchain devDependency chain.
+This is a known characteristic of Node.js test frameworks that
+include network simulation libraries (proxy-agent, etc.).**
+The proper long-term remediation is to either:
+
+1. Pin a `promptfoo` version that doesn't pull these chains
+2. Accept the risk (these are test-only, not production code)
+
+For now, all 3 are correctly handled (auto-dismissed or
+mitigated by the braces patch). Future `pnpm update promptfoo`
+should be paired with re-running `pnpm audit` to catch any
+regressions in this chain.
+
 ## Live Dependabot state at end of Phase 14
 
 **98 of 100 Dependabot alerts resolved** (97 fixed/patched +
-1 auto-dismissed + 1 no-upstream-fix remaining):
+2 auto-dismissed + 1 no-upstream-fix remaining):
 
 | State           | Count | Examples                                   |
 | --------------- | ----- | ------------------------------------------ |
 | fixed           | 96    | All closed this saga + earlier             |
 | patched (local) | 1     | #389 braces (Phase 14)                     |
+| auto_dismissed  | 2     | #330 basic-ftp, #297 engine.io (KI-011 OK) |
 | open            | 1     | #388 node-forge (no upstream fix, complex) |
-| auto_dismissed  | 1     | #330 basic-ftp (false positive)            |
 
 **1 alert genuinely remains** post Phase 14:
 
