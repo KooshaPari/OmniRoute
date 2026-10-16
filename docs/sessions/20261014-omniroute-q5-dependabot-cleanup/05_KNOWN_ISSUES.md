@@ -783,11 +783,11 @@ that needs integration?
    - `26e5241a93 refactor: decompose chat.ts (2461→2223 lines) into 5 sub-modules` (2026-09-15)
 3. **The untracked file names do not match the tracked ones.** The
    actual refactor shipped with these names:
-   | Untracked (D) | Tracked (already on main) |
+   | Untracked (D)               | Tracked (already on main)       |
    | --------------------------- | ------------------------------- |
-   | `dbHealthCheck.ts` (100 L) | `dbHealthScheduler.ts` (191 L) |
+   | `dbHealthCheck.ts` (100 L)  | `dbHealthScheduler.ts` (191 L)  |
    | `chatComboUtils.ts` (145 L) | `chatComboValidation.ts` (64 L) |
-   | `chatValidation.ts` (87 L) | `chatBodyValidation.ts` (85 L) |
+   | `chatValidation.ts` (87 L)  | `chatBodyValidation.ts` (85 L)  |
 4. **The tracked modules have wider scope.** `dbHealthScheduler.ts`
    covers "Health-check scheduler, managed backups, and legacy
    encryption migration" — the untracked `dbHealthCheck.ts` only
@@ -1830,9 +1830,10 @@ confirms 46 untracked entries (baseline = 46, unchanged).
 
 ## KI-032: `node_modules` is empty and `package-lock.json` has drifted — the pre-commit chain cannot run
 
-**STATUS: OPEN (pre-existing; unrelated to KI-031).** Found while
-proving KI-031's fix. This is NOT caused by the KI-031 change and
-predates it.
+**STATUS: RESOLVED locally (2026-10-16); CI half still OPEN.** The
+local pre-commit chain now runs to completion (`HOOK_EXIT=0`) and the
+KI-031 resurrection guard actually EXECUTES inside it for the first
+time. The CI half cannot be closed yet — see the CI section below.
 
 **Symptom:** committing any `*.{js,jsx,ts,tsx,mjs}` file aborts in
 the `lint-staged` stage of `.husky/pre-commit` with:
@@ -1870,8 +1871,27 @@ should have been blocked by the guard is instead blocked by
    `package-lock.json` is out of sync with `package.json`. The repo
    also carries a `pnpm-lock.yaml` that is NEWER than
    `package-lock.json` (Oct 14 18:53 vs Oct 14 03:17), and CI's
-   `ci.yml` jobs use `cache: npm` + `npm-ci-retry`, so npm is the
-   authoritative PM — the drift is real, not a PM mismatch.
+   `ci.yml` jobs use `cache: npm` + `npm-ci-retry` (the retry
+   action runs literal `npm ci`, 21 workflow refs), so CI installs
+   with npm.
+
+   **CORRECTION (2026-10-16):** an earlier draft of this KI said npm
+   was "the authoritative PM". That is wrong, and the real situation
+   is worse than a mismatch. Measured facts:
+   - `pnpm-lock.yaml` is TRACKED and not ignored.
+   - `package-lock.json` is **GITIGNORED** (`.gitignore:296-297`,
+     whose comment reads "npm lockfile (pnpm is the package manager;
+     bun.lock also ignored)") and is **NOT tracked**.
+   - `pnpm install` appears in **ZERO** workflows. `npm ci` appears in 21. `bun install` in 4.
+   - `package.json` has **no** `packageManager` field.
+
+   So the repo DECLARES pnpm but PRACTICES npm, and the lockfile that
+   `npm ci` requires is untracked. On a fresh CI checkout there is no
+   `package-lock.json` at all, so `npm ci` has nothing to pin to.
+   This is a real repo inconsistency, not merely lockfile drift.
+   The regenerated `package-lock.json` from 2026-10-16 is therefore a
+   **local-only** artifact: it cannot be committed, and it does not
+   fix CI. It does fix the local chain, which is why it was kept.
 
 **Why it was not fixed here:** regenerating `package-lock.json`
 (`npm install`) is a materially different change class from the
@@ -1944,3 +1964,51 @@ follow-up, and consider whether `pnpm-lock.yaml` should be
 removed or the repo standardized on one PM.
 
 - Discovery date: 2026-10-15
+
+### KI-032 RESOLUTION (2026-10-16)
+
+**What was actually done, and what it achieved.**
+
+1. `npm install --ignore-scripts --no-audit --no-fund` regenerated the
+   local `package-lock.json` (sha `97612eae…` -> `5c9c8ae9…`, "changed
+   186 packages in 16m"). This is a LOCAL-ONLY artifact
+   (`package-lock.json` is gitignored — see the correction above).
+
+2. That removed the local `eslint ENOENT`: `node_modules/.bin/eslint`
+   now resolves, `eslint --version` -> v10.9.1, and lint-staged's exact
+   invocation (`eslint --fix --no-error-on-unmatched-pattern
+--no-warn-ignored --suppressions-location
+config/quality/eslint-suppressions.json`) exits 0.
+
+3. `--ignore-scripts` broke the LOCAL `bun` shim
+   (`node_modules/.bin/bun -> ../bun/bin/bun.exe` printed "Error: Bun's
+   postinstall script was not run."). Because husky prepends
+   `node_modules/.bin` to `PATH`, that broken shim SHADOWED the working
+   global bun inside the hook. Fixed with
+   `cd node_modules/bun && node install.js` (now reports 1.4.0).
+
+4. **Verified end-to-end, not by inspection.** With the fix in place,
+   `sh .husky/pre-commit` exits **0** and its final line is
+   `[resurrection] OK — scanned 0 new file(s) against 975 deletion(s)`.
+   The KI-031 guard therefore now ACTUALLY EXECUTES inside the real
+   commit path — the first time it has ever done so. A benign staged
+   file through the same path also exits 0.
+
+**DEFECT FOUND IN THE KI-031 HOOK (needs a follow-up fix).** While the
+bun shim was broken, the hook reported:
+
+```
+[resurrection] pre-commit FAILED — verbatim re-add of a file deleted on main.
+```
+
+That claim was FALSE — no resurrection existed and nothing was staged.
+The message is produced by the `|| { ... }` branch of
+`.husky/pre-commit`, which cannot distinguish "the guard DETECTED a
+resurrection" from "the guard FAILED TO RUN" (non-zero exit for any
+reason, e.g. a broken `bun`). A false resurrection accusation is worse
+than a plain error, because it sends the operator to the allowlist for
+a file that has no problem. **Recommended fix:** have the check exit a
+distinct code (e.g. 2) for detection vs any other non-zero for tool
+failure, and print a different message for each.
+
+- Resolution date: 2026-10-16
