@@ -1893,7 +1893,7 @@ understated. Actual measurement over the last 100 runs:
   `startup_failure`, which fails before dispatching any job (the
   runs report zero jobs), i.e. it never reaches a runner.
 - The only check that runs on commits today is `Socket Security:
-  Project Report` (app `socket-security`), which succeeds.
+Project Report` (app `socket-security`), which succeeds.
 
 So the lockfile drift cannot currently be caught by CI: the
 pipeline that would catch it has been failing at startup for ~10
@@ -1901,14 +1901,41 @@ days. **The drift is therefore NOT validated as harmless, and a
 regenerated lockfile cannot be validated by CI until the
 `startup_failure` is resolved.** `ci.yml` startup failures are a
 separate, higher-priority problem than this lockfile drift.
-Cause of `startup_failure` not yet determined (Actions billing API
-returns 404 for this repo; likely billing/quota/concurrency).
+Cause (measured 2026-10-16): run 37321432745 and the last push
+run (2026-09-20) both fail before any job. GitHub's annotation
+names `SonarSource/sonarqube-scan-action@v8`,
+`errata-ai/vale-action@reviewdog`, `actions/checkout@v7`,
+`actions/setup-node@v7`, `actions/upload-artifact@v7`, and four
+more tag refs (`actions/cache@v6`, `actions/download-artifact@v8`,
+`actions/setup-python@v7`, `actions/github-script@v9` on the
+failing `ci.yml`). SHA pinning was required, so a moving tag is
+rejected even for GitHub-owned actions, and it does not match the
+SHA already on the allowlist.
+
+Operator said "go allow" on 2026-10-16. Applied on the repo
+settings, not by rewriting workflows:
+
+- `sha_pinning_required` is now false. Read back from
+  `GET /repos/KooshaPari/OmniRoute/actions/permissions`.
+  `allowed_actions` stays `selected`. `enabled` stays true.
+- Allowlist now includes `errata-ai/vale-action@reviewdog` and
+  `SonarSource/sonarqube-scan-action@v8` (31 patterns). Existing
+  SHA pins were kept. `verified_allowed` stays false.
+
+Current `main` `ci.yml` already pins Vale, Trunk, Codecov, and
+Sonar to SHAs that were already allowed, so those tag patterns
+are for the older workflow files that startup-failed.
+`workflow_dispatch` still returns HTTP 422: "Actions has been
+disabled for this repository", while the permissions GET says
+enabled. This repo is a fork of `diegosouzapw/OmniRoute`. No new
+CI run was created by the dispatch, so the allow change is not
+yet observed to start a job.
 
 **Impact on KI-031:** none. The guard was proven independently
 (via direct execution of the committed hook and of
 `bun scripts/check/check-resurrection-patterns.mjs --staged-only`),
 so its correctness does not depend on `eslint` being installed.
-What is degraded is the *convenience* of the hook chain: a real
+What is degraded is the _convenience_ of the hook chain: a real
 commit attempt trips `eslint` before reaching the guard.
 
 **Suggested remediation (operator):** run `npm install` to
