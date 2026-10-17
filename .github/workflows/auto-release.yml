@@ -247,16 +247,29 @@ jobs:
           # ANSI escapes instead of a changelog. Stderr now goes to its own file,
           # and the log is surfaced only on failure.
           set +e
-          git-cliff --tag "$VERSION" --config cliff.toml --strip all > /tmp/CLIFF.md 2> /tmp/CLIFF.err
+          git-cliff --tag "$VERSION" --latest --config cliff.toml --strip all > /tmp/CLIFF.raw 2> /tmp/CLIFF.err
           CLIFF_RC=$?
           set -e
-          if [ "$CLIFF_RC" -ne 0 ] || [ ! -s /tmp/CLIFF.md ]; then
+          if [ "$CLIFF_RC" -ne 0 ] || [ ! -s /tmp/CLIFF.raw ]; then
             echo "::warning::git-cliff failed (rc=$CLIFF_RC); release notes will be minimal"
             echo "::group::git-cliff stderr"
             tail -20 /tmp/CLIFF.err || true
             echo "::endgroup::"
-            printf 'Release %s\n' "$VERSION" > /tmp/CLIFF.md
+            printf 'Release %s\n' "$VERSION" > /tmp/CLIFF.raw
           fi
+          # GitHub rejects a release body over 125,000 characters with
+          #   HTTP 422: Validation Failed — body is too long (maximum is 125000 characters)
+          # A full-history changelog exceeds that, so cap well under the limit and
+          # point at the repo history for the remainder.
+          MAX_BODY=110000
+          if [ "$(wc -c < /tmp/CLIFF.raw)" -gt "$MAX_BODY" ]; then
+            echo "::notice::changelog truncated to ${MAX_BODY} bytes (GitHub caps release bodies at 125000 characters)"
+            head -c "$MAX_BODY" /tmp/CLIFF.raw > /tmp/CLIFF.md
+            printf '\n\n---\n_Changelog truncated. See the full history at https://github.com/KooshaPari/OmniRoute/commits/main._\n' >> /tmp/CLIFF.md
+          else
+            cp /tmp/CLIFF.raw /tmp/CLIFF.md
+          fi
+          echo "release body bytes: $(wc -c < /tmp/CLIFF.md)"
 
       - name: Create GitHub release
         env:
