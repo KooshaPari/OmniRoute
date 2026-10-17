@@ -59,14 +59,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
+
       - name: Setup Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: "24"
           cache: pnpm
-
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
