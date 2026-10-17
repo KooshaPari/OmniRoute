@@ -20,11 +20,13 @@ import {
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-/**
- * Pinned Agent CLI build id used when no local install is found (typical
- * headless OmniRoute). Bump when refreshing Cursor CLI impersonation.
- */
-export const CURSOR_AGENT_CLI_VERSION = "2026.07.08-0c04a8a";
+// CURSOR_AGENT_CLI_VERSION now lives in ./cursorAgentCliVersion.constants.ts.
+// Consumers that need ONLY the string (e.g. src/lib/oauth/constants/oauth.ts,
+// reachable from the login page's client bundle) must not pull this module's
+// top-level node:fs/node:os/node:path imports into the browser build — doing so
+// made webpack fail with `UnhandledSchemeError: Reading from "node:fs"` and
+// returned HTTP 500 for every page route. Re-exported to preserve the API.
+export { CURSOR_AGENT_CLI_VERSION } from "./cursorAgentCliVersion.constants.ts";
 
 const VERSION_ID_RE = /^\d{4}\.\d{2}\.\d{2}-[0-9a-f]+$/;
 const CACHE_TTL_MS = 60 * 60 * 1000;
