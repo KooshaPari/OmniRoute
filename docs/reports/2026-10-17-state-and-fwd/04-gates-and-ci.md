@@ -62,28 +62,53 @@ Jobs (a `startup_failure` would show none):
 
 **CI is running real jobs for the first time in this repo's recent history.**
 
-## What still does NOT gate (and this is the important part)
+## Branch protection (CORRECTED — it was not empty)
 
-**Branch protection is empty.**
+An earlier draft called protection "empty". That was imprecise and understated
+what already existed. Measured 2026-10-17:
 
-```json
-{ "enforce_admins": { "enabled": false }, "required_status_checks": null }
+| Setting                   | Value          | Effect                              |
+| ------------------------- | -------------- | ----------------------------------- |
+| `allow_force_pushes`      | `false`        | **Force pushes already blocked**    |
+| `allow_deletions`         | `false`        | **Branch deletion already blocked** |
+| `required_linear_history` | `true`         | Merge commits rejected              |
+| `enforce_admins`          | `false`        | Operator retains an override        |
+| `required_status_checks`  | **was `null`** | **CI enforced NOTHING**             |
+
+So the gap was narrower than "no protection": destructive operations were
+already blocked, but **`required_status_checks` was unset**, so CI was advisory
+even when green.
+
+### Fixed in this session
+
+Required status checks added, using gates that currently **pass** and are
+meaningful:
+
+```
+Security Tests
+i18n Validation (all languages)
+Quality Gates (Extended)
 ```
 
-Zero required status checks. **Even with CI now green, nothing prevents a direct
-push to `main` that breaks the build.** The repo has had 71–77 workflow files and
-no enforcement at all.
+`strict: false` (branches need not be up to date); `enforce_admins: false` (the
+operator keeps an override).
+
+**Why only three:** the rest are red or were cancelled, and requiring a failing
+check would lock the operator out of their own `main`. Promote `Lint`, `Vitest`,
+`Unit Tests`, `Integration Tests`, `Docs Sync (Strict)`, `i18n Glossary`, and
+`Bun SQLite Compatibility` **as they go green** (05 Phase 1.2).
 
 ## Current gate inventory
 
-| Gate                                | State                                                                                                                                                                   |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GitHub Actions CI                   | **Now runs** (was `startup_failure` for 10+ days)                                                                                                                       |
-| Branch protection / required checks | **NONE**                                                                                                                                                                |
-| Local husky pre-commit              | **Works** — git-identity, lint-staged, docs-sync, any-T11-budget, tracked-artifacts, resurrection-patterns                                                              |
-| `lefthook.yml`                      | **Dead config.** `core.hooksPath=.husky/_`, so lefthook's pre-commit never executes. Its `resurrection-patterns` block was removed (KI-031); other blocks remain inert. |
-| Coverage floor                      | 60% via `.qgate.toml` — **informational, does not block**                                                                                                               |
-| Codecov patch target                | 70% — **informational**                                                                                                                                                 |
+| Gate                                    | State                                                                                                                                                                   |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub Actions CI                       | **Now runs** (was `startup_failure` for 10+ days)                                                                                                                       |
+| Branch protection — required checks     | **NOW SET** — Security Tests, i18n Validation, Quality Gates (Extended)                                                                                                 |
+| Branch protection — force-push / delete | **Already blocked** (`allow_force_pushes: false`, `allow_deletions: false`, linear history required)                                                                    |
+| Local husky pre-commit                  | **Works** — git-identity, lint-staged, docs-sync, any-T11-budget, tracked-artifacts, resurrection-patterns                                                              |
+| `lefthook.yml`                          | **Dead config.** `core.hooksPath=.husky/_`, so lefthook's pre-commit never executes. Its `resurrection-patterns` block was removed (KI-031); other blocks remain inert. |
+| Coverage floor                          | 60% via `.qgate.toml` — **informational, does not block**                                                                                                               |
+| Codecov patch target                    | 70% — **informational**                                                                                                                                                 |
 
 ## Test infrastructure
 
@@ -109,8 +134,8 @@ in favour of pnpm.
 ## Three steps to make gates real
 
 1. ~~Add the missing actions to the allowlist~~ — **DONE**, CI now runs.
-2. **Enable branch protection** with `CI` as a required status check. Until this
-   is done, the newly-working CI is advisory only.
-3. **Get CI to green.** The suite has not run end-to-end in a long time and the
-   pnpm migration landed unvalidated. Expect red; treat the first green run as
-   the milestone.
+2. ~~Enable required status checks~~ — **DONE** (three green gates; expand as
+   more go green).
+3. **Get CI to green.** Current result on `42f50de195`: 6 pass, 6 fail, rest
+   cancelled by concurrency. Treat the first fully-green run as the milestone,
+   then promote newly-green jobs into required checks.
