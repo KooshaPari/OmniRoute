@@ -488,6 +488,7 @@ export async function runSingleModelTest(
       modelId: fullModelStr,
       status: "error",
       latencyMs: 0,
+      httpStatus: 400,
       error:
         "Skipped: non-chat generation model (images/music/video) — use the corresponding generation endpoint instead",
     };

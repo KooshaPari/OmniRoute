@@ -30,9 +30,15 @@ const UPDATE = process.argv.includes("--update");
 
 function runTsc() {
   try {
+    let tscJs = path.join(ROOT, "node_modules", "typescript", "lib", "tsc.js");
+    if (!fs.existsSync(tscJs)) {
+      const pnpmDir = path.join(ROOT, "node_modules", ".pnpm");
+      const cand = fs.readdirSync(pnpmDir).filter((d) => d.startsWith("typescript@6")).sort().pop();
+      if (cand) tscJs = path.join(pnpmDir, cand, "node_modules", "typescript", "lib", "tsc.js");
+    }
     return execFileSync(
-      process.platform === "win32" ? "npx.cmd" : "npx",
-      ["tsc", "--pretty", "false", "--noEmit", "-p", TSCONFIG],
+      process.execPath,
+      [tscJs, "--pretty", "false", "--noEmit", "-p", TSCONFIG],
       { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, cwd: ROOT }
     );
   } catch (err) {
