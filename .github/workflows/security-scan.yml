@@ -1,4 +1,4 @@
-name: Security Scan
+ame: Security Scan
 
 on:
   push:
@@ -65,11 +65,14 @@ jobs:
           node-version: "24"
           cache: pnpm
 
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run npm audit
-        run: npm audit --audit-level=high
+      - name: Run pnpm audit
+        run: pnpm audit --audit-level=high
 
   codeql:
     name: CodeQL Analysis
