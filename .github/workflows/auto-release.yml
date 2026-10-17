@@ -346,6 +346,23 @@ jobs:
       - name: Enable corepack (pnpm)
         run: corepack enable
 
+      # `npm run build:cli` -> prepublish.ts requires
+      # `.build/next/standalone/server.js`, so every run paid a full Next.js
+      # build. That build runs ~5 minutes, and the runner has been shut down
+      # mid-build ("The runner has received a shutdown signal"), killing the
+      # publish. Caching the standalone output lets a repeat run skip the build
+      # entirely and spend its time publishing.
+      #
+      # Exact key only, NO restore-keys — same rule this repo applies to its
+      # eslint and node_modules caches (#11600): a stale .build from different
+      # source is exactly the silent drift a lockfile-pinned CI must never
+      # inherit.
+      - name: Cache standalone build
+        uses: actions/cache@v6
+        with:
+          path: .build/next/standalone
+          key: standalone-${{ runner.os }}-${{ hashFiles('src/**', 'open-sse/**', 'apps/**', 'packages/**', 'package.json', 'pnpm-lock.yaml', 'next.config.mjs', 'tsconfig.json') }}
+
       - name: Install + build (skip native build steps)
         run: |
           # --ignore-scripts skips the postinstall hooks of native packages like
