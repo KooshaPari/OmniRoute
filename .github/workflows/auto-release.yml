@@ -278,11 +278,19 @@ jobs:
             git tag -d "v$VERSION" 2>/dev/null || true
             git push origin ":v$VERSION" 2>/dev/null || true
           fi
-          BODY="$(cat /tmp/CLIFF.md 2>/dev/null || echo 'Auto-release via auto-release.yml')"
+          # The changelog must be passed BY FILE, not as an argument.
+          # `--notes "$BODY"` puts the whole changelog on the command line; at
+          # ~52 KB it exceeds ARG_MAX and `gh` dies with
+          #   "/usr/bin/gh: Argument list too long" (exit 126)
+          # and NO release is published. A truncated 1 KB body happened to fit,
+          # which is why the old debug-log bodies appeared to "work".
+          if [ ! -s /tmp/CLIFF.md ]; then
+            printf 'Auto-release via auto-release.yml\n' > /tmp/CLIFF.md
+          fi
           RELEASE_TARGET="${{ inputs.sha || github.sha }}"
           gh release create "v$VERSION" \
             --title "v$VERSION ($RESOLVED)" \
-            --notes "$BODY" \
+            --notes-file /tmp/CLIFF.md \
             --prerelease="$PRERELEASE" \
             --target "$RELEASE_TARGET"
 
