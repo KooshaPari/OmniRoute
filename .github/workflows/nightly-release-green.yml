@@ -118,10 +118,12 @@ jobs:
           git checkout "$TARGET"
           git log -1 --oneline
 
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-          cache: npm
+          cache: pnpm
 
       - uses: ./.github/actions/npm-ci-retry
 
@@ -254,10 +256,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-          cache: npm
+          cache: pnpm
 
       - uses: ./.github/actions/npm-ci-retry
 
@@ -417,10 +421,12 @@ jobs:
           git checkout "$TARGET"
           git log -1 --oneline
 
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-          cache: npm
+          cache: pnpm
 
       - uses: ./.github/actions/npm-ci-retry
 
@@ -519,10 +525,12 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
-          cache: npm
+          cache: pnpm
 
       - uses: ./.github/actions/npm-ci-retry
 

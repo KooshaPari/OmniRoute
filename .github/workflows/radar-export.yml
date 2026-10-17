@@ -40,11 +40,13 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false # publish usa GH_TOKEN via gh release, não a credencial do checkout
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Generate catalog export with provenance
         run: node --import tsx/esm scripts/release/radar-export.mjs "$RUNNER_TEMP/export-omniroute.json"
       - name: Publish to the stable release asset

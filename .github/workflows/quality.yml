@@ -36,6 +36,8 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -118,10 +120,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
+          cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run build
@@ -145,10 +149,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
+          cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
       # One walk of src/app/api for openapi-routes + docs-symbols (both still fail independently).
       - run: npm run check:api-docs-refs
@@ -171,7 +177,7 @@ jobs:
     # omniroute-113-6, so self-hosted runs are visible when they happen.
     #
     # And if it ever HAD fired it would have inherited the measured penalty, because this job's
-    # first two steps are exactly the bottleneck: actions/setup-node + npm ci took 20m06s on .113
+    # first two steps are exactly the bottleneck: actions/setup-node + pnpm install --frozen-lockfile took 20m06s on .113
     # with 4 concurrent runners versus 16s hosted (npm cache restore saturating the link). Median
     # here is 5.6 min hosted across 72 successful runs.
     #
@@ -189,10 +195,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
+          cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
       - name: Restore ESLint file cache
         uses: actions/cache@v6
@@ -446,10 +454,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
+          cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
       # WS5.2/5.3: JUnit feeds Trunk Flaky Tests — the fast-path runs on EVERY PR,
       # which is where flaky-detection volume actually comes from (ci.yml's heavy
@@ -498,10 +508,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
+          cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
       # QW-d: fonte única — o mesmo npm script do CI pesado/local. Fecha dois drifts do
       # comando inline antigo: os dirs `memory` e `usage` estavam FORA do glob (testes
@@ -541,10 +553,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
+          cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
       - name: Restore ESLint file cache
         uses: actions/cache@v6
@@ -613,10 +627,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
+          cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
       - name: CHANGELOG integrity (nenhum bullet da base pode sumir no merge-result)
         run: npm run check:changelog-integrity
