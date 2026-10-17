@@ -223,6 +223,14 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only override: points setup-open-code.mjs at a fixture plugin dir without
   // requiring the real bundled plugin to be built.
   "OMNIROUTE_OPENCODE_PLUGIN_DIR",
+  // ── CI-check / test-harness internals (verified by scoped search 2026-10-17) ──
+  // Read by scripts/check/check-job-results.mjs to decide whether a skipped CI
+  // job is acceptable. A CI-harness knob, not OmniRoute runtime config.
+  "ALLOW_SKIPPED",
+  "NEEDS_JSON",
+  // Deliberately bogus placeholder used as a fixture in
+  // open-sse/executors/__tests__/claudeIdentity.test.ts. The "FOO" is intentional.
+  "OPENAI_COMPATIBLE_FOO_USER_AGENT",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
