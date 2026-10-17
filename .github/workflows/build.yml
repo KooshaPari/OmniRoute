@@ -41,6 +41,10 @@ jobs:
           node-version: "24"
           cache: pnpm
 
+      # PR #756 switched this step to pnpm without enabling pnpm on the runner.
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 

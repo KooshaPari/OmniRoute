@@ -25,9 +25,11 @@ jobs:
       app-name: OmniRoute
       app-bundle-id: online.omniroute.desktop
       build-cmd: |
-          pnpm install --frozen-lockfile
-          pnpm --filter desktop tauri build --target universal-apple-darwin
-          cp -R apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/OmniRoute.app dist/macos/
+        # PR #756 switched this to pnpm without enabling pnpm on the runner.
+        corepack enable
+        pnpm install --frozen-lockfile
+        pnpm --filter desktop tauri build --target universal-apple-darwin
+        cp -R apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/OmniRoute.app dist/macos/
       entitlements-file: apps/desktop/src-tauri/Entitlements.plist
       artifact-dir: dist/macos
       create-dmg: true

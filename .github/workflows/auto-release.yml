@@ -338,6 +338,14 @@ jobs:
           node-version-file: ".nvmrc"
           registry-url: "https://registry.npmjs.org"
 
+      # PR #756 moved this job to `pnpm install` but did not enable pnpm on the
+      # runner, so the publish step died with:
+      #   line 6: pnpm: command not found   (exit 127)
+      # Every other pnpm-based workflow in this repo runs `corepack enable`
+      # first; this job was the one that was missed.
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+
       - name: Install + build (skip native build steps)
         run: |
           # --ignore-scripts skips the postinstall hooks of native packages like
