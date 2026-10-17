@@ -28,10 +28,12 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
+          cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
       - name: Run Stryker mutation tests
         run: npm run test:mutation
@@ -59,10 +61,12 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
+          cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
       - name: Run unit tests (iteration ${{ matrix.iteration }}/10)
         run: node --import tsx --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 tests/unit/*.test.ts
@@ -87,9 +91,11 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
+          cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run bench

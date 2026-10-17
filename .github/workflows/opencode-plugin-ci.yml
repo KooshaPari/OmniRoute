@@ -37,10 +37,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
-          cache: npm
+          cache: pnpm
           cache-dependency-path: "@omniroute/opencode-plugin/package-lock.json"
       - run: npm install --no-audit --no-fund
       - run: npm run build
@@ -60,12 +62,14 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
-          cache: npm
+          cache: pnpm
           cache-dependency-path: "@omniroute/opencode-plugin-v2/package-lock.json"
-      - run: npm ci --no-audit --no-fund
+      - run: pnpm install --frozen-lockfile
       - run: npm run build
       - run: npm test
 
@@ -77,12 +81,14 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
       - name: Build plugin-v2 artifact
         working-directory: "@omniroute/opencode-plugin-v2"
-        run: npm ci --no-audit --no-fund && npm run build
+        run: pnpm install --frozen-lockfile && npm run build
       - uses: actions/upload-artifact@v7
         with:
           name: opencode-plugin-v2-dist

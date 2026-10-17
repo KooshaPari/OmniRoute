@@ -1,6 +1,7 @@
 {
   "name": "omniroute",
   "version": "3.8.53",
+  "packageManager": "pnpm@9.15.9",
   "description": "Unified AI router with 358 providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {

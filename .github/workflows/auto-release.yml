@@ -309,7 +309,7 @@ jobs:
           # (Node 24) APIs. The tarball we publish to npm/dockers has none of
           # this — npm install without --ignore-scripts only matters for the
           # build environment, not the published artifact.
-          npm ci --ignore-scripts
+          pnpm install --frozen-lockfile --ignore-scripts
           npm run build:cli
 
       - name: "Pre-flight: validate npm-publish readiness"

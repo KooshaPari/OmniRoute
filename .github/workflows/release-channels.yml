@@ -181,7 +181,7 @@ jobs:
             p.version=process.env.VERSION;
             fs.writeFileSync("package.json",JSON.stringify(p,null,2)+"\n");
           '
-          npm ci
+          pnpm install --frozen-lockfile
           npm run build:cli
           # Pre-flight: catches private:true, missing files, bad semver, dirty
           # tree, etc. — anything that would cause npm publish to fail or
