@@ -81,7 +81,12 @@ export function SetupWizard({
   }, [step, target.id]);
 
   // Fix #8656 Issue A: Use server-level cert trust as fallback
-  const certTrusted = agentState?.cert_trusted ?? serverState.certTrusted ?? false;
+  // Same defect as AgentCard.tsx: `serverState` read unguarded while its
+  // sibling `agentState` used optional chaining, throwing
+  //   TypeError: Cannot read properties of undefined (reading 'certTrusted')
+  // on any render without serverState. The trailing `?? false` already
+  // expressed the intent to degrade gracefully.
+  const certTrusted = agentState?.cert_trusted ?? serverState?.certTrusted ?? false;
   const dnsEnabled = agentState?.dns_enabled ?? false;
 
   const handleEnableDns = async () => {
