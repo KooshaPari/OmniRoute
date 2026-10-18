@@ -25,7 +25,7 @@ D1   IMPLEMENTED    █████████████████░░░
 D2   BUILDABLE      ██░░░░░░░░░░░░░░░░░░     10%  production build NEVER completed locally or in CI; runner killed mid-build
 D3   REACHABLE      ████████████████████    100%
 D4   EXERCISED      ████████████████░░░░     80%  10/10 journey steps; NO real completion (0 credentialed providers)
-D5   VERIFIED       ░░░░░░░░░░░░░░░░░░░░      0%  no coverage artifact exists; floor 60% is INFORMATIONAL (.qgate.toml:7)
+D5   VERIFIED       ████████░░░░░░░░░░░░     40%  UI-subset run only: statements 51.92%, branches 67.30%, FUNCTIONS 12.99% -> FAILS the repo's own 60% floor on functions. Full-suite coverage still UNMEASURED.
 D6   PACKAGED       ░░░░░░░░░░░░░░░░░░░░      0%  no downloadable artifact
 D7   INSTALLED      ░░░░░░░░░░░░░░░░░░░░      0%  never installed outside the repo
 D8   RELEASED       ████░░░░░░░░░░░░░░░░     20%  30 releases exist; 1 of 100 sampled carries any asset
@@ -95,6 +95,25 @@ Disabled tests: **41** files with `.skip`/`.todo`.
 
 Masked failure: `vitest.config.ts:94` — #8618 - pre-existing failure; remove this exclusion when fixed
 
+## D2. Coverage (measured)
+
+**Scope:** 46 re-enabled UI test files ONLY (NOT the full suite)
+
+`npx c8 --reporter=text-summary npx vitest run --config vitest.config.ts <46 files>` · c8 12.0.0 · 2026-10-18
+
+| Metric     |   Coverage | Covered |  Total | Floor         |
+| ---------- | ---------: | ------: | -----: | ------------- |
+| statements | **51.92%** |  146428 | 281996 | 60%           |
+| branches   |  **67.3%** |    6474 |   9619 | 60%           |
+| functions  | **12.99%** |     957 |   7366 | 60% **FAILS** |
+| lines      | **51.92%** |  146428 | 281996 | 60%           |
+
+> **Caveat:** c8 WITHOUT --all reports only modules LOADED during the run, so these are NOT project-wide figures.
+
+> **Floor verdict:** FAILS on functions (12.99% vs 60%)
+
+> **Flakiness:** same 46 files: 46 passed/340 tests on one run, 3 failed/337 tests on the next — 3 tests are FLAKY, not regressed
+
 ## E. Operations
 
 | Signal                     | Value                                                                                                                                                      |
@@ -160,3 +179,5 @@ Lost: **none** · Retained: all prior capability
 - `gh api releases -> 30 tags, 1 of 100 with assets`
 - `gh run list -> 7 queued, 88 completed`
 - `rg stub markers open-sse/services/compression -> 62`
+- `c8 coverage (UI subset): statements 51.92%, branches 67.30%, functions 12.99%`
+- `flakiness: 46 files green then 3 failing with no code change`

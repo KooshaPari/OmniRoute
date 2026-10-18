@@ -107,6 +107,30 @@ out.push(
   `Masked failure: \`${data.assurance.masked_failure.file}:${data.assurance.masked_failure.line}\` — ${data.assurance.masked_failure.note}`
 );
 out.push("");
+if (data.coverage_measurement) {
+  const c = data.coverage_measurement;
+  out.push("## D2. Coverage (measured)");
+  out.push("");
+  out.push(`**Scope:** ${c.scope}`);
+  out.push("");
+  out.push(`\`${c.command}\` · c8 ${c.c8_version} · ${c.observed_at}`);
+  out.push("");
+  out.push("| Metric | Coverage | Covered | Total | Floor |");
+  out.push("|---|---:|---:|---:|---|");
+  for (const k of ["statements", "branches", "functions", "lines"]) {
+    const v = c[k];
+    if (!v) continue;
+    const fail = k === "functions" ? " **FAILS**" : "";
+    out.push(`| ${k} | **${v.pct}%** | ${v.covered} | ${v.total} | 60%${fail} |`);
+  }
+  out.push("");
+  out.push(`> **Caveat:** ${c.caveat}`);
+  out.push("");
+  out.push(`> **Floor verdict:** ${c.floor.verdict}`);
+  out.push("");
+  out.push(`> **Flakiness:** ${c.flakiness.observed} — ${c.flakiness.conclusion}`);
+  out.push("");
+}
 out.push("## E. Operations");
 out.push("");
 out.push("| Signal | Value |");

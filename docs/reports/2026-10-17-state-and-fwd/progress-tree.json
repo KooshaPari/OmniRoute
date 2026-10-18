@@ -53,10 +53,10 @@
     {
       "id": "D5",
       "name": "VERIFIED",
-      "progress": 0.0,
+      "progress": 0.4,
       "denominator": null,
-      "basis": "UNKNOWN",
-      "note": "no coverage artifact exists; floor 60% is INFORMATIONAL (.qgate.toml:7)"
+      "basis": "measured (subset)",
+      "note": "UI-subset run only: statements 51.92%, branches 67.30%, FUNCTIONS 12.99% -> FAILS the repo's own 60% floor on functions. Full-suite coverage still UNMEASURED."
     },
     {
       "id": "D6",
@@ -141,7 +141,10 @@
           "id": "G1.1",
           "name": "Provider breadth",
           "progress": 0.6,
-          "measured": { "models_registered": 521, "providers_credentialed": 0 },
+          "measured": {
+            "models_registered": 521,
+            "providers_credentialed": 0
+          },
           "contradiction": "docs say 358, UPSTREAM_SYNC says 237, runtime returns 521"
         },
         {
@@ -164,14 +167,19 @@
           "id": "G1.3",
           "name": "Compression (RTK+Caveman)",
           "progress": 0.2,
-          "measured": { "stub_markers": 62 },
+          "measured": {
+            "stub_markers": 62
+          },
           "note": "earlier audit said 91; recount = 62"
         },
         {
           "id": "G1.4",
           "name": "MCP / A2A / Memory / CloudAgents / Guardrails",
           "progress": 0.3,
-          "measured": { "code_exists": true, "exercised_e2e": false }
+          "measured": {
+            "code_exists": true,
+            "exercised_e2e": false
+          }
         }
       ]
     },
@@ -181,20 +189,45 @@
       "progress": 0.7,
       "basis": "measured",
       "children": [
-        { "id": "G2.1", "name": "API routes", "progress": 1.0, "measured": { "count": 704 } },
-        { "id": "G2.2", "name": "Dashboard pages", "progress": 1.0, "measured": { "count": 121 } },
-        { "id": "G2.3", "name": "SvelteKit pages", "progress": 1.0, "measured": { "count": 144 } },
+        {
+          "id": "G2.1",
+          "name": "API routes",
+          "progress": 1.0,
+          "measured": {
+            "count": 704
+          }
+        },
+        {
+          "id": "G2.2",
+          "name": "Dashboard pages",
+          "progress": 1.0,
+          "measured": {
+            "count": 121
+          }
+        },
+        {
+          "id": "G2.3",
+          "name": "SvelteKit pages",
+          "progress": 1.0,
+          "measured": {
+            "count": 144
+          }
+        },
         {
           "id": "G2.4",
           "name": "Authenticated reach",
           "progress": 1.0,
-          "measured": { "http": 200 }
+          "measured": {
+            "http": 200
+          }
         },
         {
           "id": "G2.5",
           "name": "Visual / polish gate (GUI states)",
           "progress": 0.0,
-          "measured": { "states_exercised": 0 }
+          "measured": {
+            "states_exercised": 0
+          }
         }
       ]
     },
@@ -207,12 +240,19 @@
         {
           "id": "G3.1",
           "name": "electron/",
-          "measured": { "loc": 2496, "tests": 0, "in_workspace": false }
+          "measured": {
+            "loc": 2496,
+            "tests": 0,
+            "in_workspace": false
+          }
         },
         {
           "id": "G3.2",
           "name": "desktop-electrobun/",
-          "measured": { "loc": 358, "source_files": 1 }
+          "measured": {
+            "loc": 358,
+            "source_files": 1
+          }
         }
       ]
     },
@@ -227,9 +267,18 @@
         {
           "id": "G4.1",
           "name": "real crates",
-          "measured": { "omniroute-core": 2467, "omniroute-storage": 1447 }
+          "measured": {
+            "omniroute-core": 2467,
+            "omniroute-storage": 1447
+          }
         },
-        { "id": "G4.2", "name": "partial", "measured": { "omniroute-cli": 25 } },
+        {
+          "id": "G4.2",
+          "name": "partial",
+          "measured": {
+            "omniroute-cli": 25
+          }
+        },
         {
           "id": "G4.3",
           "name": "scaffolds",
@@ -255,19 +304,26 @@
           "id": "G5.1",
           "name": "policy documented",
           "progress": 1.0,
-          "measured": { "files": ["UPSTREAM.md", "UPSTREAM_SYNC.md"] }
+          "measured": {
+            "files": ["UPSTREAM.md", "UPSTREAM_SYNC.md"]
+          }
         },
         {
           "id": "G5.2",
           "name": "drift automation",
           "progress": 1.0,
-          "measured": { "workflow": "fork-drift-warning.yml" }
+          "measured": {
+            "workflow": "fork-drift-warning.yml"
+          }
         },
         {
           "id": "G5.3",
           "name": "sync currency",
           "progress": 0.46,
-          "measured": { "ahead": 1021, "behind": 92 }
+          "measured": {
+            "ahead": 1021,
+            "behind": 92
+          }
         },
         {
           "id": "G5.4",
@@ -275,7 +331,11 @@
           "progress": 0.0,
           "note": "237-vs-358 contradiction unresolved"
         },
-        { "id": "G5.5", "name": "fork accepted as finished", "progress": 0.0 }
+        {
+          "id": "G5.5",
+          "name": "fork accepted as finished",
+          "progress": 0.0
+        }
       ]
     }
   ],
@@ -351,7 +411,13 @@
         "blocking": false,
         "note": ".qgate.toml:7 'flip to blocking once backfilled'"
       },
-      { "id": "integration", "files": 132, "coverage": null, "floor": null, "blocking": false },
+      {
+        "id": "integration",
+        "files": 132,
+        "coverage": null,
+        "floor": null,
+        "blocking": false
+      },
       {
         "id": "e2e",
         "files": 41,
@@ -360,9 +426,17 @@
         "blocking": false,
         "note": "3 *.test.ts + 38 *.spec.ts"
       },
-      { "id": "mutation", "files": null, "coverage": null, "floor": null, "blocking": false }
+      {
+        "id": "mutation",
+        "files": null,
+        "coverage": null,
+        "floor": null,
+        "blocking": false
+      }
     ],
-    "disabled": { "files_with_skip_or_todo": 41 },
+    "disabled": {
+      "files_with_skip_or_todo": 41
+    },
     "masked_failure": {
       "file": "vitest.config.ts",
       "line": 94,
@@ -415,9 +489,20 @@
         "from": 0.0,
         "to": 1.0
       },
-      { "dimension": "D12", "change": "required status checks set", "from": 0.0, "to": 3 },
-      { "dimension": "D1", "change": "client-bundle node:fs fix (all pages 500->200)" },
-      { "dimension": "D11", "change": "llm.txt + 51 mirrors; strict docs PASS verified in CI" },
+      {
+        "dimension": "D12",
+        "change": "required status checks set",
+        "from": 0.0,
+        "to": 3
+      },
+      {
+        "dimension": "D1",
+        "change": "client-bundle node:fs fix (all pages 500->200)"
+      },
+      {
+        "dimension": "D11",
+        "change": "llm.txt + 51 mirrors; strict docs PASS verified in CI"
+      },
       {
         "dimension": "D2",
         "change": "standalone build cache added",
@@ -475,6 +560,44 @@
     "wc -l crates/omniroute-rs/crates/*/src/*.rs -> core 2467, storage 1447, 6 scaffolds 12-14",
     "gh api releases -> 30 tags, 1 of 100 with assets",
     "gh run list -> 7 queued, 88 completed",
-    "rg stub markers open-sse/services/compression -> 62"
-  ]
+    "rg stub markers open-sse/services/compression -> 62",
+    "c8 coverage (UI subset): statements 51.92%, branches 67.30%, functions 12.99%",
+    "flakiness: 46 files green then 3 failing with no code change"
+  ],
+  "coverage_measurement": {
+    "scope": "46 re-enabled UI test files ONLY (NOT the full suite)",
+    "command": "npx c8 --reporter=text-summary npx vitest run --config vitest.config.ts <46 files>",
+    "c8_version": "12.0.0",
+    "observed_at": "2026-10-18",
+    "home_fragment": "1bd237b0c0",
+    "caveat": "c8 WITHOUT --all reports only modules LOADED during the run, so these are NOT project-wide figures.",
+    "statements": {
+      "pct": 51.92,
+      "covered": 146428,
+      "total": 281996
+    },
+    "branches": {
+      "pct": 67.3,
+      "covered": 6474,
+      "total": 9619
+    },
+    "functions": {
+      "pct": 12.99,
+      "covered": 957,
+      "total": 7366
+    },
+    "lines": {
+      "pct": 51.92,
+      "covered": 146428,
+      "total": 281996
+    },
+    "floor": {
+      ".qgate.toml": "60% statements/lines/functions/branches",
+      "verdict": "FAILS on functions (12.99% vs 60%)"
+    },
+    "flakiness": {
+      "observed": "same 46 files: 46 passed/340 tests on one run, 3 failed/337 tests on the next",
+      "conclusion": "3 tests are FLAKY, not regressed"
+    }
+  }
 }
