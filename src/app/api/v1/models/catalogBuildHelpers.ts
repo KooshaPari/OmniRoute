@@ -5,8 +5,6 @@
  * share, plus pure helper functions used across multiple loops.
  */
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
-import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
-import { getSourcedTokenLimit } from "@omniroute/open-sse/services/contextManager";
 import type { ComboCatalogTarget } from "./catalogHelpers";
 import type { SyncedAvailableModel } from "@/lib/db/models";
 
