@@ -24,6 +24,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
+  // The component tree reaches ConsoleLogViewer, which calls useLocale().
+  // 155 of the 199 next-intl mocks in this repo provide only useTranslations,
+  // so any component that later adopts useLocale breaks those tests. Adding it
+  // here is the minimum; the systemic gap is tracked separately.
+  useLocale: () => "en",
 }));
 
 vi.mock("next/navigation", () => ({

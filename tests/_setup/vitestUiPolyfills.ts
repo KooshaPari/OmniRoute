@@ -1,3 +1,12 @@
+// Register the @testing-library/jest-dom matchers (toBeInTheDocument,
+// toBeDisabled, toHaveTextContent, ...) with Vitest's `expect`.
+//
+// The dependency has been installed all along (7.0.1) but nothing imported it,
+// so every assertion using a jest-dom matcher threw
+//   Error: Invalid Chai property: toBeInTheDocument
+// That accounted for 24 of the 57 failures in the long-excluded #8618 set.
+import "@testing-library/jest-dom/vitest";
+
 // jsdom 30.x no longer provides window.localStorage by default (even with a
 // URL set). Many dashboard tests rely on localStorage for dismiss-state
 // persistence, so polyfill a minimal in-memory implementation when missing.

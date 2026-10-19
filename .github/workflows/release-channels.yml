@@ -181,6 +181,8 @@ jobs:
             p.version=process.env.VERSION;
             fs.writeFileSync("package.json",JSON.stringify(p,null,2)+"\n");
           '
+          # PR #756 switched this to pnpm without enabling pnpm on the runner.
+          corepack enable
           pnpm install --frozen-lockfile
           npm run build:cli
           # Pre-flight: catches private:true, missing files, bad semver, dirty

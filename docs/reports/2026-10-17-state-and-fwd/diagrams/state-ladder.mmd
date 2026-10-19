@@ -1,0 +1,10 @@
+%% OmniRoute state ladder — 2026-10-17 @ 8d253946ac
+%% Editable source for the text board in DOCKET.md §11.1
+flowchart LR
+  W[WORKING ✅] --> P[PUBLISHED ❌]
+  P --> I[INTEGRATED ◐]
+  I --> V[VERIFIED ❌]
+  V --> K[PACKAGED ❌]
+  K --> N[INSTALLED ❌]
+  N --> R[RELEASED ◐ nominal]
+  R --> A[ADOPTED ❌]

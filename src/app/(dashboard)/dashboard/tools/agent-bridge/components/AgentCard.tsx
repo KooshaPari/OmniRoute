@@ -53,7 +53,12 @@ export function AgentCard({
   const setupCompleted = agentState?.setup_completed ?? false;
   // Fix #8656 Issue A: Use server-level cert trust as fallback
   // (one server cert applies to all agents; agentState.cert_trusted is never written to DB)
-  const certTrusted = agentState?.cert_trusted ?? serverState.certTrusted ?? false;
+  // `serverState` was read unguarded while its sibling `agentState` used
+  // optional chaining, so any render without serverState threw
+  //   TypeError: Cannot read properties of undefined (reading 'certTrusted')
+  // and took the whole card down. The trailing `?? false` already expressed the
+  // intent to degrade gracefully, so guard the read to match.
+  const certTrusted = agentState?.cert_trusted ?? serverState?.certTrusted ?? false;
   const isInvestigating = target.viability === "investigating";
 
   const getStatusBadge = () => {

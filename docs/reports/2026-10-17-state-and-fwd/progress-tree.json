@@ -1,0 +1,603 @@
+{
+  "$schema": "phenotype.progress-tree/v1",
+  "subject": "KooshaPari/OmniRoute",
+  "revision": "1bd237b0c0",
+  "branch": "main",
+  "observed_at": "2026-10-17",
+  "observed_by": "jcode",
+  "conventions": {
+    "progress": "0.0-1.0, or null when UNKNOWN. null means NO MEASUREMENT EXISTS, never 'probably fine'.",
+    "never_equate": [
+      "test counts != coverage",
+      "commits != completed value",
+      "agent count != product progress",
+      "documentation != delivery",
+      "LOC != semantics"
+    ],
+    "measurement_rule": "every numerator must come from a command whose output is recorded in evidence[]"
+  },
+  "dimensions": [
+    {
+      "id": "D1",
+      "name": "IMPLEMENTED",
+      "progress": 0.85,
+      "denominator": "9 areas, 966k LoC",
+      "basis": "measured",
+      "note": "src 583k + open-sse 383k dominate"
+    },
+    {
+      "id": "D2",
+      "name": "BUILDABLE",
+      "progress": 0.1,
+      "denominator": "1 target",
+      "basis": "measured",
+      "note": "production build NEVER completed locally or in CI; runner killed mid-build"
+    },
+    {
+      "id": "D3",
+      "name": "REACHABLE",
+      "progress": 1.0,
+      "denominator": "6 endpoints",
+      "basis": "measured",
+      "evidence": "health/login/dashboard/models/settings/401-negative all observed"
+    },
+    {
+      "id": "D4",
+      "name": "EXERCISED",
+      "progress": 0.8,
+      "numerator": 10,
+      "denominator": 10,
+      "basis": "measured",
+      "note": "10/10 journey steps; NO real completion (0 credentialed providers)"
+    },
+    {
+      "id": "D5",
+      "name": "VERIFIED",
+      "progress": 0.4,
+      "denominator": null,
+      "basis": "measured (subset)",
+      "note": "UI-subset run only: statements 51.92%, branches 67.30%, FUNCTIONS 12.99% -> FAILS the repo's own 60% floor on functions. Full-suite coverage still UNMEASURED."
+    },
+    {
+      "id": "D6",
+      "name": "PACKAGED",
+      "progress": 0.0,
+      "denominator": null,
+      "basis": "measured",
+      "note": "no downloadable artifact"
+    },
+    {
+      "id": "D7",
+      "name": "INSTALLED",
+      "progress": 0.0,
+      "denominator": null,
+      "basis": "measured",
+      "note": "never installed outside the repo"
+    },
+    {
+      "id": "D8",
+      "name": "RELEASED",
+      "progress": 0.2,
+      "numerator": 30,
+      "denominator": "tagged releases",
+      "basis": "measured",
+      "note": "30 releases exist; 1 of 100 sampled carries any asset"
+    },
+    {
+      "id": "D9",
+      "name": "ADOPTED",
+      "progress": 0.0,
+      "denominator": null,
+      "basis": "measured",
+      "note": "no user validation; 16 stars; never user-tested"
+    },
+    {
+      "id": "D10",
+      "name": "SECURE",
+      "progress": 0.33,
+      "numerator": 3,
+      "denominator": 9,
+      "basis": "measured",
+      "note": "3 of 9 obligations MET; contract requires 100%"
+    },
+    {
+      "id": "D11",
+      "name": "DOCUMENTED",
+      "progress": 0.72,
+      "basis": "estimated",
+      "note": "strict docs PASS; 47 env vars undocumented locally"
+    },
+    {
+      "id": "D12",
+      "name": "OPERATIONAL",
+      "progress": 0.3,
+      "basis": "measured",
+      "note": "runners not provisioned; npm publish broken"
+    },
+    {
+      "id": "D13",
+      "name": "ACCESSIBLE/UX",
+      "progress": null,
+      "basis": "UNKNOWN",
+      "note": "NOT MEASURED"
+    },
+    {
+      "id": "D14",
+      "name": "COST/SCALE",
+      "progress": null,
+      "basis": "UNKNOWN",
+      "note": "NOT MEASURED, not in scope"
+    }
+  ],
+  "intents": [
+    {
+      "id": "G1",
+      "name": "Canonical LLM router",
+      "progress": 0.78,
+      "basis": "estimated",
+      "source": "projects/OmniRoute.json canonical_routing:true; AGENTS/ADR-ECO-007",
+      "children": [
+        {
+          "id": "G1.1",
+          "name": "Provider breadth",
+          "progress": 0.6,
+          "measured": {
+            "models_registered": 521,
+            "providers_credentialed": 0
+          },
+          "contradiction": "docs say 358, UPSTREAM_SYNC says 237, runtime returns 521"
+        },
+        {
+          "id": "G1.2",
+          "name": "Routing / fallback / combos",
+          "progress": 0.8,
+          "measured": {
+            "combos_present": [
+              "auto/best-coding",
+              "auto/best-reasoning",
+              "auto/best-fast",
+              "auto/best-vision",
+              "auto/best-chat"
+            ],
+            "gateway_poolSize": 8,
+            "real_fallback_exercised": false
+          }
+        },
+        {
+          "id": "G1.3",
+          "name": "Compression (RTK+Caveman)",
+          "progress": 0.2,
+          "measured": {
+            "stub_markers": 62
+          },
+          "note": "earlier audit said 91; recount = 62"
+        },
+        {
+          "id": "G1.4",
+          "name": "MCP / A2A / Memory / CloudAgents / Guardrails",
+          "progress": 0.3,
+          "measured": {
+            "code_exists": true,
+            "exercised_e2e": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "G2",
+      "name": "Dashboard product",
+      "progress": 0.7,
+      "basis": "measured",
+      "children": [
+        {
+          "id": "G2.1",
+          "name": "API routes",
+          "progress": 1.0,
+          "measured": {
+            "count": 704
+          }
+        },
+        {
+          "id": "G2.2",
+          "name": "Dashboard pages",
+          "progress": 1.0,
+          "measured": {
+            "count": 121
+          }
+        },
+        {
+          "id": "G2.3",
+          "name": "SvelteKit pages",
+          "progress": 1.0,
+          "measured": {
+            "count": 144
+          }
+        },
+        {
+          "id": "G2.4",
+          "name": "Authenticated reach",
+          "progress": 1.0,
+          "measured": {
+            "http": 200
+          }
+        },
+        {
+          "id": "G2.5",
+          "name": "Visual / polish gate (GUI states)",
+          "progress": 0.0,
+          "measured": {
+            "states_exercised": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "G3",
+      "name": "Desktop",
+      "progress": 0.1,
+      "basis": "measured",
+      "children": [
+        {
+          "id": "G3.1",
+          "name": "electron/",
+          "measured": {
+            "loc": 2496,
+            "tests": 0,
+            "in_workspace": false
+          }
+        },
+        {
+          "id": "G3.2",
+          "name": "desktop-electrobun/",
+          "measured": {
+            "loc": 358,
+            "source_files": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "G4",
+      "name": "Rust rewrite",
+      "progress": 0.22,
+      "numerator": 2,
+      "denominator": 9,
+      "basis": "measured",
+      "children": [
+        {
+          "id": "G4.1",
+          "name": "real crates",
+          "measured": {
+            "omniroute-core": 2467,
+            "omniroute-storage": 1447
+          }
+        },
+        {
+          "id": "G4.2",
+          "name": "partial",
+          "measured": {
+            "omniroute-cli": 25
+          }
+        },
+        {
+          "id": "G4.3",
+          "name": "scaffolds",
+          "measured": {
+            "omniroute-api": 14,
+            "omniroute-bifrost": 12,
+            "omniroute-compression": 12,
+            "omniroute-mcp": 12,
+            "omniroute-providers": 12,
+            "omniroute-router": 12
+          },
+          "note": "12-14 LOC each, `fn placeholder() { assert!(true); }`"
+        }
+      ]
+    },
+    {
+      "id": "G5",
+      "name": "Fork governance",
+      "progress": 0.6,
+      "basis": "estimated",
+      "children": [
+        {
+          "id": "G5.1",
+          "name": "policy documented",
+          "progress": 1.0,
+          "measured": {
+            "files": ["UPSTREAM.md", "UPSTREAM_SYNC.md"]
+          }
+        },
+        {
+          "id": "G5.2",
+          "name": "drift automation",
+          "progress": 1.0,
+          "measured": {
+            "workflow": "fork-drift-warning.yml"
+          }
+        },
+        {
+          "id": "G5.3",
+          "name": "sync currency",
+          "progress": 0.46,
+          "measured": {
+            "ahead": 1021,
+            "behind": 92
+          }
+        },
+        {
+          "id": "G5.4",
+          "name": "policy accuracy",
+          "progress": 0.0,
+          "note": "237-vs-358 contradiction unresolved"
+        },
+        {
+          "id": "G5.5",
+          "name": "fork accepted as finished",
+          "progress": 0.0
+        }
+      ]
+    }
+  ],
+  "security_obligations": {
+    "contract": "100% required (not 85%)",
+    "met": 3,
+    "total": 9,
+    "items": [
+      {
+        "id": "S1",
+        "obligation": "session cookie flags",
+        "state": "MET",
+        "evidence": "login/route.ts:170-172 httpOnly+secure+sameSite"
+      },
+      {
+        "id": "S2",
+        "obligation": "auth enforced",
+        "state": "MET",
+        "evidence": "/api/status 401 unauth; 200 authed"
+      },
+      {
+        "id": "S3",
+        "obligation": "resurrection guard active",
+        "state": "MET",
+        "evidence": "KI-031 proven blocking"
+      },
+      {
+        "id": "S4",
+        "obligation": "secrets encrypted at rest",
+        "state": "NOT MET",
+        "evidence": "encryption.ts:187 logs 'Storing plaintext (passthrough mode)' when STORAGE_ENCRYPTION_KEY unset"
+      },
+      {
+        "id": "S5",
+        "obligation": "default credential changed",
+        "state": "NOT MET",
+        "evidence": "INITIAL_PASSWORD=CHANGEME"
+      },
+      {
+        "id": "S6",
+        "obligation": "per-resource authorization",
+        "state": "NOT MET",
+        "evidence": "no RBAC located; single shared management password"
+      },
+      {
+        "id": "S7",
+        "obligation": "dependency backlog cleared",
+        "state": "NOT MET",
+        "evidence": "12 open Dependabot alerts"
+      },
+      {
+        "id": "S8",
+        "obligation": "container image verified",
+        "state": "UNKNOWN",
+        "evidence": "403, token lacks read:packages"
+      },
+      {
+        "id": "S9",
+        "obligation": "release integrity",
+        "state": "NOT MET",
+        "evidence": "1 of 100 releases carries assets"
+      }
+    ]
+  },
+  "assurance": {
+    "contract": ">=85% per family, measured INDEPENDENTLY; 100% for critical",
+    "families": [
+      {
+        "id": "unit",
+        "files": 5618,
+        "coverage": null,
+        "floor": 0.6,
+        "blocking": false,
+        "note": ".qgate.toml:7 'flip to blocking once backfilled'"
+      },
+      {
+        "id": "integration",
+        "files": 132,
+        "coverage": null,
+        "floor": null,
+        "blocking": false
+      },
+      {
+        "id": "e2e",
+        "files": 41,
+        "coverage": null,
+        "floor": null,
+        "blocking": false,
+        "note": "3 *.test.ts + 38 *.spec.ts"
+      },
+      {
+        "id": "mutation",
+        "files": null,
+        "coverage": null,
+        "floor": null,
+        "blocking": false
+      }
+    ],
+    "disabled": {
+      "files_with_skip_or_todo": 41
+    },
+    "masked_failure": {
+      "file": "vitest.config.ts",
+      "line": 94,
+      "note": "#8618 - pre-existing failure; remove this exclusion when fixed"
+    }
+  },
+  "operations": {
+    "workflows": 71,
+    "ci_runs": true,
+    "ci_green": false,
+    "failing_jobs_last_observed": 17,
+    "required_checks": 3,
+    "runners_available": false,
+    "runner_evidence": [
+      "dispatch HTTP 422 'Actions has been disabled'",
+      "7 runs queued at observation",
+      "npm job killed: 'runner has received a shutdown signal'",
+      "billing API HTTP 404"
+    ],
+    "release_notes_fixed": true,
+    "npm_publish_working": false,
+    "resurrection_guard_working": true
+  },
+  "rollup": {
+    "raw_implementation": 0.85,
+    "verified_engineering": 0.0,
+    "usable_journeys": 0.8,
+    "real_user_value": 0.0,
+    "intent_weighted": 0.58,
+    "cvp_install_plus_one_completion": 0.15,
+    "cvp_definition": "user installs OmniRoute and gets one real completion through it"
+  },
+  "delta_this_session": {
+    "earned": [
+      {
+        "dimension": "D12",
+        "change": "release notes FIXED (clean body, 0 ANSI, correct links)",
+        "from": 0.0,
+        "to": 1.0
+      },
+      {
+        "dimension": "D12",
+        "change": "CI alive after 10 days of startup_failure",
+        "from": 0.0,
+        "to": 1.0
+      },
+      {
+        "dimension": "D12",
+        "change": "pnpm migration repaired in 5 workflows",
+        "from": 0.0,
+        "to": 1.0
+      },
+      {
+        "dimension": "D12",
+        "change": "required status checks set",
+        "from": 0.0,
+        "to": 3
+      },
+      {
+        "dimension": "D1",
+        "change": "client-bundle node:fs fix (all pages 500->200)"
+      },
+      {
+        "dimension": "D11",
+        "change": "llm.txt + 51 mirrors; strict docs PASS verified in CI"
+      },
+      {
+        "dimension": "D2",
+        "change": "standalone build cache added",
+        "note": "partial; first run still builds"
+      }
+    ],
+    "lost": [],
+    "retained": "all prior capability"
+  },
+  "blockers": [
+    {
+      "id": "B1",
+      "blocker": "runner provisioning",
+      "consequence": "CI and releases queue-starved; npm publish killed mid-build",
+      "owner": "operator",
+      "unblock": "resolve Actions capacity/billing for the repo"
+    },
+    {
+      "id": "B2",
+      "blocker": "STORAGE_ENCRYPTION_KEY unset",
+      "consequence": "provider keys stored plaintext",
+      "owner": "operator",
+      "unblock": "openssl rand -base64 32"
+    },
+    {
+      "id": "B3",
+      "blocker": "no provider credential",
+      "consequence": "gateway has 0 usable targets; no completion possible",
+      "owner": "operator",
+      "unblock": "add one provider key"
+    },
+    {
+      "id": "B4",
+      "blocker": "INITIAL_PASSWORD=CHANGEME",
+      "consequence": "default credential",
+      "owner": "operator",
+      "unblock": "change it"
+    },
+    {
+      "id": "B5",
+      "blocker": "disk",
+      "consequence": "was 100%/450MB; truncated 2 dependency files this session",
+      "owner": "operator",
+      "unblock": "keep >50 GiB free (currently 99 GiB)"
+    }
+  ],
+  "evidence": [
+    "curl /api/health -> 200",
+    "curl /login -> 200 (745663 bytes)",
+    "POST /api/auth/login -> 200 {\"success\":true}",
+    "GET /api/v1/models -> 521 models",
+    "POST /api/v1/chat/completions -> 503 ALL_TARGETS_SKIPPED poolSize 8",
+    "find src/app/api -name route.ts -> 704",
+    "find src/app -path '*(dashboard)*' -name page.tsx -> 121",
+    "wc -l crates/omniroute-rs/crates/*/src/*.rs -> core 2467, storage 1447, 6 scaffolds 12-14",
+    "gh api releases -> 30 tags, 1 of 100 with assets",
+    "gh run list -> 7 queued, 88 completed",
+    "rg stub markers open-sse/services/compression -> 62",
+    "c8 coverage (UI subset): statements 51.92%, branches 67.30%, functions 12.99%",
+    "flakiness: 46 files green then 3 failing with no code change"
+  ],
+  "coverage_measurement": {
+    "scope": "46 re-enabled UI test files ONLY (NOT the full suite)",
+    "command": "npx c8 --reporter=text-summary npx vitest run --config vitest.config.ts <46 files>",
+    "c8_version": "12.0.0",
+    "observed_at": "2026-10-18",
+    "home_fragment": "1bd237b0c0",
+    "caveat": "c8 WITHOUT --all reports only modules LOADED during the run, so these are NOT project-wide figures.",
+    "statements": {
+      "pct": 51.92,
+      "covered": 146428,
+      "total": 281996
+    },
+    "branches": {
+      "pct": 67.3,
+      "covered": 6474,
+      "total": 9619
+    },
+    "functions": {
+      "pct": 12.99,
+      "covered": 957,
+      "total": 7366
+    },
+    "lines": {
+      "pct": 51.92,
+      "covered": 146428,
+      "total": 281996
+    },
+    "floor": {
+      ".qgate.toml": "60% statements/lines/functions/branches",
+      "verdict": "FAILS on functions (12.99% vs 60%)"
+    },
+    "flakiness": {
+      "observed": "same 46 files: 46 passed/340 tests on one run, 3 failed/337 tests on the next",
+      "conclusion": "3 tests are FLAKY, not regressed"
+    }
+  }
+}

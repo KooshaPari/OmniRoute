@@ -21,7 +21,7 @@ body = """
 {% for group, commits in commits | filter(attribute="merge_commit", value=false) | group_by(attribute="group") %}
 ### {{ group | upper_first }}\n
 {% for commit in commits | filter(attribute="merge_commit", value=false) | sort(attribute="message") %}
-- {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }} ([{{ commit.id | truncate(length=7, end="") }}]({{ commit.links[0] }}))
+- {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }} ([{{ commit.id | truncate(length=7, end="") }}](https://github.com/KooshaPari/OmniRoute/commit/{{ commit.id }}))
 {% endfor %}
 {% endfor %}\n
 """
@@ -29,7 +29,9 @@ body = """
 trim = true
 # postprocessors
 postprocessors = [
-  { pattern = '<REPO>', replace = "https://github.com/Phenotype/OmniRoute" },
+  # Was "https://github.com/Phenotype/OmniRoute" — wrong org; this fork lives at
+  # KooshaPari/OmniRoute, so every generated link pointed at a dead repository.
+  { pattern = '<REPO>', replace = "https://github.com/KooshaPari/OmniRoute" },
 ]
 
 [git]

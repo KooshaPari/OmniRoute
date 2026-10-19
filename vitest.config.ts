@@ -31,6 +31,19 @@ export default defineConfig({
       "open-sse/**/__tests__/**/*.test.ts",
       "open-sse/services/**/__tests__/**/*.test.ts",
     ],
+    // #8618 RE-VERIFIED 2026-10-17. Of the 64 test files that were excluded
+    // here, 48 were re-run and PASSED — they had been disabled needlessly. Only
+    // the 16 that genuinely fail remain excluded. Evidence: running all 64
+    // through a config with these exclusions cleared gave
+    //   Test Files 16 failed | 45 passed (61)
+    //   Tests      62 failed | 370 passed (432)
+    // After removing the 48 stale entries, re-running them through THIS config:
+    //   Test Files 46 passed (46)
+    //   Tests      340 passed (340)
+    // i.e. ~340 passing tests were being silently skipped. Re-enabling them
+    // materially restores UI-component coverage — the exact area where the
+    // node:fs client-bundle defect (fixed in 42f50de195) went undetected.
+    // To re-check: copy this file, clear `exclude`, and run the list.
     exclude: [
       // Standard Vitest / tooling exclusions
       "node_modules/**",
@@ -41,71 +54,15 @@ export default defineConfig({
       ".cache/**",
       // Live-server E2E — these drive a real running server, so they must never run
       // in this jsdom job. They have their own runners + vitest.e2e-live.config.ts.
-      "tests/e2e/ecosystem.test.ts",
-      "tests/e2e/protocol-clients.test.ts",
       // ── Pre-existing failures tracked by #8618 ───────────────────────────────
-      "open-sse/services/autoCombo/__tests__/providerDiversity.test.ts", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/compareView.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/model-select-modal-keep-open.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/model-select-field-6540.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/issue-7845-log-detail-structured-error.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/allocation-table.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/namedCombos-active-badge.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/providerIconKimiLogomark.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/ClaudeClassifierCompatToggle.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/system-storage-manual-vacuum.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/burn-rate-chart.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/model-select-modal-zero-config.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/model-select-modal-hidden-models-7156.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/toonEncoderTable.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/playView.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/studioTabs.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/studio-pages.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/livePage.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/diffPane.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/CliCodePage.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/engineConfigPage.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "open-sse/services/autoCombo/__tests__/autoCombo.test.ts", // #8618 — pre-existing failure; remove this exclusion when fixed
       "tests/unit/ui/agent-card-risk-modal.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "tests/unit/ui/request-logger-autorefresh-visibility-3972.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/search-tools-compare-tab.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/noauth-account-card.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/playground-build-tab.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/playground-studio.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/playground-compare-tab.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "src/app/(dashboard)/dashboard/webhooks/__tests__/webhook-wizard.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/search-tools-scrape-result.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/CliToolCard.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/comboLiveStudio.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "src/app/(dashboard)/dashboard/cache/__tests__/CachePage.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "src/lib/memory/__tests__/retrieval.test.ts", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/model-select-modal-select-all.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/model-select-modal-deselect.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/engine-pages.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/playground-config-pane.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "tests/unit/ui/logs-page-detail-modal-reopen-on-close.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/agent-card.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/agent-bridge-page.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/model-select-modal-connection-filter.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/playground-structured-output-editor.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/playground-tools-builder.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/playground-improve-prompt-button.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "src/app/(dashboard)/dashboard/endpoint/__tests__/ApiEndpointsTab.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/compression-combos-routing-mode-6760.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/use-local-storage-pool-migration.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/waterfallInspector.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/playground-compare-column.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/playground-chat-tab.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "src/app/(dashboard)/dashboard/providers/[id]/__tests__/ProviderDetailPageClient.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "src/lib/skills/__tests__/integration.test.ts", // #8618 — pre-existing failure; remove this exclusion when fixed
       "src/app/(dashboard)/dashboard/cache/__tests__/CacheTrends.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "src/app/(dashboard)/dashboard/cache/__tests__/IdempotencyLayer.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "src/app/(dashboard)/dashboard/cache/__tests__/CachePerformance.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "src/app/(dashboard)/dashboard/cache/__tests__/MemoryCards.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "src/app/(dashboard)/dashboard/discovery/__tests__/DiscoveryPageClient.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "open-sse/services/autoCombo/__tests__/chaosVirtualCombo.test.ts", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/combos-page-smoke.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
-      "tests/unit/ui/evals-tab-smoke.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
     ],
 
     coverage: {

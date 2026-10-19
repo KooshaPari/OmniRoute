@@ -241,7 +241,35 @@ jobs:
           CLIFF_VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           VERSION="$CLIFF_VERSION"
-          git-cliff --verbose --tag "$VERSION" --config cliff.toml > /tmp/CLIFF.md 2>&1 || echo "::warning::git-cliff failed; release notes will be minimal"
+          # Was: `git-cliff --verbose ... > /tmp/CLIFF.md 2>&1`.
+          # `--verbose` prints INFO/DEBUG, and `2>&1` sent those logs INTO the
+          # body file, so every release body was raw git-cliff debug output with
+          # ANSI escapes instead of a changelog. Stderr now goes to its own file,
+          # and the log is surfaced only on failure.
+          set +e
+          git-cliff --tag "$VERSION" --latest --config cliff.toml --strip all > /tmp/CLIFF.raw 2> /tmp/CLIFF.err
+          CLIFF_RC=$?
+          set -e
+          if [ "$CLIFF_RC" -ne 0 ] || [ ! -s /tmp/CLIFF.raw ]; then
+            echo "::warning::git-cliff failed (rc=$CLIFF_RC); release notes will be minimal"
+            echo "::group::git-cliff stderr"
+            tail -20 /tmp/CLIFF.err || true
+            echo "::endgroup::"
+            printf 'Release %s\n' "$VERSION" > /tmp/CLIFF.raw
+          fi
+          # GitHub rejects a release body over 125,000 characters with
+          #   HTTP 422: Validation Failed — body is too long (maximum is 125000 characters)
+          # A full-history changelog exceeds that, so cap well under the limit and
+          # point at the repo history for the remainder.
+          MAX_BODY=110000
+          if [ "$(wc -c < /tmp/CLIFF.raw)" -gt "$MAX_BODY" ]; then
+            echo "::notice::changelog truncated to ${MAX_BODY} bytes (GitHub caps release bodies at 125000 characters)"
+            head -c "$MAX_BODY" /tmp/CLIFF.raw > /tmp/CLIFF.md
+            printf '\n\n---\n_Changelog truncated. See the full history at https://github.com/KooshaPari/OmniRoute/commits/main._\n' >> /tmp/CLIFF.md
+          else
+            cp /tmp/CLIFF.raw /tmp/CLIFF.md
+          fi
+          echo "release body bytes: $(wc -c < /tmp/CLIFF.md)"
 
       - name: Create GitHub release
         env:
@@ -263,11 +291,19 @@ jobs:
             git tag -d "v$VERSION" 2>/dev/null || true
             git push origin ":v$VERSION" 2>/dev/null || true
           fi
-          BODY="$(cat /tmp/CLIFF.md 2>/dev/null || echo 'Auto-release via auto-release.yml')"
+          # The changelog must be passed BY FILE, not as an argument.
+          # `--notes "$BODY"` puts the whole changelog on the command line; at
+          # ~52 KB it exceeds ARG_MAX and `gh` dies with
+          #   "/usr/bin/gh: Argument list too long" (exit 126)
+          # and NO release is published. A truncated 1 KB body happened to fit,
+          # which is why the old debug-log bodies appeared to "work".
+          if [ ! -s /tmp/CLIFF.md ]; then
+            printf 'Auto-release via auto-release.yml\n' > /tmp/CLIFF.md
+          fi
           RELEASE_TARGET="${{ inputs.sha || github.sha }}"
           gh release create "v$VERSION" \
             --title "v$VERSION ($RESOLVED)" \
-            --notes "$BODY" \
+            --notes-file /tmp/CLIFF.md \
             --prerelease="$PRERELEASE" \
             --target "$RELEASE_TARGET"
 
@@ -301,6 +337,31 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           registry-url: "https://registry.npmjs.org"
+
+      # PR #756 moved this job to `pnpm install` but did not enable pnpm on the
+      # runner, so the publish step died with:
+      #   line 6: pnpm: command not found   (exit 127)
+      # Every other pnpm-based workflow in this repo runs `corepack enable`
+      # first; this job was the one that was missed.
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+
+      # `npm run build:cli` -> prepublish.ts requires
+      # `.build/next/standalone/server.js`, so every run paid a full Next.js
+      # build. That build runs ~5 minutes, and the runner has been shut down
+      # mid-build ("The runner has received a shutdown signal"), killing the
+      # publish. Caching the standalone output lets a repeat run skip the build
+      # entirely and spend its time publishing.
+      #
+      # Exact key only, NO restore-keys — same rule this repo applies to its
+      # eslint and node_modules caches (#11600): a stale .build from different
+      # source is exactly the silent drift a lockfile-pinned CI must never
+      # inherit.
+      - name: Cache standalone build
+        uses: actions/cache@v6
+        with:
+          path: .build/next/standalone
+          key: standalone-${{ runner.os }}-${{ hashFiles('src/**', 'open-sse/**', 'apps/**', 'packages/**', 'package.json', 'pnpm-lock.yaml', 'next.config.mjs', 'tsconfig.json') }}
 
       - name: Install + build (skip native build steps)
         run: |
