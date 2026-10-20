@@ -26,7 +26,8 @@ import { join } from "node:path";
 // top-level node:fs/node:os/node:path imports into the browser build — doing so
 // made webpack fail with `UnhandledSchemeError: Reading from "node:fs"` and
 // returned HTTP 500 for every page route. Re-exported to preserve the API.
-export { CURSOR_AGENT_CLI_VERSION } from "./cursorAgentCliVersion.constants.ts";
+import { CURSOR_AGENT_CLI_VERSION } from "./cursorAgentCliVersion.constants.ts";
+export { CURSOR_AGENT_CLI_VERSION };
 
 const VERSION_ID_RE = /^\d{4}\.\d{2}\.\d{2}-[0-9a-f]+$/;
 const CACHE_TTL_MS = 60 * 60 * 1000;
