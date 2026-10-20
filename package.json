@@ -309,7 +309,6 @@
     "fflate": "^0.8.3",
     "fumadocs-core": "^16.15.4",
     "fumadocs-ui": "^16.15.4",
-    "http-proxy-middleware": "^4.0.0",
     "https-proxy-agent": "^9.0.0",
     "ink": "^7.0.3",
     "ink-spinner": "^5.0.0",
@@ -426,7 +425,6 @@
     "oxlint": "^1.61.0",
     "playwright-ctrf-json-reporter": "^0.0.29",
     "prettier": "^3.9.6",
-    "promptfoo": "^0.122.1",
     "remark-gfm": "4.0.1",
     "size-limit": "^13.0.3",
     "tailwindcss": "^4.3.0",
@@ -457,6 +455,8 @@
       "sharp"
     ],
     "overrides": {
+      "engine.io": ">=6.6.10",
+      "basic-ftp": ">=6.2.1",
       "vite": ">=6.3.5",
       "brace-expansion": ">=5.0.12",
       "fast-uri": ">=3.1.8",
