@@ -32,7 +32,9 @@ jobs:
           # release-drafter ships a CLI. --dry-run writes the generated body
           # to RELEASE_TEMPLATE.md and exits 0. On config/template error it
           # exits non-zero; stderr shows what went wrong.
-          if npx --yes release-drafter@5.7.5 --dry-run >/tmp/rd/CHANGELOG.md 2>/tmp/rd/stderr; then
+          if npx --yes release-drafter@7.10.0 "${GITHUB_REPOSITORY}" \
+               --config .github/release-drafter.yml --dry-run \
+               >/tmp/rd/CHANGELOG.md 2>/tmp/rd/stderr; then
             bytes=$(wc -c </tmp/rd/CHANGELOG.md)
             echo "✅ release-drafter dry-run ok (${bytes} bytes drafted for next release)"
           else
