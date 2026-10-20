@@ -95,6 +95,7 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `OMNIROUTE_SKIP_NATIVE_DEP_CHECK`       | `0`                  | `scripts/check/check-native-deps.mjs`                 | Set to `1` to skip the optional native-dependency prebuild check for exotic vendored trees. This does not make a missing dependency buildable; use only when native dependencies are supplied out of band.                                                                                                                                     |
 | `OMNIROUTE_DATA_DIR`                   | _(unset)_            | `open-sse/executors/promptql/threadSticky.ts`         | **Fallback alias** for `DATA_DIR`, checked only when `DATA_DIR` is unset. Used to locate the PromptQL executor's on-disk thread-sticky session cache (`<dir>/promptql-thread-sessions.json`); if neither var is set, the cache stays in-memory only (not persisted across restarts).                                                                                                                                             |
 | `OMNIROUTE_PLUGINS_DIR`                | _(unset)_            | `src/lib/plugins/scanner.ts`                          | Directory the **runtime plugin scanner** reads — and the root the plugin manager installs into — overriding the home-derived default (#11827). Point it at the bind-mounted plugin tree in Docker/K8s instead of moving HOME just to relocate the scan path (HOME governs every other home-relative behaviour too). Unset = `~/.omniroute/plugins`, or `/tmp/.omniroute/plugins` when the process exports no home at all — the silent non-discovery this variable removes. The resolved directory is logged once at startup as `scanner.dir_resolved` with the input that won. Server-side only: CLI command plugins keep their own `OMNIROUTE_PLUGIN_PATH` (section 9). |
+| `OMNIROUTE_PLUGINS_ALLOW_EXEC`          | _(unset = exec denied)_  | `src/lib/plugins/pluginWorker.ts`                         | Additional opt-in required before a plugin holding the `exec` permission may spawn processes. |
 | `STORAGE_ENCRYPTION_KEY`               | _(empty = disabled)_ | `src/lib/db/encryption.ts`                            | AES key for full SQLite database encryption at rest. Generate with `openssl rand -hex 32`.                                                                                                                                                      |
 | `STORAGE_ENCRYPTION_KEY_VERSION`       | `v1`                 | `scripts/build/bootstrap-env.mjs` | Version label for the encryption key. Increment when performing key rotation to support decryption of old backups.                                                                                                                              |
 | `DISABLE_SQLITE_AUTO_BACKUP`           | `false`              | `src/lib/db/backup.ts`                                | When `true`, skips routine/pre-write SQLite file backups (models.dev pricing save/clear, settings writes). Manual and pre-restore backups still run. It does **not** disable the migration runner's mandatory durable safety snapshot or mass-migration guard for an existing persistent DB. Non-manual backups are throttled to at most once per 60 minutes. Dashboard **Settings → Storage** can disable routine auto-backup independently. |
@@ -184,6 +185,13 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `HOST`                                      | `0.0.0.0`                      | `scripts/dev/run-next.mjs`                                               | Bind address for the Next.js dev/start server. Overrides the default `0.0.0.0` when set.                                                                                                                                                                                                                                       |
 | `HOSTNAME`                                  | `127.0.0.1`                    | `scripts/dev/run-next-playwright.mjs`                                    | Bind address used by the Playwright runner when launching Next.js. Defaults to `127.0.0.1` for hermetic tests. **Do not use for `omniroute serve`** — use `OMNIROUTE_SERVER_HOST` instead (POSIX shells auto-set `HOSTNAME` to the machine name; `.env` cannot override it).                                                   |
 | `OMNIROUTE_SERVER_HOST`                     | `0.0.0.0`                      | `bin/cli/commands/serve.mjs`                                             | Bind address for `omniroute serve`. Avoids collision with the POSIX shell `HOSTNAME` variable (always set to the machine name by bash/zsh). Falls back to `0.0.0.0` when unset. (#6194)                                                                                                                                        |
+| `OMNIROUTE_HTTP_PORT` | `20128` | `open-sse/rpc/httpClient.ts` | Loopback HTTP port used when constructing internal edge URIs; keep in sync with `PORT`. |
+| `OMNIROUTE_METRICS_HOST` | `127.0.0.1` | `open-sse/rpc/metrics.ts` | Bind host for the metrics endpoint server. |
+| `OMNIROUTE_METRICS_PORT` | `9095` | `src/server-init.ts` | Port for the metrics endpoint server. |
+| `OMNIROUTE_UDS_SOCKET` | `${DATA_DIR}/dispatch.sock` | `open-sse/rpc/udsServer.ts` | Unix domain socket path for cross-process dispatch coordination. |
+| `OMNIROUTE_UDS_REQUIRE_AUTH` | _(unset = off)_ | `open-sse/rpc/udsServer.ts` | `1` enables a per-connection shared-secret challenge on the UDS socket. |
+| `OMNIROUTE_UDS_SHARED_SECRET` | _(unset)_ | `open-sse/rpc/udsServer.ts` | Shared secret for the UDS auth handshake. |
+| `OMNIROUTE_EDGE_HTTP_BASE` | loopback default | `open-sse/rpc/httpClient.ts` | Override base URL for edge RPC HTTP calls (defaults to `http://127.0.0.1:<OMNIROUTE_HTTP_PORT>`). |
 
 ### Port Modes
 
@@ -377,6 +385,7 @@ Route upstream LLM provider calls through an HTTP or SOCKS5 proxy for egress con
 | `ENABLE_TLS_FINGERPRINT`                 | `false`   | `open-sse/executors`                         | Spoof TLS fingerprint using wreq-js (mimics Chrome 124). Counters JA3/JA4 blocking.                                                                                                                                                                                                                                                                 |
 | `TLS_FINGERPRINT_PROVIDERS`              | _(unset)_ | `open-sse/utils/proxyFetch.ts`              | Comma-separated provider allowlist for the new proxied TLS routing (`open-sse/utils/proxyFetch.ts`). Direct TLS keeps its legacy behavior when unset; only these providers route through the Chrome-124 fingerprint bridge.                                                                                                                                                                                                                                                           |
 | `OMNIROUTE_TURNSTILE_IGNORE_TLS_ERRORS`  | `false`   | `open-sse/services/claudeTurnstileSolver.ts` | Allow the Claude Turnstile Playwright browser context to ignore HTTPS certificate errors.                                                                                                                                                                                                                                                           |
+| `OMNIROUTE_TLS_PROXY_URL` | _(unset)_ | `open-sse/services/chatgptTlsClient.ts` | Proxy URL for the ChatGPT web TLS client (single-flag opt-in). |
 
 ### Scenarios
 
@@ -569,6 +578,9 @@ detection above).
 | `ANTIGRAVITY_CREDITS`                           | `off`                                               | `open-sse/services/antigravityCredits.ts`                   | Google One AI credits policy: `off` never injects credits, `retry` injects once after an eligible quota 429, and `always` injects on the first request.                    |
 | `ANTIGRAVITY_ALLOW_SIGNATURE_BYPASS`            | `0`                                                 | `open-sse/translator/request/openai-to-gemini.ts`           | Allow the Antigravity request translator to skip its strict CLI request-signature validation when the upstream refuses real signatures (debug/antiquated-CLI mode). Non-zero enables the bypass.                                                   |
 | `AGY_TOKEN_FILE`                                | `~/.gemini/antigravity-cli/antigravity-oauth-token` | `src/app/api/providers/agy-auth/apply-local/route.ts`       | Override the Antigravity CLI (agy) token-file path for the auto-detect local login import.                                                                              |
+| `SUBSTRATE_BIN` | `cargo` | `src/lib/a2a/skills/agentDispatch.ts` | Binary used for substrate (Rust) skill dispatches. |
+| `SUBSTRATE_HTTP_URL` | _(unset)_ | `open-sse/mcp-server/tools/dispatchTools.ts` | HTTP endpoint of a substrate dispatch service (e.g. `http://localhost:8000`). |
+| `OMNIROUTE_DISPATCH_RECONCILER_ENABLED` | `true` | `open-sse/rpc/reconciler.ts` | Re-drives in-flight RPC dispatches after restart. |
 
 ### OAuth CLI Bridge (Internal)
 
@@ -807,6 +819,13 @@ REQUEST_TIMEOUT_MS (global override)
 | `KIMI_WEB_CHAT_URL`                       | `<KIMI_WEB_BASE_URL>/apiv2/kimi.gateway.chat.v1.ChatService/Chat` | Full chat endpoint for the Kimi Web executor (`kimi-web.ts`).                                                                       |
 | `OMNIROUTE_LOGIN_BROWSER_PATH`            | _(auto-detected)_    | Path to a system Chrome/Edge executable for the Adobe Firefly interactive browser sign-in (`adobeFireflyBrowserLogin.ts`); overrides per-OS auto-detection.     |
 | `OMNIROUTE_STANDALONE_DIR`                | _.build/ standalone output_ | Build-time override for the standalone output directory consumed by the post-build colocation step (`scripts/build/colocate-standalone.mjs`); build tooling, not runtime. |
+| `OMNIROUTE_CHATGPT_TLS_TIMEOUT_MS` | `60000` | `open-sse/services/chatgptTlsClient.ts` | TLS handshake timeout for the ChatGPT web client. |
+| `OMNIROUTE_CHATGPT_TLS_GRACE_MS` | `10000` | `open-sse/services/chatgptTlsClient.ts` | Grace period after TLS connect before the first request. |
+| `OMNIROUTE_CHATGPT_STREAM_FIRST_BYTE_TIMEOUT_MS` | `30000` | `open-sse/services/chatgptTlsClient.ts` | First-byte timeout for ChatGPT web streaming responses. |
+| `DESIGNER_WEB_POLL_INTERVAL_MS` | `2000` | `open-sse/handlers/imageGeneration/providers/designerWeb.ts` | Poll interval for Designer web image generation. |
+| `DESIGNER_WEB_POLL_TIMEOUT_MS` | `60000` | `open-sse/handlers/imageGeneration/providers/designerWeb.ts` | Overall timeout for Designer web image generation. |
+| `OMNIROUTE_OTLP_PUSH_INTERVAL_MS` | `10000` | `open-sse/rpc/otelBridge.ts` | Interval between OTLP metric pushes. |
+| `OMNIROUTE_OTLP_PUSH_TIMEOUT_MS` | `5000` | `open-sse/rpc/otelBridge.ts` | Per-push OTLP HTTP timeout. |
 
 Combo target attempts inherit the resolved upstream request timeout (`FETCH_TIMEOUT_MS`, or
 `REQUEST_TIMEOUT_MS` when it supplies the fetch default). Set `targetTimeoutMs` in a combo,
@@ -882,6 +901,8 @@ The logging system writes to both stdout and rotated log files. All configuratio
 | `CHAT_LOG_MAX_OBJECT_KEYS`                | `80`                       | Max object keys retained in chat log payloads (0 = unlimited).                    |
 | `CHAT_LOG_MAX_BODY_KB`                    | `1024`                     | Whole request/response body size (KB) before it's replaced by a bare summary instead of the full clone. Raise this if long agentic conversations show a placeholder instead of the real messages in the dashboard. |
 | `CHAT_DEBUG_FILE`                         | `false`                    | When true, `serializeArtifactForStorage` skips size-based truncation. Debug only. |
+| `OMNIROUTE_OTLP_ENDPOINT` | _(unset = disabled)_ | OTLP collector endpoint for metrics export (`open-sse/rpc/otelBridge.ts`, started in `src/server-init.ts`). |
+| `OMNIROUTE_OTLP_RESOURCE_ATTRIBUTES` | _(unset)_ | JSON object merged into OTLP resource attributes on every push. |
 
 ---
 
@@ -900,6 +921,7 @@ The logging system writes to both stdout and rotated log files. All configuratio
 | `STREAM_HISTORY_MAX`       | `50`               | Max recent stream events in the Dashboard live view buffer.                                                                                                                                                                                                                       |
 | `CONTEXT_LENGTH_DEFAULT`   | `128000`           | Global fallback max context length for models without explicit config.                                                                                                                                                                                                            |
 | `USAGE_TOKEN_BUFFER`       | `100`              | Extra token headroom reserved when tracking usage quotas.                                                                                                                                                                                                                         |
+| `OMNIROUTE_CGPT_WEB_IMAGE_CACHE_MAX_MB` | `10` | `open-sse/services/chatgptImageCache.ts` | Byte cap (MB) for the ChatGPT web image cache. |
 
 ### Compression
 
@@ -1426,6 +1448,17 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `OMNIROUTE_ROTATE_ON_400`                   | `false`                                                                     | `open-sse/services/rotationConfig.ts`                                     | Opt-in (default OFF): when `true`, a plain `400` (bad request) also triggers account rotation. This is additive only — it never blocks the engine's existing behavior where a `400` carrying rate-limit/quota text still falls over regardless of this flag.                                                                                                        |
 | `OMNIROUTE_ROTATE_400_THRESHOLD`            | `1`                                                                         | `open-sse/services/rotationConfig.ts`                                     | Number of `400` errors within `OMNIROUTE_ROTATE_400_WINDOW_SECONDS` required before the account is rotated (only consulted when `OMNIROUTE_ROTATE_ON_400=true`).                                                                                                                                                                                                     |
 | `OMNIROUTE_ROTATE_400_WINDOW_SECONDS`       | `120`                                                                       | `open-sse/services/rotationConfig.ts`                                     | Sliding window (seconds) over which `400` errors are counted toward `OMNIROUTE_ROTATE_400_THRESHOLD`.                                                                                                                                                                                                                                                                 |
+| `BIFROST_KILLSWITCH_DISABLED` | _(unset = honored)_ | `open-sse/executors/bifrost.ts` | Escape hatch: `true` bypasses the kill switch entirely (keep serving while tripped, or test the path). |
+| `BIFROST_SHADOW_ENABLED` | _(unset = off)_ | `open-sse/services/trafficShadow.ts` | Opt-in shadow sampling of bifrost traffic. |
+| `BIFROST_SHADOW_SAMPLE_RATE` | `0.05` | `open-sse/executors/bifrostShadow.ts` | Shadow sample rate (0-1). |
+| `BIFROST_SHADOW_COST_OR_LATENCY_WINS` | `true` | `open-sse/services/trafficShadow.ts` | Divergence policy: allow early cutover when the shadow wins on cost or latency. |
+| `OMNIROUTE_FFI_PATH` | _(unset)_ | `open-sse/rpc/ffi.ts` | Base directory override for native FFI crates (operator-supplied path). |
+| `OMNIROUTE_FFI_ABI_VERSION` | `1` | `open-sse/rpc/ffi.ts` | Expected FFI crate ABI version. |
+| `OMNIROUTE_FFI_COMBO_SCORER_ENABLED` | _(unset = off)_ | `open-sse/rpc/edges/scoringEdges.ts` | Enable the native combo scorer when its cdylib is on disk. |
+| `OMNIROUTE_FFI_COMBO_SCORER_PATH` | _(unset)_ | `open-sse/rpc/edges/scoringFfi.ts` | Explicit path to the combo scorer cdylib. |
+| `OMNIROUTE_FFI_COMBO_SCORER_NAPI_PATH` | _(unset)_ | `open-sse/rpc/edges/scoringFfi.ts` | Explicit path to the combo scorer N-API module. |
+| `OMNIROUTE_FFI_COMBO_SCORER_DISABLE_NAPI` | _(unset)_ | `open-sse/rpc/edges/scoringFfi.ts` | `1` forces the cdylib instead of the N-API module. |
+| `OMNIROUTE_FFI_GUARDRAILS_PII_PATH` | _(unset)_ | `open-sse/rpc/edges/guardrailsPiiFfi.ts` | Explicit path to the guardrails PII native library. |
 
 ### Claude Warmup Scheduler
 
@@ -1479,6 +1512,8 @@ value below unset in production deployments.
 | `OMNIROUTE_SKIP_UNINSTALL_HOOK`        | `0`                              | `scripts/build/uninstall.mjs`             | Skip the OmniRoute uninstall hook (used by CI to keep `node_modules` intact).                                                                                                                                                              |
 | `ECOSYSTEM_SERVER_WAIT_MS`             | `180000`                         | `scripts/dev/run-ecosystem-tests.mjs`     | Wait time (ms) for the server to become healthy before running ecosystem/protocol tests.                                                                                                                                                   |
 | `CLI_DEVIN_BIN`                        | _(PATH lookup)_                  | `open-sse/executors/devin-cli.ts`         | Override the Devin CLI binary path.                                                                                                                                                                                                        |
+| `UPSTREAM_REMOTE` | `upstream` | `bin/divergence-manifest.mjs` | Git remote the divergence manifest diffs against. |
+| `UPSTREAM_BRANCH` | `main` | `bin/divergence-manifest.mjs` | Branch on `UPSTREAM_REMOTE` the divergence manifest diffs against. |
 
 ### Docs translation pipeline
 
