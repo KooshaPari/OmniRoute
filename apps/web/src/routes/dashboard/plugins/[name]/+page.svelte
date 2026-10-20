@@ -7,7 +7,7 @@
   let loading = $state(true);
   let error = $state<string | null>(null);
 
-  const name = $derived($page.params.name);
+  const name = $derived($page.params.name ?? '');
 
   $effect(() => {
     fetch(bffApiUrl(`/api/dashboard/plugins/${encodeURIComponent(name)}`))
@@ -18,7 +18,7 @@
   });
 </script>
 
-<Card title={plugin?.displayName ?? name ?? 'Plugin'}>
+<Card title={typeof plugin?.displayName === 'string' ? plugin.displayName : (name || 'Plugin')}>
   {#if loading}<p class="text-gray-500">Loading...</p>
   {:else if error}<p class="text-red-600">{error}</p>
   {:else if plugin}

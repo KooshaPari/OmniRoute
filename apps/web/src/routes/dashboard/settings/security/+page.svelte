@@ -38,7 +38,7 @@
       </div>
       <div class="flex justify-between items-center py-2">
         <span class="text-sm text-gray-700">JWT secret last rotated</span>
-        <span class="text-sm text-gray-500">{new Date(data.jwtSecretRotatedAt).toLocaleDateString()}</span>
+        <span class="text-sm text-gray-500">{typeof data.jwtSecretRotatedAt === 'string' || typeof data.jwtSecretRotatedAt === 'number' ? new Date(data.jwtSecretRotatedAt).toLocaleDateString() : '-'}</span>
       </div>
     </div>
   {/if}

@@ -32,7 +32,7 @@
       if (filter) p.set('category', filter);
       if (configuredOnly) p.set('configuredOnly', '1');
       if (availableOnly) p.set('availableOnly', '1');
-      const res = await fetch(`${bffApiUrl}/api/free-provider-rankings?${p}`);
+      const res = await fetch(bffApiUrl(`/api/free-provider-rankings?${p}`));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       rankings = (await res.json()).rankings ?? [];
     } catch (err) {

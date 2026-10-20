@@ -8,7 +8,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch(`${bffApiUrl}/api/discovery`);
+      const res = await fetch(bffApiUrl(`/api/discovery`));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       providers = data.providers ?? [];
