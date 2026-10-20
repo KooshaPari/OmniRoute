@@ -24,11 +24,14 @@
 
 import { existsSync, mkdirSync, unlinkSync, chmodSync } from "node:fs";
 import { createServer, type Server, type Socket } from "node:net";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { dirname } from "node:path";
 import type { DispatchEdgeError } from "./errors.ts";
 
 const UDS_DEFAULT = () =>
-  process.env.OMNIROUTE_UDS_SOCKET ?? `${process.env.DATA_DIR ?? "~/.omniroute"}/dispatch.sock`;
+  process.env.OMNIROUTE_UDS_SOCKET ??
+  `${process.env.DATA_DIR ?? join(homedir(), ".omniroute")}/dispatch.sock`;
 
 type Handler<Params = unknown, Result = unknown> = (params: Params) => Promise<Result> | Result;
 
