@@ -17,11 +17,13 @@ let mockCombosReturn: unknown[] = [{ id: "default-combo" }];
 let mockGetCombosCalls = 0;
 let mockCacheVersion = 0;
 
+const defaultGetCombos = async () => {
+  mockGetCombosCalls += 1;
+  return mockCombosReturn;
+};
+
 vi.mock("@/lib/localDb", () => ({
-  getCombos: vi.fn(async () => {
-    mockGetCombosCalls += 1;
-    return mockCombosReturn;
-  }),
+  getCombos: vi.fn(async () => defaultGetCombos()),
   getCombosCacheVersion: vi.fn(() => mockCacheVersion),
 }));
 
@@ -31,6 +33,13 @@ import {
   __resetCombosCacheForTests,
   __getCombosCacheStateForTests,
 } from "../chatCombosCache";
+
+// Some tests below override getCombos with a persistent mockImplementation; restore the
+// default before every test so overrides never leak into later describes.
+beforeEach(async () => {
+  const localDb = await import("@/lib/localDb");
+  vi.mocked(localDb.getCombos).mockImplementation(async () => defaultGetCombos());
+});
 
 describe("chatCombosCache.COMBOS_CACHE_TTL_MS", () => {
   it("is exactly 10_000", () => {
