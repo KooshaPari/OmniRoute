@@ -819,8 +819,8 @@ REQUEST_TIMEOUT_MS (global override)
 | `KIMI_WEB_CHAT_URL`                       | `<KIMI_WEB_BASE_URL>/apiv2/kimi.gateway.chat.v1.ChatService/Chat` | Full chat endpoint for the Kimi Web executor (`kimi-web.ts`).                                                                       |
 | `OMNIROUTE_LOGIN_BROWSER_PATH`            | _(auto-detected)_    | Path to a system Chrome/Edge executable for the Adobe Firefly interactive browser sign-in (`adobeFireflyBrowserLogin.ts`); overrides per-OS auto-detection.     |
 | `OMNIROUTE_STANDALONE_DIR`                | _.build/ standalone output_ | Build-time override for the standalone output directory consumed by the post-build colocation step (`scripts/build/colocate-standalone.mjs`); build tooling, not runtime. |
-| `OMNIROUTE_CHATGPT_TLS_TIMEOUT_MS` | `60000` | `open-sse/services/chatgptTlsClient.ts` | TLS handshake timeout for the ChatGPT web client. |
-| `OMNIROUTE_CHATGPT_TLS_GRACE_MS` | `10000` | `open-sse/services/chatgptTlsClient.ts` | Grace period after TLS connect before the first request. |
+| `OMNIROUTE_CHATGPT_TLS_TIMEOUT_MS` | `60000` | `open-sse/services/chatgptTlsClient.ts` | Native wreq-js request timeout for the ChatGPT web client. |
+| `OMNIROUTE_CHATGPT_TLS_GRACE_MS` | `10000` | `open-sse/services/chatgptTlsClient.ts` | Absolute JS hard-deadline grace added on top of the native timeout. |
 | `OMNIROUTE_CHATGPT_STREAM_FIRST_BYTE_TIMEOUT_MS` | `30000` | `open-sse/services/chatgptTlsClient.ts` | First-byte timeout for ChatGPT web streaming responses. |
 | `DESIGNER_WEB_POLL_INTERVAL_MS` | `2000` | `open-sse/handlers/imageGeneration/providers/designerWeb.ts` | Poll interval for Designer web image generation. |
 | `DESIGNER_WEB_POLL_TIMEOUT_MS` | `60000` | `open-sse/handlers/imageGeneration/providers/designerWeb.ts` | Overall timeout for Designer web image generation. |
