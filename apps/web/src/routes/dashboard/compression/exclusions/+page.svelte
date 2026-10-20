@@ -9,7 +9,7 @@
   onMount(async () => {
     try {
       const r = await fetch(bffApiUrl('/api/dashboard/compression/exclusions'));
-      if (r.ok) exclusions = await r.json();
+      if (r.ok) { const d = await r.json(); exclusions = Array.isArray(d) ? d : (d?.exclusions ?? []); }
     } catch (e) { error = (e as Error).message; }
     finally { loading = false; }
   });
