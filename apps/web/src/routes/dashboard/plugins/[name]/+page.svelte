@@ -7,7 +7,7 @@
   let loading = $state(true);
   let error = $state<string | null>(null);
 
-  const name = $derived($page.params.name);
+  const name = $derived($page.params.name ?? '');
 
   $effect(() => {
     fetch(bffApiUrl(`/api/dashboard/plugins/${encodeURIComponent(name)}`))
