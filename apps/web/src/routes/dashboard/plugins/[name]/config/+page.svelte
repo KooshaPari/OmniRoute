@@ -45,7 +45,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1 capitalize">{key.replace(/([A-Z])/g, ' $1')}</label>
             {#if typeof value === 'boolean'}
               <div class="flex items-center gap-2">
-                <input type="checkbox" bind:checked={config[key]} class="rounded" />
+                <input type="checkbox" checked={config[key] === true} onchange={(e) => { config[key] = e.currentTarget.checked; }} class="rounded" />
                 <span class="text-sm text-gray-700">{value ? 'Enabled' : 'Disabled'}</span>
               </div>
             {:else if typeof value === 'number'}
