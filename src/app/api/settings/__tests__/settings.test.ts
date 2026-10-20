@@ -2,16 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PATCH } from "../route";
 
 // Mock the localDb functions used in the route
-vi.mock("../../../../lib/localDb", () => {
-  const original = vi.importActual("../../../../lib/localDb");
+vi.mock("../../../../lib/db/settings", async () => {
+  const original = await vi.importActual<Record<string, unknown>>("../../../../lib/db/settings");
   return {
     ...original,
     getSettings: vi.fn(),
+    getSettingsRevision: vi.fn(),
     updateSettings: vi.fn(),
   };
 });
 
-import { getSettings, updateSettings } from "../../../../lib/localDb";
+import { getSettings, getSettingsRevision, updateSettings } from "../../../../lib/db/settings";
 
 // Helper to create a Request with JSON body
 function createPatchRequest(body: unknown) {
@@ -25,6 +26,7 @@ function createPatchRequest(body: unknown) {
 describe("PATCH /api/settings", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    (getSettingsRevision as any).mockResolvedValue(1);
     // Default settings before each test
     (getSettings as any).mockResolvedValue({
       debugMode: false,
