@@ -25,7 +25,7 @@
   async function fetchLeaderboard(s: Scope) {
     loading = true; error = '';
     try {
-      const res = await fetch(`${bffApiUrl}/api/gamification/leaderboard?scope=${s}&limit=50`);
+      const res = await fetch(bffApiUrl(`/api/gamification/leaderboard?scope=${s}&limit=50`));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       entries = data.entries ?? [];
