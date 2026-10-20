@@ -457,6 +457,8 @@
       "sharp"
     ],
     "overrides": {
+      "engine.io": ">=6.6.10",
+      "basic-ftp": ">=6.2.1",
       "vite": ">=6.3.5",
       "brace-expansion": ">=5.0.12",
       "fast-uri": ">=3.1.8",
