@@ -27,11 +27,12 @@
 
 {#if loading}<Card>Loading…</Card>
 {:else if error}<Card class="error">{error}</Card>
+{:else if exclusions.length === 0}<span class="ok">No exclusions</span>
 {:else}
   {#each exclusions as e}
     <div class="exclusion-item">{e.pattern ?? 'unnamed'} — {e.action ?? 'allow'}</div>
   {/each}
-{:else}<span class="ok">No exclusions</span>{/if}
+{/if}
 
 <style>
   .exclusion-item { padding: .5rem; border-bottom: 1px solid var(--border); font-size: .875rem; }
