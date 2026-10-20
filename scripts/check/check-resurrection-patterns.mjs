@@ -167,6 +167,18 @@ function gitOrNull(...args) {
   }
 }
 
+// Resolve the canonical base ref once. This check runs on GitHub Actions
+// pull_request events, which check out the detached `refs/pull/N/merge`
+// commit; there is no local `main` branch in that checkout (the base only
+// exists as `origin/main`). A literal `main` made `git log main` fail with
+// "ambiguous argument 'main'" and the report was never written.
+const MAIN_REF = (() => {
+  for (const ref of ["main", "origin/main"]) {
+    if (gitOrNull("rev-parse", "--verify", "--quiet", ref)) return ref;
+  }
+  return "main";
+})();
+
 // hash a file's current content
 function hashFile(filepath) {
   try {
@@ -200,13 +212,9 @@ function buildDeletionSet() {
   // git log --diff-filter=D --name-only --pretty=format:'COMMIT:%H %ci%nSUBJECT:%s'
   // produces a parseable stream. We accumulate per-commit deletions.
   // when --historical-scan is set, omit --since entirely to walk ALL of main
-  const logArgs = ["log", "main"];
+  const logArgs = ["log", MAIN_REF];
   if (!SKIP_SINCE) logArgs.push(`--since=${EFFECTIVE_SINCE}`);
-  logArgs.push(
-    "--diff-filter=D",
-    "--name-only",
-    "--pretty=format:COMMIT:%H	%ci	%s"
-  );
+  logArgs.push("--diff-filter=D", "--name-only", "--pretty=format:COMMIT:%H	%ci	%s");
   const raw = git(...logArgs);
   if (!raw.trim()) return new Map();
 
@@ -228,7 +236,8 @@ function buildDeletionSet() {
       // (e3b0c44298fc... = SHA-256 of empty input). Including them
       // produces 100+ false-positive matches on every .gitkeep /
       // placeholder file. Sub-cat C/empty fix (2026-10-15).
-      const isEmptyHash = hash === "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+      const isEmptyHash =
+        hash === "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
       if (isEmptyHash) continue;
       // only keep the most recent deletion per path
       const prev = map.get(filepath);
@@ -242,7 +251,8 @@ function buildDeletionSet() {
       }
     }
   }
-  if (VERBOSE) console.error(`[resurrection] deletion set: ${map.size} entries from last ${EFFECTIVE_SINCE}`);
+  if (VERBOSE)
+    console.error(`[resurrection] deletion set: ${map.size} entries from last ${EFFECTIVE_SINCE}`);
   return map;
 }
 
