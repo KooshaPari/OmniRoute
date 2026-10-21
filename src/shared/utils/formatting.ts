@@ -134,6 +134,32 @@ export function formatCost(usd: number | null | undefined): string {
 export const fmtCost = formatCost;
 
 /**
+ * Compact cost display with K/M/B/T suffixes for large values. Values under 1,000
+ * reuse formatCost precision rules. Negative values keep the sign before the "$".
+ * @param {number} usd - Cost in USD
+ * @returns {string}
+ */
+export function formatCostAbbreviated(usd: number | null | undefined): string {
+  const value = Number(usd || 0);
+  if (!Number.isFinite(value) || value === 0) return "$0";
+  const sign = value < 0 ? "-" : "";
+  const abs = Math.abs(value);
+  const units: Array<[number, string]> = [
+    [1e12, "T"],
+    [1e9, "B"],
+    [1e6, "M"],
+    [1e3, "K"],
+  ];
+  for (const [size, suffix] of units) {
+    if (abs >= size) {
+      const scaled = Number((abs / size).toFixed(2));
+      return `${sign}$${scaled}${suffix}`;
+    }
+  }
+  return `${sign}${formatCost(abs)}`;
+}
+
+/**
  * Truncate a URL for compact display.
  * @param {string} url - Full URL
  * @param {number} max - Maximum characters (default: 50)
