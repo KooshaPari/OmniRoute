@@ -63,12 +63,12 @@ function loadConfig(): OtelPushConfig | null {
   if (!endpoint) return null;
   const intervalMs = Number.parseInt(process.env.OMNIROUTE_OTLP_PUSH_INTERVAL_MS ?? "", 10) || DEFAULT_INTERVAL_MS;
   const timeoutMs = Number.parseInt(process.env.OMNIROUTE_OTLP_PUSH_TIMEOUT_MS ?? "", 10) || DEFAULT_TIMEOUT_MS;
-  let resourceAttributes: Record<string, string> = { "service.name": "omniroute" };
+  let resourceAttributes: Record<string, unknown> = { "service.name": "omniroute" };
   if (process.env.OMNIROUTE_OTLP_RESOURCE_ATTRIBUTES) {
     try {
       const parsed = JSON.parse(process.env.OMNIROUTE_OTLP_RESOURCE_ATTRIBUTES);
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-        resourceAttributes = { ...resourceAttributes, ...(parsed as Record<string, string>) };
+        resourceAttributes = { ...resourceAttributes, ...(parsed as Record<string, unknown>) };
       }
     } catch {
       // Bad JSON — fall back to defaults.
@@ -138,7 +138,14 @@ function buildOtelRequest(config: OtelPushConfig, snapshots: MetricSnapshot[]): 
         resource: {
           attributes: Object.entries(config.resourceAttributes).map(([key, value]) => ({
             key,
-            value: { stringValue: value },
+            value:
+              typeof value === "boolean"
+                ? { boolValue: value }
+                : typeof value === "number" && Number.isInteger(value)
+                  ? { intValue: String(value) }
+                  : typeof value === "number"
+                    ? { doubleValue: value }
+                    : { stringValue: String(value) },
           })),
         },
         scopeMetrics: [

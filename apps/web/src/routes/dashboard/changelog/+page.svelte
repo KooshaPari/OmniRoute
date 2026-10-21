@@ -13,8 +13,8 @@
   onMount(async () => {
     try {
       const [newsRes, clRes] = await Promise.all([
-        fetch(`${bffApiUrl}/api/news`).catch(() => null),
-        fetch(`${bffApiUrl}/api/changelog`).catch(() => null),
+        fetch(bffApiUrl(`/api/news`)).catch(() => null),
+        fetch(bffApiUrl(`/api/changelog`)).catch(() => null),
       ]);
 
       if (newsRes?.ok) {

@@ -8,7 +8,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch(`${bffApiUrl}/api/quota/pools`);
+      const res = await fetch(bffApiUrl(`/api/quota/pools`));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       pools = data.pools ?? [];
