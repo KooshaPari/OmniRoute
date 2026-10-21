@@ -885,15 +885,8 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
-      # Install the real Bun binary with the first-party action. The previous
-      # `npm install -g bun` + `node "$(npm root -g)/bun/install.js"` workaround
-      # assumed npm's flat global layout; under the repo's pnpm layout the
-      # installer's rename step fails with ENOENT on
-      # node_modules/@oven/bun-linux-x64 and the job dies before running a test.
-      - name: Install Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.1.42
+      # `bun` comes from the repo's own devDependency; the shared install action
+      # materialises its platform binary because pnpm skips postinstall scripts.
       - run: npm run test:bun:db
 
   test-vitest:
