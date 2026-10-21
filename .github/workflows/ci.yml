@@ -885,20 +885,15 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
-      - name: Install Bun (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          powershell -c "iwr bun.sh/install.ps1 -useb | iex"
-          echo "$env:USERPROFILE\.bun\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
-      - name: Install Bun (non-Windows)
-        if: runner.os != 'Windows'
-        run: npm install -g bun
-      # .npmrc sets ignore-scripts=true, which skips bun's postinstall binary
-      # download; run it explicitly or bun is a stub without the platform binary.
-      - name: Fetch bun binary (ignore-scripts workaround)
-        if: runner.os != 'Windows'
-        run: node "$(npm root -g)/bun/install.js"
+      # Install the real Bun binary with the first-party action. The previous
+      # `npm install -g bun` + `node "$(npm root -g)/bun/install.js"` workaround
+      # assumed npm's flat global layout; under the repo's pnpm layout the
+      # installer's rename step fails with ENOENT on
+      # node_modules/@oven/bun-linux-x64 and the job dies before running a test.
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.1.42
       - run: npm run test:bun:db
 
   test-vitest:
