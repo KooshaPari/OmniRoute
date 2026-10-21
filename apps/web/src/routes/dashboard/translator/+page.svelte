@@ -14,7 +14,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch(`${bffApiUrl}/api/i18n/status`);
+      const res = await fetch(bffApiUrl(`/api/i18n/status`));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       status = data.locales ?? [];

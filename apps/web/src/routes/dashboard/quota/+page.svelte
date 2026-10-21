@@ -10,7 +10,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch(`${bffApiUrl}/api/settings`);
+      const res = await fetch(bffApiUrl(`/api/settings`));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       quota = data;

@@ -20,7 +20,7 @@ import {
   getState,
   listStates,
   configureThresholds,
-} from "../open-sse/services/bifrostKillSwitch.ts";
+} from "../../open-sse/services/bifrostKillSwitch.ts";
 
 const PROVIDER = "openai";
 const ts = () => Date.now();

@@ -8,7 +8,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch(`${bffApiUrl}/api/free-tiers`);
+      const res = await fetch(bffApiUrl(`/api/free-tiers`));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       tiers = data.tiers ?? [];
