@@ -459,6 +459,7 @@
       "sharp"
     ],
     "overrides": {
+      "follow-redirects": ">=1.16.1",
       "engine.io": ">=6.6.10",
       "basic-ftp": ">=6.2.1",
       "vite": ">=6.3.5",
