@@ -18,6 +18,14 @@ export default defineConfig({
       // never executed once (check:test-discovery flags it as a NEW orphan).
       "open-sse/services/__tests__/fail-fast-concurrency-gate.test.ts",
       "src/lib/memory/__tests__/generic-backend.test.ts",
+      // Orphan suites wired by the check:test-discovery fix (previously collected by no runner).
+      "src/shared/utils/formatting.test.ts",
+      "src/lib/resilience/__tests__/**/*.test.ts",
+      "src/lib/db/__tests__/**/*.test.ts",
+      "src/sse/handlers/__tests__/**/*.test.ts",
+      "src/app/api/settings/__tests__/**/*.test.ts",
+      "tests/unit/open-sse/**/*.test.ts",
+      "tests/unit/quota/**/*.test.ts",
       "tests/unit/autoCombo/**/*.test.ts",
       "tests/unit/api/**/*.spec.ts",
       "tests/unit/encryption.spec.ts",

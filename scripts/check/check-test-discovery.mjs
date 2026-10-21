@@ -57,7 +57,7 @@ export const COLLECTORS = [
   // abaixo). Subdir novo: adicione aqui E nos scripts (o drift-check + o gate de
   // órfãos forçam a manutenção em sincronia).
   {
-    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts",
+    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage,fleet}/**/*.test.ts",
     sources: ["package.json"],
   },
   // Node native runner — tests/unit/dashboard/** roda numa invocação separada com o hook
@@ -66,6 +66,19 @@ export const COLLECTORS = [
   // sem o patch CJS do tsx isso estoura "Unexpected token 'export'" (visto no Node
   // 24.18 do CI; no 24.16 local vira um crawl de ~60s/arquivo). O resto da suíte roda
   // sob tsx/esm (~-50% de bootstrap por processo). Plano mestre testes+CI, QW-b.
+  { glob: "tests/theoldllm-stress.test.ts", sources: ["package.json"] },
+  { glob: "src/app/api/compression/replay/__tests__/route.test.ts", sources: ["package.json"] },
+  // Playwright suites with their own configs, run by dedicated npm scripts.
+  { glob: "tests/a11y/**/*.spec.ts", sources: ["package.json"], anchors: { "package.json": "test:a11y:baseline" } },
+  { glob: "tests/visual/**/*.spec.ts", sources: ["package.json"], anchors: { "package.json": "test:visual" } },
+  // vitest.mcp.config.ts (test:vitest) — orphan suites wired by the test-discovery fix.
+  { glob: "src/shared/utils/formatting.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/lib/resilience/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/lib/db/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/sse/handlers/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "src/app/api/settings/__tests__/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "tests/unit/open-sse/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
+  { glob: "tests/unit/quota/**/*.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/dashboard/**/*.test.ts", sources: ["package.json"] },
   // Quarentena de flakes de concorrência (plano melhorias v3.8.46, P0.3): arquivos
   // sensíveis a contenção de CPU/timing (classe glm-3580 / quota-division /
