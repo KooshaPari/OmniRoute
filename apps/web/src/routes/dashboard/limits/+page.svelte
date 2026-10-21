@@ -8,7 +8,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch(`${bffApiUrl}/api/settings`);
+      const res = await fetch(bffApiUrl(`/api/settings`));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       settings = await res.json();
     } catch (err) {

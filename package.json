@@ -264,6 +264,7 @@
     "coverage:report:legacy": "c8 report --output-dir coverage --exclude=open-sse --reporter=text --reporter=text-summary",
     "test:all": "npm run test:unit && npm run test:vitest && npm run test:vitest:ui && npm run test:ecosystem && npm run test:e2e",
     "check": "npm run lint && npm run test",
+    "check:active-desktop": "node scripts/check/check-active-desktop.mjs",
     "prepublishOnly": "npm run build:cli-api && npm run build:cli && npm run check:pack-artifact",
     "postinstall": "node scripts/build/postinstall.mjs",
     "uninstall": "node scripts/build/uninstall.mjs",
@@ -309,7 +310,6 @@
     "fflate": "^0.8.3",
     "fumadocs-core": "^16.15.4",
     "fumadocs-ui": "^16.15.4",
-    "http-proxy-middleware": "^4.0.0",
     "https-proxy-agent": "^9.0.0",
     "ink": "^7.0.3",
     "ink-spinner": "^5.0.0",
@@ -426,7 +426,6 @@
     "oxlint": "^1.61.0",
     "playwright-ctrf-json-reporter": "^0.0.29",
     "prettier": "^3.9.6",
-    "promptfoo": "^0.122.1",
     "remark-gfm": "4.0.1",
     "size-limit": "^13.0.3",
     "tailwindcss": "^4.3.0",
@@ -436,7 +435,10 @@
     "use-intl": "4.14.4",
     "vitest": "^4.1.11",
     "wait-on": "^9.1.0",
-    "wtfnode": "^0.10.1"
+    "wtfnode": "^0.10.1",
+    "@opentelemetry/api": "^1.9.1",
+    "tinyglobby": "^0.2.17",
+    "yaml": "^2.9.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs}": [
@@ -457,6 +459,9 @@
       "sharp"
     ],
     "overrides": {
+      "follow-redirects": ">=1.16.1",
+      "engine.io": ">=6.6.10",
+      "basic-ftp": ">=6.2.1",
       "vite": ">=6.3.5",
       "brace-expansion": ">=5.0.12",
       "fast-uri": ">=3.1.8",

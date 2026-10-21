@@ -38,7 +38,7 @@
       </div>
       <div class="stat p-3 bg-gray-50 rounded-lg">
         <p class="text-sm text-gray-500">Tokens Saved</p>
-        <p class="text-2xl font-bold">{(stats?.tokensOriginal ?? 0 - stats?.tokensCompressed ?? 0).toLocaleString() ?? 0}</p>
+        <p class="text-2xl font-bold">{((stats?.tokensOriginal ?? 0) - (stats?.tokensCompressed ?? 0)).toLocaleString()}</p>
       </div>
       <div class="stat p-3 bg-gray-50 rounded-lg">
         <p class="text-sm text-gray-500">Savings</p>

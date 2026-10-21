@@ -894,6 +894,11 @@ jobs:
       - name: Install Bun (non-Windows)
         if: runner.os != 'Windows'
         run: npm install -g bun
+      # .npmrc sets ignore-scripts=true, which skips bun's postinstall binary
+      # download; run it explicitly or bun is a stub without the platform binary.
+      - name: Fetch bun binary (ignore-scripts workaround)
+        if: runner.os != 'Windows'
+        run: node "$(npm root -g)/bun/install.js"
       - run: npm run test:bun:db
 
   test-vitest:

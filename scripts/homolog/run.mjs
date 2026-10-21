@@ -86,7 +86,7 @@ try {
     spawnSync(
       "npx",
       [
-        "promptfoo",
+        "promptfoo@0.122.2",
         "eval",
         "-c",
         "homolog-report/promptfooconfig.yaml",

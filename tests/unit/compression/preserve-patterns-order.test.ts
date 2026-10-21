@@ -12,7 +12,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { extractPreservedBlocks } from "../../open-sse/services/compression/preservation.ts";
+import { extractPreservedBlocks } from "../../../open-sse/services/compression/preservation.ts";
 
 test("user pattern captures region containing inline code", () => {
   const PAT = /<system-reminder>[\s\S]*?<\/system-reminder>/.source;
