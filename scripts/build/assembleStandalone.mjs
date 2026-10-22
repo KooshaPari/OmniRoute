@@ -148,6 +148,17 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["node_modules", "@swc", "helpers"],
   },
   {
+    // Next's standalone tracer resolves its own dependencies through the
+    // workspace tree. Under pnpm, `@next/env` exists only inside the virtual
+    // store (node_modules/.pnpm/@next+env@<v>/node_modules/@next/env), so the
+    // traced copy lands `dist/node_modules/next` WITHOUT its sibling and the
+    // server dies at boot with "Cannot find module '@next/env'" (observed in
+    // the DAST smoke job, 2026-10-22). Copy it explicitly next to `next`.
+    label: "@next/env (Next runtime dependency)",
+    pnpmPackage: "@next/env",
+    dest: ["node_modules", "@next", "env"],
+  },
+  {
     label: "pino-abstract-transport",
     src: ["node_modules", "pino-abstract-transport"],
     dest: ["node_modules", "pino-abstract-transport"],
@@ -410,8 +421,10 @@ async function syncExtraModulesToDir(projectRoot, outDir, fsImpl, log) {
   let changed = false;
 
   for (const entry of EXTRA_MODULE_ENTRIES) {
-    const sourcePath = path.join(projectRoot, ...entry.src);
-    if (!(await exists(sourcePath))) continue;
+    const sourcePath = entry.pnpmPackage
+      ? resolvePnpmStorePackage(projectRoot, entry.pnpmPackage)
+      : path.join(projectRoot, ...entry.src);
+    if (!sourcePath || !(await exists(sourcePath))) continue;
 
     const destPath = path.join(outDir, ...entry.dest);
     if (resolvesToSamePath(sourcePath, destPath)) continue;
@@ -426,6 +439,39 @@ async function syncExtraModulesToDir(projectRoot, outDir, fsImpl, log) {
   }
 
   return changed;
+}
+
+/**
+ * Resolve a package that pnpm only links inside the virtual store.
+ *
+ * `node_modules/@next/env` does not exist in a pnpm workspace, but
+ * `node_modules/.pnpm/@next+env@<version>/node_modules/@next/env` does. Prefer
+ * the hoisted location when present (npm/yarn layouts), then the newest
+ * virtual-store match.
+ *
+ * @param {string} projectRoot
+ * @param {string} packageName
+ * @returns {string|null}
+ */
+function resolvePnpmStorePackage(projectRoot, packageName) {
+  const direct = path.join(projectRoot, "node_modules", ...packageName.split("/"));
+  if (fsSync.existsSync(direct)) return direct;
+
+  const pnpmDir = path.join(projectRoot, "node_modules", ".pnpm");
+  if (!fsSync.existsSync(pnpmDir)) return null;
+
+  const prefix = `${packageName.replace("/", "+")}@`;
+  const candidates = fsSync
+    .readdirSync(pnpmDir)
+    .filter((name) => name.startsWith(prefix))
+    .sort()
+    .reverse();
+
+  for (const candidate of candidates) {
+    const resolved = path.join(pnpmDir, candidate, "node_modules", ...packageName.split("/"));
+    if (fsSync.existsSync(resolved)) return resolved;
+  }
+  return null;
 }
 
 /**
@@ -648,8 +694,12 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
   }
 
   for (const mod of EXTRA_MODULE_ENTRIES) {
-    const src = path.join(projectRoot, ...mod.src);
-    if (!fsSync.existsSync(src)) continue;
+    // `pnpmPackage` entries have no static `src`: resolve them from the pnpm
+    // virtual store (see resolvePnpmStorePackage above).
+    const src = mod.pnpmPackage
+      ? resolvePnpmStorePackage(projectRoot, mod.pnpmPackage)
+      : path.join(projectRoot, ...mod.src);
+    if (!src || !fsSync.existsSync(src)) continue;
     const dest = path.join(resolvedOutDir, ...mod.dest);
     if (resolvesToSamePath(src, dest)) continue;
     clearStaleDest(dest);

@@ -25,7 +25,15 @@ export default defineConfig({
       "src/shared/hooks/__tests__/**/*.test.tsx",
       "src/app/(dashboard)/**/__tests__/**/*.test.tsx",
     ],
-    exclude: ["**/node_modules/**", "**/.git/**"],
+    exclude: [
+      "**/node_modules/**",
+      "**/.git/**",
+      // node:test suite: it imports `node:test` (and node:test's before/after),
+      // so Vitest reports "No test suite found in file" and fails the whole run.
+      // It is a node-native test; run it with
+      //   node --import tsx/esm --test tests/unit/autoCombo/arenaEloFreeAlias-migration.test.ts
+      "tests/unit/autoCombo/arenaEloFreeAlias-migration.test.ts",
+    ],
     coverage: {
       reportsDirectory: "coverage",
     },

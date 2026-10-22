@@ -55,6 +55,11 @@ export default defineConfig({
       // Live-server E2E — these drive a real running server, so they must never run
       // in this jsdom job. They have their own runners + vitest.e2e-live.config.ts.
       // ── Pre-existing failures tracked by #8618 ───────────────────────────────
+      // node:test file, not a vitest suite: it imports `node:test` and Vitest
+      // reports "No test suite found in file" (its `before`/`after` hooks are
+      // also node:test APIs). Run it with the node runner that owns that file:
+      //   node --import tsx/esm --test tests/unit/autoCombo/arenaEloFreeAlias-migration.test.ts
+      "tests/unit/autoCombo/arenaEloFreeAlias-migration.test.ts",
       "tests/unit/ui/agent-card-risk-modal.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "tests/unit/ui/request-logger-autorefresh-visibility-3972.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "src/app/(dashboard)/dashboard/webhooks/__tests__/webhook-wizard.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed

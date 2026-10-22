@@ -231,7 +231,7 @@
     "quality:gate": "npm run quality:collect && npm run quality:ratchet -- --allow-missing",
     "quality:scan": "node scripts/quality/run-all-gates.mjs",
     "quality:scan:fast": "node scripts/quality/run-all-gates.mjs --fast",
-    "audit:deps": "npm audit --audit-level=critical && (npm audit --audit-level=high || echo '::warning::high-severity advisories present (non-blocking)')",
+    "audit:deps": "node scripts/check/audit-deps.mjs",
     "typecheck:core": "tsc --pretty false -p tsconfig.typecheck-core.json",
     "typecheck:noimplicit:core": "tsc --pretty false -p tsconfig.typecheck-noimplicit-core.json",
     "check:dashboard-typecheck": "node scripts/check/check-dashboard-typecheck.mjs",

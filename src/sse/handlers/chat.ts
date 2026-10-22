@@ -263,7 +263,7 @@ async function handleChatImplementation(
   preParsedBody: any = null,
   correlationId: string | undefined,
   admissionContext: chatAdmission.ChatAdmissionContext
-) {
+): Promise<any> {
   const peerRejection = rejectPeerRequest(request?.headers, log.warn, errorResponse);
   if (peerRejection) return peerRejection;
 
