@@ -902,9 +902,11 @@ jobs:
     # 15 minutes was enough only while the run died early: the node:test suite in
     # tests/unit/autoCombo aborted the MCP step with "No test suite found" after
     # ~80s. With that fixed the job actually runs `test:vitest` (MCP/autoCombo)
-    # AND `test:vitest:ui`; the UI suite alone needs more than 15 minutes on a
-    # hosted runner and the job was cancelled mid-step (2026-10-22).
-    timeout-minutes: 30
+    # AND `test:vitest:ui`. Measured 2026-10-22: the MCP step passes in seconds,
+    # then the UI suite runs past 27 minutes (30-minute job cancelled at 30m23s),
+    # so it has effectively never completed in CI. 45 minutes matches the
+    # heaviest job in this workflow (Build) and leaves real headroom.
+    timeout-minutes: 45
     # needs: changes (not build) — no artifact consumed; see test-unit note.
     needs: changes
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
