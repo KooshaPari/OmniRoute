@@ -899,7 +899,12 @@ jobs:
     # cache restore saturating the link), while the tests themselves tied, 2m54 vs 2m31. So
     # self-hosted is strictly worse here and there is nothing to configure.
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # 15 minutes was enough only while the run died early: the node:test suite in
+    # tests/unit/autoCombo aborted the MCP step with "No test suite found" after
+    # ~80s. With that fixed the job actually runs `test:vitest` (MCP/autoCombo)
+    # AND `test:vitest:ui`; the UI suite alone needs more than 15 minutes on a
+    # hosted runner and the job was cancelled mid-step (2026-10-22).
+    timeout-minutes: 30
     # needs: changes (not build) — no artifact consumed; see test-unit note.
     needs: changes
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
