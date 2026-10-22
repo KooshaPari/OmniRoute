@@ -694,8 +694,12 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
   }
 
   for (const mod of EXTRA_MODULE_ENTRIES) {
-    const src = path.join(projectRoot, ...mod.src);
-    if (!fsSync.existsSync(src)) continue;
+    // `pnpmPackage` entries have no static `src`: resolve them from the pnpm
+    // virtual store (see resolvePnpmStorePackage above).
+    const src = mod.pnpmPackage
+      ? resolvePnpmStorePackage(projectRoot, mod.pnpmPackage)
+      : path.join(projectRoot, ...mod.src);
+    if (!src || !fsSync.existsSync(src)) continue;
     const dest = path.join(resolvedOutDir, ...mod.dest);
     if (resolvesToSamePath(src, dest)) continue;
     clearStaleDest(dest);
