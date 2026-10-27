@@ -25,7 +25,12 @@ export default defineConfig({
       "src/lib/memory/__tests__/**/*.test.ts",
       "src/lib/skills/__tests__/**/*.test.ts",
       "tests/unit/encryption.test.ts",
-      "tests/unit/**/*.test.ts",
+      // `tests/unit/**/*.test.ts` deliberately NOT included. It matches ~5,285
+      // files (the whole node-native unit tree, most of which import
+      // `node:test`), so `test:vitest:ui` could never finish: the job was
+      // cancelled at its 45-minute budget with only a few hundred files done
+      // (2026-10-22). The node runner owns that tree; this config owns the
+      // UI/component surface below plus the .test.tsx glob.
       "tests/unit/**/*.test.tsx",
       "tests/performance/**/*.test.ts",
       "open-sse/**/__tests__/**/*.test.ts",
