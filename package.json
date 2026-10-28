@@ -357,13 +357,13 @@
     "tsx": "^4.23.13",
     "turndown": "7.2.4",
     "turndown-plugin-gfm": "1.0.2",
-    "undici": "^8.10.0",
+    "undici": "^8.12.3",
     "update-notifier": "^7.3.1",
     "uuid": "^14.0.2",
     "ws": "^8.21.3",
     "xxhash-wasm": "^1.1.0",
     "yazl": "^3.3.1",
-    "zod": "^4.5.4",
+    "zod": "^4.6.7",
     "zustand": "^5.0.15"
   },
   "optionalDependencies": {
@@ -460,6 +460,8 @@
       "sharp"
     ],
     "overrides": {
+      "body-parser": ">=2.4.0",
+      "zod": ">=4.6.7",
       "follow-redirects": ">=1.16.1",
       "engine.io": ">=6.6.10",
       "basic-ftp": ">=6.2.1",
