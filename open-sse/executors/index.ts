@@ -161,6 +161,8 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   zw: () => import("./zai-web.ts").then((m) => new m.ZaiWebExecutor()), // Alias
   chipotle: () => import("./chipotle.ts").then((m) => new m.ChipotleExecutor()),
   pepper: () => import("./chipotle.ts").then((m) => new m.ChipotleExecutor()), // Alias
+  mimocode: () => import("./mimocode.ts").then((m) => new m.MimocodeExecutor()),
+  mcode: () => import("./mimocode.ts").then((m) => new m.MimocodeExecutor()), // Alias
   lmarena: () => import("./lmarena.ts").then((m) => new m.LMArenaExecutor()),
   lma: () => import("./lmarena.ts").then((m) => new m.LMArenaExecutor()), // Alias
   "grok-cli": () => import("./grok-cli.ts").then((m) => new m.GrokCliExecutor()),

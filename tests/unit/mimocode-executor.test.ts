@@ -165,13 +165,13 @@ describe("MimocodeExecutor", () => {
 
   it("is registered in executor index", async () => {
     const { getExecutor } = await import("../../open-sse/executors/index.ts");
-    const exec = getExecutor("mimocode");
+    const exec = await getExecutor("mimocode");
     assert.ok(exec instanceof MimocodeExecutor);
   });
 
   it("mcode alias works", async () => {
     const { getExecutor } = await import("../../open-sse/executors/index.ts");
-    const exec = getExecutor("mcode");
+    const exec = await getExecutor("mcode");
     assert.ok(exec instanceof MimocodeExecutor);
   });
 });
