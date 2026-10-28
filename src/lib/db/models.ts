@@ -7,7 +7,6 @@
 import { isRetiredGitHubCopilotModelId } from "@omniroute/open-sse/config/providers/registry/github/retiredModels.ts";
 
 import { getDbInstance } from "./core";
-import { getProviderConnectionsCount } from "./providers";
 import { type JsonRecord, getKeyValue } from "./models/shared";
 import {
   normalizeSyncedAvailableModels,
@@ -625,7 +624,12 @@ export async function cleanupProviderModelsAfterConnectionDelete(
     providerId,
     connectionId
   );
-  const remainingConnections = getProviderConnectionsCount({ provider: providerId });
+  // Inline count (same query as providers.getProviderConnectionsCount) to avoid a
+  // models -> providers -> providers/deletion -> models import cycle.
+  const countRow = getDbInstance()
+    .prepare("SELECT count(*) as cnt FROM provider_connections WHERE provider = @provider")
+    .get({ provider: providerId }) as { cnt?: number } | undefined;
+  const remainingConnections = Number(countRow?.cnt ?? 0);
   const removedImportedModelIds =
     remainingConnections === 0 ? await deleteImportedCustomModels(providerId) : [];
 
@@ -1089,4 +1093,4 @@ export function getModelUpstreamExtraHeaders(
     );
   }
   return base;
-}
+  }
