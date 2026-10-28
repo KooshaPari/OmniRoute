@@ -35,16 +35,17 @@ for (const { code } of i18nConfig.locales) {
       existsSync(path.join(ROOT, "docs", "i18n", code, "CHANGELOG.md")),
       "CHANGELOG mirror"
     );
-    assert.ok(readme.includes(`docs/i18n/${code}/README.md`), "README flag link");
+    // The locale index lives in docs/i18n/README.md (asserted on the next line).
+    // The root README's language block was intentionally removed by
+    // 4a5a535ee0 ("rebrand README ... debloat docs"), so requiring a root
+    // README link here asserted a layout the repo deliberately retired.
     assert.ok(docsIndex.includes(`(\`${code}\`)`), "docs/i18n/README.md index row");
   });
 }
 
-test("README headline count matches config/i18n.json", () => {
-  const m = readme.match(/In (\d+) languages/);
-  assert.ok(m, "README must carry the 'In N languages' headline");
-  assert.equal(Number(m[1]), i18nConfig.locales.length);
-});
+// The root README headline count was removed alongside its language block in
+// 4a5a535ee0; docs/i18n/README.md remains the authoritative locale index and is
+// covered by the index-row and counts-sentence assertions above.
 
 test("docs/i18n/README.md counts sentence matches config/i18n.json", () => {
   const sentence = `into ${i18nConfig.locales.length - 1} languages; together with the English source, the UI supports ${i18nConfig.locales.length} locales`;

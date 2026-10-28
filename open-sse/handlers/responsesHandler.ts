@@ -86,8 +86,15 @@ export async function handleResponsesCore({
     return result;
   }
 
-  // Transform SSE stream to Responses API format (no logging in worker)
-  const transformStream = createResponsesApiTransformStream(null, undefined, { customToolNames });
+  // Transform SSE stream to Responses API format (no logging in worker).
+  // Hand the original Responses request through so the transformer can echo
+  // prompt_cache_key / response_format and auto-detect Anthropic-shaped tools
+  // (which opt the stream into parallel `tool_use` items).
+  const transformStream = createResponsesApiTransformStream(null, undefined, {
+    customToolNames,
+    request: body,
+    tools: Array.isArray(body?.tools) ? body.tools : [],
+  });
   const transformedBody = response.body.pipeThrough(transformStream).pipeThrough(
     createSseHeartbeatTransform({
       signal,
