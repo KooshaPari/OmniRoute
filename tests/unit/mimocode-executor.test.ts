@@ -254,8 +254,6 @@ describe("mimocode providerRegistry entry", () => {
 });
 
 describe("mimocode per-account proxy", () => {
-  const exec = new MimocodeExecutor();
-
   it("AccountProxyConfig type has required fields", () => {
     const config: AccountProxyConfig = {
       fingerprint: "abc123",
