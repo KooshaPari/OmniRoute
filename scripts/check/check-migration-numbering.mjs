@@ -51,7 +51,7 @@ export const KNOWN_DUPLICATE_VERSIONS = new Set([
 // stale-enforcement exige que cada reserva seja removida quando os arquivos
 // correspondentes aterrissarem na release.
 // ---------------------------------------------------------------------------
-export const KNOWN_GAPS = new Set(["026", "055", "121"]); // 121: número queimado no ciclo v3.8.47 — 122 (#6909) mergeou antes e 121 nunca aterrissou (validação e2e 2026-07-12); 144/145 aterrissaram na release (radar offers/intel cache), 148/149 aterrissaram (provider_quota_state, api_key_combo_access)
+export const KNOWN_GAPS = new Set(["026", "055"]); // 121 removed: migration 121 now exists (stale allowlist entry); 144/145 aterrissaram na release (radar offers/intel cache), 148/149 aterrissaram (provider_quota_state, api_key_combo_access)
 
 function pad3(n) {
   return String(n).padStart(3, "0");
