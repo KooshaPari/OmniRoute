@@ -6,19 +6,14 @@
 //   - `critical` advisories are BLOCKING.
 //   - `high` advisories are reported as a warning (non-blocking here; the
 //     Security Scan workflow owns the blocking high gate).
-//   - A registry/transport failure is NOT a policy failure. pnpm's own retry
-//     loop (5 attempts, exponential backoff) can spend ~13 minutes before
-//     surfacing ERR_SOCKET_TIMEOUT, which turned this gate into a flaky
-//     13-minute red on a healthy tree (observed 2026-10-22, PR #758). We bound
-//     each attempt, retry a few times, and fail OPEN with an explicit warning
-//     annotation when every attempt is a transport error. The authoritative
-//     security job still runs, so a real advisory cannot hide behind this.
+//   - Registry failures are retried, but an unavailable or malformed audit
+//     is never evidence that the dependency tree is safe: fail closed.
 //
 // Usage:
 //   node scripts/check/audit-deps.mjs
 //   node scripts/check/audit-deps.mjs --json     # machine-readable summary
 //
-// Exit codes: 0 clean/advisory-only, 1 critical advisory or non-transport error.
+// Exit codes: 0 clean/advisory-only, 1 critical advisory or audit error.
 
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
@@ -41,25 +36,29 @@ export const SEVERITIES = ["critical", "high", "moderate", "low", "info"];
  */
 export function severityCounts(report) {
   const counts = Object.fromEntries(SEVERITIES.map((severity) => [severity, 0]));
-  if (!report || typeof report !== "object") return counts;
-
-  const metadataCounts = report.metadata && report.metadata.vulnerabilities;
-  if (metadataCounts && typeof metadataCounts === "object") {
-    let sawNumber = false;
-    for (const severity of SEVERITIES) {
-      const value = Number(metadataCounts[severity] ?? 0);
-      if (Number.isFinite(value) && value > 0) {
-        counts[severity] = value;
-        sawNumber = true;
-      }
-    }
-    if (sawNumber) return counts;
+  const metadataCounts = report?.metadata?.vulnerabilities;
+  if (!metadataCounts || typeof metadataCounts !== "object" || Array.isArray(metadataCounts)) {
+    throw new Error("audit response lacks vulnerability counts");
   }
-
-  const entries = Object.values(report.advisories || report.vulnerabilities || {});
-  for (const entry of entries) {
-    const severity = String(entry && entry.severity ? entry.severity : "").toLowerCase();
-    if (severity in counts) counts[severity] += 1;
+  for (const severity of SEVERITIES) {
+    const value = metadataCounts[severity];
+    if (!Number.isSafeInteger(value) || value < 0) {
+      throw new Error(`invalid or missing ${severity} count`);
+    }
+    counts[severity] = value;
+  }
+  const advisories = report.advisories;
+  if (!advisories || typeof advisories !== "object" || Array.isArray(advisories)) {
+    throw new Error("audit response lacks advisories");
+  }
+  const observed = Object.fromEntries(SEVERITIES.map((severity) => [severity, 0]));
+  for (const entry of Object.values(advisories)) {
+    const severity = entry?.severity;
+    if (!SEVERITIES.includes(severity)) throw new Error("invalid advisory severity");
+    observed[severity] += 1;
+  }
+  for (const severity of SEVERITIES) {
+    counts[severity] = Math.max(counts[severity], observed[severity]);
   }
   return counts;
 }
@@ -103,8 +102,24 @@ function main() {
       report = null;
     }
 
-    if (report && typeof report === "object") {
-      const counts = severityCounts(report);
+    if (
+      report &&
+      typeof report === "object" &&
+      !result.error &&
+      result.signal === null &&
+      (result.status === 0 || result.status === 1)
+    ) {
+      let counts;
+      try {
+        counts = severityCounts(report);
+      } catch (error) {
+        console.error(`[audit:deps] FAIL — invalid audit report: ${error.message}`);
+        process.exit(1);
+      }
+      if (result.status === 1 && Object.values(counts).every((count) => count === 0)) {
+        console.error("[audit:deps] FAIL — audit exited nonzero without advisories");
+        process.exit(1);
+      }
       if (jsonOut) {
         process.stdout.write(`${JSON.stringify({ counts, attempt })}\n`);
       } else {
@@ -147,12 +162,10 @@ function main() {
     }
   }
 
-  console.log(
-    `::warning::dependency audit unavailable after ${ATTEMPTS} attempts ` +
-      `(${lastTransport}); skipping this advisory gate for this run. ` +
-      "The Security Scan workflow's blocking audit still runs."
+  console.error(
+    `::error::dependency audit unavailable after ${ATTEMPTS} attempts (${lastTransport})`
   );
-  process.exit(0);
+  process.exit(1);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || "").href) {
