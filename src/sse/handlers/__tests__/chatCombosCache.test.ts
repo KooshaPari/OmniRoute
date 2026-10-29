@@ -32,6 +32,20 @@ import {
   __getCombosCacheStateForTests,
 } from "../chatCombosCache";
 
+// Tests below swap getCombos for throwing implementations. Those stick for the
+// rest of the file (vi.mock is module-wide), which silently starved every later
+// test of the counting mock — the reset suite then saw 0 calls, not 1. Reinstall
+// the counting implementation before each test so per-test overrides stay local.
+beforeEach(async () => {
+  const localDb = await import("@/lib/localDb");
+  vi.mocked(localDb.getCombos).mockImplementation(async () => {
+    mockGetCombosCalls += 1;
+    return mockCombosReturn;
+  });
+  vi.mocked(localDb.getCombosCacheVersion).mockImplementation(() => mockCacheVersion);
+  __resetCombosCacheForTests();
+});
+
 describe("chatCombosCache.COMBOS_CACHE_TTL_MS", () => {
   it("is exactly 10_000", () => {
     expect(COMBOS_CACHE_TTL_MS).toBe(10_000);

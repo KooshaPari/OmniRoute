@@ -1,17 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PATCH } from "../route";
 
-// Mock the localDb functions used in the route
-vi.mock("../../../../lib/localDb", () => {
-  const original = vi.importActual("../../../../lib/localDb");
-  return {
-    ...original,
-    getSettings: vi.fn(),
-    updateSettings: vi.fn(),
-  };
-});
+// Mock the settings DB module the route actually imports (it moved from
+// lib/localDb to lib/db/settings), so PATCH exercises the handler, not a real DB.
+vi.mock("@/lib/db/settings", () => ({
+  getSettings: vi.fn(),
+  updateSettings: vi.fn(),
+  getSettingsRevision: vi.fn(() => 1),
+  SettingsRevisionConflictError: class SettingsRevisionConflictError extends Error {
+    currentRevision: number;
+    constructor(message = "conflict", currentRevision = 0) {
+      super(message);
+      this.currentRevision = currentRevision;
+    }
+  },
+}));
 
-import { getSettings, updateSettings } from "../../../../lib/localDb";
+import { getSettings, updateSettings } from "@/lib/db/settings";
 
 // Helper to create a Request with JSON body
 function createPatchRequest(body: unknown) {

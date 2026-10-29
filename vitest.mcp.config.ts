@@ -34,7 +34,10 @@ export default defineConfig({
       "src/sse/handlers/__tests__/**/*.test.ts",
       "src/shared/utils/**/*.test.ts",
       "tests/unit/open-sse/**/*.test.ts",
-      "tests/unit/quota/**/*.test.ts",
+      // Only the contract suite: keyvQuotaStore{,.Extras}.test.ts need the
+      // optional `keyv` backend, which is not a declared dependency, so they
+      // cannot run here (tracked in test-discovery-baseline.json instead).
+      "tests/unit/quota/quotaStore.contract.test.ts",
     ],
     exclude: [
       "**/node_modules/**",

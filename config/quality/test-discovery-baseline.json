@@ -10,6 +10,9 @@
     "tests/integration/services/cliproxy-coexistence.test.ts",
     "tests/integration/services/full-lifecycle.int.test.ts",
     "tests/integration/services/route-guard-services.int.test.ts",
-    "tests/live/deepseek-web-live.test.ts"
-  ]
+    "tests/live/deepseek-web-live.test.ts",
+    "tests/unit/quota/keyvQuotaStore.test.ts",
+    "tests/unit/quota/keyvQuotaStoreExtras.test.ts"
+  ],
+  "_keyv": "2 orfaos novos (2026-10-29): src/lib/quota/keyvQuotaStore.ts importa o pacote opcional `keyv`, que NAO e dependencia declarada, entao as duas suites nao podem rodar. Decidir: adicionar `keyv` (dependencia + allowlist + lockfile) ou remover o adapter nao usado. Ate la ficam congeladas aqui em vez de fingir cobertura."
 }

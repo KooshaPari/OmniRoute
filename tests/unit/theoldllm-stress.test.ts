@@ -1,8 +1,22 @@
-import { describe, it, beforeEach } from "node:test";
+import { describe, it } from "node:test";
 import assert from "node:assert";
-import { TheOldLlmExecutor, tokenCache } from "../open-sse/executors/theoldllm.ts";
+import { TheOldLlmExecutor, tokenCache } from "../../open-sse/executors/theoldllm.ts";
 
 const executor = new TheOldLlmExecutor();
+
+/** The two private helpers this suite drives directly. */
+const internals = executor as unknown as {
+  buildHeaders(options: Record<string, unknown>): Record<string, string>;
+  transformRequest(
+    model: string,
+    body: Record<string, unknown>,
+    stream: boolean
+  ): Record<string, unknown>;
+};
+
+/** Install a fetch stub without lying about the lib.dom Response shape. */
+const asFetch = (produce: () => Response): typeof fetch =>
+  (async () => produce()) as unknown as typeof fetch;
 
 const MOCK_SSE = [
   'data: {"choices":[{"delta":{"content":"hi"},"index":0,"finish_reason":null}]}',
@@ -36,7 +50,7 @@ function clearTokenCache() {
 
 describe("TheOldLlmExecutor", () => {
   it("buildHeaders returns static upstream headers", () => {
-    const headers = (executor as any).buildHeaders({});
+    const headers = internals.buildHeaders({});
     assert.strictEqual(headers["Content-Type"], "application/json");
     assert.ok(
       headers["User-Agent"].includes("Chrome/"),
@@ -60,7 +74,7 @@ describe("TheOldLlmExecutor", () => {
       "weird-model": "GPT_5_4",
     };
 
-    const transformRequest = (executor as any).transformRequest.bind(executor) as (
+    const transformRequest = internals.transformRequest.bind(executor) as (
       model: string,
       body: Record<string, unknown>,
       stream: boolean
@@ -79,7 +93,7 @@ describe("TheOldLlmExecutor", () => {
   it("returns true on 200 and false on 401 for testConnection", async () => {
     const originalFetch = globalThis.fetch;
     try {
-      globalThis.fetch = async () => makeResponse(200) as any;
+      globalThis.fetch = asFetch(() => makeResponse(200));
       assert.strictEqual(
         await executor.testConnection({}, null, {
           info: () => {},
@@ -90,7 +104,7 @@ describe("TheOldLlmExecutor", () => {
         true
       );
 
-      globalThis.fetch = async () => makeResponse(401) as any;
+      globalThis.fetch = asFetch(() => makeResponse(401));
       assert.strictEqual(
         await executor.testConnection({}, null, {
           info: () => {},
@@ -112,8 +126,9 @@ describe("TheOldLlmExecutor", () => {
       let calls = 0;
       const responses = [() => makeResponse(401, MOCK_ERR), () => makeResponse(200, MOCK_SSE)];
 
-      globalThis.fetch = async () =>
-        responses[calls++ < responses.length ? calls - 1 : responses.length - 1]() as any;
+      globalThis.fetch = asFetch(() =>
+        responses[calls++ < responses.length ? calls - 1 : responses.length - 1]()
+      );
 
       const result = await executor.execute({
         model: "gpt-5.4",
@@ -129,7 +144,7 @@ describe("TheOldLlmExecutor", () => {
         },
       });
 
-      assert.strictEqual((result as any).response.status, 200);
+      assert.strictEqual((result as unknown as { response: Response }).response.status, 200);
       assert.ok(calls >= 2, `expected >=2 fetch calls, got ${calls}`);
     } finally {
       globalThis.fetch = originalFetch;
@@ -183,10 +198,10 @@ describe("TheOldLlmExecutor", () => {
 
     let fetchCalls = 0;
     const originalFetch = globalThis.fetch;
-    globalThis.fetch = async () => {
+    globalThis.fetch = asFetch(() => {
       fetchCalls++;
-      return makeResponse(200) as any;
-    };
+      return makeResponse(200);
+    });
 
     try {
       await executor.execute({
@@ -216,10 +231,10 @@ describe("TheOldLlmExecutor", () => {
     try {
       let fetchCalls = 0;
 
-      globalThis.fetch = async () => {
+      globalThis.fetch = asFetch(() => {
         fetchCalls++;
-        return makeResponse(200) as any;
-      };
+        return makeResponse(200);
+      });
 
       const requests = Array.from({ length: 4 }, () =>
         executor.execute({
@@ -250,8 +265,8 @@ describe("TheOldLlmExecutor", () => {
     warmTokenCache();
     try {
       globalThis.fetch = async () => {
-        const error = new Error("ECONNREFUSED");
-        (error as any).cause = new Error("ECONNREFUSED");
+        const error = new Error("ECONNREFUSED") as Error & { cause?: unknown };
+        error.cause = new Error("ECONNREFUSED");
         throw error;
       };
 
@@ -269,7 +284,7 @@ describe("TheOldLlmExecutor", () => {
         },
       });
 
-      assert.strictEqual((result as any).response.status, 502);
+      assert.strictEqual((result as unknown as { response: Response }).response.status, 502);
     } finally {
       globalThis.fetch = originalFetch;
       clearTokenCache();

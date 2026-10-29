@@ -9589,6 +9589,13 @@ paths:
         "200":
           description: OK
   /api/keys/{id}/regenerate:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     post:
       tags:
         - Keys
@@ -9597,6 +9604,13 @@ paths:
         "200":
           description: OK
   /api/keys/{id}/reveal:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     get:
       tags:
         - Keys
@@ -9605,6 +9619,13 @@ paths:
         "200":
           description: OK
   /api/keys/{id}/usage-limits:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     get:
       tags:
         - Keys
@@ -9628,6 +9649,13 @@ paths:
         "200":
           description: OK
   /api/keys/groups/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     delete:
       tags:
         - Keys
@@ -9650,6 +9678,13 @@ paths:
         "200":
           description: OK
   /api/keys/groups/{id}/keys:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     delete:
       tags:
         - Keys
@@ -9672,6 +9707,13 @@ paths:
         "200":
           description: OK
   /api/keys/groups/{id}/permissions:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     delete:
       tags:
         - Keys

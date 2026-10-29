@@ -243,6 +243,8 @@
     "test:integration:ci": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 --test-shard=$TEST_SHARD tests/integration/*.test.ts \"tests/integration/combo-matrix/*.test.ts\"",
     "test:combo:matrix": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/integration/combo-matrix/*.test.ts\"",
     "test:combo:live": "cross-env RUN_COMBO_LIVE=1 DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/integration/combo-live/*.live.test.ts\"",
+    "test:a11y": "playwright test --config tests/a11y/playwright.config.ts",
+    "test:visual": "playwright test --config tests/visual/playwright.config.ts",
     "test:combo:live:vps": "node scripts/test/combo-live-vps.mjs",
     "test:combo:live:vps:failover": "node scripts/test/combo-live-vps.mjs --failover",
     "test:boundary:live": "cross-env RUN_BOUNDARY_LIVE=1 DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/boundary/*.live.test.ts\"",

@@ -1254,11 +1254,6 @@
       "count": 1
     }
   },
-  "src/app/api/compression/replay/__tests__/route.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/api/github-skills/route.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1331,16 +1326,6 @@
   },
   "src/app/api/services/[name]/logs/route.ts": {
     "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/app/api/settings/__tests__/memory.test.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
-  "src/app/api/settings/__tests__/settings.test.ts": {
-    "no-restricted-imports": {
       "count": 1
     }
   },
@@ -2638,14 +2623,6 @@
     }
   },
   "tests/scratch_test.mjs": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/theoldllm-stress.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 10
-    },
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }

@@ -116,6 +116,19 @@ export const COLLECTORS = [
   { glob: "tests/unit/api/**/*.spec.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/lib/memory/__tests__/generic-backend.test.ts", sources: ["vitest.mcp.config.ts"] },
   { glob: "tests/unit/encryption.spec.ts", sources: ["vitest.mcp.config.ts"] },
+  // vitest.mcp.config.ts — suites that vitest.config.ts used to collect only
+  // because it globbed all of tests/unit/**/*.test.ts. That glob made
+  // test:vitest:ui time out (5,285 files), so nothing under it ever ran;
+  // these are wired to test:vitest instead and now execute for real.
+  ...[
+    "src/app/api/settings/__tests__/**/*.test.ts",
+    "src/lib/db/__tests__/**/*.test.ts",
+    "src/lib/resilience/__tests__/**/*.test.ts",
+    "src/sse/handlers/__tests__/**/*.test.ts",
+    "src/shared/utils/**/*.test.ts",
+    "tests/unit/open-sse/**/*.test.ts",
+    "tests/unit/quota/quotaStore.contract.test.ts",
+  ].map((glob) => ({ glob, sources: ["vitest.mcp.config.ts"] })),
   { glob: "src/shared/components/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/shared/hooks/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
   { glob: "src/app/(dashboard)/**/__tests__/**/*.test.tsx", sources: ["vitest.mcp.config.ts"] },
@@ -151,6 +164,19 @@ export const COLLECTORS = [
     glob: "tests/unit/encryption.test.ts",
     sources: ["vitest.config.ts"],
     anchors: { "vitest.config.ts": "tests/unit/encryption.test.ts" },
+  },
+  // Playwright — opt-in a11y + visual regression suites. Each ships its own
+  // config and drives a live server (A11Y_BASE_URL / VISUAL_BASE_URL), so they
+  // are wired as scripts rather than default CI jobs, like test:combo:live.
+  {
+    glob: "tests/a11y/*.spec.ts",
+    sources: ["package.json"],
+    anchors: { "package.json": "tests/a11y/playwright.config.ts" },
+  },
+  {
+    glob: "tests/visual/*.spec.ts",
+    sources: ["package.json"],
+    anchors: { "package.json": "tests/visual/playwright.config.ts" },
   },
   // Playwright — test:e2e (o script passa tests/e2e/*.spec.ts; testMatch **/*.spec.ts)
   { glob: "tests/e2e/*.spec.ts", sources: ["package.json"] },
