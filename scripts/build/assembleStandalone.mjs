@@ -159,6 +159,19 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["node_modules", "@next", "env"],
   },
   {
+    // pino is externalized, and Next's tracer does not follow its dependency
+    // graph under pnpm — each sibling lives only in the virtual store. Missing
+    // siblings surface one at a time at boot
+    // ("Cannot find module 'pino-std-serializers'", then '@pinojs/redact', ...)
+    // and Next's instrumentation hook failure turns every request into a bare
+    // "Internal Server Error" (DAST smoke, 2026-10-29 — 22 endpoints).
+    // Copy the declared graph once instead of whack-a-mole per package.
+    label: "pino (+ declared runtime dependencies)",
+    pnpmPackage: "pino",
+    dest: ["node_modules", "pino"],
+    withDependencies: true,
+  },
+  {
     label: "pino-abstract-transport",
     src: ["node_modules", "pino-abstract-transport"],
     dest: ["node_modules", "pino-abstract-transport"],
@@ -436,6 +449,86 @@ async function syncExtraModulesToDir(projectRoot, outDir, fsImpl, log) {
     await fsImpl.cp(sourcePath, destPath, { recursive: true, force: true });
     log.log(`[assembleStandalone] Synced standalone module: ${entry.label}`);
     changed = true;
+
+    if (entry.withDependencies) {
+      const depsChanged = await syncPackageDependencies(
+        projectRoot,
+        outDir,
+        sourcePath,
+        fsImpl,
+        log
+      );
+      changed = changed || depsChanged;
+    }
+  }
+
+  return changed;
+}
+
+/**
+ * Copy a package's declared runtime dependencies (and theirs) into the bundle.
+ *
+ * Next externalizes packages such as `pino`, and under pnpm the tracer does not
+ * follow their dependency graph — each sibling is only linked inside the virtual
+ * store. The result was a boot failure that surfaced one package at a time
+ * ("Cannot find module 'pino-std-serializers'", then '@pinojs/redact', ...), and
+ * a broken instrumentation hook makes every request return a bare 500.
+ *
+ * @param {string} projectRoot
+ * @param {string} outDir
+ * @param {string} packageDir resolved package directory to read dependencies from
+ * @param {typeof fs} fsImpl
+ * @param {Console|{log:Function}} log
+ * @param {Set<string>} [seen]
+ * @param {number} [depth]
+ * @returns {Promise<boolean>}
+ */
+async function syncPackageDependencies(
+  projectRoot,
+  outDir,
+  packageDir,
+  fsImpl,
+  log,
+  seen = new Set(),
+  depth = 0
+) {
+  if (depth > 4) return false;
+  let manifest;
+  try {
+    manifest = JSON.parse(fsSync.readFileSync(path.join(packageDir, "package.json"), "utf8"));
+  } catch {
+    return false;
+  }
+
+  const mkdir = typeof fsImpl.mkdir === "function" ? fsImpl.mkdir.bind(fsImpl) : fs.mkdir.bind(fs);
+  let changed = false;
+
+  for (const name of Object.keys(manifest.dependencies || {})) {
+    if (seen.has(name)) continue;
+    seen.add(name);
+
+    const sourcePath = resolvePnpmStorePackage(projectRoot, name);
+    if (!sourcePath || !fsSync.existsSync(sourcePath)) continue;
+
+    const destPath = path.join(outDir, "node_modules", ...name.split("/"));
+    if (resolvesToSamePath(sourcePath, destPath)) continue;
+
+    clearStaleDest(destPath);
+    await mkdir(path.dirname(destPath), { recursive: true });
+    await fsImpl.cp(sourcePath, destPath, { recursive: true, force: true });
+    log.log(`[assembleStandalone] Synced dependency: ${name}`);
+    changed = true;
+
+    const nested = await syncPackageDependencies(
+      projectRoot,
+      outDir,
+      sourcePath,
+      fsImpl,
+      log,
+      seen,
+      depth + 1
+    );
+    changed = changed || nested;
   }
 
   return changed;
@@ -706,7 +799,53 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
     fsSync.mkdirSync(path.dirname(dest), { recursive: true });
     fsSync.cpSync(src, dest, { recursive: true, force: true });
     console.log(`[assembleStandalone] Synced module: ${mod.label}`);
+
+    if (mod.withDependencies) {
+      syncPackageDependenciesSync(projectRoot, resolvedOutDir, src);
+    }
   }
+}
+
+/**
+ * Synchronous twin of syncPackageDependencies(), for the blocking assembler path.
+ *
+ * @param {string} projectRoot
+ * @param {string} outDir
+ * @param {string} packageDir
+ * @param {Set<string>} [seen]
+ * @param {number} [depth]
+ * @returns {boolean}
+ */
+function syncPackageDependenciesSync(projectRoot, outDir, packageDir, seen = new Set(), depth = 0) {
+  if (depth > 4) return false;
+  let manifest;
+  try {
+    manifest = JSON.parse(fsSync.readFileSync(path.join(packageDir, "package.json"), "utf8"));
+  } catch {
+    return false;
+  }
+
+  let changed = false;
+  for (const name of Object.keys(manifest.dependencies || {})) {
+    if (seen.has(name)) continue;
+    seen.add(name);
+
+    const src = resolvePnpmStorePackage(projectRoot, name);
+    if (!src || !fsSync.existsSync(src)) continue;
+
+    const dest = path.join(outDir, "node_modules", ...name.split("/"));
+    if (resolvesToSamePath(src, dest)) continue;
+
+    clearStaleDest(dest);
+    fsSync.mkdirSync(path.dirname(dest), { recursive: true });
+    fsSync.cpSync(src, dest, { recursive: true, force: true });
+    console.log(`[assembleStandalone] Synced dependency: ${name}`);
+    changed = true;
+
+    if (syncPackageDependenciesSync(projectRoot, outDir, src, seen, depth + 1)) changed = true;
+  }
+
+  return changed;
 }
 
 /**
