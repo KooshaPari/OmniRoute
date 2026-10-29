@@ -50,8 +50,13 @@ export const KNOWN_DUPLICATE_VERSIONS = new Set([
 // (149_api_key_combo_access.sql) — nenhuma das duas é mais um gap. O
 // stale-enforcement exige que cada reserva seja removida quando os arquivos
 // correspondentes aterrissarem na release.
+//
+// A reserva "121" saiu daqui: o número foi queimado no ciclo v3.8.47, mas a
+// migration 121_tenant_quotas.sql já aterrissou (tabela tenant_quotas, usada
+// pelo skill A2A quota-management), e a sequência 110–121 está contígua. Com o
+// arquivo presente, 121 deixou de ser um gap e a reserva virou obsoleta.
 // ---------------------------------------------------------------------------
-export const KNOWN_GAPS = new Set(["026", "055", "121"]); // 121: número queimado no ciclo v3.8.47 — 122 (#6909) mergeou antes e 121 nunca aterrissou (validação e2e 2026-07-12); 144/145 aterrissaram na release (radar offers/intel cache), 148/149 aterrissaram (provider_quota_state, api_key_combo_access)
+export const KNOWN_GAPS = new Set(["026", "055"]); // 026/055 são slots legados; 144/145 aterrissaram na release (radar offers/intel cache), 148/149 aterrissaram (provider_quota_state, api_key_combo_access)
 
 function pad3(n) {
   return String(n).padStart(3, "0");

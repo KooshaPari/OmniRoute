@@ -102,7 +102,6 @@ test("the real migrations dir produces ZERO anomalies under the frozen allowlist
 test("frozen allowlists match the documented legacy and stacked-series gaps", () => {
   assert.ok((KNOWN_GAPS as Set<string>).has("026"));
   assert.ok((KNOWN_GAPS as Set<string>).has("055"));
-  assert.ok((KNOWN_GAPS as Set<string>).has("121"));
   assert.equal((KNOWN_GAPS as Set<string>).has("143"), false);
   assert.equal((KNOWN_GAPS as Set<string>).has("144"), false);
   assert.equal((KNOWN_GAPS as Set<string>).has("145"), false);
@@ -112,6 +111,10 @@ test("frozen allowlists match the documented legacy and stacked-series gaps", ()
   assert.equal((KNOWN_GAPS as Set<string>).has("148"), false);
   // 149 left the gap list when 149_api_key_combo_access.sql landed (#10066).
   assert.equal((KNOWN_GAPS as Set<string>).has("149"), false);
+  // 121 left the gap list when 121_tenant_quotas.sql landed (same pattern as 143/147/148/149):
+  // the number was burned in the v3.8.47 cycle, but the migration itself exists now, so the
+  // sequence 110-121 is contiguous and the gap reservation became obsolete.
+  assert.equal((KNOWN_GAPS as Set<string>).has("121"), false);
   // "041" was removed from KNOWN_DUPLICATE_VERSIONS in 6A.3 (stale: no physical
   // duplicate for that prefix on disk anymore — only 041_compression_receipts.sql exists).
   assert.equal((KNOWN_DUPLICATE_VERSIONS as Set<string>).has("041"), false);
