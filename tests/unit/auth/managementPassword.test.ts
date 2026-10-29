@@ -37,10 +37,17 @@ test("detects bcrypt hashes by prefix", () => {
 });
 
 test("rejects empty / malformed passwords", async () => {
-  await assert.rejects(() => hashManagementPassword(""));
-  await assert.rejects(() => hashManagementPassword("   "));
+  // Empty and whitespace-only passwords are an auth bypass: the callers guard
+  // with truthiness only, so "   " would otherwise hash to a usable password.
+  await assert.rejects(() => hashManagementPassword(""), /must not be empty/);
+  await assert.rejects(() => hashManagementPassword("   "), /must not be empty/);
   assert.equal(await verifyManagementPassword(STRONG_PASSWORD, ""), false);
   assert.equal(await verifyManagementPassword(STRONG_PASSWORD, "garbage"), false);
+  // A legacy argon2id hash must not authenticate: the KDF is bcrypt only.
+  assert.equal(
+    await verifyManagementPassword(STRONG_PASSWORD, "$argon2id$v=19$m=19456,t=2,p=1$abcd"),
+    false
+  );
 });
 
 test("verifyManagementPassword still accepts legacy bcrypt hashes (no upgrade required)", async () => {
