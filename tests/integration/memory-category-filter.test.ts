@@ -11,6 +11,7 @@ const core = await import("../../src/lib/db/core.ts");
 const { updateSettings } = await import("../../src/lib/db/settings.ts");
 const localDb = { updateSettings };
 const { GET } = await import("../../src/app/api/memory/route.ts");
+const { makeManagementSessionRequest } = await import("../helpers/managementSession.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -33,8 +34,7 @@ function insertMemoryRow({
 }) {
   const db = core.getDbInstance();
   const now = new Date().toISOString();
-  const serializedMetadata =
-    metadata ?? JSON.stringify(category === undefined ? {} : { category });
+  const serializedMetadata = metadata ?? JSON.stringify(category === undefined ? {} : { category });
 
   db.prepare(
     `INSERT INTO memories (
@@ -55,7 +55,11 @@ function insertMemoryRow({
 }
 
 async function getMemories(query = "") {
-  const response = await GET(new Request(`http://localhost/api/memory${query}`));
+  // requireManagementAuth() gates this route: rely on the shared management-session
+  // helper instead of a bare Request, which is only "authorised" while
+  // requireLogin happens to be false in the local env (401 on CI).
+  const request = await makeManagementSessionRequest(`http://localhost/api/memory${query}`);
+  const response = await GET(request as unknown as Request);
   assert.equal(response.status, 200);
   return response.json();
 }
@@ -77,10 +81,10 @@ test("GET /api/memory filters by metadata.category and keeps totals in sync", as
 
   const body = await getMemories("?category=codegraph");
 
-  assert.deepEqual(
-    body.data.map((memory: { id: string }) => memory.id).sort(),
-    ["codegraph-1", "codegraph-2"]
-  );
+  assert.deepEqual(body.data.map((memory: { id: string }) => memory.id).sort(), [
+    "codegraph-1",
+    "codegraph-2",
+  ]);
   assert.equal(body.total, 2);
   assert.equal(body.stats.total, 2);
   assert.deepEqual(body.stats.byType, { factual: 1, semantic: 1 });
@@ -89,8 +93,18 @@ test("GET /api/memory filters by metadata.category and keeps totals in sync", as
 test("GET /api/memory composes category with existing filters and pagination", async () => {
   insertMemoryRow({ id: "keep-1", category: "decision", type: "episodic", sessionId: "session-a" });
   insertMemoryRow({ id: "keep-2", category: "decision", type: "episodic", sessionId: "session-a" });
-  insertMemoryRow({ id: "wrong-type", category: "decision", type: "factual", sessionId: "session-a" });
-  insertMemoryRow({ id: "wrong-session", category: "decision", type: "episodic", sessionId: "session-b" });
+  insertMemoryRow({
+    id: "wrong-type",
+    category: "decision",
+    type: "factual",
+    sessionId: "session-a",
+  });
+  insertMemoryRow({
+    id: "wrong-session",
+    category: "decision",
+    type: "episodic",
+    sessionId: "session-b",
+  });
 
   const body = await getMemories(
     "?category=decision&type=episodic&sessionId=session-a&limit=1&offset=1"
