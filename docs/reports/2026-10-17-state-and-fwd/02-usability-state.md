@@ -18,7 +18,7 @@ GET  /api/v1/models                 -> {"object":"list","data":[{"id":"auto/best
                                             "context_length":1048576, ...}]}
 GET  /                              -> 307  (auth redirect — correct)
 GET  /setup                         -> 404  (already complete — correct)
-GET  /api/status                    -> 401  (auth required — correct)
+GET  /api/settings                  -> 401  (auth required — correct)
 ```
 
 The dev server binds **port 20128** for the app; 20131 (embed WS proxy) and

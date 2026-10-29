@@ -78,7 +78,7 @@ Even outside blocked regions, proxies are useful for:
 | **Proxy Fetch**      | `open-sse/utils/proxyFetch.ts`               | Wraps `fetch()` with proxy dispatcher injection            |
 | **Settings Route**   | `src/app/api/settings/proxy/route.ts`        | Legacy proxy config API (GET/PUT/DELETE)                   |
 | **Management Route** | `src/app/api/v1/management/proxies/route.ts` | Registry CRUD API (GET/POST/PATCH/DELETE)                  |
-| **1proxy DB**        | `src/lib/db/freeProxies.ts`                  | Free proxy marketplace persistence                         |
+| **Free-proxy DB**    | `src/lib/db/freeProxies.ts`                  | Free proxy marketplace persistence (free-proxies API)      |
 
 ---
 

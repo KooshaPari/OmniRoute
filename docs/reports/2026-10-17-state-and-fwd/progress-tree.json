@@ -354,7 +354,7 @@
         "id": "S2",
         "obligation": "auth enforced",
         "state": "MET",
-        "evidence": "/api/status 401 unauth; 200 authed"
+        "evidence": "/api/settings 401 unauth; 200 authed"
       },
       {
         "id": "S3",
