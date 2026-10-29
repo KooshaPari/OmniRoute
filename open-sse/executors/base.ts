@@ -2,6 +2,7 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 import { resolveFetchStartTimeout } from "../utils/fetchStartTimeoutPolicy.ts";
+import { ensureFetchResponse } from "../utils/fetchResponse.ts";
 import {
   resolveAlternateFormat,
   type AlternateFormat,
@@ -687,13 +688,6 @@ export class BaseExecutor {
         body: JSON.stringify(requestBody),
         signal: activeSignal || undefined,
       });
-      // A fetch stub/transport can resolve to undefined; dereferencing .text() then
-      // throws an opaque "Cannot read properties of undefined" that hides the real
-      // cause. Fail with a diagnosable message instead.
-      if (!response || typeof (response as Response).text !== "function") {
-        throw new Error("Upstream fetch returned an invalid response");
-      }
-
       const text = await response.text();
       if (!response.ok) {
         const parsedError = this.parseError(response, text);
@@ -962,14 +956,7 @@ export class BaseExecutor {
             : requestOptions;
 
           try {
-            const response = await fetch(requestUrl, optionsWithSignal);
-            // A transport/stub can resolve to undefined; every caller immediately
-            // dereferences response.headers/status, so fail with a diagnosable
-            // message instead of an opaque TypeError.
-            if (!response || typeof (response as Response).headers !== "object") {
-              throw new Error("Upstream fetch returned an invalid response");
-            }
-            return response;
+            return ensureFetchResponse(await fetch(requestUrl, optionsWithSignal));
           } finally {
             if (timeoutId) clearTimeout(timeoutId);
           }
