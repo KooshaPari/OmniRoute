@@ -1,6 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert";
-import { evaluateFileSizes } from "../../scripts/check/check-file-size.mjs";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { evaluateFileSizes, getBaseLoc } from "../../scripts/check/check-file-size.mjs";
 
 const cap = 800;
 
@@ -129,4 +133,31 @@ test("redundant applies to the test-file path too", () => {
     testCap
   );
   assert.deepEqual(r.redundant, ["tests/unit/small.test.ts"]);
+});
+
+// ─── getBaseLoc (--base-ref reader, #8522) ───────────────────────────────────
+
+test("getBaseLoc counts every path in one pass, same as split('\\n').length", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "file-size-baseloc-"));
+  try {
+    execFileSync("git", ["init", "-q"], { cwd: dir, stdio: "ignore" });
+    execFileSync("git", ["config", "user.email", "t@example.com"], { cwd: dir });
+    execFileSync("git", ["config", "user.name", "t"], { cwd: dir });
+    fs.mkdirSync(path.join(dir, "src"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "src/a.ts"), "a\nb\nc\n");
+    fs.writeFileSync(path.join(dir, "src/empty.ts"), "");
+    execFileSync("git", ["add", "."], { cwd: dir });
+    execFileSync("git", ["commit", "-qm", "base"], { cwd: dir, stdio: "ignore" });
+
+    const loc = getBaseLoc("HEAD", ["src/a.ts", "src/empty.ts", "src/missing.ts"], { cwd: dir });
+
+    assert.deepEqual(loc, { "src/a.ts": 4, "src/empty.ts": 1 });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("getBaseLoc yields no entries when the ref is unknown", () => {
+  const loc = getBaseLoc("refs/heads/definitely-not-a-real-ref", ["package.json"]);
+  assert.deepEqual(loc, {});
 });

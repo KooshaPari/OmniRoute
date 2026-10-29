@@ -138,7 +138,18 @@ jobs:
       - run: npm run check:provider-asset-provenance
       - run: npm run check:fetch-targets
       - run: npm run check:deps
-      - run: npm run check:file-size
+      # #8522: base-relative on PR events so drift already merged into the base
+      # cannot red an innocent PR (the quality-gate job in quality.yml has used
+      # this mode since #8522). push/workflow_dispatch have no PR base → absolute.
+      - name: File-size ratchet
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -n "${PR_BASE_SHA:-}" ]; then
+            npm run check:file-size -- --base-ref "$PR_BASE_SHA"
+          else
+            npm run check:file-size
+          fi
       - run: npm run check:error-helper
       - run: npm run check:migration-numbering
       - run: npm run check:public-creds
