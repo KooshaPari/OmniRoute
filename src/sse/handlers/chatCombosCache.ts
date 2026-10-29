@@ -35,7 +35,8 @@
  * helper makes this explicit — without it, tests would have to wait 10s
  * for the TTL to expire.
  */
-import { getCombos, getCombosCacheVersion } from "@/lib/localDb";
+import { getCombos } from "@/lib/db/combos";
+import { getCombosCacheVersion } from "@/lib/db/readCache";
 
 /** TTL in milliseconds. Combo reads hit localDb; 10s is the upper bound
  * for how stale a snapshot can be before the cache is force-refreshed.

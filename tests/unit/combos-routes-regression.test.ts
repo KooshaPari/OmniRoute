@@ -23,7 +23,7 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { ensureDbInitialized, resetDbInstance } from "@/lib/db/stateReset";
-import { createCombo, getComboById } from "@/lib/localDb";
+import { createCombo, getComboById } from "@/lib/db/combos";
 
 const BASE = "http://localhost:3000";
 const AUTH = { "Content-Type": "application/json", "X-Forwarded-For": "127.0.0.1" };
