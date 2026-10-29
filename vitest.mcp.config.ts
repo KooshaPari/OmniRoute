@@ -24,6 +24,17 @@ export default defineConfig({
       "src/shared/components/**/*.test.tsx",
       "src/shared/hooks/__tests__/**/*.test.tsx",
       "src/app/(dashboard)/**/__tests__/**/*.test.tsx",
+      // check:test-discovery caught these as NEW orphans once vitest.config.ts
+      // stopped taking the whole `tests/unit/**/*.test.ts` tree (5,285 files:
+      // test:vitest:ui could never finish, so nothing there actually ran).
+      // They are vitest suites, so they belong here, not in the node runner.
+      "src/app/api/settings/__tests__/**/*.test.ts",
+      "src/lib/db/__tests__/**/*.test.ts",
+      "src/lib/resilience/__tests__/**/*.test.ts",
+      "src/sse/handlers/__tests__/**/*.test.ts",
+      "src/shared/utils/**/*.test.ts",
+      "tests/unit/open-sse/**/*.test.ts",
+      "tests/unit/quota/**/*.test.ts",
     ],
     exclude: [
       "**/node_modules/**",
