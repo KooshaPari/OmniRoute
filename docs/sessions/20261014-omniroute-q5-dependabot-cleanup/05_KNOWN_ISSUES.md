@@ -423,7 +423,7 @@ random untracked files):
 
 | Category                           | Count | Examples                                                                                                                        |
 | ---------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Sub-project: `desktop-electrobun/` | 7     | package.json, tsconfig.json, justfile, README, src/bun/index.ts, tests/lifecycle.test.ts                                        |
+| Sub-project: `desktop-electrobun/` | 7     | package.json, tsconfig.json, justfile, README, desktop-electrobun/src/bun/index.ts, desktop-electrobun/tests/lifecycle.test.ts  |
 | Sub-project: `electron/` (legacy)  | 23    | 504KB (likely packaging scripts + config)                                                                                       |
 | Sub-project: `docs/research/`      | 40    | 1.7MB (research notes; mostly markdown)                                                                                         |
 | Sub-project: `tests/performance/`  | 1     | 20K (perf test scaffolding)                                                                                                     |
@@ -863,7 +863,7 @@ test. Then I checked the history.
 
 1. **The file was officially removed in `ff3d19cc64 fix(F-03): remove broken benchmark files, replaced by benches/dispatch/`** (2026-09-16, ON MAIN).
    Commit message: _"The vitest-based benchmarks timed out on import. Replaced with self-contained benchmark in `benches/dispatch/provider-routing.bench.ts` that follows the existing ADR-032 infrastructure."_
-2. **`ff3d19cc64` removed exactly 2 files: `tests/performance/provider-routing-benchmark.test.ts` (524 lines) and `tests/performance/provider-routing.bench.ts` (336 lines) — 860 total deletions.** Both were broken; the replacement is on main.
+2. **`ff3d19cc64` removed exactly 2 files: `tests/performance/provider-routing-benchmark.test.ts` (524 lines) and `provider-routing.bench.ts` in that same directory (336 lines) — 860 total deletions.** Both were broken; the replacement is on main.
 3. **The untracked version is BYTE-FOR-BYTE IDENTICAL to the deleted version.** Verified: `diff <(git show ff3d19cc64^:tests/performance/provider-routing-benchmark.test.ts) tests/performance/provider-routing-benchmark.test.ts` returns empty.
 4. **Re-introducing it would re-add a documented broken benchmark** (the `timeout on import` bug). The replacement at `benches/dispatch/provider-routing.bench.ts` is tracked, has a different (working) implementation, and is the canonical location per F-03.
 
@@ -1624,7 +1624,8 @@ comment (husky is the single source of truth, since
 `core.hooksPath=.husky/_` means lefthook never runs here).
 
 **Enforcement was proven end-to-end by a negative control on
-2026-10-15**: `src/lib/db/oneproxy.ts` was restored verbatim
+2026-10-15**: the legacy 1proxy DB module (`oneproxy.ts`, in
+`src/lib/db/`) was restored verbatim
 (SHA-256 `009742c5…` identical to the blob deleted in `843f342`),
 staged, and the guard exited 1 naming the path, the deletion
 commit, and its subject. The benign control (a novel file with
@@ -1772,13 +1773,13 @@ throwaway branch `test/negative-control`:
 
 **Resurrection test (exit 1 — blocked):**
 
-- File: `src/lib/db/oneproxy.ts` (deleted in `843f342`, 2026-09-19,
+- File: `oneproxy.ts` in `src/lib/db/` (deleted in `843f342`, 2026-09-19,
   "refactor(1proxy): migrate to free-proxies API + delete legacy island")
-- Verbatim content restored from `843f342~1:src/lib/db/oneproxy.ts`
+- Verbatim content restored from the `843f342~1` blob for that file
   (2686 bytes, not present in working tree prior to test)
 - Staged with `git add`, then `bun scripts/check/check-resurrection-patterns.mjs --staged-only --json`
 - Result: `candidatesScanned: 1`, `matchesReal: 1`, exit 1
-- JSON matched path `src/lib/db/oneproxy.ts`, deletion commit
+- JSON matched the `oneproxy.ts` path under `src/lib/db/`, deletion commit
   `843f342556101d3638966658aa4da3d3a31c4b1f`, message
   "refactor(1proxy): migrate to free-proxies API + delete legacy island"
 

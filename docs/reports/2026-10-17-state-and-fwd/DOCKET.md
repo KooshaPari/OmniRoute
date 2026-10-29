@@ -19,8 +19,8 @@
 **What works today.** A real Next.js gateway on `:20128`. Cold start serves
 `/api/health` 200, `/login` 200 (745 KB UI), `POST /api/auth/login` 200 with an
 `auth_token` cookie, `/dashboard` 200 authenticated, `/api/v1/models` returns
-**521 models**, `/api/settings` returns persisted config, unauthenticated
-`/api/status` correctly 401s, and `/api/v1/chat/completions` routes to a pool of
+**521 models**, `/api/settings` returns persisted config, an unauthenticated
+`/api/settings` correctly 401s, and `/api/v1/chat/completions` routes to a pool of
 **8 targets** and returns structured diagnostics (`ALL_TARGETS_SKIPPED`) because
 no provider credential exists.
 
@@ -122,18 +122,18 @@ Protocol.
 
 Observed 2026-10-17 against `:20128` at `8d253946ac`.
 
-| Journey                                 | Result   | Evidence                                                |
-| --------------------------------------- | -------- | ------------------------------------------------------- |
-| Cold reachability `/api/health`         | **200**  | `{"status":"ok","timestamp":"..."}`                     |
-| `/login` render                         | **200**  | 745,663 bytes, `<title>OmniRoute — AI Gateway…</title>` |
-| `POST /api/auth/login`                  | **200**  | `{"success":true}` + `auth_token` cookie                |
-| Session check `/api/auth/status`        | **200**  | `{"authenticated":true}`                                |
-| Authenticated `/dashboard`              | **200**  | real page                                               |
-| Model catalog `/api/v1/models`          | **200**  | `object:list`, **521** models                           |
-| Settings read `/api/settings`           | **200**  | persisted config returned                               |
-| Negative auth `/api/status` (no cookie) | **401**  | correct                                                 |
-| Gateway `POST /api/v1/chat/completions` | **503**  | `ALL_TARGETS_SKIPPED`, `poolSize:8`                     |
-| Restart / recovery                      | **PASS** | server restarted and re-served after being killed       |
+| Journey                                   | Result   | Evidence                                                |
+| ----------------------------------------- | -------- | ------------------------------------------------------- |
+| Cold reachability `/api/health`           | **200**  | `{"status":"ok","timestamp":"..."}`                     |
+| `/login` render                           | **200**  | 745,663 bytes, `<title>OmniRoute — AI Gateway…</title>` |
+| `POST /api/auth/login`                    | **200**  | `{"success":true}` + `auth_token` cookie                |
+| Session check `/api/auth/status`          | **200**  | `{"authenticated":true}`                                |
+| Authenticated `/dashboard`                | **200**  | real page                                               |
+| Model catalog `/api/v1/models`            | **200**  | `object:list`, **521** models                           |
+| Settings read `/api/settings`             | **200**  | persisted config returned                               |
+| Negative auth `/api/settings` (no cookie) | **401**  | correct                                                 |
+| Gateway `POST /api/v1/chat/completions`   | **503**  | `ALL_TARGETS_SKIPPED`, `poolSize:8`                     |
+| Restart / recovery                        | **PASS** | server restarted and re-served after being killed       |
 
 ### Interfaces a user has today
 

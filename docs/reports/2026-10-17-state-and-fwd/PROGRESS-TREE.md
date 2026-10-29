@@ -73,7 +73,7 @@ G5   Fork governance                        ████████████
 | ID  | Obligation                 | State       | Evidence                                                                                        |
 | --- | -------------------------- | ----------- | ----------------------------------------------------------------------------------------------- |
 | S1  | session cookie flags       | **MET**     | login/route.ts:170-172 httpOnly+secure+sameSite                                                 |
-| S2  | auth enforced              | **MET**     | /api/status 401 unauth; 200 authed                                                              |
+| S2  | auth enforced              | **MET**     | /api/settings 401 unauth; 200 authed                                                            |
 | S3  | resurrection guard active  | **MET**     | KI-031 proven blocking                                                                          |
 | S4  | secrets encrypted at rest  | **NOT MET** | encryption.ts:187 logs 'Storing plaintext (passthrough mode)' when STORAGE_ENCRYPTION_KEY unset |
 | S5  | default credential changed | **NOT MET** | INITIAL_PASSWORD=CHANGEME                                                                       |
