@@ -18,9 +18,15 @@
     "tests/live/deepseek-web-live.test.ts",
     "tests/unit/quota/keyvQuotaStore.test.ts",
     "tests/unit/quota/keyvQuotaStoreExtras.test.ts",
-    "tests/unit/vitest/instrumentation-node.test.ts"
+    "tests/unit/vitest/cacheLayer.test.ts",
+    "tests/unit/vitest/encryption-failclosed.test.ts",
+    "tests/unit/vitest/encryption-startup.test.ts",
+    "tests/unit/vitest/instrumentation-node.test.ts",
+    "tests/unit/vitest/mcp-tool-injection.test.ts",
+    "tests/unit/vitest/retrievalStrategy.test.ts"
   ],
   "_keyv": "2 orfaos novos (2026-10-29): src/lib/quota/keyvQuotaStore.ts importa o pacote opcional `keyv`, que NAO e dependencia declarada, entao as duas suites nao podem rodar. Decidir: adicionar `keyv` (dependencia + allowlist + lockfile) ou remover o adapter nao usado. Ate la ficam congeladas aqui em vez de fingir cobertura.",
   "_a2a": "5 suites A2A (2026-10-29): sao testes de INTEGRACAO \u2014 as skills chamam a API viva (OMNIROUTE_BASE_URL) e falham com 404 sem servidor. Estavam no glob do runner node (tests/unit/*.test.ts), onde morriam no import com 'Vitest failed to find the runner'. Movidos para tests/integration/a2a/ e congelados aqui: nenhum runner sobe servidor para eles. Religar quando houver job de servidor vivo para A2A.",
-  "_vitestBatch": "1 suite de tests/unit/vitest ficou fora do include do test:vitest: instrumentation-node.test.ts \u2014 o inicializador OTel que ela exercita (initOtel/__resetOtelInitForTests) nao existe mais em src/instrumentation-node.ts; suite orfa do modulo removido. bifrost-backend.test.ts foi RELIGADA: os 2 testes que falhavam expuseram 2 bugs reais (getExecutor() nao era awaited no fallback do kill switch; o helper de fetch nao validava a Response)."
+  "_vitestBatch": "1 suite de tests/unit/vitest ficou fora do include do test:vitest: instrumentation-node.test.ts \u2014 o inicializador OTel que ela exercita (initOtel/__resetOtelInitForTests) nao existe mais em src/instrumentation-node.ts; suite orfa do modulo removido. bifrost-backend.test.ts foi RELIGADA: os 2 testes que falhavam expuseram 2 bugs reais (getExecutor() nao era awaited no fallback do kill switch; o helper de fetch nao validava a Response).",
+  "_vitestSweep": "Varredura 2026-10-29 das suites vitest que estavam no glob do runner node (morriam no import com 'Vitest failed to find the runner'). 6 religadas e verdes no CI (otel-exporter, traceparent, combo-span, bifrost-span, bifrost-backend, phenotype-contracts-conformance). As demais ficam congeladas: cacheLayer (5 assertam a API antiga do adapter LRU), encryption-failclosed + encryption-startup (AC-1..AC-10 de contrato nao implementado), mcp-tool-injection e retrievalStrategy (mexem no SQLite compartilhado; sob execucao paralela derrubam suites vizinhas \u2014 medido: 13 falhas com elas no pool vs 2 sem). managementPassword foi CONVERTIDA para node:test em tests/unit/auth/ e roda nos shards."
 }

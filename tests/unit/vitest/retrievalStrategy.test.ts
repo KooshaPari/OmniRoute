@@ -208,10 +208,7 @@ describe("retrievalStrategy — fetchMemoriesByIds", () => {
 
 describe("retrievalStrategy — mergeHybridRows", () => {
   test("dedups by id, preserving FTS5-first order", () => {
-    const fts = [
-      { id: 1, content: "fts-a" } as never,
-      { id: 2, content: "fts-b" } as never,
-    ];
+    const fts = [{ id: 1, content: "fts-a" } as never, { id: 2, content: "fts-b" } as never];
     const kw = [
       { id: 2, content: "kw-b" } as never, // dup
       { id: 3, content: "kw-c" } as never,
@@ -292,9 +289,7 @@ describe("retrievalStrategy — enforceTokenBudget", () => {
   test("respects initial total so existing budget is preserved", () => {
     // budget=10, already used 8. Single 20-char entry → 5 tokens, 8+5=13 > 10.
     // First item is always pushed regardless (memo must never return empty).
-    const items = [
-      { memory: fakeMemory("a".repeat(20)), score: 0.9, tier: "fts5" as const },
-    ];
+    const items = [{ memory: fakeMemory("a".repeat(20)), score: 0.9, tier: "fts5" as const }];
     const out: (typeof items)[number][] = [];
     const total = enforceTokenBudget(items, 10, out, 8);
     expect(out.length).toBe(1);

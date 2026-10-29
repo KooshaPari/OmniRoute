@@ -13,8 +13,7 @@
  *   5. omniroute_create_combo   — name + description (stored injection)
  */
 
-import { describe, test, expect } from "vitest";
-
+import { test, expect } from "vitest";
 
 import {
   routeRequestInput,
@@ -254,7 +253,7 @@ test("test_combo: rejects missing comboId", () => {
 
 test("create_combo: rejects injection in name field", () => {
   const injectionNames = [
-    '<script>alert(1)</script>',
+    "<script>alert(1)</script>",
     '"><img src=x onerror=alert(1)>',
     "{{template}}",
     "${expression}",
