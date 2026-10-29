@@ -9,14 +9,11 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { A2ATask } from "@/lib/a2a/taskManager";
 import { executeMintVirtualKey } from "@/lib/a2a/skills/mintVirtualKey";
-import {
-  getDbInstance,
-  closeDbInstance,
-} from "@/lib/db/core";
+import { getDbInstance, closeDbInstance } from "@/lib/db/core";
 
 function makeTask(
   metadata: Record<string, unknown> | undefined,
-  messages: A2ATask["messages"] = [],
+  messages: A2ATask["messages"] = []
 ): A2ATask {
   return {
     id: `task-${Math.random().toString(36).slice(2, 10)}`,
@@ -59,22 +56,22 @@ describe("mintVirtualKey A2A skill", () => {
       makeTask({
         tenantId: "tenant_x",
         scopes: ["read:health"], // does NOT include keys:write
-      }),
+      })
     );
     const payload = parseArtifact(result);
     expect(payload.error).toBe("scope_denied");
     expect(payload.message).toMatch(/keys:write/);
     expect(result.metadata?.success).toBe(false);
     // No row should have been created.
-    const count = (getDbInstance()
-      .prepare("SELECT COUNT(*) AS n FROM virtual_keys")
-      .get() as { n: number }).n;
+    const count = (
+      getDbInstance().prepare("SELECT COUNT(*) AS n FROM virtual_keys").get() as { n: number }
+    ).n;
     expect(count).toBe(0);
   });
 
   it("rejects callers with no scopes field at all", async () => {
     const result = await executeMintVirtualKey(
-      makeTask({ tenantId: "tenant_x" }), // no scopes
+      makeTask({ tenantId: "tenant_x" }) // no scopes
     );
     const payload = parseArtifact(result);
     expect(payload.error).toBe("scope_denied");
@@ -90,7 +87,7 @@ describe("mintVirtualKey A2A skill", () => {
         label: "primary",
         max_cost_usd: 50,
         max_rpd: 200,
-      }),
+      })
     );
     const payload = parseArtifact(result);
     expect(typeof payload.keyId).toBe("string");
@@ -116,7 +113,7 @@ describe("mintVirtualKey A2A skill", () => {
         tenantId: uniqueTenant("exp"),
         scopes: ["keys:write"],
         expires_at: "not-a-date",
-      }),
+      })
     );
     const payload = parseArtifact(result);
     expect(payload.error).toBe("invalid_input");
@@ -129,7 +126,7 @@ describe("mintVirtualKey A2A skill", () => {
         tenantId: uniqueTenant("neg"),
         scopes: ["keys:write"],
         max_cost_usd: -5,
-      }),
+      })
     );
     const payload = parseArtifact(result);
     expect(payload.error).toBe("invalid_input");
@@ -141,16 +138,15 @@ describe("mintVirtualKey A2A skill", () => {
       makeTask({
         tenantId: uniqueTenant("warn"),
         scopes: ["keys:write"],
-      }),
+      })
     );
     const payload = parseArtifact(result);
     expect(result.metadata?.success).toBe(true);
     expect(payload.warnings).toBeInstanceOf(Array);
     expect(payload.warnings.length).toBeGreaterThan(0);
     // At least one of the unset-cap warnings should be present.
-    const hasUnsetCapWarning = payload.warnings.some(
-      (w: string) =>
-        /max_cost_usd|max_rpd|allowed_models|expires_at/.test(w),
+    const hasUnsetCapWarning = payload.warnings.some((w: string) =>
+      /max_cost_usd|max_rpd|allowed_models|expires_at/.test(w)
     );
     expect(hasUnsetCapWarning).toBe(true);
   });

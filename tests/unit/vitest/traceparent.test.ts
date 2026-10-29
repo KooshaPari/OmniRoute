@@ -21,7 +21,7 @@ import {
   readTraceparentFromHeaders,
   TRACEPARENT_VERSION,
   type Traceparent,
-} from "../../open-sse/observability/traceparent.ts";
+} from "../../../open-sse/observability/traceparent.ts";
 
 describe("traceparent", () => {
   describe("generateTraceparent", () => {
@@ -96,14 +96,10 @@ describe("traceparent", () => {
     });
 
     it("parses a known-valid W3C example", () => {
-      const result = parseTraceparent(
-        "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
-      );
+      const result = parseTraceparent("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01");
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.traceparent.traceId).toBe(
-          "4bf92f3577b34da6a3ce929d0e0e4736"
-        );
+        expect(result.traceparent.traceId).toBe("4bf92f3577b34da6a3ce929d0e0e4736");
         expect(result.traceparent.parentId).toBe("00f067aa0ba902b7");
         expect(result.traceparent.flags).toBe("01");
       }
@@ -129,17 +125,13 @@ describe("traceparent", () => {
     });
 
     it("rejects non-00 version with reason=wrong_version", () => {
-      const result = parseTraceparent(
-        "ff-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
-      );
+      const result = parseTraceparent("ff-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01");
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.error).toBe("wrong_version");
     });
 
     it("rejects trace-id with non-hex characters", () => {
-      const result = parseTraceparent(
-        "00-ZZZZ2f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
-      );
+      const result = parseTraceparent("00-ZZZZ2f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01");
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.error).toBe("bad_trace_id");
     });
@@ -151,41 +143,31 @@ describe("traceparent", () => {
     });
 
     it("rejects parent-id with wrong length", () => {
-      const result = parseTraceparent(
-        "00-4bf92f3577b34da6a3ce929d0e0e4736-00f0-01"
-      );
+      const result = parseTraceparent("00-4bf92f3577b34da6a3ce929d0e0e4736-00f0-01");
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.error).toBe("bad_parent_id");
     });
 
     it("rejects flags with wrong length", () => {
-      const result = parseTraceparent(
-        "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-12345"
-      );
+      const result = parseTraceparent("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-12345");
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.error).toBe("bad_flags");
     });
 
     it("rejects reserved all-zero trace-id", () => {
-      const result = parseTraceparent(
-        "00-00000000000000000000000000000000-00f067aa0ba902b7-01"
-      );
+      const result = parseTraceparent("00-00000000000000000000000000000000-00f067aa0ba902b7-01");
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.error).toBe("reserved_trace_id");
     });
 
     it("rejects reserved all-zero parent-id", () => {
-      const result = parseTraceparent(
-        "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000000-01"
-      );
+      const result = parseTraceparent("00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000000-01");
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.error).toBe("reserved_parent_id");
     });
 
     it("rejects values with whitespace", () => {
-      const result = parseTraceparent(
-        "00-4bf92f3577b34da6a3ce929d0e0e4736 -00f067aa0ba902b7-01"
-      );
+      const result = parseTraceparent("00-4bf92f3577b34da6a3ce929d0e0e4736 -00f067aa0ba902b7-01");
       expect(result.ok).toBe(false);
     });
 
@@ -193,17 +175,13 @@ describe("traceparent", () => {
       // W3C trace-context spec requires lowercase hex in all fields
       // (version, trace-id, parent-id, flags). We are strict here
       // because round-tripping parse → emit must be deterministic.
-      const result = parseTraceparent(
-        "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-FF"
-      );
+      const result = parseTraceparent("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-FF");
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.error).toBe("bad_flags");
     });
 
     it("rejects version 00 flags with reserved bits set", () => {
-      const result = parseTraceparent(
-        "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-03"
-      );
+      const result = parseTraceparent("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-03");
       expect(result.ok).toBe(false);
       if (!result.ok) expect(result.error).toBe("reserved_flags");
     });
@@ -218,9 +196,7 @@ describe("traceparent", () => {
     });
 
     it("parses a single entry", () => {
-      expect(parseTracestate("vendor=value")).toEqual([
-        { key: "vendor", value: "value" },
-      ]);
+      expect(parseTracestate("vendor=value")).toEqual([{ key: "vendor", value: "value" }]);
     });
 
     it("parses multiple entries preserving order", () => {
@@ -232,9 +208,7 @@ describe("traceparent", () => {
     });
 
     it("skips malformed entries (no =, empty key, empty value)", () => {
-      expect(parseTracestate("a=1,=broken,broken,c=")).toEqual([
-        { key: "a", value: "1" },
-      ]);
+      expect(parseTracestate("a=1,=broken,broken,c=")).toEqual([{ key: "a", value: "1" }]);
     });
 
     it("formats a list of entries back to header value", () => {
@@ -265,9 +239,7 @@ describe("traceparent", () => {
         parentId: "00f067aa0ba902b7",
         flags: "01",
       };
-      expect(formatTraceparent(tp)).toBe(
-        "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
-      );
+      expect(formatTraceparent(tp)).toBe("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01");
     });
 
     it("childTraceparent preserves trace-id and flags, swaps parent-id", () => {
@@ -278,9 +250,7 @@ describe("traceparent", () => {
         flags: "01",
       };
       const child = childTraceparent(parent, "1111111111111111");
-      expect(child).toBe(
-        "00-4bf92f3577b34da6a3ce929d0e0e4736-1111111111111111-01"
-      );
+      expect(child).toBe("00-4bf92f3577b34da6a3ce929d0e0e4736-1111111111111111-01");
     });
 
     it("childTraceparent re-rolls reserved all-zero parent-id", () => {
@@ -353,9 +323,7 @@ describe("traceparent", () => {
         traceparent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
         tracestate: "a=1,b=2",
       });
-      expect(r.traceparent?.traceId).toBe(
-        "4bf92f3577b34da6a3ce929d0e0e4736"
-      );
+      expect(r.traceparent?.traceId).toBe("4bf92f3577b34da6a3ce929d0e0e4736");
       expect(r.tracestate).toEqual([
         { key: "a", value: "1" },
         { key: "b", value: "2" },

@@ -14,8 +14,8 @@ import {
   withBifrostSpan,
   safeParseTraceparent,
   type BifrostSpanInput,
-} from "../../open-sse/observability/bifrostSpan.ts";
-import { parseTraceparent } from "../../open-sse/observability/traceparent.ts";
+} from "../../../open-sse/observability/bifrostSpan.ts";
+import { parseTraceparent } from "../../../open-sse/observability/traceparent.ts";
 
 describe("bifrostSpan", () => {
   const ORIGINAL_ENV = { ...process.env };
@@ -84,9 +84,7 @@ describe("bifrostSpan", () => {
       expect(parsed.ok).toBe(true);
       if (parsed.ok) {
         // Trace-id must be preserved from parent.
-        expect(parsed.traceparent.traceId).toBe(
-          "4bf92f3577b34da6a3ce929d0e0e4736"
-        );
+        expect(parsed.traceparent.traceId).toBe("4bf92f3577b34da6a3ce929d0e0e4736");
         // Sampled flag inherited from parent.
         expect(parsed.traceparent.flags).toBe("01");
       }
@@ -123,12 +121,7 @@ describe("bifrostSpan", () => {
     });
 
     it("exposes the span on the result envelope (already ended)", async () => {
-      let spanEnded = false;
-      const result = await withBifrostSpan(baseInput, async (span) => {
-        // While inside fn, span.end hasn't been called yet.
-        spanEnded = false;
-        return { ok: true };
-      });
+      const result = await withBifrostSpan(baseInput, async () => ({ ok: true }));
       expect(result.span).toBeDefined();
       // The span.end() call is in the wrapper's finally — outside fn,
       // the span IS ended.
@@ -163,9 +156,7 @@ describe("bifrostSpan", () => {
 
   describe("safeParseTraceparent", () => {
     it("returns parsed traceparent when valid", () => {
-      const tp = safeParseTraceparent(
-        "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
-      );
+      const tp = safeParseTraceparent("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01");
       expect(tp?.traceId).toBe("4bf92f3577b34da6a3ce929d0e0e4736");
       expect(tp?.parentId).toBe("00f067aa0ba902b7");
     });

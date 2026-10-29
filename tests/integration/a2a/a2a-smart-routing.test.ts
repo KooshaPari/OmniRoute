@@ -74,15 +74,18 @@ interface RoutingMetadata {
 // ---------------------------------------------------------------------------
 
 function buildTask(input: Record<string, unknown>): A2ATask {
-  const now = Date.now();
+  const now = new Date().toISOString();
   return {
     id: "t-smart-routing-test",
     skill: "smart-routing",
     state: "working",
-    messages: [],
+    input: { skill: "smart-routing", messages: [], metadata: input },
+    artifacts: [],
+    events: [],
+    metadata: {},
     createdAt: now,
     updatedAt: now,
-    metadata: input,
+    expiresAt: now,
   };
 }
 
@@ -159,22 +162,18 @@ describe("smartRouting — strategy selection", () => {
   });
 
   it("cost strategy prefers the cheapest candidate", async () => {
-    const result = await executeSmartRouting(
-      buildRequest({ strategy_hint: "cost" }),
-    );
+    const result = await executeSmartRouting(buildRequest({ strategy_hint: "cost" }));
     const decision = readDecision(result);
     expect(decision.chosen!.modelId).toBe("gemini-2.0-flash");
     expect(decision.chosen!.providerId).toBe("google");
     // Cost should be the lowest among ranked.
     expect(decision.chosen!.estimatedCostUsd).toBeLessThanOrEqual(
-      decision.runnerUp[0]?.estimatedCostUsd ?? decision.chosen!.estimatedCostUsd,
+      decision.runnerUp[0]?.estimatedCostUsd ?? decision.chosen!.estimatedCostUsd
     );
   });
 
   it("speed strategy prefers the lowest-latency candidate", async () => {
-    const result = await executeSmartRouting(
-      buildRequest({ strategy_hint: "speed" }),
-    );
+    const result = await executeSmartRouting(buildRequest({ strategy_hint: "speed" }));
     const decision = readDecision(result);
     expect(decision.chosen!.modelId).toBe("gemini-2.0-flash");
     expect(decision.chosen!.estimatedLatencyMs).toBe(700);
@@ -230,7 +229,7 @@ describe("smartRouting — strategy selection", () => {
             available: true,
           },
         ],
-      }),
+      })
     );
     const decision = readDecision(result);
     // claude-3-5-sonnet (0.97) > gpt-4o (0.85) > gemini-2.0-flash (0.78)
@@ -251,7 +250,7 @@ describe("smartRouting — constraints", () => {
       buildRequest({
         strategy_hint: "cost",
         max_cost_usd: 0.0001,
-      }),
+      })
     );
     const decision = readDecision(result);
     expect(decision.recommendation).toBe("reject");
@@ -264,7 +263,7 @@ describe("smartRouting — constraints", () => {
       buildRequest({
         strategy_hint: "cost",
         excluded_providers: ["google"],
-      }),
+      })
     );
     const decision = readDecision(result);
     expect(decision.chosen!.providerId).not.toBe("google");
@@ -278,7 +277,7 @@ describe("smartRouting — constraints", () => {
       buildRequest({
         strategy_hint: "balanced",
         preferred_providers: ["openai"],
-      }),
+      })
     );
     const decision = readDecision(result);
     // rubric.weights.preference should be > 0 when preference is part of
@@ -313,7 +312,7 @@ describe("smartRouting — constraints", () => {
             available: true,
           },
         ],
-      }),
+      })
     );
     const decision = readDecision(result);
     expect(decision.chosen!.modelId).toBe("claude-3-5-sonnet");
@@ -345,7 +344,7 @@ describe("smartRouting — input validation", () => {
           },
         ],
         strategy_hint: "balanced",
-      }),
+      })
     );
     // The skill emits a JSON error envelope when the prompt is missing.
     expect(result.artifacts).toHaveLength(1);
@@ -365,7 +364,7 @@ describe("smartRouting — input validation", () => {
       buildTask({
         prompt: "Hello world",
         strategy_hint: "balanced",
-      }),
+      })
     );
     const decision = readDecision(result);
     expect(decision.chosen).not.toBeNull();
@@ -378,7 +377,7 @@ describe("smartRouting — input validation", () => {
         prompt: "Hello world",
         candidates: [],
         strategy_hint: "balanced",
-      }),
+      })
     );
     const decision = readDecision(result);
     expect(decision.recommendation).toBe("reject");
@@ -407,9 +406,7 @@ describe("smartRouting — result shape", () => {
   });
 
   it("metadata envelope exposes strategy hint, tokens, recommendation", async () => {
-    const result = await executeSmartRouting(
-      buildRequest({ strategy_hint: "speed" }),
-    );
+    const result = await executeSmartRouting(buildRequest({ strategy_hint: "speed" }));
     const meta = readMetadata(result);
     expect(meta.strategy_hint).toBe("speed");
     expect(meta.tokens_estimated).toBeGreaterThan(0);
@@ -444,7 +441,7 @@ describe("smartRouting — single candidate", () => {
           },
         ],
         strategy_hint: "balanced",
-      }),
+      })
     );
     const decision = readDecision(result);
     expect(decision.chosen).not.toBeNull();

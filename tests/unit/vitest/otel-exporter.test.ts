@@ -16,7 +16,7 @@ import {
   isOtelEnabled,
   recordException,
   _resetOtelInitLoggedForTest,
-} from "../../open-sse/observability/otelExporter.ts";
+} from "../../../open-sse/observability/otelExporter.ts";
 
 describe("otelExporter", () => {
   const ORIGINAL_ENV = { ...process.env };
@@ -112,9 +112,7 @@ describe("otelExporter", () => {
       const span = tracer.startSpan("api-test");
       expect(() => span.setAttribute("foo", "bar")).not.toThrow();
       expect(() => span.setAttributes({ a: 1, b: 2 })).not.toThrow();
-      expect(() =>
-        span.setStatus({ code: 1 /* SpanStatusCode.OK */ })
-      ).not.toThrow();
+      expect(() => span.setStatus({ code: 1 /* SpanStatusCode.OK */ })).not.toThrow();
       expect(() => span.recordException(new Error("boom"))).not.toThrow();
       expect(() => span.end()).not.toThrow();
     });

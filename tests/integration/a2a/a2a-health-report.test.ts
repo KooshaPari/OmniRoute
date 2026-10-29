@@ -32,14 +32,18 @@ import {
 import type { A2ATask } from "@/lib/a2a/taskManager";
 
 function makeTask(metadata: Record<string, unknown> | undefined = {}): A2ATask {
+  const now = new Date().toISOString();
   return {
     id: "test-health-task",
     skill: "health-report",
-    messages: [],
-    metadata,
     state: "working",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    input: { skill: "health-report", messages: [], metadata: metadata },
+    artifacts: [],
+    events: [],
+    metadata: {},
+    createdAt: now,
+    updatedAt: now,
+    expiresAt: now,
   };
 }
 
@@ -92,7 +96,11 @@ function healthyProviders(): Omit<HealthReportSection<ProvidersSectionDetails>, 
 }
 function healthyBifrost(): Omit<HealthReportSection<BifrostSectionDetails>, "status"> {
   return {
-    details: { baseUrl: "https://bifrost.example", lastHealthCheck: "2026-06-18T00:00:00.000Z", modelCount: 50 },
+    details: {
+      baseUrl: "https://bifrost.example",
+      lastHealthCheck: "2026-06-18T00:00:00.000Z",
+      modelCount: 50,
+    },
     warnings: [],
   };
 }
@@ -111,7 +119,7 @@ describe("healthReport A2A skill", () => {
     expect(report.overall).toBe("healthy");
     expect(report.scope).toBe("all");
     expect(Object.keys(report.sections).sort()).toEqual(
-      ["a2a", "bifrost", "db", "mcp", "providers"].sort(),
+      ["a2a", "bifrost", "db", "mcp", "providers"].sort()
     );
     expect(report.sections.a2a?.status).toBe("healthy");
     expect(report.sections.mcp?.status).toBe("healthy");
@@ -130,9 +138,7 @@ describe("healthReport A2A skill", () => {
       collectProviders: healthyProviders,
       collectBifrost: healthyBifrost,
     };
-    const report = parseReport(
-      await executeHealthReport(makeTask({ scope: "a2a" }), deps),
-    );
+    const report = parseReport(await executeHealthReport(makeTask({ scope: "a2a" }), deps));
 
     expect(report.scope).toBe("a2a");
     expect(Object.keys(report.sections)).toEqual(["a2a"]);
@@ -148,9 +154,7 @@ describe("healthReport A2A skill", () => {
       collectProviders: healthyProviders,
       collectBifrost: healthyBifrost,
     };
-    const report = parseReport(
-      await executeHealthReport(makeTask({ scope: "mcp" }), deps),
-    );
+    const report = parseReport(await executeHealthReport(makeTask({ scope: "mcp" }), deps));
 
     expect(report.scope).toBe("mcp");
     expect(Object.keys(report.sections)).toEqual(["mcp"]);
@@ -166,9 +170,7 @@ describe("healthReport A2A skill", () => {
       collectProviders: healthyProviders,
       collectBifrost: healthyBifrost,
     };
-    const report = parseReport(
-      await executeHealthReport(makeTask({ scope: "db" }), deps),
-    );
+    const report = parseReport(await executeHealthReport(makeTask({ scope: "db" }), deps));
 
     expect(report.scope).toBe("db");
     expect(Object.keys(report.sections)).toEqual(["db"]);
@@ -184,9 +186,7 @@ describe("healthReport A2A skill", () => {
       collectProviders: healthyProviders,
       collectBifrost: healthyBifrost,
     };
-    const report = parseReport(
-      await executeHealthReport(makeTask({ scope: "providers" }), deps),
-    );
+    const report = parseReport(await executeHealthReport(makeTask({ scope: "providers" }), deps));
 
     expect(report.scope).toBe("providers");
     expect(Object.keys(report.sections)).toEqual(["providers"]);
@@ -260,9 +260,7 @@ describe("healthReport A2A skill", () => {
         forcedStatus: "unknown",
       }),
     };
-    const report = parseReport(
-      await executeHealthReport(makeTask({ scope: "bifrost" }), deps),
-    );
+    const report = parseReport(await executeHealthReport(makeTask({ scope: "bifrost" }), deps));
     expect(report.sections.bifrost?.status).toBe("unknown");
     expect(report.overall).toBe("degraded");
   });
@@ -272,9 +270,7 @@ describe("healthReport A2A skill", () => {
     // This test deliberately does NOT mock the other collectors either so
     // it covers the real file/migration/provider paths too. We only
     // assert on the bifrost section + the overall rollup behaviour.
-    const report = parseReport(
-      await executeHealthReport(makeTask({ scope: "bifrost" })),
-    );
+    const report = parseReport(await executeHealthReport(makeTask({ scope: "bifrost" })));
     expect(report.sections.bifrost?.status).toBe("unknown");
     expect(report.sections.bifrost?.warnings).toContain("subsystem not yet deployed");
     expect(report.sections.bifrost?.details.baseUrl).toBeNull();
@@ -297,7 +293,7 @@ describe("healthReport A2A skill", () => {
       }),
     };
     const report = parseReport(
-      await executeHealthReport(makeTask({ scope: "a2a", includeMetrics: true }), deps),
+      await executeHealthReport(makeTask({ scope: "a2a", includeMetrics: true }), deps)
     );
     expect(report.metrics).toBeDefined();
     expect(report.metrics?.a2a?.p50).toBe(10);

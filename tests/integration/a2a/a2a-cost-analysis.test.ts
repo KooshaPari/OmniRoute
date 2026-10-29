@@ -17,16 +17,20 @@ import type { A2ATask } from "@/lib/a2a/taskManager";
 
 function makeTask(
   metadata: Record<string, unknown> | undefined,
-  messages: A2ATask["messages"] = []
+  messages: Array<{ role: string; content: string }> = []
 ): A2ATask {
+  const now = new Date().toISOString();
   return {
     id: "test-task",
     skill: "cost-analysis",
-    messages,
-    metadata,
     state: "working",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    input: { skill: "cost-analysis", messages: messages, metadata: metadata },
+    artifacts: [],
+    events: [],
+    metadata: {},
+    createdAt: now,
+    updatedAt: now,
+    expiresAt: now,
   };
 }
 

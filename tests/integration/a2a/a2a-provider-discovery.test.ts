@@ -19,7 +19,7 @@
  *  14. multi-source dedup — same provider in env + config yields one merged entry.
  */
 
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
@@ -32,18 +32,24 @@ import type {
 import type { A2ATask } from "@/lib/a2a/taskManager";
 
 function makeTask(metadata: Record<string, unknown>): A2ATask {
+  const now = new Date().toISOString();
   return {
     id: "test-task",
     skill: "provider-discovery",
-    messages: [],
-    metadata,
     state: "working",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    input: { skill: "provider-discovery", messages: [], metadata: metadata },
+    artifacts: [],
+    events: [],
+    metadata: {},
+    createdAt: now,
+    updatedAt: now,
+    expiresAt: now,
   };
 }
 
-function parseArtifact(result: Awaited<ReturnType<typeof executeProviderDiscovery>>): ProviderDiscoveryOutput {
+function parseArtifact(
+  result: Awaited<ReturnType<typeof executeProviderDiscovery>>
+): ProviderDiscoveryOutput {
   expect(result.artifacts).toHaveLength(1);
   expect(result.artifacts[0].type).toBe("text");
   return JSON.parse(result.artifacts[0].content);
@@ -58,7 +64,9 @@ async function rmTmpDir(dir: string): Promise<void> {
 }
 
 // Strip the non-deterministic fields so we can deep-equal the payload.
-function normalizeProviders(providers: DiscoveredProvider[]): Array<Omit<DiscoveredProvider, "discoveredAt">> {
+function normalizeProviders(
+  providers: DiscoveredProvider[]
+): Array<Omit<DiscoveredProvider, "discoveredAt">> {
   return providers.map(({ discoveredAt: _da, ...rest }) => rest);
 }
 
@@ -79,7 +87,7 @@ describe("providerDiscovery A2A skill", () => {
         sources: ["env"],
         baseDir: tmpDir, // empty dir so config + filesystem find nothing
         envSnapshot: { OPENAI_API_KEY: "sk-test", UNRELATED: "x" },
-      }),
+      })
     );
 
     const payload = parseArtifact(result);
@@ -104,7 +112,7 @@ describe("providerDiscovery A2A skill", () => {
     await fs.writeFile(path.join(tmpDir, "config.json"), JSON.stringify(cfg), "utf8");
 
     const result = await executeProviderDiscovery(
-      makeTask({ sources: ["config"], baseDir: tmpDir, envSnapshot: {} }),
+      makeTask({ sources: ["config"], baseDir: tmpDir, envSnapshot: {} })
     );
     const payload = parseArtifact(result);
 
@@ -121,16 +129,16 @@ describe("providerDiscovery A2A skill", () => {
     await fs.writeFile(
       path.join(tmpDir, "providers", "openai.json"),
       JSON.stringify({ id: "openai", vendor: "openai", apiKey: "sk-o" }),
-      "utf8",
+      "utf8"
     );
     await fs.writeFile(
       path.join(tmpDir, "credentials", "anthropic.json"),
       JSON.stringify({ id: "anthropic", apiKey: "sk-a" }),
-      "utf8",
+      "utf8"
     );
 
     const result = await executeProviderDiscovery(
-      makeTask({ sources: ["filesystem"], baseDir: tmpDir, envSnapshot: {} }),
+      makeTask({ sources: ["filesystem"], baseDir: tmpDir, envSnapshot: {} })
     );
     const payload = parseArtifact(result);
 
@@ -148,7 +156,7 @@ describe("providerDiscovery A2A skill", () => {
         sources: ["mcp"],
         baseDir: tmpDir,
         envSnapshot: {},
-      }),
+      })
     );
 
     const payload = parseArtifact(result);
@@ -161,7 +169,7 @@ describe("providerDiscovery A2A skill", () => {
   it("keeps the optional MCP import out of the build module graph", async () => {
     const source = await fs.readFile(
       path.join(process.cwd(), "src/lib/a2a/skills/providerDiscovery.ts"),
-      "utf8",
+      "utf8"
     );
 
     expect(source).toContain("/* webpackIgnore: true */");
@@ -183,7 +191,7 @@ describe("providerDiscovery A2A skill", () => {
         baseDir: tmpDir,
         vendor: "openai",
         envSnapshot: { OPENAI_API_KEY: "sk-test" },
-      }),
+      })
     );
     const payload = parseArtifact(result);
 
@@ -191,9 +199,7 @@ describe("providerDiscovery A2A skill", () => {
   });
 
   it("returns an empty catalog when nothing is on disk or in env", async () => {
-    const result = await executeProviderDiscovery(
-      makeTask({ baseDir: tmpDir, envSnapshot: {} }),
-    );
+    const result = await executeProviderDiscovery(makeTask({ baseDir: tmpDir, envSnapshot: {} }));
     const payload = parseArtifact(result);
 
     expect(payload.providers).toEqual([]);
@@ -205,13 +211,19 @@ describe("providerDiscovery A2A skill", () => {
 
   it("counts a malformed JSON file as an error but does not fail", async () => {
     await fs.mkdir(path.join(tmpDir, "providers"), { recursive: true });
-    await fs.writeFile(path.join(tmpDir, "providers", "good.json"),
-      JSON.stringify({ id: "good", vendor: "good" }), "utf8");
-    await fs.writeFile(path.join(tmpDir, "providers", "bad.json"),
-      "{ this is not valid JSON", "utf8");
+    await fs.writeFile(
+      path.join(tmpDir, "providers", "good.json"),
+      JSON.stringify({ id: "good", vendor: "good" }),
+      "utf8"
+    );
+    await fs.writeFile(
+      path.join(tmpDir, "providers", "bad.json"),
+      "{ this is not valid JSON",
+      "utf8"
+    );
 
     const result = await executeProviderDiscovery(
-      makeTask({ sources: ["filesystem"], baseDir: tmpDir, envSnapshot: {} }),
+      makeTask({ sources: ["filesystem"], baseDir: tmpDir, envSnapshot: {} })
     );
     const payload = parseArtifact(result);
 
@@ -225,13 +237,13 @@ describe("providerDiscovery A2A skill", () => {
     await fs.writeFile(
       path.join(tmpDir, "config.json"),
       JSON.stringify({ providers: [{ id: "loud", vendor: "loud" }] }),
-      "utf8",
+      "utf8"
     );
     await fs.mkdir(path.join(tmpDir, "providers"), { recursive: true });
     await fs.writeFile(
       path.join(tmpDir, "providers", "loud.json"),
       JSON.stringify({ id: "loud-fs", vendor: "loud-fs" }),
-      "utf8",
+      "utf8"
     );
 
     const result = await executeProviderDiscovery(
@@ -239,7 +251,7 @@ describe("providerDiscovery A2A skill", () => {
         sources: ["env"],
         baseDir: tmpDir,
         envSnapshot: { ANTHROPIC_API_KEY: "sk-a" },
-      }),
+      })
     );
     const payload = parseArtifact(result);
 
@@ -263,7 +275,7 @@ describe("providerDiscovery A2A skill", () => {
         sources: ["config", "env"],
         baseDir: tmpDir,
         envSnapshot: { ANTHROPIC_TOKEN: "tok" },
-      }),
+      })
     );
     const payload = parseArtifact(result);
 
@@ -279,7 +291,7 @@ describe("providerDiscovery A2A skill", () => {
     await fs.writeFile(
       path.join(tmpDir, "providers", "openai.json"),
       JSON.stringify({ id: "openai", vendor: "openai", apiKey: "sk-o" }),
-      "utf8",
+      "utf8"
     );
 
     const task = makeTask({
@@ -290,9 +302,7 @@ describe("providerDiscovery A2A skill", () => {
     const first = parseArtifact(await executeProviderDiscovery(task));
     const second = parseArtifact(await executeProviderDiscovery(task));
 
-    expect(normalizeProviders(first.providers)).toEqual(
-      normalizeProviders(second.providers),
-    );
+    expect(normalizeProviders(first.providers)).toEqual(normalizeProviders(second.providers));
     expect(first.stats).toEqual(second.stats);
   });
 
@@ -305,11 +315,11 @@ describe("providerDiscovery A2A skill", () => {
     await fs.writeFile(
       path.join(tmpDir, "providers", "small.json"),
       JSON.stringify({ id: "small", vendor: "small" }),
-      "utf8",
+      "utf8"
     );
 
     const result = await executeProviderDiscovery(
-      makeTask({ sources: ["filesystem"], baseDir: tmpDir, envSnapshot: {} }),
+      makeTask({ sources: ["filesystem"], baseDir: tmpDir, envSnapshot: {} })
     );
     const payload = parseArtifact(result);
 
@@ -323,16 +333,13 @@ describe("providerDiscovery A2A skill", () => {
     await fs.writeFile(
       path.join(tmpDir, "real.json"),
       JSON.stringify({ id: "real", vendor: "real" }),
-      "utf8",
+      "utf8"
     );
     // Symlink inside providers/ pointing at it.
-    await fs.symlink(
-      path.join(tmpDir, "real.json"),
-      path.join(tmpDir, "providers", "linked.json"),
-    );
+    await fs.symlink(path.join(tmpDir, "real.json"), path.join(tmpDir, "providers", "linked.json"));
 
     const result = await executeProviderDiscovery(
-      makeTask({ sources: ["filesystem"], baseDir: tmpDir, envSnapshot: {} }),
+      makeTask({ sources: ["filesystem"], baseDir: tmpDir, envSnapshot: {} })
     );
     const payload = parseArtifact(result);
 
@@ -350,7 +357,7 @@ describe("providerDiscovery A2A skill", () => {
           OPENAI_BASE_URL: "https://api.openai.com/v1",
           ANTHROPIC_TOKEN: "sk-a",
         },
-      }),
+      })
     );
     const payload = parseArtifact(result);
 
@@ -368,9 +375,7 @@ describe("providerDiscovery A2A skill", () => {
 
   it("deduplicates the same provider across sources using requested source precedence", async () => {
     const cfg = {
-      providers: [
-        { id: "openai", vendor: "openai", apiKey: "from-config" },
-      ],
+      providers: [{ id: "openai", vendor: "openai", apiKey: "from-config" }],
     };
     await fs.writeFile(path.join(tmpDir, "config.json"), JSON.stringify(cfg), "utf8");
 
@@ -379,7 +384,7 @@ describe("providerDiscovery A2A skill", () => {
         sources: ["env", "config"],
         baseDir: tmpDir,
         envSnapshot: { OPENAI_API_KEY: "from-env" },
-      }),
+      })
     );
     const payload = parseArtifact(result);
 

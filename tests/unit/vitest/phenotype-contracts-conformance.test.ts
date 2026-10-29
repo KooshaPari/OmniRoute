@@ -17,7 +17,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { PROVIDER_BREAKER_FAILURE_STATUSES } from "../../src/sse/handlers/chatPredicates.ts";
+import { PROVIDER_BREAKER_FAILURE_STATUSES } from "../../../src/sse/handlers/chatPredicates.ts";
 
 // ─── Contract constants (vendored from pinned SHA) ───────────────────────────
 // Source: KooshaPari/phenotype-contracts @ cc8f34ed
@@ -95,9 +95,7 @@ describe("phenotype-contracts conformance", () => {
     it("PR-δ: imported from src/sse/handlers/chatPredicates.ts (not vendored)", () => {
       // Reference equality: the constant we test against IS the same Set
       // object the production source uses. Catches accidental re-vendoring.
-      expect(OMNIROUTE_PROVIDER_BREAKER_FAILURE_STATUSES).toBe(
-        PROVIDER_BREAKER_FAILURE_STATUSES,
-      );
+      expect(OMNIROUTE_PROVIDER_BREAKER_FAILURE_STATUSES).toBe(PROVIDER_BREAKER_FAILURE_STATUSES);
     });
 
     it("DIVERGENCE: 429 is NOT in PROVIDER_BREAKER_FAILURE_STATUSES (handled by cooldown layer)", () => {

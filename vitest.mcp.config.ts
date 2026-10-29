@@ -38,6 +38,17 @@ export default defineConfig({
       // optional `keyv` backend, which is not a declared dependency, so they
       // cannot run here (tracked in test-discovery-baseline.json instead).
       "tests/unit/quota/quotaStore.contract.test.ts",
+      // vitest-style suites that were sitting in the node runner's
+      // `tests/unit/*.test.ts` glob, where every one of them died at import with
+      // "Vitest failed to find the runner" — one failing file per shard. These
+      // six pass against the current implementation; the rest of that batch is
+      // tracked in test-discovery-baseline.json (they need code or an owner).
+      "tests/unit/vitest/otel-exporter.test.ts",
+      "tests/unit/vitest/traceparent.test.ts",
+      "tests/unit/vitest/combo-span.test.ts",
+      "tests/unit/vitest/bifrost-span.test.ts",
+      "tests/unit/vitest/a2a-mint-virtual-key.test.ts",
+      "tests/unit/vitest/phenotype-contracts-conformance.test.ts",
     ],
     exclude: [
       "**/node_modules/**",

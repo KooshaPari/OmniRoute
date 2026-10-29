@@ -22,15 +22,15 @@ import {
   listBifrostSupportedProviders,
   listBifrostUnsupportedProviders,
   resolveBifrostProviderId,
-} from "../../open-sse/executors/bifrostProviderMap.ts";
-import { BifrostBackendExecutor } from "../../open-sse/executors/bifrost.ts";
+} from "../../../open-sse/executors/bifrostProviderMap.ts";
+import { BifrostBackendExecutor } from "../../../open-sse/executors/bifrost.ts";
 import {
   BifrostNoFallbackError,
   createBifrostBackedExecutor,
   dispatchBifrostWithFallback,
   shouldRouteViaBifrost,
-} from "../../open-sse/executors/bifrost.ts";
-import { BaseExecutor } from "../../open-sse/executors/base.ts";
+} from "../../../open-sse/executors/bifrost.ts";
+import { BaseExecutor } from "../../../open-sse/executors/base.ts";
 
 describe("bifrostProviderMap", () => {
   it("exports a non-empty catalog of Bifrost provider IDs", () => {
@@ -399,7 +399,7 @@ describe("BifrostBackend executor (execute body shape)", () => {
     globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     const { forceActivate, forceDeactivate, isActive } =
-      await import("../../open-sse/services/bifrostKillSwitch.ts");
+      await import("../../../open-sse/services/bifrostKillSwitch.ts");
     forceDeactivate("openai");
     forceActivate("openai");
 
@@ -428,7 +428,7 @@ describe("BifrostBackend executor (execute body shape)", () => {
     globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     const { resetProvider, getState } =
-      await import("../../open-sse/services/bifrostKillSwitch.ts");
+      await import("../../../open-sse/services/bifrostKillSwitch.ts");
     resetProvider("anthropic");
 
     const exec = new BifrostBackendExecutor("anthropic", {});
@@ -478,7 +478,7 @@ describe("dispatchBifrostWithFallback", () => {
     );
 
     const { forceActivate, forceDeactivate, resetProvider } =
-      await import("../../open-sse/services/bifrostKillSwitch.ts");
+      await import("../../../open-sse/services/bifrostKillSwitch.ts");
     forceDeactivate("openai");
     forceActivate("openai");
 
@@ -510,7 +510,7 @@ describe("dispatchBifrostWithFallback", () => {
   it("reports an invalid legacy fetch result without dereferencing response.status", async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(undefined);
     const { forceActivate, forceDeactivate, resetProvider } =
-      await import("../../open-sse/services/bifrostKillSwitch.ts");
+      await import("../../../open-sse/services/bifrostKillSwitch.ts");
     forceActivate("openai");
 
     const exec = new BifrostBackendExecutor("openai", {});

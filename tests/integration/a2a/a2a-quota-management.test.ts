@@ -18,15 +18,7 @@
  *      resource, missing amount for consume)
  */
 
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock @/lib/db/core BEFORE importing the skill. core.ts has a transitive
 // import of `healthCheck.ts` which references a stale `@/lib/combos/steps`
@@ -72,16 +64,20 @@ import { getDbInstance, closeDbInstance } from "@/lib/db/core";
 
 function makeTask(
   metadata: Record<string, unknown> | undefined,
-  messages: A2ATask["messages"] = [],
+  messages: Array<{ role: string; content: string }> = []
 ): A2ATask {
+  const now = new Date().toISOString();
   return {
     id: `task-${Math.random().toString(36).slice(2, 10)}`,
     skill: "quota-management",
-    messages,
-    metadata,
     state: "working",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    input: { skill: "quota-management", messages: messages, metadata: metadata },
+    artifacts: [],
+    events: [],
+    metadata: {},
+    createdAt: now,
+    updatedAt: now,
+    expiresAt: now,
   };
 }
 
@@ -123,7 +119,7 @@ describe("quotaManagement A2A skill", () => {
         tenantId: uniqueTenant("ck"),
         action: "check",
         resource: "tokens",
-      }),
+      })
     );
     const payload = parseArtifact(result);
 
@@ -146,8 +142,8 @@ describe("quotaManagement A2A skill", () => {
           action: "reset",
           resource: "requests",
           limit: 500,
-        }),
-      ),
+        })
+      )
     );
     expect(reset.reset.used).toBe(0);
     expect(reset.reset.limit).toBe(500);
@@ -158,8 +154,8 @@ describe("quotaManagement A2A skill", () => {
           tenantId,
           action: "check",
           resource: "requests",
-        }),
-      ),
+        })
+      )
     );
     expect(check.allowed).toBe(true);
     expect(check.used).toBe(0);
@@ -172,7 +168,7 @@ describe("quotaManagement A2A skill", () => {
   it("consume below the cap is accepted and updates used/remaining", async () => {
     const tenantId = uniqueTenant("c1");
     await executeQuotaManagement(
-      makeTask({ tenantId, action: "reset", resource: "tokens", limit: 10_000 }),
+      makeTask({ tenantId, action: "reset", resource: "tokens", limit: 10_000 })
     );
     const payload = parseArtifact(
       await executeQuotaManagement(
@@ -181,8 +177,8 @@ describe("quotaManagement A2A skill", () => {
           action: "consume",
           resource: "tokens",
           amount: 2_500,
-        }),
-      ),
+        })
+      )
     );
 
     expect(payload.accepted).toBe(true);
@@ -196,7 +192,7 @@ describe("quotaManagement A2A skill", () => {
   it("consume above the cap is rejected with over_limit and a suggested wait", async () => {
     const tenantId = uniqueTenant("c2");
     await executeQuotaManagement(
-      makeTask({ tenantId, action: "reset", resource: "cost_usd", limit: 1.0 }),
+      makeTask({ tenantId, action: "reset", resource: "cost_usd", limit: 1.0 })
     );
     const payload = parseArtifact(
       await executeQuotaManagement(
@@ -205,8 +201,8 @@ describe("quotaManagement A2A skill", () => {
           action: "consume",
           resource: "cost_usd",
           amount: 1.5,
-        }),
-      ),
+        })
+      )
     );
 
     expect(payload.accepted).toBe(false);
@@ -231,8 +227,8 @@ describe("quotaManagement A2A skill", () => {
           action: "consume",
           resource: "tokens",
           amount: 1,
-        }),
-      ),
+        })
+      )
     );
 
     expect(payload.accepted).toBe(false);
@@ -245,10 +241,10 @@ describe("quotaManagement A2A skill", () => {
   it("reset on an existing tenant captures the previous state and zeros used", async () => {
     const tenantId = uniqueTenant("r1");
     await executeQuotaManagement(
-      makeTask({ tenantId, action: "reset", resource: "requests", limit: 100 }),
+      makeTask({ tenantId, action: "reset", resource: "requests", limit: 100 })
     );
     await executeQuotaManagement(
-      makeTask({ tenantId, action: "consume", resource: "requests", amount: 60 }),
+      makeTask({ tenantId, action: "consume", resource: "requests", amount: 60 })
     );
 
     const reset = parseArtifact(
@@ -258,8 +254,8 @@ describe("quotaManagement A2A skill", () => {
           action: "reset",
           resource: "requests",
           // omit resetAt → defaults to now + 30d
-        }),
-      ),
+        })
+      )
     );
     expect(reset.previous.used).toBe(60);
     expect(reset.previous.limit).toBe(100);
@@ -274,9 +270,7 @@ describe("quotaManagement A2A skill", () => {
 
     // And the follow-up check sees used=0, allowed=true.
     const check = parseArtifact(
-      await executeQuotaManagement(
-        makeTask({ tenantId, action: "check", resource: "requests" }),
-      ),
+      await executeQuotaManagement(makeTask({ tenantId, action: "check", resource: "requests" }))
     );
     expect(check.used).toBe(0);
     expect(check.allowed).toBe(true);
@@ -292,8 +286,8 @@ describe("quotaManagement A2A skill", () => {
           action: "reset",
           resource: "tokens",
           limit: 42_000,
-        }),
-      ),
+        })
+      )
     );
 
     expect(reset.previous.used).toBe(0);
@@ -309,8 +303,8 @@ describe("quotaManagement A2A skill", () => {
           action: "consume",
           resource: "tokens",
           amount: 100,
-        }),
-      ),
+        })
+      )
     );
     expect(consume.accepted).toBe(true);
     expect(consume.used).toBe(100);
@@ -321,21 +315,21 @@ describe("quotaManagement A2A skill", () => {
   it("tokens and cost_usd quotas are tracked independently", async () => {
     const tenantId = uniqueTenant("multi");
     await executeQuotaManagement(
-      makeTask({ tenantId, action: "reset", resource: "tokens", limit: 1_000_000 }),
+      makeTask({ tenantId, action: "reset", resource: "tokens", limit: 1_000_000 })
     );
     await executeQuotaManagement(
-      makeTask({ tenantId, action: "reset", resource: "cost_usd", limit: 10 }),
+      makeTask({ tenantId, action: "reset", resource: "cost_usd", limit: 10 })
     );
 
     const tk = parseArtifact(
       await executeQuotaManagement(
-        makeTask({ tenantId, action: "consume", resource: "tokens", amount: 500_000 }),
-      ),
+        makeTask({ tenantId, action: "consume", resource: "tokens", amount: 500_000 })
+      )
     );
     const cu = parseArtifact(
       await executeQuotaManagement(
-        makeTask({ tenantId, action: "consume", resource: "cost_usd", amount: 3.25 }),
-      ),
+        makeTask({ tenantId, action: "consume", resource: "cost_usd", amount: 3.25 })
+      )
     );
 
     expect(tk.accepted).toBe(true);
@@ -348,16 +342,16 @@ describe("quotaManagement A2A skill", () => {
     // Saturate tokens, but cost_usd should still be allowed.
     const tkBlock = parseArtifact(
       await executeQuotaManagement(
-        makeTask({ tenantId, action: "consume", resource: "tokens", amount: 600_000 }),
-      ),
+        makeTask({ tenantId, action: "consume", resource: "tokens", amount: 600_000 })
+      )
     );
     expect(tkBlock.accepted).toBe(false);
     expect(tkBlock.rejected?.reason).toBe("over_limit");
 
     const cuOk = parseArtifact(
       await executeQuotaManagement(
-        makeTask({ tenantId, action: "consume", resource: "cost_usd", amount: 0.5 }),
-      ),
+        makeTask({ tenantId, action: "consume", resource: "cost_usd", amount: 0.5 })
+      )
     );
     expect(cuOk.accepted).toBe(true);
     expect(cuOk.used).toBe(3.75);
@@ -375,16 +369,14 @@ describe("quotaManagement A2A skill", () => {
           resource: "tokens",
           limit: 10_000,
           resetAt: explicitResetAt,
-        }),
-      ),
+        })
+      )
     );
 
     expect(reset.reset.resetAt).toBe(explicitResetAt);
 
     const check = parseArtifact(
-      await executeQuotaManagement(
-        makeTask({ tenantId, action: "check", resource: "tokens" }),
-      ),
+      await executeQuotaManagement(makeTask({ tenantId, action: "check", resource: "tokens" }))
     );
     expect(check.resetAt).toBe(explicitResetAt);
   });
@@ -397,7 +389,7 @@ describe("quotaManagement A2A skill", () => {
   it("atomic UPDATE with WHERE cap never lets sequential consumes overshoot the limit", async () => {
     const tenantId = uniqueTenant("conc");
     await executeQuotaManagement(
-      makeTask({ tenantId, action: "reset", resource: "tokens", limit: 30 }),
+      makeTask({ tenantId, action: "reset", resource: "tokens", limit: 30 })
     );
 
     const consume = async (amount: number) =>
@@ -408,8 +400,8 @@ describe("quotaManagement A2A skill", () => {
             action: "consume",
             resource: "tokens",
             amount,
-          }),
-        ),
+          })
+        )
       );
 
     // 10 + 10 + 10 + 10 = 40, but cap is 30 ⇒ only 3 succeed.
@@ -431,17 +423,15 @@ describe("quotaManagement A2A skill", () => {
     // would be exceeded).
     const rejectedCheck = parseArtifact(
       await executeQuotaManagement(
-        makeTask({ tenantId, action: "consume", resource: "tokens", amount: 1 }),
-      ),
+        makeTask({ tenantId, action: "consume", resource: "tokens", amount: 1 })
+      )
     );
     expect(rejectedCheck.accepted).toBe(false);
     expect(rejectedCheck.rejected?.reason).toBe("over_limit");
 
     // Final state: row exists, used = cap, allowed = false, at_cap warning.
     const final = parseArtifact(
-      await executeQuotaManagement(
-        makeTask({ tenantId, action: "check", resource: "tokens" }),
-      ),
+      await executeQuotaManagement(makeTask({ tenantId, action: "check", resource: "tokens" }))
     );
     expect(final.used).toBe(30);
     expect(final.limit).toBe(30);
@@ -460,7 +450,7 @@ describe("quotaManagement A2A skill", () => {
 
   it("rejects invalid action with a structured invalid_input error", async () => {
     const result = await executeQuotaManagement(
-      makeTask({ tenantId: "t", action: "delete", resource: "tokens" }),
+      makeTask({ tenantId: "t", action: "delete", resource: "tokens" })
     );
     const payload = parseArtifact(result);
     expect(payload.error).toBe("invalid_input");
@@ -469,7 +459,7 @@ describe("quotaManagement A2A skill", () => {
 
   it("rejects invalid resource with a structured invalid_input error", async () => {
     const result = await executeQuotaManagement(
-      makeTask({ tenantId: "t", action: "check", resource: "latency" }),
+      makeTask({ tenantId: "t", action: "check", resource: "latency" })
     );
     const payload = parseArtifact(result);
     expect(payload.error).toBe("invalid_input");
@@ -478,7 +468,7 @@ describe("quotaManagement A2A skill", () => {
 
   it("rejects consume without a numeric amount with invalid_input", async () => {
     const result = await executeQuotaManagement(
-      makeTask({ tenantId: "t", action: "consume", resource: "tokens" }),
+      makeTask({ tenantId: "t", action: "consume", resource: "tokens" })
     );
     const payload = parseArtifact(result);
     expect(payload.error).toBe("invalid_input");
