@@ -904,46 +904,6 @@ curl -X DELETE https://localhost:20128/api/settings/obsidian/webdav \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
-### GET /api/settings/oneproxy
-
-GET settings › oneproxy
-
-```bash
-curl https://localhost:20128/api/settings/oneproxy \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/settings/oneproxy
-
-POST settings › oneproxy
-
-```bash
-curl -X POST https://localhost:20128/api/settings/oneproxy \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-### DELETE /api/settings/oneproxy
-
-DELETE settings › oneproxy
-
-```bash
-curl -X DELETE https://localhost:20128/api/settings/oneproxy \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
-```
-
-### POST /api/settings/oneproxy/rotate
-
-POST settings › oneproxy › rotate
-
-```bash
-curl -X POST https://localhost:20128/api/settings/oneproxy/rotate \
-  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
 ### GET /api/settings/proxies
 
 GET settings › proxies
