@@ -231,6 +231,22 @@ const IGNORE_FROM_CODE = new Set([
   // Deliberately bogus placeholder used as a fixture in
   // open-sse/executors/__tests__/claudeIdentity.test.ts. The "FOO" is intentional.
   "OPENAI_COMPATIBLE_FOO_USER_AGENT",
+  // Packaged-desktop smoke harness knobs. These are read only by
+  // scripts/dev/smoke-electron-packaged.mjs, the Electron smoke script that was
+  // REMOVED in bedb7d1db6 per the ZERO-electron decision (2026-09-17; the tracked
+  // desktop is Tauri — see docs/guides/DESKTOP_GUIDE.md). They are allowlisted
+  // rather than documented because .env.example must not advertise configuration
+  // for a stack the repo no longer ships. If Electron ever returns as a tracked
+  // feature, delete these entries and document the vars in .env.example +
+  // docs/reference/ENVIRONMENT.md instead.
+  "ELECTRON_SMOKE_APP_EXECUTABLE",
+  "ELECTRON_SMOKE_COLD_RESTART",
+  "ELECTRON_SMOKE_DATA_DIR",
+  "ELECTRON_SMOKE_KEEP_DATA",
+  "ELECTRON_SMOKE_SETTLE_MS",
+  "ELECTRON_SMOKE_STREAM_LOGS",
+  "ELECTRON_SMOKE_TIMEOUT_MS",
+  "ELECTRON_SMOKE_URL",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
