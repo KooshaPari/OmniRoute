@@ -9664,8 +9664,10 @@ paths:
         - Keys
       summary: "POST keys › groups"
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
+        "400":
+          description: Invalid request body
         "401":
           description: Unauthorized
   /api/keys/groups/{id}:
