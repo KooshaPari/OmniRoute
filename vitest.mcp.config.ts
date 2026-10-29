@@ -47,6 +47,7 @@ export default defineConfig({
       "tests/unit/vitest/traceparent.test.ts",
       "tests/unit/vitest/combo-span.test.ts",
       "tests/unit/vitest/bifrost-span.test.ts",
+      "tests/unit/vitest/bifrost-backend.test.ts",
       "tests/unit/vitest/a2a-mint-virtual-key.test.ts",
       "tests/unit/vitest/phenotype-contracts-conformance.test.ts",
     ],

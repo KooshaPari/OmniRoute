@@ -687,6 +687,12 @@ export class BaseExecutor {
         body: JSON.stringify(requestBody),
         signal: activeSignal || undefined,
       });
+      // A fetch stub/transport can resolve to undefined; dereferencing .text() then
+      // throws an opaque "Cannot read properties of undefined" that hides the real
+      // cause. Fail with a diagnosable message instead.
+      if (!response || typeof (response as Response).text !== "function") {
+        throw new Error("Upstream fetch returned an invalid response");
+      }
 
       const text = await response.text();
       if (!response.ok) {
@@ -956,7 +962,14 @@ export class BaseExecutor {
             : requestOptions;
 
           try {
-            return await fetch(requestUrl, optionsWithSignal);
+            const response = await fetch(requestUrl, optionsWithSignal);
+            // A transport/stub can resolve to undefined; every caller immediately
+            // dereferences response.headers/status, so fail with a diagnosable
+            // message instead of an opaque TypeError.
+            if (!response || typeof (response as Response).headers !== "object") {
+              throw new Error("Upstream fetch returned an invalid response");
+            }
+            return response;
           } finally {
             if (timeoutId) clearTimeout(timeoutId);
           }

@@ -133,6 +133,7 @@ export const COLLECTORS = [
       "traceparent",
       "combo-span",
       "bifrost-span",
+      "bifrost-backend",
       "a2a-mint-virtual-key",
       "phenotype-contracts-conformance",
     ].map((name) => `tests/unit/vitest/${name}.test.ts`),
