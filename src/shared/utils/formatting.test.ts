@@ -14,10 +14,10 @@ describe("formatCost", () => {
     expect(formatCost(12.345)).toBe("$12.35");
   });
 
-  it("returns $0 for null/undefined/NaN", () => {
-    expect(formatCost(null)).toBe("$0");
-    expect(formatCost(undefined)).toBe("$0");
-    expect(formatCost(NaN)).toBe("$0");
+  it("returns $0.00 for null/undefined/NaN", () => {
+    expect(formatCost(null)).toBe("$0.00");
+    expect(formatCost(undefined)).toBe("$0.00");
+    expect(formatCost(NaN)).toBe("$0.00");
   });
 });
 
@@ -52,7 +52,9 @@ describe("truncateUrl", () => {
   });
 
   it("truncates long URLs to hostname + pathname", () => {
-    expect(truncateUrl("https://example.com/very/long/path/that/exceeds", 20)).toBe("example.com/very/lon…");
+    expect(truncateUrl("https://example.com/very/long/path/that/exceeds", 20)).toBe(
+      "example.com/very/lon…"
+    );
   });
 
   it("returns full display URL when under max", () => {
@@ -60,7 +62,9 @@ describe("truncateUrl", () => {
   });
 
   it("falls back to raw URL truncation on parse failure", () => {
-    expect(truncateUrl("not-a-url-at-all-just-a-very-long-string-that-needs-truncation", 20)).toBe("not-a-url-at-all-just…");
+    expect(truncateUrl("not-a-url-at-all-just-a-very-long-string-that-needs-truncation", 20)).toBe(
+      "not-a-url-at-all-jus…"
+    );
   });
 });
 
