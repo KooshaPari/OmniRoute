@@ -1,15 +1,6 @@
 // oxlint-disable no-unused-vars
 declare const EdgeRuntime: string | undefined;
-/**
- * CursorExecutor — talks to Cursor's agent.v1.AgentService/Run endpoint.
- *
- * cursor-agent (CLI) and the cursor IDE both use this RPC for every model id
- * (auto, composer-*, claude-*, gpt-*, gemini-*). The legacy
- * aiserver.v1.ChatService/StreamUnifiedChatWithTools rejects "auto" and
- * "composer-*" with errors, so we migrated this executor over.
- *
- * Wire format & schema details live in ../utils/cursorAgentProtobuf.ts.
- */
+/** CursorExecutor — talks to Cursor's agent.v1.AgentService/Run endpoint. cursor-agent (CLI) and the cursor IDE both use this RPC for every model id (auto, composer-*, claude-*, gpt-*, gemini-*). The legacy aiserver.v1.ChatService/StreamUnifiedChatWithTools rejects "auto" and "composer-*" with errors, so we migrated this executor over. Wire format & schema details live in ../utils/cursorAgentProtobuf.ts. */
 
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";

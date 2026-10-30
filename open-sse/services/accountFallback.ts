@@ -157,25 +157,15 @@ function toJsonRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
-// Provider-level failure tracking for circuit breaker behavior
-// Error codes that count toward provider-level failure threshold.
-// 429 is included: per-error-type cooldowns (rate_limit: 60s, quota_exhausted: 1h)
-// prevent cascading provider trips at scale (Issue #1846 concern addressed),
-// while still allowing the circuit breaker to open on sustained 429s and
-// prevent infinite combo retries (Issue #3200).
+// Provider-level failure tracking for circuit breaker behavior Error codes that count toward provider-level failure threshold. 429 is included: per-error-type cooldowns (rate_limit: 60s, quota_exhausted: 1h) prevent cascading provider trips at scale (Issue #1846 concern addressed), while still allowing the circuit breaker to open on sustained 429s and prevent infinite combo retries (Issue #3200).
 const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 429, 500, 502, 503, 504]);
 
-// Per-connection failure deduplication: prevents rapid-fire failures from the
-// same connection from counting multiple times toward the provider breaker.
+// Per-connection failure deduplication: prevents rapid-fire failures from the same connection from counting multiple times toward the provider breaker.
 const CONNECTION_FAILURE_DEDUP_MS = 5000;
 const MAX_CONNECTION_FAILURE_DEDUP_ENTRIES = 10_000;
 const lastConnectionFailure = new Map<string, number>();
 
-// Per-provider network-error dedup: several combo targets on the SAME provider can
-// fail the same single network event (a VPN blip) in the same request. Without this,
-// each target counts once and one transient blip opens the whole-provider breaker
-// while the provider is healthy. A genuinely dead proxy persists ACROSS requests
-// (past the window) and still accumulates to its threshold.
+// Per-provider network-error dedup: several combo targets on the SAME provider can fail the same single network event (a VPN blip) in the same request. Without this, each target counts once and one transient blip opens the whole-provider breaker while the provider is healthy. A genuinely dead proxy persists ACROSS requests (past the window) and still accumulates to its threshold.
 const NETWORK_ERROR_DEDUP_MS = 10_000;
 const MAX_NETWORK_ERROR_DEDUP_ENTRIES = 1000;
 const lastNetworkErrorByProvider = new Map<string, number>();
@@ -198,9 +188,7 @@ if (typeof _connectionFailureSweep === "object" && "unref" in _connectionFailure
   (_connectionFailureSweep as { unref?: () => void }).unref?.();
 }
 
-// T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
-// When a 401 body contains these strings, the account is permanently dead
-// and should NOT be retried after token refresh.
+// T06 (sub2api PR #1037): Signals that indicate permanent account deactivation. When a 401 body contains these strings, the account is permanently dead and should NOT be retried after token refresh.
 export const ACCOUNT_DEACTIVATED_SIGNALS = [
   "account_deactivated",
   "account has been deactivated",
@@ -213,8 +201,7 @@ export const ACCOUNT_DEACTIVATED_SIGNALS = [
   "this service has been disabled in this account",
 ];
 
-// Custom banned signals — loaded from DB settings at runtime.
-// Combined with ACCOUNT_DEACTIVATED_SIGNALS in isAccountDeactivated().
+// Custom banned signals — loaded from DB settings at runtime. Combined with ACCOUNT_DEACTIVATED_SIGNALS in isAccountDeactivated().
 let _customBannedSignals: string[] = [];
 
 export function setCustomBannedSignals(signals: string[]): void {
@@ -226,8 +213,7 @@ export function getMergedBannedSignals(): string[] {
   return [...ACCOUNT_DEACTIVATED_SIGNALS, ..._customBannedSignals];
 }
 
-// T10 (sub2api PR #1169): Signals that indicate billing credits are exhausted.
-// Distinct from rate-limit 429 — the account won't recover until credits are added.
+// T10 (sub2api PR #1169): Signals that indicate billing credits are exhausted. Distinct from rate-limit 429 — the account won't recover until credits are added.
 export const CREDITS_EXHAUSTED_SIGNALS = [
   "insufficient_quota",
   "billing_hard_limit_reached",
@@ -239,24 +225,14 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   "out of credits",
   "payment required",
   "free tier of the model has been exhausted",
-  // #8631: narrower than a bare "has been exhausted" — that generic phrase also
-  // appears in Gemini's transient RPM/TPM 429 body ("Resource has been exhausted
-  // (e.g. check quota)."), which must stay RATE_LIMIT_EXCEEDED, not terminal.
-  // Anchoring on "tier" keeps free-tier depletion wording matched while excluding
-  // Gemini's "resource has been exhausted" rate-limit phrasing.
+  // #8631: narrower than a bare "has been exhausted" — that generic phrase also appears in Gemini's transient RPM/TPM 429 body ("Resource has been exhausted (e.g. check quota)."), which must stay RATE_LIMIT_EXCEEDED, not terminal. Anchoring on "tier" keeps free-tier depletion wording matched while excluding Gemini's "resource has been exhausted" rate-limit phrasing.
   "tier has been exhausted",
-  // #5239: providers (e.g. DeepSeek/GLM-style) return "Insufficient account balance"
-  // on a depleted key. 402 is already terminalized by status, but catch non-402
-  // out-of-credit bodies here too.
+  // #5239: providers (e.g. DeepSeek/GLM-style) return "Insufficient account balance" on a depleted key. 402 is already terminalized by status, but catch non-402 out-of-credit bodies here too.
   "insufficient balance",
   "insufficient_balance",
   "insufficient account balance",
   "insufficient credit balance",
-  // Command Code returns 400 "You have insufficient credits to make this
-  // request. Please purchase more credits to continue using the service."
-  // when the account's billing credits run out. Without this signal the
-  // error stays unclassified (errorType=null), so the connection is never
-  // marked credits_exhausted and keeps being re-selected on every request.
+  // Command Code returns 400 "You have insufficient credits to make this request. Please purchase more credits to continue using the service." when the account's billing credits run out. Without this signal the error stays unclassified (errorType=null), so the connection is never marked credits_exhausted and keeps being re-selected on every request.
   "insufficient credits",
   "insufficient credit",
 ];
@@ -271,20 +247,7 @@ export const OAUTH_INVALID_TOKEN_SIGNALS = [
   "re-authenticate your cline account",
 ];
 
-// A model that upstream has permanently retired — Gemini's deprecated-model 404
-// ("This model models/gemini-2.5-flash is no longer available to new users...")
-// and Fireworks/OpenAI-compatible "end of life" 410s ("has reached its end of
-// life ... and is no longer available") — will 404/410 on EVERY future request;
-// no cooldown short enough to retry soon is ever correct. Without this check
-// these fall through to the generic "all other errors" branch at the bottom of
-// checkFallbackError, which only applies a short (seconds-to-minutes) transient
-// cooldown, so combo/auto-routing keeps re-selecting the dead model roughly
-// every cooldown window, forever — wasted upstream calls that, at volume, look
-// like abusive traffic to the provider (observed: a Gemini free-tier key
-// retried `gemini-2.5-flash`/`gemini-2.5-flash-lite` every ~15-45 minutes for a
-// full day). Matched independent of MODEL_ACCESS_DENIED_PATTERNS below because
-// those only fire for status 400; this needs to catch the far more common
-// 404/410 status a retired model actually returns.
+// A model that upstream has permanently retired — Gemini's deprecated-model 404 ("This model models/gemini-2.5-flash is no longer available to new users...") and Fireworks/OpenAI-compatible "end of life" 410s ("has reached its end of life ... and is no longer available") — will 404/410 on EVERY future request; no cooldown short enough to retry soon is ever correct. Without this check these fall through to the generic "all other errors" branch at the bottom of checkFallbackError, which only applies a short (seconds-to-minutes) transient cooldown, so combo/auto-routing keeps re-selecting the dead model roughly every cooldown window, forever — wasted upstream calls that, at volume, look like abusive traffic to the provider (observed: a Gemini free-tier key retried `gemini-2.5-flash`/`gemini-2.5-flash-lite` every ~15-45 minutes for a full day). Matched independent of MODEL_ACCESS_DENIED_PATTERNS below because those only fire for status 400; this needs to catch the far more common 404/410 status a retired model actually returns.
 export const MODEL_PERMANENTLY_UNAVAILABLE_PATTERNS = [
   /\bno longer available\b/i,
   /\bno longer supported\b/i,
@@ -293,43 +256,20 @@ export const MODEL_PERMANENTLY_UNAVAILABLE_PATTERNS = [
   /\b(?:deprecated|retired|discontinued|decommissioned)[\s\S]{0,40}?\bmodel\b/i,
 ];
 
-// A provider that has permanently retired its API base_url — the old endpoint
-// keeps returning 410/404 on EVERY future request until the connection's
-// base_url is updated by an operator; no cooldown short enough to retry soon
-// is ever correct. Without this check these fall through to the generic
-// "all other errors" branch, which only applies a short (seconds-to-minutes)
-// transient cooldown, so combo/auto-routing keeps re-selecting the dead
-// endpoint roughly every cooldown window, forever — wasted upstream calls
-// that, at volume, look like abusive traffic (observed: freeaiapikey's moved
-// endpoint retried every ~1 minute for a full day: "This API endpoint has
-// moved. Please update your base_url to https://api.freeaiapikey.com/v1 —
-// the old endpoint on freeaiapikey.com no longer works.").
+// A provider that has permanently retired its API base_url — the old endpoint keeps returning 410/404 on EVERY future request until the connection's base_url is updated by an operator; no cooldown short enough to retry soon is ever correct. Without this check these fall through to the generic "all other errors" branch, which only applies a short (seconds-to-minutes) transient cooldown, so combo/auto-routing keeps re-selecting the dead endpoint roughly every cooldown window, forever — wasted upstream calls that, at volume, look like abusive traffic (observed: freeaiapikey's moved endpoint retried every ~1 minute for a full day: "This API endpoint has moved. Please update your base_url to https://api.freeaiapikey.com/v1 — the old endpoint on freeaiapikey.com no longer works.").
 export const ENDPOINT_PERMANENTLY_MOVED_PATTERNS = [
   /\bendpoint has moved\b/i,
   /\bno longer works\b/i,
   /\bupdate your base.?url\b/i,
 ];
 
-// A billing/account suspension that requires manual operator action (unpaid
-// invoice, spending limit) — text varies per provider/account name, e.g.
-// Fireworks: "Account hummern is suspended, possibly due to reaching the
-// monthly spending limit or failure to pay past invoices." This does not
-// match ACCOUNT_DEACTIVATED_SIGNALS' fixed "your account has been suspended"
-// substring, and several providers surface it on a status (412) that
-// checkFallbackError does not otherwise classify — so it fell through to the
-// generic transient-error branch and got retried every few minutes, all day,
-// against an account that cannot succeed until billing is fixed.
+// A billing/account suspension that requires manual operator action (unpaid invoice, spending limit) — text varies per provider/account name, e.g. Fireworks: "Account hummern is suspended, possibly due to reaching the monthly spending limit or failure to pay past invoices." This does not match ACCOUNT_DEACTIVATED_SIGNALS' fixed "your account has been suspended" substring, and several providers surface it on a status (412) that checkFallbackError does not otherwise classify — so it fell through to the generic transient-error branch and got retried every few minutes, all day, against an account that cannot succeed until billing is fixed.
 export const ACCOUNT_SUSPENDED_BILLING_PATTERNS = [
   /\bsuspended\b[\s\S]{0,120}?\b(?:spending limit|billing|invoice|payment)\b/i,
   /\b(?:spending limit|billing|invoice|payment)\b[\s\S]{0,120}?\bsuspended\b/i,
 ];
 
-// Context overflow patterns — the prompt exceeds the model's maximum context length.
-// Different providers phrase this differently. Used to decide whether a 400 error
-// should trigger combo fallback (a different model may have a larger context window).
-// Exported so combo.ts's isContextOverflow400() guard (open-sse/services/combo.ts)
-// can reuse this single source of truth instead of maintaining its own,
-// independently-drifting pattern list (see issue #6637).
+// Context overflow patterns — the prompt exceeds the model's maximum context length. Different providers phrase this differently. Used to decide whether a 400 error should trigger combo fallback (a different model may have a larger context window). Exported so combo.ts's isContextOverflow400() guard (open-sse/services/combo.ts) can reuse this single source of truth instead of maintaining its own, independently-drifting pattern list (see issue #6637).
 export const CONTEXT_OVERFLOW_PATTERNS = [
   /\binput is too long\b/i,
   /\binput too long\b/i,
@@ -343,10 +283,7 @@ export const CONTEXT_OVERFLOW_PATTERNS = [
   /\brequest too large\b/i,
 ];
 
-// Structured error codes that reliably indicate model access denied
-// (more reliable than regex on human-readable messages).
-// OpenAI:  { error: { code: "model_not_found", ... } }
-// Anthropic: { error: { type: "not_found_error", ... } }
+// Structured error codes that reliably indicate model access denied (more reliable than regex on human-readable messages). OpenAI: { error: { code: "model_not_found", ... } } Anthropic: { error: { type: "not_found_error", ... } }
 const MODEL_ACCESS_DENIED_CODES = new Set([
   "model_not_found", // OpenAI, OpenAI-compatible (Kiro, Together, Fireworks, etc.)
   "deployment_not_found", // Azure OpenAI
@@ -356,26 +293,17 @@ const MODEL_ACCESS_DENIED_TYPES = new Set([
   "not_found_error", // Anthropic: model doesn't exist — reliably model-scoped
 ]);
 
-// Anthropic's permission_error is NOT exclusively model-access related: it also
-// covers API-key scope, organization restrictions and feature gating. Treating it
-// as model-access-denied unconditionally would make a genuinely auth-restricted key
-// silently exhaust every combo target and hide the real error from the caller.
-// So it only counts when the message text confirms it refers to the model.
+// Anthropic's permission_error is NOT exclusively model-access related: it also covers API-key scope, organization restrictions and feature gating. Treating it as model-access-denied unconditionally would make a genuinely auth-restricted key silently exhaust every combo target and hide the real error from the caller. So it only counts when the message text confirms it refers to the model.
 const MODEL_ACCESS_AMBIGUOUS_TYPES = new Set([
   "permission_error", // Anthropic: could be model access OR key/org/feature scope
 ]);
 
-// Model access patterns — the account does not have access to the requested model
-// but a different account (e.g. PRO vs free tier) may support it.
-// Exported so combo.ts #2101 can exempt model-scoped 400s from the body-specific
-// stop guard (#5249): "model not supported" must advance to the next combo target
-// even when the message also contains wrapper words like "invalid" / "bad request".
+// Model access patterns — the account does not have access to the requested model but a different account (e.g. PRO vs free tier) may support it. Exported so combo.ts #2101 can exempt model-scoped 400s from the body-specific stop guard (#5249): "model not supported" must advance to the next combo target even when the message also contains wrapper words like "invalid" / "bad request".
 export const MODEL_ACCESS_DENIED_PATTERNS = [
   /\binvalid model\b/i,
   /\bmodel.*not.*(?:available|found|supported|accessible)\b/i,
   /\bmodel.*(?:does not exist|doesn't exist)\b/i,
-  // "does not support" / "unsupported model" — GitHub Copilot / OpenAI-compatible
-  // often phrase model rejection this way without the "is not supported" word order.
+  // "does not support" / "unsupported model" — GitHub Copilot / OpenAI-compatible often phrase model rejection this way without the "is not supported" word order.
   /\bmodel\b[\s\S]{0,80}?\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b/i,
   /\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b[\s\S]{0,80}?\bmodel\b/i,
   /\bunsupported\s+model\b/i,
@@ -383,20 +311,12 @@ export const MODEL_ACCESS_DENIED_PATTERNS = [
   /\bmodel.*access.*denied\b/i,
   /\bplease select a different model\b/i,
   /\bunknown\s+provider\s+for\s+model\b/i,
-  // "...access to the requested model" / "model ... access" — bounded lookahead
-  // (no nested quantifiers) so it stays ReDoS-safe while requiring BOTH an
-  // access/permission word and "model" so a pure auth error never matches.
+  // "...access to the requested model" / "model ... access" — bounded lookahead (no nested quantifiers) so it stays ReDoS-safe while requiring BOTH an access/permission word and "model" so a pure auth error never matches.
   /\b(?:access|permission)[\s\S]{0,60}?\bmodel\b/i,
   /\bmodel[\s\S]{0,60}?\b(?:access|permission)\b/i,
 ];
 
-// Pure credential/authentication failures — the key or token itself is bad, which
-// is NOT a model-availability problem. Some providers phrase these as a 400 that
-// also mentions the model (e.g. "invalid api key for model X"), which would
-// otherwise trip MODEL_ACCESS_DENIED_PATTERNS above and trigger combo fallback
-// across every target, masking the real "fix your credential" error. When the
-// text clearly indicates a bad credential, the regex-based model-access detection
-// is suppressed (structured codes/types like model_not_found are unaffected).
+// Pure credential/authentication failures — the key or token itself is bad, which is NOT a model-availability problem. Some providers phrase these as a 400 that also mentions the model (e.g. "invalid api key for model X"), which would otherwise trip MODEL_ACCESS_DENIED_PATTERNS above and trigger combo fallback across every target, masking the real "fix your credential" error. When the text clearly indicates a bad credential, the regex-based model-access detection is suppressed (structured codes/types like model_not_found are unaffected).
 export const AUTH_CREDENTIAL_ERROR_PATTERNS = [
   /\b(?:invalid|incorrect|expired|missing|revoked)\s+api[\s_-]?key\b/i,
   /\bapi[\s_-]?key\s+(?:is\s+)?(?:invalid|incorrect|expired|missing|revoked|not\s+valid)\b/i,
@@ -406,15 +326,7 @@ export const AUTH_CREDENTIAL_ERROR_PATTERNS = [
   /\bnot\s+authenticated\b/i,
 ];
 
-// #10460: strict subset of MODEL_ACCESS_DENIED_PATTERNS that is unambiguously
-// PROVIDER-wide — the model does not exist / is not served by this provider at all, so
-// no account of that provider could serve it (e.g. "The requested model is not
-// supported", "model not found"). Deliberately EXCLUDES the "access"/"permission"
-// patterns from MODEL_ACCESS_DENIED_PATTERNS (e.g. "does not have permission to access
-// this model", "access denied ... model"): those commonly indicate an ACCOUNT-scoped
-// entitlement gap (e.g. PRO vs free tier) where a *different* account of the same
-// provider may still have access, so they must keep rotating through the normal
-// account-cooldown path — not be treated as provider-wide unsupported.
+// #10460: strict subset of MODEL_ACCESS_DENIED_PATTERNS that is unambiguously PROVIDER-wide — the model does not exist / is not served by this provider at all, so no account of that provider could serve it (e.g. "The requested model is not supported", "model not found"). Deliberately EXCLUDES the "access"/"permission" patterns from MODEL_ACCESS_DENIED_PATTERNS (e.g. "does not have permission to access this model", "access denied ... model"): those commonly indicate an ACCOUNT-scoped entitlement gap (e.g. PRO vs free tier) where a *different* account of the same provider may still have access, so they must keep rotating through the normal account-cooldown path — not be treated as provider-wide unsupported.
 const PROVIDER_MODEL_UNSUPPORTED_PATTERNS = [
   /\binvalid model\b/i,
   /\bmodel.*not.*(?:available|found|supported|accessible)\b/i,
@@ -446,8 +358,7 @@ export function isProviderModelUnsupported400(status: number, errorText: string)
   return PROVIDER_MODEL_UNSUPPORTED_PATTERNS.some((p) => p.test(errorText));
 }
 
-// Malformed request patterns — the model rejected the message format but a different
-// provider/model in the combo may accept it.
+// Malformed request patterns — the model rejected the message format but a different provider/model in the combo may accept it.
 const MALFORMED_REQUEST_PATTERNS = [
   /\bimproperly formed request\b/i,
   /\binvalid.*message.*format/i,
@@ -459,11 +370,7 @@ const MALFORMED_REQUEST_PATTERNS = [
   /tool_call.*name.*(?:blank|empty|missing)/i,
 ];
 
-// Rate-limit text on a 400 — some providers (e.g. MiMoCode) signal throttling with a
-// non-standard 400 status whose body carries rate-limit semantics instead of a 429
-// (#4976). When detected, the request is fallback-worthy at connection-cooldown scope
-// (NOT a whole-provider breaker) so combo routing can fail over to another free target.
-// Exported: mimocode.ts's executor reuses this list directly (single source of truth).
+// Rate-limit text on a 400 — some providers (e.g. MiMoCode) signal throttling with a non-standard 400 status whose body carries rate-limit semantics instead of a 429 (#4976). When detected, the request is fallback-worthy at connection-cooldown scope (NOT a whole-provider breaker) so combo routing can fail over to another free target. Exported: mimocode.ts's executor reuses this list directly (single source of truth).
 export const RATE_LIMIT_TEXT_PATTERNS = [
   /high.?frequency/i,
   /non-compliant/i,
@@ -600,13 +507,11 @@ export async function getRuntimeProviderProfile(provider: string | null | undefi
   }
 }
 
-// ─── Per-Model Lockout Tracking ─────────────────────────────────────────────
-// In-memory map: "provider:connectionId:model" → { reason, until, lockedAt }
+// ─── Per-Model Lockout Tracking ───────────────────────────────────────────── In-memory map: "provider:connectionId:model" → { reason, until, lockedAt }
 const modelLockouts = new Map<string, ModelLockoutEntry>();
 const modelFailureState = new Map<string, ModelFailureState>();
 
-// Aliases (e.g. "cx" → "codex") must share lockout state with their canonical
-// provider, otherwise a model locked via one spelling stays routable via the other.
+// Aliases (e.g. "cx" → "codex") must share lockout state with their canonical provider, otherwise a model locked via one spelling stays routable via the other.
 const canonicalProviderCache = new Map<string, string>();
 function getCanonicalLockProvider(provider: string): string {
   let canonical = canonicalProviderCache.get(provider);
@@ -710,8 +615,7 @@ function cleanupModelLockKey(key: string, now = Date.now()) {
 
   const failure = modelFailureState.get(key);
   if (!failure) return;
-  // The escalation window extends past the applied cooldown: a model that fails
-  // again right after its lockout expires must keep escalating, not reset to 1.
+  // The escalation window extends past the applied cooldown: a model that fails again right after its lockout expires must keep escalating, not reset to 1.
   if (now - failure.lastFailureAt <= failure.resetAfterMs + (failure.lastCooldownMs ?? 0)) return;
   if (modelLockouts.has(key)) return;
   modelFailureState.delete(key);
@@ -790,9 +694,7 @@ export function lockModel(
   const key = getModelLockKey(provider, connectionId, model, reason);
   cleanupModelLockKey(key);
   const newUntil = Date.now() + cooldownMs;
-  // Preserve the longer cooldown if an existing lock has more time remaining.
-  // Safe without a mutex: no await between get/set, so this runs atomically
-  // within Node.js's single-threaded event loop.
+  // Preserve the longer cooldown if an existing lock has more time remaining. Safe without a mutex: no await between get/set, so this runs atomically within Node.js's single-threaded event loop.
   const existing = modelLockouts.get(key);
   if (existing && existing.until > newUntil) {
     if (metadata.failureCount && metadata.failureCount > existing.failureCount) {
@@ -870,27 +772,21 @@ export function recordModelLockoutFailure(
   const now = Date.now();
   cleanupModelLockKey(key, now);
 
-  // For daily quota exhaustion (quota_exhausted), set cooldown until tomorrow 00:00
-  // Use exactCooldownMs to bypass exponential backoff, ensuring precise lock until midnight
+  // For daily quota exhaustion (quota_exhausted), set cooldown until tomorrow 00:00 Use exactCooldownMs to bypass exponential backoff, ensuring precise lock until midnight
   if (reason === "quota_exhausted" && typeof options.exactCooldownMs !== "number") {
     options = { ...options, exactCooldownMs: getMsUntilTomorrow() };
   }
 
   const resetAfterMs = getFailureWindowMs(profile);
   const previous = modelFailureState.get(key);
-  // Escalation window extends past the previously applied cooldown so a model
-  // that fails again right after its lockout expires keeps escalating.
+  // Escalation window extends past the previously applied cooldown so a model that fails again right after its lockout expires keeps escalating.
   const withinWindow =
     previous &&
     now - previous.lastFailureAt <= previous.resetAfterMs + (previous.lastCooldownMs ?? 0);
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
 
   const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  // Cap both exponential backoff and computed exact cooldowns (e.g. daily-quota
-  // until-midnight, #7940/#7980) against maxCooldownMs so user-configured caps are
-  // honored — EXCEPT an authoritative parsed upstream reset (#6863, e.g. Antigravity
-  // "Resets in 92h27m28s"), which the upstream told us to wait and must be honored
-  // exactly, never clamped down to maxCooldownMs.
+  // Cap both exponential backoff and computed exact cooldowns (e.g. daily-quota until-midnight, #7940/#7980) against maxCooldownMs so user-configured caps are honored — EXCEPT an authoritative parsed upstream reset (#6863, e.g. Antigravity "Resets in 92h27m28s"), which the upstream told us to wait and must be honored exactly, never clamped down to maxCooldownMs.
   const maxCooldownMs =
     typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
       ? options.maxCooldownMs
@@ -970,11 +866,7 @@ export function hasPerModelQuota(
   if (canonicalId === "gemini" || canonicalId === "github") return true;
   if (canonicalId === "antigravity" || canonicalId === "agy") return true;
   if (getPassthroughProviders().has(canonicalId)) return true;
-  // #11071: getPassthroughProviders() reads the open-sse REGISTRY. A provider can declare
-  // passthroughModels:true in the SHARED registry (src/shared/constants/providers/) and be
-  // absent from that set — 40 of them are, and they are neither local nor self-hosted, so the
-  // branch below never reaches them either. Without this lookup a missing-model 404 on one of
-  // those cools the whole connection instead of locking out the single model.
+  // #11071: getPassthroughProviders() reads the open-sse REGISTRY. A provider can declare passthroughModels:true in the SHARED registry (src/shared/constants/providers/) and be absent from that set — 40 of them are, and they are neither local nor self-hosted, so the branch below never reaches them either. Without this lookup a missing-model 404 on one of those cools the whole connection instead of locking out the single model.
   if (getProviderById(canonicalId)?.passthroughModels === true) return true;
   if (isCompatibleProvider(canonicalId)) return true;
   if (isLocalProviderId(canonicalId) || isSelfHostedChatProvider(canonicalId)) return true;
@@ -994,8 +886,7 @@ export function lockModelIfPerModelQuota(
   connectionPassthroughModels?: boolean
 ): boolean {
   if (!hasPerModelQuota(provider, model, connectionPassthroughModels) || !model) return false;
-  // Skip model-level lock if the entire provider is in circuit-breaker cooldown.
-  // The provider cooldown already prevents all requests, so a model lock is redundant.
+  // Skip model-level lock if the entire provider is in circuit-breaker cooldown. The provider cooldown already prevents all requests, so a model lock is redundant.
   if (isProviderInCooldown(provider)) return false;
   const lockFn = getCanonicalLockProvider(provider) === "antigravity" ? lockExactModel : lockModel;
   lockFn(provider, connectionId, model, reason, cooldownMs);
@@ -1008,10 +899,7 @@ export function shouldMarkAccountExhaustedFrom429(
   connectionPassthroughModels?: boolean,
   failureKind?: FailureKind
 ): boolean {
-  // A plain 429 means transient rate limiting / high traffic for many OAuth providers.
-  // Only connection-poison the quota cache when the upstream body explicitly says
-  // the long-window quota is exhausted; otherwise fallback should try another account
-  // without making this one look quota-depleted for 5 minutes.
+  // A plain 429 means transient rate limiting / high traffic for many OAuth providers. Only connection-poison the quota cache when the upstream body explicitly says the long-window quota is exhausted; otherwise fallback should try another account without making this one look quota-depleted for 5 minutes.
   if (failureKind === "rate_limit" || failureKind === "transient") return false;
   return (
     shouldPreserveQuotaSignals(provider) &&
@@ -1134,8 +1022,7 @@ export function getAllModelLockouts(): ModelLockoutInfo[] {
   return active;
 }
 
-// ─── Provider Breaker Compatibility Wrappers ────────────────────────────────
-// Legacy helpers now delegate to the shared provider circuit breaker.
+// ─── Provider Breaker Compatibility Wrappers ──────────────────────────────── Legacy helpers now delegate to the shared provider circuit breaker.
 
 type ProviderBreakerProfile = {
   failureThreshold?: number;
@@ -1156,9 +1043,7 @@ function configureProviderBreaker(
   if (!provider) return null;
 
   const resolvedProfile = { ...getProviderProfile(provider), ...profile };
-  // Issue #2100 follow-up: resolve useUpstream429BreakerHints from the
-  // provider profile (stored override) or fall back to per-provider default.
-  // Stored value type is `boolean | undefined` — never `null` after PATCH.
+  // Issue #2100 follow-up: resolve useUpstream429BreakerHints from the provider profile (stored override) or fall back to per-provider default. Stored value type is `boolean | undefined` — never `null` after PATCH.
   const userValue = resolvedProfile.useUpstream429BreakerHints;
   const useHints = resolveUseUpstream429BreakerHints(provider, userValue);
   return getCircuitBreaker(provider, {
@@ -1220,14 +1105,10 @@ export function recordProviderFailure(
   opts?: { isQueueTimeout?: boolean; isNetworkError?: boolean }
 ): void {
   if (!provider) return;
-  // OmniRoute's own rate-limit queue timeout is backpressure we applied, not a
-  // provider failure — the provider never saw the request, so it must not count
-  // toward the provider breaker.
+  // OmniRoute's own rate-limit queue timeout is backpressure we applied, not a provider failure — the provider never saw the request, so it must not count toward the provider breaker.
   if (opts?.isQueueTimeout) return;
 
-  // Network-layer errors (proxy_unreachable) get a separate SAME-PROVIDER dedup, so a
-  // single transient network event is not counted once per combo target (see the
-  // declaration). A dead proxy persists across requests and still accumulates.
+  // Network-layer errors (proxy_unreachable) get a separate SAME-PROVIDER dedup, so a single transient network event is not counted once per combo target (see the declaration). A dead proxy persists across requests and still accumulates.
   if (opts?.isNetworkError) {
     const now = Date.now();
     const last = lastNetworkErrorByProvider.get(provider);
@@ -1287,14 +1168,10 @@ export function recordProviderSuccess(
   if (!breaker) return;
   const breakerState = breaker.getStatus().state;
 
-  // When breaker is OPEN, the provider is failing -- do not reset cooldown
-  // even if one request slipped through (dispatched before the open).
-  // The cooldown resets when the breaker reaches HALF_OPEN and the probe
-  // succeeds below.
+  // When breaker is OPEN, the provider is failing -- do not reset cooldown even if one request slipped through (dispatched before the open). The cooldown resets when the breaker reaches HALF_OPEN and the probe succeeds below.
   if (breakerState === "OPEN") return;
 
-  // Reset cooldown failureCount (exponential backoff) -- symmetric with
-  // recordProviderCooldown which increments it on each failure.
+  // Reset cooldown failureCount (exponential backoff) -- symmetric with recordProviderCooldown which increments it on each failure.
   resetCooldownFailureCount(provider, connectionId ?? undefined);
 
   // Clear failure-dedup window so the next genuine failure is not suppressed.
@@ -1302,8 +1179,7 @@ export function recordProviderSuccess(
     lastConnectionFailure.delete(`${provider}:${connectionId}`);
   }
 
-  // Transition breaker on success, matching execute()'s behavior:
-  // HALF_OPEN -> CLOSED (probe success), CLOSED/DEGRADED -> decay failureCount.
+  // Transition breaker on success, matching execute()'s behavior: HALF_OPEN -> CLOSED (probe success), CLOSED/DEGRADED -> decay failureCount.
   breaker._onSuccess();
 }
 
@@ -1421,8 +1297,7 @@ export function parseRetryAfterFromBody(responseBody: unknown): {
   return { retryAfterMs: null, reason };
 }
 
-// parseDelayString now lives in ./retryAfterJson.ts (shared with parseRetryHintFromJsonBody's
-// Gemini RetryInfo.retryDelay parsing, #7940) — see the import at the top of this file.
+// parseDelayString now lives in ./retryAfterJson.ts (shared with parseRetryHintFromJsonBody's Gemini RetryInfo.retryDelay parsing, #7940) — see the import at the top of this file.
 
 // T07: parse retry time from error text body with combined "XhYmZs" format.
 export function parseRetryFromErrorText(errorText: unknown): number | null {
@@ -1432,9 +1307,7 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
   const bodyHintMs = parseRetryHintFromJsonBody(msg, MAX_PROVIDER_COOLDOWN_MS);
   if (bodyHintMs !== null) return bodyHintMs;
 
-  // Gemini free-tier text fallback (no parseable JSON details present):
-  // "Please retry in 26.660853464s." Short throttle hint — capped independently of
-  // MAX_PROVIDER_COOLDOWN_MS, mirroring the JSON RetryInfo.retryDelay cap (#7940).
+  // Gemini free-tier text fallback (no parseable JSON details present): "Please retry in 26.660853464s." Short throttle hint — capped independently of MAX_PROVIDER_COOLDOWN_MS, mirroring the JSON RetryInfo.retryDelay cap (#7940).
   const pleaseRetryMs = parseDelayString(PLEASE_RETRY_RE.exec(msg)?.[1]);
   if (pleaseRetryMs !== null && pleaseRetryMs > 0) {
     return Math.min(pleaseRetryMs, MAX_SHORT_RETRY_HINT_MS);
@@ -1507,11 +1380,7 @@ export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
     lower.includes("hour quota") ||
     lower.includes("billing") ||
     looksLikeQuotaExhausted(lower) ||
-    // Issue #2321: Anthropic OAuth (Claude Code Pro/Team) 429 bodies surface
-    // the subscription quota with phrases that contain neither "quota" nor
-    // "billing". Without these patterns the error was classified as a
-    // transient RATE_LIMIT_EXCEEDED (~5s base cooldown), which cascades all
-    // Pro accounts into a tight retry loop until the 5h window resets.
+    // Issue #2321: Anthropic OAuth (Claude Code Pro/Team) 429 bodies surface the subscription quota with phrases that contain neither "quota" nor "billing". Without these patterns the error was classified as a transient RATE_LIMIT_EXCEEDED (~5s base cooldown), which cascades all Pro accounts into a tight retry loop until the 5h window resets.
     isSubscriptionQuotaText(lower)
   ) {
     return RateLimitReason.QUOTA_EXHAUSTED;
@@ -1557,8 +1426,7 @@ export function classifyError(
   errorText: unknown,
   context?: { provider?: string | null; headers?: Record<string, string> | null; body?: unknown }
 ): RateLimitReasonValue {
-  // Provider-specific rules take priority — they have the most accurate signal
-  // (e.g. `x-ratelimit-remaining-requests: 0` is irrefutable account exhaustion).
+  // Provider-specific rules take priority — they have the most accurate signal (e.g. `x-ratelimit-remaining-requests: 0` is irrefutable account exhaustion).
   if (context?.provider) {
     const match = getProviderErrorRuleMatch(
       context.provider,
@@ -1605,8 +1473,7 @@ export function getMsUntilTomorrow(): number {
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
   const ms = tomorrow.getTime() - nowMs;
-  // Guard against DST edge cases: if ms is negative (shouldn't happen) or
-  // unreasonably large (>25h due to spring-forward), cap at 24 hours.
+  // Guard against DST edge cases: if ms is negative (shouldn't happen) or unreasonably large (>25h due to spring-forward), cap at 24 hours.
   return ms > 0 && ms <= 25 * 60 * 60 * 1000 ? ms : 24 * 60 * 60 * 1000;
 }
 
@@ -1700,12 +1567,7 @@ export function checkFallbackError(
    * always undefined for every other provider, so existing consumers are unaffected. */
   ruleScope?: "model" | "provider" | "connection";
 } {
-  // #10360: an executor-result contract violation is OUR bug, not the provider's.
-  // Retrying reproduces it verbatim, and cooling the connection down (or tripping
-  // the provider breaker) punishes a healthy account for an internal defect. Must
-  // run before every other classification — the surfaced status is a plain 500,
-  // which the retryable set below would otherwise treat as a transient upstream
-  // failure and hand a backoff cooldown.
+  // #10360: an executor-result contract violation is OUR bug, not the provider's. Retrying reproduces it verbatim, and cooling the connection down (or tripping the provider breaker) punishes a healthy account for an internal defect. Must run before every other classification — the surfaced status is a plain 500, which the retryable set below would otherwise treat as a transient upstream failure and hand a backoff cooldown.
   if (structuredError?.code === EXECUTOR_CONTRACT_VIOLATION_CODE) {
     return {
       shouldFallback: false,
@@ -1880,15 +1742,7 @@ export function checkFallbackError(
       };
     }
 
-    // A retired model (Gemini deprecated-model 404, Fireworks/etc. end-of-life 410)
-    // will fail identically on every future request — lock it for a long, fixed
-    // window instead of falling through to the generic transient-error branch's
-    // short backoff, which would otherwise keep re-selecting a permanently dead
-    // model roughly every cooldown window, all day, hammering the provider with
-    // guaranteed-to-fail requests (see MODEL_PERMANENTLY_UNAVAILABLE_PATTERNS).
-    // `quotaResetHintMs` flows into combo.ts's per-request model-lockout as an
-    // upstream-verified reset, so it is honored in full and not clamped to the
-    // normal ~20min model-lockout ceiling.
+    // A retired model (Gemini deprecated-model 404, Fireworks/etc. end-of-life 410) will fail identically on every future request — lock it for a long, fixed window instead of falling through to the generic transient-error branch's short backoff, which would otherwise keep re-selecting a permanently dead model roughly every cooldown window, all day, hammering the provider with guaranteed-to-fail requests (see MODEL_PERMANENTLY_UNAVAILABLE_PATTERNS). `quotaResetHintMs` flows into combo.ts's per-request model-lockout as an upstream-verified reset, so it is honored in full and not clamped to the normal ~20min model-lockout ceiling.
     if (
       (status === HTTP_STATUS.NOT_FOUND || status === HTTP_STATUS.GONE) &&
       isModelPermanentlyUnavailable(errorStr)
@@ -1902,10 +1756,7 @@ export function checkFallbackError(
       };
     }
 
-    // The provider's API endpoint/base_url has permanently moved — every future
-    // request against the stale base_url fails identically, so lock it for a
-    // long, fixed window instead of the generic transient-error branch's short
-    // backoff (see ENDPOINT_PERMANENTLY_MOVED_PATTERNS).
+    // The provider's API endpoint/base_url has permanently moved — every future request against the stale base_url fails identically, so lock it for a long, fixed window instead of the generic transient-error branch's short backoff (see ENDPOINT_PERMANENTLY_MOVED_PATTERNS).
     if (isEndpointPermanentlyMoved(errorStr)) {
       const cooldownMs = 24 * 60 * 60 * 1000; // 24h
       return {
@@ -1916,11 +1767,7 @@ export function checkFallbackError(
       };
     }
 
-    // The account is suspended for a billing reason (unpaid invoice, spending
-    // limit) that varies per provider/account name and can arrive on a status
-    // checkFallbackError does not otherwise classify (e.g. Fireworks 412) —
-    // treat it like a credits-exhausted account so it stops being retried
-    // every few minutes until billing is fixed (see ACCOUNT_SUSPENDED_BILLING_PATTERNS).
+    // The account is suspended for a billing reason (unpaid invoice, spending limit) that varies per provider/account name and can arrive on a status checkFallbackError does not otherwise classify (e.g. Fireworks 412) — treat it like a credits-exhausted account so it stops being retried every few minutes until billing is fixed (see ACCOUNT_SUSPENDED_BILLING_PATTERNS).
     if (isAccountSuspendedForBilling(errorStr)) {
       return {
         shouldFallback: true,
@@ -1930,26 +1777,9 @@ export function checkFallbackError(
       };
     }
 
-    // Gemini-specific check — MUST run before isCreditsExhausted/
-    // isDailyQuotaExhausted/the generic text classifier below: Gemini's free-
-    // tier 429 boilerplate literally says "You exceeded your current quota,
-    // please check your plan and billing details" for EVERY limit type
-    // (RPM/TPM/RPD alike), which collides with CREDITS_EXHAUSTED_SIGNALS'
-    // `"exceeded your current quota"` entry (added for OpenAI-style terminal
-    // billing errors) — that generic check would otherwise short-circuit
-    // straight to QUOTA_EXHAUSTED before this Gemini-specific block ever runs
-    // (#7360). Gated on provider === "gemini" so it cannot affect any other
-    // provider's genuine credits-exhausted classification.
+    // Gemini-specific check — MUST run before isCreditsExhausted/ isDailyQuotaExhausted/the generic text classifier below: Gemini's free- tier 429 boilerplate literally says "You exceeded your current quota, please check your plan and billing details" for EVERY limit type (RPM/TPM/RPD alike), which collides with CREDITS_EXHAUSTED_SIGNALS' `"exceeded your current quota"` entry (added for OpenAI-style terminal billing errors) — that generic check would otherwise short-circuit straight to QUOTA_EXHAUSTED before this Gemini-specific block ever runs (#7360). Gated on provider === "gemini" so it cannot affect any other provider's genuine credits-exhausted classification.
     //
-    // Preference order:
-    //  1. The upstream error text's own metric name (authoritative — it is
-    //     Google's own signal, e.g. "...free_tier_input_token_count..." = TPM).
-    //     Required because the local per-model counters below only increment
-    //     on a SUCCESSFUL response; a request that gets rejected — especially
-    //     the first of several concurrent requests racing to trip the same
-    //     per-minute limit — never contributes to the counter, so it can read
-    //     0 at the exact moment it needs to report exhaustion.
-    //  2. Local per-model counters, when the text names no metric.
+    // Preference order: 1. The upstream error text's own metric name (authoritative — it is Google's own signal, e.g. "...free_tier_input_token_count..." = TPM). Required because the local per-model counters below only increment on a SUCCESSFUL response; a request that gets rejected — especially the first of several concurrent requests racing to trip the same per-minute limit — never contributes to the counter, so it can read 0 at the exact moment it needs to report exhaustion. 2. Local per-model counters, when the text names no metric.
     if (provider === "gemini" && status === HTTP_STATUS.RATE_LIMITED && _model) {
       const metricClass = classifyGeminiQuotaMetricFromText(errorStr);
       if (metricClass === "rpd") {
@@ -1969,8 +1799,7 @@ export function checkFallbackError(
       }
     }
 
-    // T10 (sub2api #1169) + #8247: credits/quota exhausted; *-compatible-* nicknames stay model-scoped
-    // unless the body is an account-level Open Platform empty wallet.
+    // T10 (sub2api #1169) + #8247: credits/quota exhausted; *-compatible-* nicknames stay model-scoped unless the body is an account-level Open Platform empty wallet.
     if (
       shouldUseQuotaSignal &&
       isCreditsExhausted(errorStr) &&
@@ -1984,9 +1813,7 @@ export function checkFallbackError(
       };
     }
 
-    // Daily quota exhausted. TPD uses the node clock / header; other daily
-    // quota text still uses getMsUntilTomorrow. TPD without either is not a
-    // host-midnight lock — fall through to short 429.
+    // Daily quota exhausted. TPD uses the node clock / header; other daily quota text still uses getMsUntilTomorrow. TPD without either is not a host-midnight lock — fall through to short 429.
     if (shouldUseQuotaSignal && isDailyQuotaExhausted(errorStr)) {
       if (isTpdRateLimit(errorStr)) {
         const headerResetAtMs = parseResetFromHeaders(headers);
@@ -2023,13 +1850,7 @@ export function checkFallbackError(
       }
     }
 
-    // Issue #2321 (5h subscription quota) + Issue #3709 (ollama-cloud weekly
-    // cap): both classifiers live in quotaTextCooldowns.ts (this file is
-    // frozen at its file-size-baseline cap). The weekly check runs
-    // UNCONDITIONALLY (not gated by shouldUseQuotaSignal) because it targets
-    // apikey-category providers like ollama-cloud, which the oauth-only
-    // shouldUseQuotaSignal gate deliberately excludes from the subscription
-    // check above.
+    // Issue #2321 (5h subscription quota) + Issue #3709 (ollama-cloud weekly cap): both classifiers live in quotaTextCooldowns.ts (this file is frozen at its file-size-baseline cap). The weekly check runs UNCONDITIONALLY (not gated by shouldUseQuotaSignal) because it targets apikey-category providers like ollama-cloud, which the oauth-only shouldUseQuotaSignal gate deliberately excludes from the subscription check above.
     if (shouldUseQuotaSignal && !isCreditsExhausted(errorStr) && !isDailyQuotaExhausted(errorStr)) {
       const subResult = buildSubscriptionQuotaFallback(
         errorStr,
@@ -2041,10 +1862,7 @@ export function checkFallbackError(
     }
     const weeklyResult = buildWeeklyQuotaFallback(errorStr);
     if (weeklyResult) return weeklyResult;
-    // Issue #7071 (session usage cap) is the same sibling gap as #3709 above —
-    // runs UNCONDITIONALLY for the same reason: apikey-category providers
-    // like ollama-cloud are excluded from the oauth-only shouldUseQuotaSignal
-    // gate.
+    // Issue #7071 (session usage cap) is the same sibling gap as #3709 above — runs UNCONDITIONALLY for the same reason: apikey-category providers like ollama-cloud are excluded from the oauth-only shouldUseQuotaSignal gate.
     const sessionResult = buildSessionQuotaFallback(errorStr);
     if (sessionResult) return sessionResult;
 
@@ -2068,11 +1886,7 @@ export function checkFallbackError(
       };
     }
 
-    // #2929: A route-restriction 403 (e.g. Fireworks Fire Pass keys returning
-    // "Fire Pass API keys are not authorized for this route." on the /models
-    // endpoint) means the key is valid but lacks access to THIS route — it still
-    // serves chat. It must NOT cool down the connection or be classified as an
-    // auth error, otherwise a single model-listing 403 marks the key unavailable.
+    // #2929: A route-restriction 403 (e.g. Fireworks Fire Pass keys returning "Fire Pass API keys are not authorized for this route." on the /models endpoint) means the key is valid but lacks access to THIS route — it still serves chat. It must NOT cool down the connection or be classified as an auth error, otherwise a single model-listing 403 marks the key unavailable.
     if (
       status === HTTP_STATUS.FORBIDDEN &&
       errorStr.toLowerCase().includes("not authorized for this route")
@@ -2080,11 +1894,7 @@ export function checkFallbackError(
       return { shouldFallback: false, cooldownMs: 0, reason: RateLimitReason.UNKNOWN };
     }
 
-    // #10334 — agentrouter EXCLUSIVE: consult the provider rules BEFORE the
-    // apikey-FORBIDDEN early-return below, so a recognized 403 body (e.g.
-    // "无权访问模型") carries the rule's declared reason/cooldown/scope instead of
-    // the generic short auth cooldown. Gated on honorsRuleLockScope — for any
-    // other provider this block is a no-op and the early-return stays identical.
+    // #10334 — agentrouter EXCLUSIVE: consult the provider rules BEFORE the apikey-FORBIDDEN early-return below, so a recognized 403 body (e.g. "无权访问模型") carries the rule's declared reason/cooldown/scope instead of the generic short auth cooldown. Gated on honorsRuleLockScope — for any other provider this block is a no-op and the early-return stays identical.
     if (status === HTTP_STATUS.FORBIDDEN && provider && honorsRuleLockScope(provider)) {
       const forbiddenMatch = getProviderErrorRuleMatch(
         provider,
@@ -2117,14 +1927,7 @@ export function checkFallbackError(
       : findMatchingErrorRule(status, errorStr);
   if (configuredRule) {
     if (configuredRule.backoff) {
-      // Provider-specific rules in `providerRuleRegistry` are MORE SPECIFIC
-      // than the configured (global) rule, so we check them first. If a
-      // provider rule matches, it overrides the configured rule's reason
-      // (e.g. Opencode's `x-ratelimit-remaining-requests: 0` overrides
-      // 429 → RATE_LIMIT_EXCEEDED). We do NOT call the full `classifyError`
-      // here because its global status fallback would otherwise override
-      // specific configured reasons (e.g. 503 → SERVER_ERROR would be
-      // shadowed by 503 → MODEL_CAPACITY).
+      // Provider-specific rules in `providerRuleRegistry` are MORE SPECIFIC than the configured (global) rule, so we check them first. If a provider rule matches, it overrides the configured rule's reason (e.g. Opencode's `x-ratelimit-remaining-requests: 0` overrides 429 → RATE_LIMIT_EXCEEDED). We do NOT call the full `classifyError` here because its global status fallback would otherwise override specific configured reasons (e.g. 503 → SERVER_ERROR would be shadowed by 503 → MODEL_CAPACITY).
       const providerMatch = provider
         ? getProviderErrorRuleMatch(
             provider,
@@ -2136,13 +1939,7 @@ export function checkFallbackError(
       const reason = providerMatch
         ? providerMatch.reason
         : (configuredRule.reason ?? RateLimitReason.UNKNOWN);
-      // Fix C: thread `providerMatch.cooldownMs` through so a configured rule
-      // like the "Monthly usage limit reached. Resets in N days." matcher can
-      // declare an explicit cooldown (e.g. 13 days) and have it win over the
-      // scaled backoff default returned by `buildRetryableFallback`. Without
-      // this, the rule's reason is used but its cooldownMs is silently
-      // dropped — which is exactly the user-visible bug where a 13-day
-      // upstream quota reset was being treated as ~60s.
+      // Fix C: thread `providerMatch.cooldownMs` through so a configured rule like the "Monthly usage limit reached. Resets in N days." matcher can declare an explicit cooldown (e.g. 13 days) and have it win over the scaled backoff default returned by `buildRetryableFallback`. Without this, the rule's reason is used but its cooldownMs is silently dropped — which is exactly the user-visible bug where a 13-day upstream quota reset was being treated as ~60s.
       const providerCooldownMs =
         providerMatch?.cooldownMs !== undefined && providerMatch.cooldownMs > 0
           ? providerMatch.cooldownMs
@@ -2161,11 +1958,7 @@ export function checkFallbackError(
       }
       return { ...fallback, ruleScope };
     }
-    // #6842: non-backoff configured rules (e.g. status_402) previously never
-    // consulted providerRuleRegistry, so a provider-specific rule (like
-    // OpenRouter's credit-exhausted 402 lock) could never override the
-    // generic zero-cooldown default. Mirror the backoff branch above so
-    // provider rules win on cooldown/reason regardless of `backoff`.
+    // #6842: non-backoff configured rules (e.g. status_402) previously never consulted providerRuleRegistry, so a provider-specific rule (like OpenRouter's credit-exhausted 402 lock) could never override the generic zero-cooldown default. Mirror the backoff branch above so provider rules win on cooldown/reason regardless of `backoff`.
     const providerMatch = provider
       ? getProviderErrorRuleMatch(
           provider,
@@ -2213,16 +2006,12 @@ export function checkFallbackError(
   if (status === HTTP_STATUS.BAD_REQUEST) {
     const modelUnavailable = getOpencodeModelUnavailableMatch(provider, status, headers, errorStr);
     if (modelUnavailable) return ruleScopedResult(modelUnavailable);
-    // Check structured error codes first (more reliable, no false positives)
-    // OpenAI:  error.code === "model_not_found"
-    // Anthropic: error.type === "not_found_error" / "permission_error"
+    // Check structured error codes first (more reliable, no false positives) OpenAI: error.code === "model_not_found" Anthropic: error.type === "not_found_error" / "permission_error"
     const structuredCode =
       typeof structuredError?.code === "string" ? structuredError.code.toLowerCase() : "";
     const structuredType =
       typeof structuredError?.type === "string" ? structuredError.type.toLowerCase() : "";
-    // A clear bad-credential error must never be reclassified as model-access
-    // (which would silently exhaust every combo target). Structured detection
-    // below still catches genuine model_not_found / not_found_error codes.
+    // A clear bad-credential error must never be reclassified as model-access (which would silently exhaust every combo target). Structured detection below still catches genuine model_not_found / not_found_error codes.
     const looksLikeAuthCredentialError = AUTH_CREDENTIAL_ERROR_PATTERNS.some((p) =>
       p.test(errorStr)
     );
@@ -2233,8 +2022,7 @@ export function checkFallbackError(
       !!structuredError &&
       (MODEL_ACCESS_DENIED_CODES.has(structuredCode) ||
         MODEL_ACCESS_DENIED_TYPES.has(structuredType) ||
-        // Ambiguous types (e.g. Anthropic permission_error) only count as a model
-        // access denial when the message text confirms it is about the model.
+        // Ambiguous types (e.g. Anthropic permission_error) only count as a model access denial when the message text confirms it is about the model.
         (MODEL_ACCESS_AMBIGUOUS_TYPES.has(structuredType) && matchesModelAccessPattern));
 
     const isOverflow = CONTEXT_OVERFLOW_PATTERNS.some((p) => p.test(errorStr));
@@ -2250,18 +2038,12 @@ export function checkFallbackError(
       };
     }
 
-    // Some providers (e.g. MiMoCode) signal throttling with a non-standard 400 whose
-    // body carries rate-limit semantics ("Detected high-frequency non-compliant
-    // requests from you.") instead of a 429. Detected here (AFTER malformed/overflow
-    // detection above, so a genuinely malformed 400 still wins and keeps its #2101
-    // zero-cooldown MODEL_CAPACITY classification), it is fallback-worthy at
-    // connection-cooldown scope so combo can fail over to another target (#4976).
+    // Some providers (e.g. MiMoCode) signal throttling with a non-standard 400 whose body carries rate-limit semantics ("Detected high-frequency non-compliant requests from you.") instead of a 429. Detected here (AFTER malformed/overflow detection above, so a genuinely malformed 400 still wins and keeps its #2101 zero-cooldown MODEL_CAPACITY classification), it is fallback-worthy at connection-cooldown scope so combo can fail over to another target (#4976).
     if (RATE_LIMIT_TEXT_PATTERNS.some((p) => p.test(errorStr))) {
       return buildRetryableFallback(RateLimitReason.RATE_LIMIT_EXCEEDED);
     }
 
-    // Generic 400 is not account-fallback-worthy. Combo routing may still try a
-    // different provider/model because combo fallback is target-level orchestration.
+    // Generic 400 is not account-fallback-worthy. Combo routing may still try a different provider/model because combo fallback is target-level orchestration.
     return { shouldFallback: false, cooldownMs: 0, reason: RateLimitReason.UNKNOWN };
   }
 
@@ -2374,12 +2156,7 @@ export function resetAccountState<T extends AccountState | null | undefined>(
   account: T
 ): T | AccountState {
   if (!account) return account;
-  // Persist the cooldown clear so a successfully-retried connection is no longer
-  // marked as rate-limited in `provider_connections.rate_limited_until`. Mirrors
-  // Fix A: the in-memory AccountState and the DB row must agree so the cascade
-  // survives the request boundary and `clearStaleCrashCooldowns` doesn't have
-  // to rediscover what we already know is healthy.
-  // Best-effort: a DB write failure must not crash the request path.
+  // Persist the cooldown clear so a successfully-retried connection is no longer marked as rate-limited in `provider_connections.rate_limited_until`. Mirrors Fix A: the in-memory AccountState and the DB row must agree so the cascade survives the request boundary and `clearStaleCrashCooldowns` doesn't have to rediscover what we already know is healthy. Best-effort: a DB write failure must not crash the request path.
   const connId = (account as AccountState | null | undefined)?.id;
   if (typeof connId === "string" && connId.length > 0) {
     try {
@@ -2416,11 +2193,7 @@ export function applyErrorState<T extends AccountState | null | undefined>(
   const newBackoffLevel =
     "newBackoffLevel" in fallbackDecision ? fallbackDecision.newBackoffLevel : undefined;
 
-  // Cooldown may be overridden by a configured provider rule (see
-  // `accountFallback.ts:1511-1540` provider-match branch + the
-  // `providerMatch.cooldownMs` thread-through added by Fix C). When the
-  // configured rule sets an explicit cooldownMs, it wins over the scaled
-  // backoff default that `checkFallbackError` returned.
+  // Cooldown may be overridden by a configured provider rule (see `accountFallback.ts:1511-1540` provider-match branch + the `providerMatch.cooldownMs` thread-through added by Fix C). When the configured rule sets an explicit cooldownMs, it wins over the scaled backoff default that `checkFallbackError` returned.
   const configuredCooldownMs =
     "configuredCooldownMs" in fallbackDecision
       ? (fallbackDecision as { configuredCooldownMs?: number }).configuredCooldownMs
@@ -2438,14 +2211,7 @@ export function applyErrorState<T extends AccountState | null | undefined>(
     status: "error",
   };
 
-  // Persist the cooldown to `provider_connections.rate_limited_until` so the
-  // cascade survives the request boundary. Before Fix A the cooldown only
-  // lived in the in-memory AccountState object returned here, which was
-  // discarded the moment the request ended — the same exhausted key was
-  // re-picked on the very next request.
-  // Best-effort try/catch mirrors `open-sse/executors/antigravity.ts:343`
-  // (`markConnectionQuotaExhausted`) so a DB failure can never crash the
-  // chat path. See issue #1 (per-account 429 cascade not persisting).
+  // Persist the cooldown to `provider_connections.rate_limited_until` so the cascade survives the request boundary. Before Fix A the cooldown only lived in the in-memory AccountState object returned here, which was discarded the moment the request ended — the same exhausted key was re-picked on the very next request. Best-effort try/catch mirrors `open-sse/executors/antigravity.ts:343` (`markConnectionQuotaExhausted`) so a DB failure can never crash the chat path. See issue #1 (per-account 429 cascade not persisting).
   const connId = (account as AccountState | null | undefined)?.id;
   if (
     typeof connId === "string" &&

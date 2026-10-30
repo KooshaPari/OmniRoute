@@ -231,11 +231,7 @@ function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
-// #7936 — restore `{namespace, name}` on Responses passthrough `function_call`
-// items when the request-side Responses→Chat flatten stamped the bare leaf on the
-// Chat wire. Codex's ResponseItem::FunctionCall schema declares an independent
-// `namespace: Option<String>` field (see codex-rs/protocol/src/models.rs and the
-// `function_call_deserializes_optional_namespace` round-trip test); emit it back.
+// #7936 — restore `{namespace, name}` on Responses passthrough `function_call` items when the request-side Responses→Chat flatten stamped the bare leaf on the Chat wire. Codex's ResponseItem::FunctionCall schema declares an independent `namespace: Option<String>` field (see codex-rs/protocol/src/models.rs and the `function_call_deserializes_optional_namespace` round-trip test); emit it back.
 function restoreResponsesPassthroughFunctionCallIdentity(
   parsed: JsonRecord,
   requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null | undefined
@@ -616,9 +612,7 @@ export function restoreClaudePassthroughToolUseName(
   return true;
 }
 
-// Note: TextDecoder/TextEncoder are created per-stream inside createSSEStream()
-// to avoid shared state issues with concurrent streams (TextDecoder with {stream:true}
-// maintains internal buffering state between decode() calls).
+// Note: TextDecoder/TextEncoder are created per-stream inside createSSEStream() to avoid shared state issues with concurrent streams (TextDecoder with {stream:true} maintains internal buffering state between decode() calls).
 
 // Stream modes
 const STREAM_MODE = {
@@ -666,9 +660,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     streamBufferBytes = DEFAULT_STREAM_BUFFER_BYTES,
   } = options;
   const signatureNamespace = connectionId;
-  // Request-body-size metric (for monitoring payload size distribution & correlation with TTFT).
-  // The size is JSON-serialised byte count; stored as a performance mark detail so monitoring
-  // tools can query performance.getEntriesByType("mark") filtered by name.
+  // Request-body-size metric (for monitoring payload size distribution & correlation with TTFT). The size is JSON-serialised byte count; stored as a performance mark detail so monitoring tools can query performance.getEntriesByType("mark") filtered by name.
   let bodySize = 0;
   try {
     bodySize = body ? Buffer.byteLength(JSON.stringify(body), "utf8") : 0;
@@ -676,18 +668,12 @@ export function createSSEStream(options: StreamOptions = {}) {
     /* body may not be JSON-serialisable (e.g. FormData, Blob) — metric stays 0 */
   }
   if (bodySize > 0) {
-    // Cleared immediately: this is a fixed-name mark created on every stream, so
-    // leaving it in the global performance timeline would accumulate without bound
-    // over a long-running server's lifetime. A wired PerformanceObserver still
-    // receives the entry (delivery is queued independently of the buffer) even though
-    // clearMarks() removes it from getEntriesByName()/getEntriesByType() right after.
+    // Cleared immediately: this is a fixed-name mark created on every stream, so leaving it in the global performance timeline would accumulate without bound over a long-running server's lifetime. A wired PerformanceObserver still receives the entry (delivery is queued independently of the buffer) even though clearMarks() removes it from getEntriesByName()/getEntriesByType() right after.
     performance.mark("omni-request-body-size", { detail: bodySize });
     performance.clearMarks("omni-request-body-size");
   }
 
-  // Canonical streaming timing (TTFT / ITL / interruption). One instance per
-  // stream, marked from the transform below. ttft() = first-forwarded-SSE-chunk
-  // latency (NOT token-level) — see streamTiming.ts.
+  // Canonical streaming timing (TTFT / ITL / interruption). One instance per stream, marked from the transform below. ttft() = first-forwarded-SSE-chunk latency (NOT token-level) — see streamTiming.ts.
   const timing: StreamTiming = createStreamTiming();
   /** Forward a pre-encoded SSE chunk, marking TTFT/ITL on the way. */
   const forward = (controller: TransformStreamDefaultController<Uint8Array>, bytes: Uint8Array) => {
@@ -695,8 +681,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     controller.enqueue(bytes);
   };
 
-  // Drop internal commentary-phase Responses output before forwarding (#6199).
-  // Explicit option wins; otherwise read the feature flag (default on) — resolved once per stream.
+  // Drop internal commentary-phase Responses output before forwarding (#6199). Explicit option wins; otherwise read the feature flag (default on) — resolved once per stream.
   const shouldDropResponsesCommentary =
     dropResponsesCommentary ?? isFeatureFlagEnabled("RESPONSES_PASSTHROUGH_DROP_COMMENTARY");
   const clientExpectsResponsesStream =
@@ -704,32 +689,19 @@ export function createSSEStream(options: StreamOptions = {}) {
       ? clientResponseFormat === FORMATS.OPENAI_RESPONSES
       : sourceFormat === FORMATS.OPENAI_RESPONSES) === true;
 
-  // Clients whose SSE protocol terminates naturally on the last
-  // provider-shape event (not on a `data: [DONE]` line). Emitting
-  // `[DONE]` to these clients produces a parser error in the SDK and
-  // breaks follow-up turns (Capy/Anthropic SDK: text gets stuck in the
-  // "Thought" area; subsequent /v1/messages calls retry into a corrupt
-  // state). Skip the `[DONE]` for these formats.
+  // Clients whose SSE protocol terminates naturally on the last provider-shape event (not on a `data: [DONE]` line). Emitting `[DONE]` to these clients produces a parser error in the SDK and breaks follow-up turns (Capy/Anthropic SDK: text gets stuck in the "Thought" area; subsequent /v1/messages calls retry into a corrupt state). Skip the `[DONE]` for these formats.
   const clientExpectsClaudeStream =
     (mode === STREAM_MODE.PASSTHROUGH
       ? clientResponseFormat === FORMATS.CLAUDE
       : sourceFormat === FORMATS.CLAUDE) === true;
 
-  // Antigravity/cloudcode streams terminate naturally on their last
-  // `data: {"response":{...}}` event, not on a `[DONE]` marker. Emitting
-  // `[DONE]` to the Antigravity IDE causes a protobuf parse failure
-  // (proto: syntax error (line 1:1): unexpected token [) because the
-  // Go binary's protobuf deserializer receives `[DONE]` as input.
+  // Antigravity/cloudcode streams terminate naturally on their last `data: {"response":{...}}` event, not on a `[DONE]` marker. Emitting `[DONE]` to the Antigravity IDE causes a protobuf parse failure (proto: syntax error (line 1:1): unexpected token [) because the Go binary's protobuf deserializer receives `[DONE]` as input.
   const clientExpectsAntigravityStream =
     (mode === STREAM_MODE.PASSTHROUGH
       ? clientResponseFormat === FORMATS.ANTIGRAVITY
       : sourceFormat === FORMATS.ANTIGRAVITY) === true;
 
-  // Single source of truth for the [DONE] decision, used at both emission
-  // sites below. Only OpenAI Chat Completions clients expect [DONE];
-  // Responses API, Anthropic SSE, and Antigravity/cloudcode terminate on
-  // their own protocol events (response.completed / message_stop / last
-  // response candidate respectively).
+  // Single source of truth for the [DONE] decision, used at both emission sites below. Only OpenAI Chat Completions clients expect [DONE]; Responses API, Anthropic SSE, and Antigravity/cloudcode terminate on their own protocol events (response.completed / message_stop / last response candidate respectively).
   const shouldEmitDoneTerminator =
     !clientExpectsResponsesStream && !clientExpectsClaudeStream && !clientExpectsAntigravityStream;
 
@@ -777,27 +749,18 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughForwardedUsage = false;
   /** Translate: usage already reached the client, or no trailing usage chunk applies. */
   let translateForwardedUsage = sourceFormat !== FORMATS.OPENAI || !shouldEmitDoneTerminator;
-  // Passthrough Responses SSE: snapshots of items seen via `response.output_item.done`,
-  // used to backfill `response.completed.response.output` when upstream returns it
-  // empty (which happens when `store: false` — see backfillResponsesCompletedOutput).
+  // Passthrough Responses SSE: snapshots of items seen via `response.output_item.done`, used to backfill `response.completed.response.output` when upstream returns it empty (which happens when `store: false` — see backfillResponsesCompletedOutput).
   const passthroughResponsesOutputItems: unknown[] = [];
   const passthroughResponsesPendingFunctionCalls = new Map<string, JsonRecord>();
   let passthroughResponsesId: string | null = null;
   let passthroughLastChatId: string | null = null;
   let passthroughResponsesCurrentFunctionCallKey: string | null = null;
   const passthroughResponsesReasoningSummarySeen = new Set<string>();
-  // #6199 — commentary-phase items announced via `response.output_item.added` are
-  // internal. Their `response.output_text.delta`/`response.output_text.done`/
-  // `response.output_item.done` events do not carry the `phase`, so we remember the
-  // item id + output_index here and drop every matching follow-up event.
+  // #6199 — commentary-phase items announced via `response.output_item.added` are internal. Their `response.output_text.delta`/`response.output_text.done`/ `response.output_item.done` events do not carry the `phase`, so we remember the item id + output_index here and drop every matching follow-up event.
   const passthroughResponsesCommentaryItemIds = new Set<string>();
   const passthroughResponsesCommentaryIndexes = new Set<number>();
   const dropCommentary = createTranslateCommentaryFilter(targetFormat);
-  // #5786 — highest Responses-API `sequence_number` already forwarded on this stream.
-  // The Responses API guarantees a strictly increasing sequence_number, so any event at
-  // or below this watermark is an upstream reconnect/retry replay and must be dropped —
-  // otherwise the replayed deltas glue duplicated text into the client stream. Applies to
-  // both translate mode (openai-responses → claude/openai) and Responses passthrough.
+  // #5786 — highest Responses-API `sequence_number` already forwarded on this stream. The Responses API guarantees a strictly increasing sequence_number, so any event at or below this watermark is an upstream reconnect/retry replay and must be dropped — otherwise the replayed deltas glue duplicated text into the client stream. Applies to both translate mode (openai-responses → claude/openai) and Responses passthrough.
   let lastSeenResponsesSequenceNumber = -1;
   const isDuplicateResponsesSequence = (value: unknown): boolean => {
     if (typeof value !== "number" || !Number.isFinite(value)) return false;
@@ -811,8 +774,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   let toolFinishTime: number | null = null;
   let contentAfterToolSeen = false;
 
-  // Cross-request tool latency: fingerprint the session from the request body
-  // so Request 2 can pick up the tool-finish timestamp left by Request 1.
+  // Cross-request tool latency: fingerprint the session from the request body so Request 2 can pick up the tool-finish timestamp left by Request 1.
   const sessionId = generateSessionId(body as Parameters<typeof generateSessionId>[0], {
     provider: provider ?? undefined,
     connectionId: connectionId ?? undefined,
@@ -827,51 +789,15 @@ export function createSSEStream(options: StreamOptions = {}) {
   let upstreamErrorForwarded = false;
   const providerPayloadCollector = createStructuredSSECollector({
     stage: "provider_response",
-    // #9315: compute the summary live from every pushed chunk (not just the
-    // ones that survive the storage cap below) so a long stream never shows a
-    // stale/incomplete "provider response" in the dashboard.
+    // #9315: compute the summary live from every pushed chunk (not just the ones that survive the storage cap below) so a long stream never shows a stale/incomplete "provider response" in the dashboard.
     //
-    // Real bug: this was unconditionally `sourceFormat` (the CLIENT's wire
-    // format — see this function's own @param doc above). In TRANSLATE mode
-    // the chunks pushed here are the RAW PROVIDER response, whose format is
-    // `targetFormat` (@param "Provider format (for translate mode)"), not
-    // sourceFormat. Whenever a client's format differs from the provider's
-    // (e.g. a Responses-API client routed to a plain-OpenAI-chat-completions
-    // upstream — the OpenClaw/opencode-zen case that surfaced this live), the
-    // reducer picked for `sourceFormat` could never recognize the provider's
-    // actual event shape, so it never left its empty initial state — the
-    // dashboard's "Provider Response" panel permanently showed
-    // `output: []`/empty while "Client Response" (built from
-    // separately-accumulated state, unaffected by this) correctly showed full
-    // content, reading as if the two panels simply disagreed. PASSTHROUGH
-    // mode has no separate provider/client format split — nothing gets
-    // translated, so the provider's raw chunks genuinely ARE in sourceFormat
-    // (and real passthrough callers, e.g. createPassthroughStreamWithLogger,
-    // don't even pass targetFormat) — keep using sourceFormat there.
+    // Real bug: this was unconditionally `sourceFormat` (the CLIENT's wire format — see this function's own @param doc above). In TRANSLATE mode the chunks pushed here are the RAW PROVIDER response, whose format is `targetFormat` (@param "Provider format (for translate mode)"), not sourceFormat. Whenever a client's format differs from the provider's (e.g. a Responses-API client routed to a plain-OpenAI-chat-completions upstream — the OpenClaw/opencode-zen case that surfaced this live), the reducer picked for `sourceFormat` could never recognize the provider's actual event shape, so it never left its empty initial state — the dashboard's "Provider Response" panel permanently showed `output: []`/empty while "Client Response" (built from separately-accumulated state, unaffected by this) correctly showed full content, reading as if the two panels simply disagreed. PASSTHROUGH mode has no separate provider/client format split — nothing gets translated, so the provider's raw chunks genuinely ARE in sourceFormat (and real passthrough callers, e.g. createPassthroughStreamWithLogger, don't even pass targetFormat) — keep using sourceFormat there.
     format: mode === STREAM_MODE.TRANSLATE ? targetFormat : sourceFormat,
     fallbackModel: model,
   });
   const clientPayloadCollector = createStructuredSSECollector({
     stage: "client_response",
-    // Live incident (2026-09-04): the OPENAI_RESPONSES-only carve-outs below
-    // rebuilt the client summary from clientPayloadCollector.getEvents() --
-    // the collector's own RETAINED (possibly cap-truncated) event array --
-    // even after providerPayloadCollector got a live cap-independent reducer
-    // for the exact same class of bug (#9315, see that collector's own
-    // `format:` comment above). A reasoning-heavy stream that exhausts the
-    // cap during the reasoning phase alone (measured live: routine, not an
-    // edge case) silently dropped the terminal response.completed event from
-    // the retained array, so the rebuilt-from-events summary permanently
-    // showed status "in_progress" with empty output even though the client
-    // itself received the real, complete reply. Wiring `format` here gives
-    // this collector the SAME always-live reducer providerPayloadCollector
-    // already has, so switching the carve-outs below from
-    // buildStreamSummaryFromEvents(collector.getEvents(), ...) to
-    // collector.getSummary() makes them cap-independent too -- strictly
-    // equivalent for a stream that never hits the cap, correct instead of
-    // silently empty for one that does. Same mode ternary as
-    // clientExpectsResponsesStream/clientExpectsClaudeStream above: passthrough
-    // forwards clientResponseFormat as-is, translate re-shapes to sourceFormat.
+    // Live incident (2026-09-04): the OPENAI_RESPONSES-only carve-outs below rebuilt the client summary from clientPayloadCollector.getEvents() -- the collector's own RETAINED (possibly cap-truncated) event array -- even after providerPayloadCollector got a live cap-independent reducer for the exact same class of bug (#9315, see that collector's own `format:` comment above). A reasoning-heavy stream that exhausts the cap during the reasoning phase alone (measured live: routine, not an edge case) silently dropped the terminal response.completed event from the retained array, so the rebuilt-from-events summary permanently showed status "in_progress" with empty output even though the client itself received the real, complete reply. Wiring `format` here gives this collector the SAME always-live reducer providerPayloadCollector already has, so switching the carve-outs below from buildStreamSummaryFromEvents(collector.getEvents(), ...) to collector.getSummary() makes them cap-independent too -- strictly equivalent for a stream that never hits the cap, correct instead of silently empty for one that does. Same mode ternary as clientExpectsResponsesStream/clientExpectsClaudeStream above: passthrough forwards clientResponseFormat as-is, translate re-shapes to sourceFormat.
     format: mode === STREAM_MODE.PASSTHROUGH ? clientResponseFormat : sourceFormat,
     fallbackModel: model,
   });
@@ -888,11 +814,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   const shouldAbortClaudeStream = () =>
     clientExpectsClaudeStream &&
     shouldAbortEmptyClaudeStream(claudeEmptyResponseLifecycle, timing.firstByteAt !== null);
-  // `event:` framing is only part of the SSE protocol for OpenAI Responses API
-  // and Claude Messages API passthrough; a plain OpenAI Chat-Completions-format
-  // client has no `event:` field at all, so it is dropped to stop upstream
-  // control lines (`id:`/`event:`/`retry:`/`:` comments) leaking to the client
-  // (#10017).
+  // `event:` framing is only part of the SSE protocol for OpenAI Responses API and Claude Messages API passthrough; a plain OpenAI Chat-Completions-format client has no `event:` field at all, so it is dropped to stop upstream control lines (`id:`/`event:`/`retry:`/`:` comments) leaking to the client (#10017).
   const passthroughEventPrefix = createSSEEventPrefixBuffer({
     forwardEvent:
       clientResponseFormat === FORMATS.OPENAI_RESPONSES || clientResponseFormat === FORMATS.CLAUDE,
@@ -1102,9 +1024,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     controller: TransformStreamDefaultController,
     finalUsage: UsageTokenRecord | Record<string, unknown> | null | undefined
   ) => {
-    // Skip SSE metadata comment lines when OMNIROUTE_SSE_COMMENTS is disabled
-    // (e.g., "off", "false", "0", "no"). Strict OpenAI-compatible clients that
-    // JSON.parse every SSE line will crash on `: x-omniroute-*` comment lines.
+    // Skip SSE metadata comment lines when OMNIROUTE_SSE_COMMENTS is disabled (e.g., "off", "false", "0", "no"). Strict OpenAI-compatible clients that JSON.parse every SSE line will crash on `: x-omniroute-*` comment lines.
     if (!sseCommentsEnabled()) return;
 
     const costUsd = finalUsage
@@ -1160,9 +1080,7 @@ export function createSSEStream(options: StreamOptions = {}) {
       return;
     }
 
-    // #7176/#7243: only synthesize summary events from real upstream plaintext —
-    // never mutate `item` and never fabricate alarming placeholder text for
-    // encrypted-only reasoning (`encrypted_content` still forwards intact).
+    // #7176/#7243: only synthesize summary events from real upstream plaintext — never mutate `item` and never fabricate alarming placeholder text for encrypted-only reasoning (`encrypted_content` still forwards intact).
     const visibleSummary = getVisibleResponsesReasoningSummaryText(item);
 
     if (!visibleSummary) {
@@ -1320,8 +1238,7 @@ export function createSSEStream(options: StreamOptions = {}) {
               continue;
             }
 
-            // Drop whole keepalive event blocks — strict OpenAI-compatible SDKs
-            // try to JSON.parse empty keepalive payloads and crash.
+            // Drop whole keepalive event blocks — strict OpenAI-compatible SDKs try to JSON.parse empty keepalive payloads and crash.
             if (/^event:\s*keepalive\b/i.test(trimmed)) {
               skipPassthroughEvent = true;
               clearPendingPassthroughEvent();
@@ -1369,8 +1286,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 })
               : null;
 
-            // #5786 — drop replayed Responses-API events (a re-sent event carrying an
-            // already-seen sequence_number) so their deltas are not forwarded twice.
+            // #5786 — drop replayed Responses-API events (a re-sent event carrying an already-seen sequence_number) so their deltas are not forwarded twice.
             if (
               parsedPassthroughData &&
               typeof parsedPassthroughData.type === "string" &&
@@ -1407,10 +1323,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   injectedUsage = true;
                 }
 
-                // Some upstream Responses-compatible providers leak an initial Chat Completions
-                // bootstrap chunk (assistant role + empty content) before emitting proper
-                // `response.*` events. That chunk is invalid on /v1/responses and breaks strict
-                // clients like OpenCode, so drop it only for Responses-native consumers.
+                // Some upstream Responses-compatible providers leak an initial Chat Completions bootstrap chunk (assistant role + empty content) before emitting proper `response.*` events. That chunk is invalid on /v1/responses and breaks strict clients like OpenCode, so drop it only for Responses-native consumers.
 
                 const isEmptyAssistantBootstrapChunkForResponsesClient =
                   clientExpectsResponsesStream &&
@@ -1438,17 +1351,13 @@ export function createSSEStream(options: StreamOptions = {}) {
                   continue;
                 }
 
-                // Detect Responses SSE payloads (have a `type` field like "response.created",
-                // "response.output_item.added", etc.) and skip Chat Completions-specific
-                // sanitization to avoid corrupting the stream for Responses-native clients.
+                // Detect Responses SSE payloads (have a `type` field like "response.created", "response.output_item.added", etc.) and skip Chat Completions-specific sanitization to avoid corrupting the stream for Responses-native clients.
                 const isResponsesSSE =
                   parsed.type &&
                   typeof parsed.type === "string" &&
                   parsed.type.startsWith("response.");
 
-                // Detect Claude SSE payloads. Includes "ping" and "error" to ensure
-                // they bypass the Chat Completions sanitization path which would
-                // incorrectly process or drop them.
+                // Detect Claude SSE payloads. Includes "ping" and "error" to ensure they bypass the Chat Completions sanitization path which would incorrectly process or drop them.
                 const isClaudeSSE =
                   parsed.type &&
                   typeof parsed.type === "string" &&
@@ -1461,9 +1370,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   injectedUsage = true;
                 }
                 if (isResponsesSSE) {
-                  // #6199/#6561 — statefully drop internal commentary-phase output (see
-                  // ./responsesCommentaryDrop.ts) and clear the buffered `event:` line
-                  // for the same frame, or it flushes alone as an event-only SSE frame.
+                  // #6199/#6561 — statefully drop internal commentary-phase output (see ./responsesCommentaryDrop.ts) and clear the buffered `event:` line for the same frame, or it flushes alone as an event-only SSE frame.
                   if (
                     shouldDropResponsesCommentary &&
                     shouldDropResponsesCommentaryEvent(
@@ -1494,9 +1401,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (extracted) {
                     usage = extracted;
                   }
-                  // Keep generic Responses deltas for fallback usage estimates,
-                  // but only visible text deltas may become assistant content in
-                  // logs/replay payloads.
+                  // Keep generic Responses deltas for fallback usage estimates, but only visible text deltas may become assistant content in logs/replay payloads.
                   if (typeof parsed.delta === "string") {
                     totalContentLength += parsed.delta.length;
                   }
@@ -1623,9 +1528,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                       pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [pending]);
                     }
                   }
-                  // Capture each completed output item so the final
-                  // response.completed snapshot can be backfilled when upstream
-                  // returns an empty `output` (happens with store: false).
+                  // Capture each completed output item so the final response.completed snapshot can be backfilled when upstream returns an empty `output` (happens with store: false).
                   if (parsed.type === "response.output_item.done" && parsed.item) {
                     emitSyntheticResponsesReasoningSummary(controller, parsed);
                     pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [parsed.item]);
@@ -1650,10 +1553,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     Array.isArray(parsed.response?.output) &&
                     parsed.response.output.length > 0
                   ) {
-                    // #10156 — an upstream may echo a `phase:"commentary"` item back
-                    // inside a non-empty terminal `output` array even though its live
-                    // SSE frames were already dropped above. Keep both representations
-                    // consistent by applying the same drop here.
+                    // #10156 — an upstream may echo a `phase:"commentary"` item back inside a non-empty terminal `output` array even though its live SSE frames were already dropped above. Keep both representations consistent by applying the same drop here.
                     if (shouldDropResponsesCommentary) {
                       const { items, changed } = filterResponsesCommentaryFromItems(
                         parsed.response.output,
@@ -1669,8 +1569,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                       parsed.response.output
                     );
                   }
-                  // #7936 — restore `namespace` + `name` fields on passthrough
-                  // Responses function_call items for downstream Codex clients.
+                  // #7936 — restore `namespace` + `name` fields on passthrough Responses function_call items for downstream Codex clients.
                   if (
                     parsed.type === "response.output_item.added" ||
                     parsed.type === "response.output_item.done" ||
@@ -1691,14 +1590,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     passthroughResponsesPendingFunctionCalls.clear();
                     passthroughResponsesCurrentFunctionCallKey = null;
                   }
-                  // Two transport-level fixes for Responses passthrough:
-                  //   1) Strip echoed `instructions` + `tools` from lifecycle
-                  //      events — they can balloon a single SSE event past
-                  //      100 KB and break parsers (e.g. GitHub Copilot CLI).
-                  //   2) Backfill `response.completed.response.output` when
-                  //      upstream sent it empty (store: false) — some clients
-                  //      build their tool-call list from that snapshot rather
-                  //      than from per-item events.
+                  // Two transport-level fixes for Responses passthrough: 1) Strip echoed `instructions` + `tools` from lifecycle events — they can balloon a single SSE event past 100 KB and break parsers (e.g. GitHub Copilot CLI). 2) Backfill `response.completed.response.output` when upstream sent it empty (store: false) — some clients build their tool-call list from that snapshot rather than from per-item events.
                   const textualToolCallBackfilled =
                     parsed.type === "response.completed" && passthroughToolCalls.size > 0;
                   if (textualToolCallBackfilled) {
@@ -1707,10 +1599,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     ]) as typeof parsed;
                   }
                   const stripped = stripResponsesLifecycleEcho(parsed);
-                  // Belt-and-suspenders for #10156: filter the backfill buffer itself
-                  // before it can seed an empty `response.completed.response.output`,
-                  // in case a future code path pushes a commentary item into it
-                  // without going through the response.completed branch above.
+                  // Belt-and-suspenders for #10156: filter the backfill buffer itself before it can seed an empty `response.completed.response.output`, in case a future code path pushes a commentary item into it without going through the response.completed branch above.
                   const backfillCandidates = shouldDropResponsesCommentary
                     ? filterResponsesCommentaryFromItems(
                         passthroughResponsesOutputItems,
@@ -1730,18 +1619,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     output = `data: ${JSON.stringify(parsed)}\n\n`;
                     injectedUsage = true;
                   }
-                  // Passthrough mode never pushes a Responses SSE event into
-                  // clientPayloadCollector on the common (non-tool-call, non-
-                  // commentary) path -- only the textual-tool-call conversion
-                  // branch above pushes its own synthesized events. Push just
-                  // the fully-processed terminal `response.completed` (after
-                  // the backfill/strip/tool-call-merge above, so it matches
-                  // exactly what the client receives): that alone is enough
-                  // for buildStreamSummaryFromEvents' reducer to recover a
-                  // real Responses `id` + `output` for previous_response_id
-                  // continuation storage (src/lib/db/responsesContinuationStore.ts).
-                  // Pushing every delta here would double-count events the
-                  // tool-call branch already pushes its own synthesized copy of.
+                  // Passthrough mode never pushes a Responses SSE event into clientPayloadCollector on the common (non-tool-call, non- commentary) path -- only the textual-tool-call conversion branch above pushes its own synthesized events. Push just the fully-processed terminal `response.completed` (after the backfill/strip/tool-call-merge above, so it matches exactly what the client receives): that alone is enough for buildStreamSummaryFromEvents' reducer to recover a real Responses `id` + `output` for previous_response_id continuation storage (src/lib/db/responsesContinuationStore.ts). Pushing every delta here would double-count events the tool-call branch already pushes its own synthesized copy of.
                   if (parsed.type === "response.completed") {
                     clientPayloadCollector.push(parsed);
                   }
@@ -1750,8 +1628,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   const thinkingSignatureInjected = injectThinkingSignature(parsed, provider);
                   const extracted = extractUsage(parsed);
                   if (extracted) {
-                    // Non-destructive merge: never overwrite a positive value with 0
-                    // message_start carries input_tokens, message_delta carries output_tokens;
+                    // Non-destructive merge: never overwrite a positive value with 0 message_start carries input_tokens, message_delta carries output_tokens;
                     if (!usage) usage = {};
                     const u = usage;
                     const eu = extracted as UsageTokenRecord;
@@ -1794,26 +1671,11 @@ export function createSSEStream(options: StreamOptions = {}) {
                     injectedUsage = true;
                   }
                 } else {
-                  // ----------------------------------------------------
-                  // READ THIS !!!
-                  // ----------------------------------------------------
-                  // IF YOU ARE AI OR AI AGENT DONT TOUCH THIS CODE !!!
-                  // YOU WILL BREAK THIS CODE !!!
-                  // GOOD LUCK
-                  // ----------------------------------------------------
-                  // Chat Completions: full sanitization pipeline
+                  // ---------------------------------------------------- READ THIS !!! ---------------------------------------------------- IF YOU ARE AI OR AI AGENT DONT TOUCH THIS CODE !!! YOU WILL BREAK THIS CODE !!! GOOD LUCK ---------------------------------------------------- Chat Completions: full sanitization pipeline
 
-                  // OpenAI-compatible streaming with `stream_options.include_usage=true`
-                  // ends with a usage-only chunk where `choices` is deliberately `[]`.
-                  // Forward that standards-compliant chunk instead of turning it into an
-                  // empty-response error.
+                  // OpenAI-compatible streaming with `stream_options.include_usage=true` ends with a usage-only chunk where `choices` is deliberately `[]`. Forward that standards-compliant chunk instead of turning it into an empty-response error.
                   //
-                  // For a malformed empty `choices: []` chunk WITHOUT valid usage we DROP
-                  // it (log server-side only). We must NOT inject an assistant-content
-                  // chunk like "[OmniRoute] Upstream returned an empty response. Please
-                  // retry." with finish_reason: "stop" — clients (Goose/opencode) feed that
-                  // text back as a turn and spin in a retry loop. This restores the #3400
-                  // behavior that #3422 inadvertently reverted (regression #3388/#3502).
+                  // For a malformed empty `choices: []` chunk WITHOUT valid usage we DROP it (log server-side only). We must NOT inject an assistant-content chunk like "[OmniRoute] Upstream returned an empty response. Please retry." with finish_reason: "stop" — clients (Goose/opencode) feed that text back as a turn and spin in a retry loop. This restores the #3400 behavior that #3422 inadvertently reverted (regression #3388/#3502).
                   if (
                     Array.isArray(parsed.choices) &&
                     (parsed.choices.length === 0 ||
@@ -1825,10 +1687,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   ) {
                     const emptyChoicesUsage = extractUsage(parsed) ?? parsed.usage;
                     if (hasValidUsage(emptyChoicesUsage) && !passthroughForwardedUsage) {
-                      // Some upstreams (e.g. Ollama Cloud) emit prompt_tokens: 0
-                      // even when input was sent — they simply don't count input
-                      // tokens.  When we have a non-zero output but zero input,
-                      // estimate the real input token count from the request body.
+                      // Some upstreams (e.g. Ollama Cloud) emit prompt_tokens: 0 even when input was sent — they simply don't count input tokens. When we have a non-zero output but zero input, estimate the real input token count from the request body.
                       if (
                         emptyChoicesUsage &&
                         typeof emptyChoicesUsage === "object" &&
@@ -1910,15 +1769,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   let splitMixedReasoningContent = false;
                   const thinkParsed = applyThinkTag(thinkState, delta);
 
-                  // Split combined reasoning+content deltas into separate SSE events.
-                  // Standard OpenAI streaming never mixes both fields in one delta;
-                  // clients (e.g. LobeChat) may skip content when reasoning_content
-                  // is present, causing the first content token to be lost.
+                  // Split combined reasoning+content deltas into separate SSE events. Standard OpenAI streaming never mixes both fields in one delta; clients (e.g. LobeChat) may skip content when reasoning_content is present, causing the first content token to be lost.
                   if (delta?.reasoning_content && delta?.content) {
-                    // Shallow-clone only the mutated fields instead of a full
-                    // structuredClone — the original `parsed` is a JSON-derived
-                    // object so spreading preserves every field while skipping
-                    // the deep-clone overhead (GC pressure, polyfill fallback).
+                    // Shallow-clone only the mutated fields instead of a full structuredClone — the original `parsed` is a JSON-derived object so spreading preserves every field while skipping the deep-clone overhead (GC pressure, polyfill fallback).
                     const reasoningChunk = {
                       ...parsed,
                       usage: undefined,
@@ -1944,8 +1797,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     splitMixedReasoningContent = true;
                   }
 
-                  // Track whether we need to re-serialize (separate from injectedUsage
-                  // to avoid blocking subsequent finish_reason / usage mutations)
+                  // Track whether we need to re-serialize (separate from injectedUsage to avoid blocking subsequent finish_reason / usage mutations)
                   const needsReserialization =
                     splitMixedReasoningContent ||
                     thinkParsed ||
@@ -1957,9 +1809,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     passthroughHasToolCalls = true;
                     lastToolCallChunkTime = now;
                     for (const tc of delta.tool_calls) {
-                      // Note: sanitizeStreamingChunk above already coerces non-string
-                      // tool_call IDs, but this defensive check catches edge cases
-                      // where sanitize didn't run (e.g. flush path shortcuts).
+                      // Note: sanitizeStreamingChunk above already coerces non-string tool_call IDs, but this defensive check catches edge cases where sanitize didn't run (e.g. flush path shortcuts).
                       if (tc?.id != null && typeof tc.id !== "string") {
                         tc.id = String(tc.id);
                         toolCallIdCoerced = true;
@@ -2039,10 +1889,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
                   const isFinishChunk = parsed.choices?.[0]?.finish_reason;
 
-                  // Remember the upstream's chat-completion id so synthetic chunks
-                  // emitted at flush (e.g. the estimated usage-only chunk) carry the
-                  // stream's real string id instead of null on the chat path
-                  // (passthroughResponsesId is only ever set on the Responses path).
+                  // Remember the upstream's chat-completion id so synthetic chunks emitted at flush (e.g. the estimated usage-only chunk) carry the stream's real string id instead of null on the chat path (passthroughResponsesId is only ever set on the Responses path).
                   if (typeof parsed.id === "string" && parsed.id) {
                     passthroughLastChatId = parsed.id;
                   } else if (typeof parsed.id === "number") {
@@ -2067,20 +1914,11 @@ export function createSSEStream(options: StreamOptions = {}) {
                     parsed.choices[0].finish_reason !== "tool_calls"
                   ) {
                     parsed.choices[0].finish_reason = "tool_calls";
-                    // If we modify it, we must output the modified object. This used to
-                    // piggyback on the estimated-usage rewrite below; with the estimate
-                    // moved to flush() (#12151 follow-up) the rewrite must happen here.
-                    // injectedUsage doubles as the "output already rewritten" latch —
-                    // without it the raw line overwrites this rewrite further down.
+                    // If we modify it, we must output the modified object. This used to piggyback on the estimated-usage rewrite below; with the estimate moved to flush() (#12151 follow-up) the rewrite must happen here. injectedUsage doubles as the "output already rewritten" latch — without it the raw line overwrites this rewrite further down.
                     output = `data: ${JSON.stringify(parsed)}\n\n`;
                     injectedUsage = true;
                   }
-                  // #12151 follow-up: do NOT inject estimated usage into the finish chunk.
-                  // A genuine OpenAI upstream sends its usage in a trailing empty-choices
-                  // chunk AFTER the finish; estimating here marked passthroughForwardedUsage
-                  // and made the real trailing block get dropped in favor of the estimate
-                  // (billing regression pinned by tests/unit/stream-utils.test.ts). The
-                  // estimate is now emitted in flush(), only when the upstream stayed silent.
+                  // #12151 follow-up: do NOT inject estimated usage into the finish chunk. A genuine OpenAI upstream sends its usage in a trailing empty-choices chunk AFTER the finish; estimating here marked passthroughForwardedUsage and made the real trailing block get dropped in favor of the estimate (billing regression pinned by tests/unit/stream-utils.test.ts). The estimate is now emitted in flush(), only when the upstream stayed silent.
                   if (isFinishChunk && hasValidUsage(usage) && !passthroughForwardedUsage) {
                     const buffered = addBufferToUsage(usage);
                     parsed.usage = timing.withTps(
@@ -2107,9 +1945,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
                 clientPayload = parsed;
               } catch {
-                // Skip non-JSON data lines silently — don't forward garbage to clients.
-                // Upstream providers sometimes return plain-text errors (HTML, rate-limit
-                // messages) in the SSE stream that would break downstream JSON decoders.
+                // Skip non-JSON data lines silently — don't forward garbage to clients. Upstream providers sometimes return plain-text errors (HTML, rate-limit messages) in the SSE stream that would break downstream JSON decoders.
                 continue;
               }
             }
@@ -2158,9 +1994,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           if (emitTranslatedFailureAndAbort(controller, parsed)) return;
 
-          // #5786 — drop replayed Responses-API events (identical/lower sequence_number
-          // re-sent on an upstream reconnect) so their deltas are not glued twice into
-          // the translated client stream.
+          // #5786 — drop replayed Responses-API events (identical/lower sequence_number re-sent on an upstream reconnect) so their deltas are not glued twice into the translated client stream.
           if (
             targetFormat === FORMATS.OPENAI_RESPONSES &&
             isDuplicateResponsesSequence((parsed as JsonRecord).sequence_number)
@@ -2184,8 +2018,7 @@ export function createSSEStream(options: StreamOptions = {}) {
             } catch {} // best-effort bookkeeping write — a miss just skips latency correlation
           }
 
-          // Track content length and accumulate for call log (from raw provider chunk, so content is never missed)
-          // Do this before translation so we capture content regardless of translator output shape
+          // Track content length and accumulate for call log (from raw provider chunk, so content is never missed) Do this before translation so we capture content regardless of translator output shape
 
           // Claude format
           const claudeDelta = collectClaudeDelta(parsed.delta, state);
@@ -2235,9 +2068,7 @@ export function createSSEStream(options: StreamOptions = {}) {
             }
           }
 
-          // Gemini / Cloud Code format - may have multiple parts
-          // Cloud Code API wraps in { response: { candidates: [...] } }, so unwrap.
-          // Only applies to Gemini-family formats — skip for OpenAI, Claude, etc.
+          // Gemini / Cloud Code format - may have multiple parts Cloud Code API wraps in { response: { candidates: [...] } }, so unwrap. Only applies to Gemini-family formats — skip for OpenAI, Claude, etc.
           const isGeminiFormat =
             targetFormat === FORMATS.GEMINI || targetFormat === FORMATS.ANTIGRAVITY;
           const geminiChunk = isGeminiFormat ? unwrapGeminiChunk(parsed) : parsed;
@@ -2476,9 +2307,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   } else if (!isClaude) {
                     const { changed: flushChanged, hasFinishReason } =
                       normalizeFinalOpenAIStreamChunk(flushedParsed, toolNameMap);
-                    // #7800: track finish_reason in the flush path too, so a
-                    // final chunk without trailing newline still suppresses the
-                    // synthetic finish_reason synthesis.
+                    // #7800: track finish_reason in the flush path too, so a final chunk without trailing newline still suppresses the synthetic finish_reason synthesis.
                     if (hasFinishReason) passthroughSawFinishReason = true;
                     if (flushChanged) {
                       output = `data: ${JSON.stringify(flushedParsed)}\n\n`;
@@ -2516,10 +2345,7 @@ export function createSSEStream(options: StreamOptions = {}) {
             clearPendingPassthroughEvent();
 
             if (passthroughBufferedTextualToolCallContent) {
-              // Flush any remaining buffered content as plain text.
-              // Previously gated on !includes("Arguments:"), which silently dropped
-              // incomplete tool-call headers (buffer held "Arguments:" but JSON was
-              // never finished before stream ended) — fix #3355 bug 2.
+              // Flush any remaining buffered content as plain text. Previously gated on !includes("Arguments:"), which silently dropped incomplete tool-call headers (buffer held "Arguments:" but JSON was never finished before stream ended) — fix #3355 bug 2.
               let flushOutput = "";
               if (clientExpectsResponsesStream) {
                 const syntheticChunk = {
@@ -2581,11 +2407,7 @@ export function createSSEStream(options: StreamOptions = {}) {
               }).catch(() => {});
             }
             if (!doneSent) {
-              // #7800: Some providers close the SSE stream without emitting a final
-              // chunk carrying a non-null finish_reason. OpenAI spec requires the
-              // terminal chunk to include finish_reason (e.g. "stop"); strict clients
-              // (pi CLI) reject the stream with "Stream ended without finish_reason".
-              // Synthesize a terminal chunk when the upstream omitted one.
+              // #7800: Some providers close the SSE stream without emitting a final chunk carrying a non-null finish_reason. OpenAI spec requires the terminal chunk to include finish_reason (e.g. "stop"); strict clients (pi CLI) reject the stream with "Stream ended without finish_reason". Synthesize a terminal chunk when the upstream omitted one.
               if (shouldEmitDoneTerminator && !passthroughSawFinishReason) {
                 const syntheticFinishChunk = buildSyntheticChatChunk(
                   passthroughResponsesId,
@@ -2598,11 +2420,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 forward(controller, encoder.encode(finishOutput));
                 clientPayloadCollector.push(syntheticFinishChunk);
               }
-              // #12151: upstream never reported usage — emit the estimate as a
-              // canonical OpenAI trailing usage-only chunk (empty choices) before
-              // [DONE], so metered clients still see token counts. When the
-              // upstream DID send usage (trailing or in-band), it was forwarded
-              // already and passthroughForwardedUsage guards this off.
+              // #12151: upstream never reported usage — emit the estimate as a canonical OpenAI trailing usage-only chunk (empty choices) before [DONE], so metered clients still see token counts. When the upstream DID send usage (trailing or in-band), it was forwarded already and passthroughForwardedUsage guards this off.
               if (shouldEmitDoneTerminator && !passthroughForwardedUsage && hasValidUsage(usage)) {
                 const usageOnlyChunk = buildUsageOnlyChunk(
                   passthroughLastChatId ?? passthroughResponsesId,
@@ -2667,8 +2485,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     (a, b) => a.index - b.index
                   );
                 }
-                // Hardening: log empty assistant response after tool completion
-                // for observability — helps diagnose Copilot "Sorry, no response was returned"
+                // Hardening: log empty assistant response after tool completion for observability — helps diagnose Copilot "Sorry, no response was returned"
                 if (passthroughHasToolCalls && !content.trim() && !reasoning.trim()) {
                   console.warn(
                     `[STREAM] Empty assistant response after tool_calls completion (${provider || "provider"}:${model || "unknown"}) — sessionId=${sessionId}`
@@ -2698,36 +2515,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                   ttft: timing.ttftMs(),
                   itlMs: timing.avgItlMs(),
                   interrupted: timing.interrupted,
-                  // #9315 switched the summary to the accumulated responseBody to avoid
-                  // stale/truncated event data — but responseBody here is synthesized in
-                  // chat-completion shape, which loses the Responses API `response` object.
-                  // Keep a Responses-shaped summary for OPENAI_RESPONSES only. responseBody
-                  // itself never carries an `object` marker (it's built purely for the
-                  // client, which doesn't need one) — the dashboard's Provider Response
-                  // panel does, so stamp `object: "chat.completion"` on a shallow copy
-                  // used only for this summary, leaving responseBody itself untouched.
-                  // getSummary(), not buildStreamSummaryFromEvents(getEvents(), ...): the
-                  // latter only sees the collector's RETAINED (possibly cap-truncated)
-                  // events, silently losing a late response.completed event on a long
-                  // reasoning-heavy stream (live incident 2026-09-04) -- see
-                  // providerPayloadCollector's own `format:` construction comment above.
+                  // #9315 switched the summary to the accumulated responseBody to avoid stale/truncated event data — but responseBody here is synthesized in chat-completion shape, which loses the Responses API `response` object. Keep a Responses-shaped summary for OPENAI_RESPONSES only. responseBody itself never carries an `object` marker (it's built purely for the client, which doesn't need one) — the dashboard's Provider Response panel does, so stamp `object: "chat.completion"` on a shallow copy used only for this summary, leaving responseBody itself untouched. getSummary(), not buildStreamSummaryFromEvents(getEvents(), ...): the latter only sees the collector's RETAINED (possibly cap-truncated) events, silently losing a late response.completed event on a long reasoning-heavy stream (live incident 2026-09-04) -- see providerPayloadCollector's own `format:` construction comment above.
                   providerPayload: providerPayloadCollector.build(
                     sourceFormat === FORMATS.OPENAI_RESPONSES
                       ? providerPayloadCollector.getSummary()
                       : { object: "chat.completion", ...responseBody },
                     { includeEvents: false }
                   ),
-                  // Same OPENAI_RESPONSES carve-out as providerPayload above, but keyed on
-                  // clientResponseFormat (what the client actually receives) rather than
-                  // sourceFormat (what the upstream sent) -- they're equal in passthrough
-                  // mode but conceptually distinct. Without this, `entry.responseId` in
-                  // src/lib/usage/callLogs.ts is always null for a Responses-API client
-                  // (extractResponsesId reads `clientResponse.id`, which the chat-shaped
-                  // responseBody never has), so previous_response_id continuation lookups
-                  // in src/lib/db/responsesContinuationStore.ts always miss. getSummary(),
-                  // not buildStreamSummaryFromEvents(getEvents(), ...) -- same cap-truncation
-                  // reasoning as providerPayload above; clientPayloadCollector's own `format:`
-                  // construction above gives it the same live, cap-independent reducer.
+                  // Same OPENAI_RESPONSES carve-out as providerPayload above, but keyed on clientResponseFormat (what the client actually receives) rather than sourceFormat (what the upstream sent) -- they're equal in passthrough mode but conceptually distinct. Without this, `entry.responseId` in src/lib/usage/callLogs.ts is always null for a Responses-API client (extractResponsesId reads `clientResponse.id`, which the chat-shaped responseBody never has), so previous_response_id continuation lookups in src/lib/db/responsesContinuationStore.ts always miss. getSummary(), not buildStreamSummaryFromEvents(getEvents(), ...) -- same cap-truncation reasoning as providerPayload above; clientPayloadCollector's own `format:` construction above gives it the same live, cap-independent reducer.
                   clientPayload: clientPayloadCollector.build(
                     clientResponseFormat === FORMATS.OPENAI_RESPONSES
                       ? clientPayloadCollector.getSummary()
@@ -2750,12 +2545,7 @@ export function createSSEStream(options: StreamOptions = {}) {
             if (parsed && !parsed.done) {
               if (emitTranslatedFailureAndAbort(controller, parsed)) return;
               providerPayloadCollector.push(parsed);
-              // Extract usage from remaining buffer — if the usage-bearing event
-              // (e.g. response.completed) is the last SSE line, it ends up here
-              // in the flush handler where extractUsage was not called.
-              // Non-destructive merge: some providers send usage across multiple
-              // events (e.g. prompt_tokens in message_start, completion_tokens
-              // in message_delta). Direct assignment would lose earlier data.
+              // Extract usage from remaining buffer — if the usage-bearing event (e.g. response.completed) is the last SSE line, it ends up here in the flush handler where extractUsage was not called. Non-destructive merge: some providers send usage across multiple events (e.g. prompt_tokens in message_start, completion_tokens in message_delta). Direct assignment would lose earlier data.
               const extracted = extractUsage(parsed);
               if (extracted) {
                 if (!state.usage) {
@@ -2796,11 +2586,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (state?.upstreamError) {
             const err = state.upstreamError;
 
-            // Flush pending translation events BEFORE erroring the stream.
-            // This lets the openai-responses translator emit a proper
-            // `response.completed` with `status: "failed"` and close any
-            // open items (reasoning, tool calls, etc.), instead of silently
-            // aborting the stream and leaving partial items dangling.
+            // Flush pending translation events BEFORE erroring the stream. This lets the openai-responses translator emit a proper `response.completed` with `status: "failed"` and close any open items (reasoning, tool calls, etc.), instead of silently aborting the stream and leaving partial items dangling.
             try {
               const flushed = translateResponse(targetFormat, sourceFormat, null, state);
               if (flushed?.length > 0) {
@@ -2809,8 +2595,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 }
               }
             } catch {
-              // Swallow flush errors — the controller.error below is the
-              // terminal signal for the client.
+              // Swallow flush errors — the controller.error below is the terminal signal for the client.
             }
 
             const errorBody = buildErrorBody(err.status, err.message);
@@ -2819,8 +2604,7 @@ export function createSSEStream(options: StreamOptions = {}) {
             return;
           }
 
-          // #9268: reject a translate-mode stream that forwarded no valuable chunk
-          // (all-empty `choices: []`) instead of completing with an empty 200.
+          // #9268: reject a translate-mode stream that forwarded no valuable chunk (all-empty `choices: []`) instead of completing with an empty 200.
           if (
             mode === STREAM_MODE.TRANSLATE &&
             rejectEmptyChoicesStream({
@@ -2885,8 +2669,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 
           // Send [DONE] (only if not already sent during transform)
           if (!doneSent) {
-            // Upstream stayed silent on usage: send the estimate as the canonical
-            // trailing usage-only chunk before [DONE], like the passthrough flush.
+            // Upstream stayed silent on usage: send the estimate as the canonical trailing usage-only chunk before [DONE], like the passthrough flush.
             if (!translateForwardedUsage && hasValidUsage(state?.usage)) {
               const usageOnlyChunk = buildUsageOnlyChunk(
                 (state as unknown as Record<string, unknown>)?.chatId,
@@ -2984,34 +2767,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                 status: 200,
                 usage: state?.usage,
                 responseBody,
-                // Same OPENAI_RESPONSES carve-out as the passthrough branch above —
-                // the synthesized chat-shaped responseBody drops the `response` object,
-                // and (like the passthrough branch) never carries an `object` marker at
-                // all — stamp `object: "chat.completion"` on a shallow copy used only
-                // for this summary; responseBody itself (sent to the client / below)
-                // stays untouched.
-                // getSummary(), not buildStreamSummaryFromEvents(getEvents(), ...) -- the
-                // latter only sees the collector's RETAINED (possibly cap-truncated)
-                // events, silently losing a late response.completed event on a long
-                // reasoning-heavy stream (live incident 2026-09-04) -- see
-                // providerPayloadCollector's own `format:` construction comment above.
+                // Same OPENAI_RESPONSES carve-out as the passthrough branch above — the synthesized chat-shaped responseBody drops the `response` object, and (like the passthrough branch) never carries an `object` marker at all — stamp `object: "chat.completion"` on a shallow copy used only for this summary; responseBody itself (sent to the client / below) stays untouched. getSummary(), not buildStreamSummaryFromEvents(getEvents(), ...) -- the latter only sees the collector's RETAINED (possibly cap-truncated) events, silently losing a late response.completed event on a long reasoning-heavy stream (live incident 2026-09-04) -- see providerPayloadCollector's own `format:` construction comment above.
                 providerPayload: providerPayloadCollector.build(
                   targetFormat === FORMATS.OPENAI_RESPONSES
                     ? providerPayloadCollector.getSummary()
                     : { object: "chat.completion", ...responseBody },
                   { includeEvents: false }
                 ),
-                // Same OPENAI_RESPONSES carve-out as providerPayload above and the
-                // passthrough branch's onComplete, but keyed on sourceFormat (what the
-                // client requested/receives in translate mode) rather than targetFormat
-                // (what the upstream provider speaks) -- translateResponse(targetFormat,
-                // sourceFormat, ...) above confirms that direction. emitTranslatedClientItem
-                // already pushes every client-visible translated item into
-                // clientPayloadCollector unconditionally, so the events are already there;
-                // getSummary() (not buildStreamSummaryFromEvents(getEvents(), ...)) makes
-                // reading them back cap-independent -- same reasoning as providerPayload
-                // above; clientPayloadCollector's own `format:` construction gives it the
-                // same live reducer.
+                // Same OPENAI_RESPONSES carve-out as providerPayload above and the passthrough branch's onComplete, but keyed on sourceFormat (what the client requested/receives in translate mode) rather than targetFormat (what the upstream provider speaks) -- translateResponse(targetFormat, sourceFormat, ...) above confirms that direction. emitTranslatedClientItem already pushes every client-visible translated item into clientPayloadCollector unconditionally, so the events are already there; getSummary() (not buildStreamSummaryFromEvents(getEvents(), ...)) makes reading them back cap-independent -- same reasoning as providerPayload above; clientPayloadCollector's own `format:` construction gives it the same live reducer.
                 clientPayload: clientPayloadCollector.build(
                   sourceFormat === FORMATS.OPENAI_RESPONSES
                     ? clientPayloadCollector.getSummary()
