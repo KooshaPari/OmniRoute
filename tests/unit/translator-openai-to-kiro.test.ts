@@ -82,8 +82,8 @@ test("OpenAI -> Kiro preserves prior history, tool uses and accumulated tool res
   assert.equal(result.conversationState.history.length, 2);
   assert.deepEqual(result.conversationState.history[0], {
     userInputMessage: {
-      // #2306: the system prompt ("Rules") is wrapped in <system-reminder> before
-      // being merged into the Kiro user turn, instead of leaking as raw user text.
+      // #2306: the system prompt ("Rules") is wrapped in <system-reminder> before being merged into the
+      // Kiro user turn, instead of leaking as raw user text.
       content: "<system-reminder>\nRules\n</system-reminder>\n\nHello",
       modelId: "claude-sonnet-4",
       origin: "AI_EDITOR",
@@ -839,10 +839,10 @@ test("OpenAI -> Kiro toolUseId round-trips between tool_use and tool_result in 2
 });
 
 test("OpenAI -> Kiro does not inject the '(empty)' placeholder on a trailing tool-result-only turn", () => {
-  // Regression for the same bug class as upstream decolua/9router#2183: an agentic
-  // loop that ends in a tool-result turn with no follow-up user text must not have
-  // its (otherwise legitimately-empty) user content replaced by a placeholder —
-  // toolResults already give Kiro all the context it needs for this turn.
+  // Regression for the same bug class as upstream decolua/9router#2183: an agentic loop that ends in
+  // a tool-result turn with no follow-up user text must not have its (otherwise legitimately-empty)
+  // user content replaced by a placeholder — toolResults already give Kiro all the context it needs
+  // for this turn.
   const result = buildKiroPayload(
     "claude-sonnet-4",
     {
@@ -874,9 +874,9 @@ test("OpenAI -> Kiro does not inject the '(empty)' placeholder on a trailing too
   assert.ok(ctx?.toolResults, "toolResults must be present in currentMessage context");
   assert.equal(ctx.toolResults![0].toolUseId, "call_1");
 
-  // ...and the turn's own body (content minus the injected "[Context: ...]" time
-  // prefix, which buildKiroPayload always prepends) must be empty — NOT the
-  // literal "(empty)" placeholder, since tool-result context is present.
+  // ...and the turn's own body (content minus the injected "[Context: ...]" time prefix, which
+  // buildKiroPayload always prepends) must be empty — NOT the literal "(empty)" placeholder, since
+  // tool-result context is present.
   const body = current.content.replace(/^\[Context: Current time is [^\]]*\]\n\n/, "");
   assert.equal(body, "");
   assert.ok(!current.content.includes("(empty)"), "must not contain the '(empty)' placeholder");
@@ -917,9 +917,9 @@ test("OpenAI -> Kiro generates stable non-random toolUseId when tool_call has no
   assert.equal(id1, id2, "toolUseId must be deterministic (same input → same id)");
 });
 
-// Regression for #2446: an OpenAI-style `role:"tool"` message carrying NON-string
-// (structured / array) content must not collapse to `content:[{ text: "" }]` —
-// CodeWhisperer rejects an empty toolResult with 400 "Improperly formed request".
+// Regression for #2446: an OpenAI-style `role:"tool"` message carrying NON-string (structured /
+// array) content must not collapse to `content:[{ text: "" }]` — CodeWhisperer rejects an empty
+// toolResult with 400 "Improperly formed request".
 test("OpenAI -> Kiro serializes non-string role:tool content to non-empty text (#2446)", () => {
   const result = buildKiroPayload(
     "claude-sonnet-4",
@@ -966,9 +966,9 @@ test("OpenAI -> Kiro serializes non-string role:tool content to non-empty text (
   assert.match(text, /entry A/, "serialized content preserves the structured text blocks");
 });
 
-// Only Claude models support images in Kiro. Non-Claude Kiro models
-// (deepseek-3.2, minimax-m2.5, glm-5, qwen3-coder-next) must NOT
-// receive image attachments — attaching them is wrong for those models.
+// Only Claude models support images in Kiro. Non-Claude Kiro models (deepseek-3.2, minimax-m2.5,
+// glm-5, qwen3-coder-next) must NOT receive image attachments — attaching them is wrong for those
+// models.
 const PNG_DATA_URL = "data:image/png;base64,aGVsbG8=";
 
 function buildImageRequest(model: string) {
@@ -1063,11 +1063,10 @@ test("buildKiroPayload strips the supported Thinking selector before upstream", 
   );
 });
 
-// Regression for upstream decolua/9router PR #2270: the dash->dot normalization's
-// trailing minor-version group must be bounded (1-2 digits), otherwise a
-// date-suffixed Claude model id (e.g. claude-opus-4-20250514) gets corrupted into
-// "claude-opus-4.20250514" because the unbounded `-(\d+)$` group swallows the
-// 8-digit date as if it were a minor version.
+// Regression for upstream decolua/9router PR #2270: the dash->dot normalization's trailing
+// minor-version group must be bounded (1-2 digits), otherwise a date-suffixed Claude model id
+// (e.g. claude-opus-4-20250514) gets corrupted into "claude-opus-4.20250514" because the unbounded
+// `-(\d+)$` group swallows the 8-digit date as if it were a minor version.
 test("buildKiroPayload normalizes short dash-suffixed minor versions to dots", () => {
   const body = { messages: [{ role: "user", content: "Hello" }] };
 

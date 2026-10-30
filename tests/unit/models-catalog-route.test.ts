@@ -24,10 +24,10 @@ async function resetStorage() {
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-  // #6408 added a 1.5s TTL response cache to getUnifiedModelsResponse keyed only by
-  // (prefix, isCodex client, apiKey) — NOT by DB/settings state. Without clearing it
-  // between test cases, a test running within the TTL window of a previous one gets
-  // served the previous test's stale serialized catalog instead of a fresh build.
+  // #6408 added a 1.5s TTL response cache to getUnifiedModelsResponse keyed only by (prefix, isCodex
+  // client, apiKey) — NOT by DB/settings state. Without clearing it between test cases, a test
+  // running within the TTL window of a previous one gets served the previous test's stale serialized
+  // catalog instead of a fresh build.
   v1ModelsCatalog.__resetCatalogBuilderRunsForTest();
 }
 
@@ -130,11 +130,10 @@ test("v1 models catalog accepts bearer API keys and filters the list by allowed 
 });
 
 test("v1 models catalog does NOT accept API keys supplied via query string (#3300 security follow-up)", async () => {
-  // Query-string token fallbacks (`?token=`/`?key=`/`?apiKey=`/`?api_key=`) were
-  // intentionally removed — a credential in the query string leaks into access
-  // logs / Referer headers. The VS Code integration uses the path-scoped
-  // `/vscode/<token>/…` form instead (covered by the next test). So a `?token=`
-  // on the catalog route is no longer a usable credential → auth fails.
+  // Query-string token fallbacks (`?token=`/`?key=`/`?apiKey=`/`?api_key=`) were intentionally
+  // removed — a credential in the query string leaks into access logs / Referer headers. The VS Code
+  // integration uses the path-scoped `/vscode/<token>/…` form instead (covered by the next test). So
+  // a `?token=` on the catalog route is no longer a usable credential → auth fails.
   await settingsDb.updateSettings({
     requireLogin: true,
     password: "hashed-password",
@@ -1344,12 +1343,11 @@ test("v1 models catalog returns 500 when model compatibility lookup crashes", as
 
   db.prepare = (sql) => {
     const statement = originalPrepare(sql);
-    // #9147: the catalog builder now resolves hidden models via a single bulk
-    // read (`getHiddenModelsByProvider()`, src/lib/db/models.ts) instead of the
-    // old per-provider `SELECT value FROM key_value WHERE namespace = ? AND
-    // key = ?` / readCompatList() lookup — intercept the bulk query's `.all()`
-    // call so this test still exercises "DB read for model visibility crashes
-    // -> catalog endpoint surfaces 500" against the current implementation.
+    // #9147: the catalog builder now resolves hidden models via a single bulk read
+    // (`getHiddenModelsByProvider()`, src/lib/db/models.ts) instead of the old per-provider `SELECT
+    // value FROM key_value WHERE namespace = ? AND key = ?` / readCompatList() lookup — intercept the
+    // bulk query's `.all()` call so this test still exercises "DB read for model visibility crashes ->
+    // catalog endpoint surfaces 500" against the current implementation.
     if (
       String(sql) !==
       "SELECT namespace, key, value FROM key_value WHERE namespace IN ('modelCompatOverrides', 'customModels')"
@@ -1410,10 +1408,10 @@ test("v1 models catalog skips duplicate built-ins and custom models from inactiv
   assert.equal(response.status, 200);
   // Still exactly one entry: the custom row overlays the built-in, it does not duplicate it.
   assert.equal(duplicateBuiltins.length, 1);
-  // #10248 changed the contract: a custom row for an id that already exists is the
-  // operator-owned overlay for that model (catalog.ts:1330) — its explicitly stored
-  // fields win over the discovered metadata, and the merged entry is flagged `custom`.
-  // Before #10248 the duplicate was skipped outright, so this asserted `false`.
+  // #10248 changed the contract: a custom row for an id that already exists is the operator-owned
+  // overlay for that model (catalog.ts:1330) — its explicitly stored fields win over the discovered
+  // metadata, and the merged entry is flagged `custom`. Before #10248 the duplicate was skipped
+  // outright, so this asserted `false`.
   assert.equal(duplicateBuiltins[0].custom, true);
   // The overlay must keep the catalog identity rather than becoming a detached entry.
   assert.equal(duplicateBuiltins[0].id, "openai/gpt-4o-2024-11-20");
@@ -1466,9 +1464,9 @@ test("v1 models catalog auto-calculates combo context_length from targets when n
     accessToken: "claude-access",
   });
 
-  // Create a combo with targets having different context limits.
-  // openai/gpt-4o context = 128000, claude/claude-sonnet-4-6 = 1000000 (#7129: 1M GA).
-  // The combo should expose context_length = min = 128000.
+  // Create a combo with targets having different context limits. openai/gpt-4o context = 128000,
+  // claude/claude-sonnet-4-6 = 1000000 (#7129: 1M GA). The combo should expose context_length = min
+  // = 128000.
   const combo = await combosDb.createCombo({
     name: "auto-context-combo",
     strategy: "priority",
@@ -1503,9 +1501,9 @@ test("v1 models catalog includes context_length for individual chat models", asy
     new Request("http://localhost/api/v1/models")
   );
   const body = (await response.json()) as any;
-  // Individual chat models only — combos/routers (owned_by "combo", incl. the
-  // built-in auto/* entries from #4164) resolve dynamically and have no fixed
-  // context_length, so they are not "individual chat models" for this check.
+  // Individual chat models only — combos/routers (owned_by "combo", incl. the built-in auto/*
+  // entries from #4164) resolve dynamically and have no fixed context_length, so they are not
+  // "individual chat models" for this check.
   const chatModels = body.data.filter(
     (item) => (!item.type || item.type === "chat") && item.owned_by !== "combo"
   );
@@ -1522,8 +1520,8 @@ test("v1 models catalog includes context_length for individual chat models", asy
 });
 
 test("v1 models catalog falls back to getTokenLimit for models without registry defaultContextLength", async () => {
-  // opencode-go has defaultContextLength in REGISTRY, but we test the fallback
-  // path by verifying models from the synced path still get context_length
+  // opencode-go has defaultContextLength in REGISTRY, but we test the fallback path by verifying
+  // models from the synced path still get context_length
   const connection = await seedConnection("opencode-go", {
     name: "opencode-go-context-fallback",
     apiKey: "go-key",
@@ -1582,8 +1580,8 @@ test("v1 models catalog computes combo context_length from known targets when so
     accessToken: "claude-access",
   });
 
-  // Create a combo with targets: one known (gpt-4o = 128K), one unknown (nonexistent-model).
-  // The combo should still compute context_length = 128K from the known target.
+  // Create a combo with targets: one known (gpt-4o = 128K), one unknown (nonexistent-model). The
+  // combo should still compute context_length = 128K from the known target.
   const combo = await combosDb.createCombo({
     name: "mixed-context-combo",
     strategy: "priority",
@@ -1605,8 +1603,8 @@ test("v1 models catalog computes combo context_length from known targets when so
   );
 });
 
-// Regression test for Issue #2798: noAuth providers (opencode/oc) have no DB connection rows
-// but their models must still appear in /v1/models.
+// Regression test for Issue #2798: noAuth providers (opencode/oc) have no DB connection rows but
+// their models must still appear in /v1/models.
 test("v1 models catalog includes noAuth provider models when no DB connections exist (#2798)", async () => {
   // No connections seeded — empty DB, simulating a fresh install with no credentials added.
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
@@ -1616,8 +1614,8 @@ test("v1 models catalog includes noAuth provider models when no DB connections e
   const ids: string[] = body.data.map((item: any) => item.id);
 
   assert.equal(response.status, 200);
-  // opencode (noAuth) models must surface even with zero connection rows.
-  // The registry defines models under alias "oc" (e.g. "oc/big-pickle").
+  // opencode (noAuth) models must surface even with zero connection rows. The registry defines
+  // models under alias "oc" (e.g. "oc/big-pickle").
   assert.ok(
     ids.some((id) => id.startsWith("oc/")),
     `Expected at least one oc/* model in /v1/models but got none. IDs sample: ${ids.slice(0, 10).join(", ")}`

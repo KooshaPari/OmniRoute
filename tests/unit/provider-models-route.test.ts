@@ -102,8 +102,8 @@ test("provider models route fetches the live AI/ML API catalog from the auth-fre
   const response = await callRoute(connection.id);
   const body = (await response.json()) as any;
 
-  // RED before the fix: aimlapi had no PROVIDER_MODELS_CONFIG entry → stale
-  // 6-model local seed (source "local_catalog"), live endpoint never called.
+  // RED before the fix: aimlapi had no PROVIDER_MODELS_CONFIG entry → stale 6-model local seed
+  // (source "local_catalog"), live endpoint never called.
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
   assert.equal(calledUrl, "https://api.aimlapi.com/models");
@@ -159,8 +159,8 @@ test("provider models route rejects OpenAI-compatible providers without a base U
   });
 });
 
-// #6939: model-list discovery must match the test-connection guard tier (local-first ON by
-// default allows LAN/loopback hosts) — see provider-models-route-lan-guard.test.ts for the
+// #6939: model-list discovery must match the test-connection guard tier (local-first ON by default
+// allows LAN/loopback hosts) — see provider-models-route-lan-guard.test.ts for the
 // disabled-default (still-blocked) counterpart.
 test("provider models route allows private/LAN OpenAI-compatible base URLs under the local-first default (#6939)", async () => {
   delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
@@ -350,10 +350,9 @@ test("provider models route correctly strips standard /v1 paths", async () => {
 
 test("provider models route strips /v1 when it precedes /chat/completions (#5899 no double /v1)", async () => {
   // Regression for #5899 (Api Airforce): a baseUrl of the form
-  // "https://api.airforce/v1/chat/completions" must probe ".../v1/models" — NOT
-  // ".../v1/v1/models". The old `else if` strip chain only removed
-  // "/chat/completions", leaving a trailing "/v1" that the endpoint builder then
-  // doubled, producing a 308 redirect that aborted discovery.
+  // "https://api.airforce/v1/chat/completions" must probe ".../v1/models" — NOT ".../v1/v1/models".
+  // The old `else if` strip chain only removed "/chat/completions", leaving a trailing "/v1" that
+  // the endpoint builder then doubled, producing a 308 redirect that aborted discovery.
   const connection = await seedConnection("openai-compatible-airforce-v1", {
     apiKey: "sk-airforce",
     providerSpecificData: {
@@ -384,9 +383,9 @@ test("provider models route strips /v1 when it precedes /chat/completions (#5899
 });
 
 test("provider models route continues probing past a REDIRECT_BLOCKED endpoint (#5899)", async () => {
-  // Regression for #5899: a REDIRECT_BLOCKED error on one candidate endpoint must
-  // not abort the whole probe loop — discovery should fall through to the next
-  // endpoint instead of surfacing an empty catalog.
+  // Regression for #5899: a REDIRECT_BLOCKED error on one candidate endpoint must not abort the
+  // whole probe loop — discovery should fall through to the next endpoint instead of surfacing an
+  // empty catalog.
   const connection = await seedConnection("openai-compatible-redirect-v1", {
     apiKey: "sk-redirect",
     providerSpecificData: { autoFetchModels: true, baseUrl: "https://redirect.example" },
@@ -396,9 +395,9 @@ test("provider models route continues probing past a REDIRECT_BLOCKED endpoint (
   globalThis.fetch = async (url) => {
     const u = String(url);
     seenUrls.push(u);
-    // First candidate ".../v1/models" answers with a real 308 redirect →
-    // safeOutboundFetch throws a SafeOutboundFetchError(REDIRECT_BLOCKED). The old
-    // code re-threw on it (status 503) and aborted the loop; the fix `continue`s.
+    // First candidate ".../v1/models" answers with a real 308 redirect → safeOutboundFetch throws a
+    // SafeOutboundFetchError(REDIRECT_BLOCKED). The old code re-threw on it (status 503) and aborted
+    // the loop; the fix `continue`s.
     if (u === "https://redirect.example/v1/models") {
       return new Response(null, {
         status: 308,
@@ -414,8 +413,8 @@ test("provider models route continues probing past a REDIRECT_BLOCKED endpoint (
   const body = (await response.json()) as any;
 
   assert.equal(response.status, 200);
-  // Without the REDIRECT_BLOCKED `continue`, discovery aborted and fell back to a
-  // non-api catalog. The fix lets it reach the next endpoint and return live models.
+  // Without the REDIRECT_BLOCKED `continue`, discovery aborted and fell back to a non-api catalog.
+  // The fix lets it reach the next endpoint and return live models.
   assert.equal(body.source, "api");
   assert.ok(
     seenUrls.length >= 2,
@@ -563,10 +562,10 @@ test("provider models route prefers the remote OpenRouter /models API over stati
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
   assert.deepEqual(seenUrls, ["https://openrouter.ai/api/v1/models"]);
-  // #6976 — OpenRouter's live /v1/models never lists embeddings/rerank (they live
-  // on dedicated endpoints), so the curated specialty catalog is folded into the
-  // live-discovery response additively; static IMAGE models stay excluded
-  // (hasChatRegistry is true for openrouter — see staticModels.ts).
+  // #6976 — OpenRouter's live /v1/models never lists embeddings/rerank (they live on dedicated
+  // endpoints), so the curated specialty catalog is folded into the live-discovery response
+  // additively; static IMAGE models stay excluded (hasChatRegistry is true for openrouter — see
+  // staticModels.ts).
   const ids = body.models.map((m: { id: string }) => m.id);
   assert.ok(ids.includes("openai/gpt-4.1"), "live-fetched chat model is preserved");
   assert.ok(ids.includes("baai/bge-m3"), "curated embedding is merged in");
@@ -622,9 +621,9 @@ test("provider models route returns the local catalog for embedding and rerank p
 });
 
 test("provider models route flags intentional local-catalog-only providers so model-sync imports them (#5460/#5465)", async () => {
-  // reka + voyage-ai never do a remote /models fetch — their local catalog is
-  // the intended source, so the response must carry `intentional: true` for the
-  // sync route to import instead of 502-ing ("local catalog fallback not synced").
+  // reka + voyage-ai never do a remote /models fetch — their local catalog is the intended source,
+  // so the response must carry `intentional: true` for the sync route to import instead of 502-ing
+  // ("local catalog fallback not synced").
   const reka = await seedConnection("reka", { apiKey: "reka-key" });
   const voyage = await seedConnection("voyage-ai", { apiKey: "voyage-key" });
 
@@ -640,9 +639,9 @@ test("provider models route flags intentional local-catalog-only providers so mo
 });
 
 test("provider models route does NOT flag a degraded remote-fetch fallback as intentional (#5460/#5465)", async () => {
-  // aimlapi normally discovers remotely; when the live fetch fails it falls back
-  // to the local catalog — that IS degraded and must NOT be flagged intentional,
-  // so model-sync still surfaces the failure (502) for it.
+  // aimlapi normally discovers remotely; when the live fetch fails it falls back to the local
+  // catalog — that IS degraded and must NOT be flagged intentional, so model-sync still surfaces the
+  // failure (502) for it.
   const connection = await seedConnection("aimlapi", { apiKey: "aiml-key" });
   globalThis.fetch = async () => new Response("upstream down", { status: 500 });
 
@@ -814,8 +813,8 @@ test("provider models route falls back to cached models when a refresh fails", a
   assert.equal(body.source, "cache");
   assert.match(body.warning, /cached catalog/i);
   assert.deepEqual(body.models, [{ id: "cached-go", name: "Cached Go", source: "imported" }]);
-  // T39 multi-endpoint discovery probes `${base}/v1/models` then `${base}/models`
-  // before giving up; both 503 here, so it makes 2 attempts and then falls back to cache.
+  // T39 multi-endpoint discovery probes `${base}/v1/models` then `${base}/models` before giving up;
+  // both 503 here, so it makes 2 attempts and then falls back to cache.
   assert.equal(fetchCalls, 2);
 });
 
@@ -869,10 +868,9 @@ test("provider models route keeps upstream discovery off until autoFetchModels i
 });
 
 test("provider models route uses synced models as the authoritative local catalog (#3148)", async () => {
-  // A connection that resolves to the local catalog (auto-fetch off, no remote
-  // discovery). Once a sync has populated the synced-models table for this
-  // provider, the route must surface the synced list — even on a connection
-  // that never ran the sync itself — instead of the static catalog.
+  // A connection that resolves to the local catalog (auto-fetch off, no remote discovery). Once a
+  // sync has populated the synced-models table for this provider, the route must surface the synced
+  // list — even on a connection that never ran the sync itself — instead of the static catalog.
   const connection = await seedConnection("opencode-go", {
     apiKey: "opencode-go-key",
     providerSpecificData: {
@@ -921,9 +919,8 @@ test("provider models route retries Antigravity discovery endpoints before retur
 
   globalThis.fetch = async (url, init = {}) => {
     const urlString = String(url);
-    // After PR #2219, the discovery flow calls loadCodeAssist first as a project
-    // bootstrap; treat all bootstrap calls as non-fatal failures so the test
-    // exercises the discovery retry path.
+    // After PR #2219, the discovery flow calls loadCodeAssist first as a project bootstrap; treat all
+    // bootstrap calls as non-fatal failures so the test exercises the discovery retry path.
     // onboardUser is a bootstrap hop too (ff012ff420) — else it eats the single 503 below.
     if (urlString.includes(":loadCodeAssist") || urlString.includes(":onboardUser")) {
       return new Response("nope", { status: 503 });
@@ -938,8 +935,8 @@ test("provider models route retries Antigravity discovery endpoints before retur
     assert.match(init.headers["User-Agent"], /^antigravity\/ide\/1\.22\.2 /);
     assert.equal(init.headers["x-goog-api-client"], undefined);
     // Use a model id that is in the current user-callable Antigravity allowlist, otherwise
-    // filterUserCallableAntigravityModels() drops it and discovery silently yields 0 models
-    // → the route falls back to local_catalog instead of returning the remote (api) list.
+    // filterUserCallableAntigravityModels() drops it and discovery silently yields 0 models → the
+    // route falls back to local_catalog instead of returning the remote (api) list.
     return Response.json({
       models: [
         { id: "gemini-3.1-pro-high", displayName: "Gemini 3.1 Pro (High)" },
@@ -961,11 +958,10 @@ test("provider models route retries Antigravity discovery endpoints before retur
 
   const response = await callRoute(connection.id);
   const body = (await response.json()) as any;
-  // After PR #2219, the route tries `:fetchAvailableModels` URLs before
-  // `:models` URLs. The test mock returns 503 on the first call and success
-  // on the second, so only the first two `:fetchAvailableModels` URLs are
-  // hit — `:models` URLs are never reached. Assert on the actual discovery
-  // sequence the route follows.
+  // After PR #2219, the route tries `:fetchAvailableModels` URLs before `:models` URLs. The test
+  // mock returns 503 on the first call and success on the second, so only the first two
+  // `:fetchAvailableModels` URLs are hit — `:models` URLs are never reached. Assert on the actual
+  // discovery sequence the route follows.
   const discoveryUrls = seenUrls.filter(
     (url) => url.includes("/v1internal:fetchAvailableModels") || url.includes("/v1internal:models")
   );

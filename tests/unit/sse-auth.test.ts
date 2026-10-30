@@ -36,9 +36,9 @@ async function seedConnection(provider: string, overrides: any = {}) {
     name: overrides.name || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
     email: overrides.email,
     // Unique per connection by default — real accounts have distinct keys, and
-    // createProviderConnection dedups by decrypted key value (#3023), so a shared
-    // default would collapse multiple seeded connections into one and break
-    // round-robin / least-used / fallback selection tests.
+    // createProviderConnection dedups by decrypted key value (#3023), so a shared default would
+    // collapse multiple seeded connections into one and break round-robin / least-used / fallback
+    // selection tests.
     apiKey: overrides.apiKey || `sk-test-${Math.random().toString(16).slice(2, 10)}`,
     accessToken: overrides.accessToken,
     refreshToken: overrides.refreshToken,
@@ -92,8 +92,8 @@ test("extractApiKey parses bearer headers and isValidApiKey validates persisted 
     ),
     null
   );
-  // Security follow-up (#3300): query-string token fallbacks were removed — a
-  // credential in `?token=` must NOT be extracted (it leaks into logs/Referer).
+  // Security follow-up (#3300): query-string token fallbacks were removed — a credential in
+  // `?token=` must NOT be extracted (it leaks into logs/Referer).
   assert.equal(
     auth.extractApiKey(new Request(`http://localhost/v1/chat/completions?token=${created.key}`)),
     null
@@ -340,13 +340,11 @@ test("getProviderCredentialsWithQuotaPreflight returns allRateLimited when a for
 });
 
 test("getProviderCredentialsWithQuotaPreflight skips the upstream fetcher when no limits are configured", async () => {
-  // Latency gate regression test. When a connection has no per-window
-  // overrides AND its provider has no per-(provider, window) defaults seeded
-  // AND the legacy quotaPreflightEnabled flag isn't set, the dispatch loop
-  // must NOT call the registered quota fetcher. We assert by registering a
-  // fetcher that throws if invoked — any invocation surfaces as a test
-  // failure either via the thrown error or via the connection getting
-  // skipped (we expect it to pass through cleanly).
+  // Latency gate regression test. When a connection has no per-window overrides AND its provider has
+  // no per-(provider, window) defaults seeded AND the legacy quotaPreflightEnabled flag isn't set,
+  // the dispatch loop must NOT call the registered quota fetcher. We assert by registering a fetcher
+  // that throws if invoked — any invocation surfaces as a test failure either via the thrown error
+  // or via the connection getting skipped (we expect it to pass through cleanly).
   const conn = await seedConnection("openai", {
     name: "quota-preflight-no-limits",
     apiKey: "sk-no-limits",
@@ -369,9 +367,9 @@ test("getProviderCredentialsWithQuotaPreflight skips the upstream fetcher when n
 });
 
 test("getProviderCredentialsWithQuotaPreflight invokes the fetcher when the global default is restrictive", async () => {
-  // No per-connection override and no provider-window defaults — but the
-  // operator has raised the global default cutoff above the factory no-op
-  // level (2% remaining). Preflight must run so the tighter floor applies.
+  // No per-connection override and no provider-window defaults — but the operator has raised the
+  // global default cutoff above the factory no-op level (2% remaining). Preflight must run so the
+  // tighter floor applies.
   const conn = await seedConnection("openai", {
     name: "quota-preflight-restrictive-global",
     apiKey: "sk-restrictive-global",
@@ -413,8 +411,8 @@ test("getProviderCredentialsWithQuotaPreflight invokes the fetcher when the glob
 });
 
 test("getProviderCredentialsWithQuotaPreflight invokes the fetcher when an override IS set", async () => {
-  // Counterpart to the no-limits test: if the connection has a
-  // quotaWindowThresholds override, preflight must run.
+  // Counterpart to the no-limits test: if the connection has a quotaWindowThresholds override,
+  // preflight must run.
   const conn = await seedConnection("openai", {
     name: "quota-preflight-with-override",
     apiKey: "sk-with-override",
@@ -422,8 +420,8 @@ test("getProviderCredentialsWithQuotaPreflight invokes the fetcher when an overr
   const updated = await providersDb.updateProviderConnection(conn.id, {
     quotaWindowThresholds: { primary: 50 },
   });
-  // Sanity: the override must be readable on the connection row (this is
-  // what the dispatch loop reads through getProviderCredentials).
+  // Sanity: the override must be readable on the connection row (this is what the dispatch loop
+  // reads through getProviderCredentials).
   assert.deepEqual(
     (updated as any)?.quotaWindowThresholds,
     { primary: 50 },
@@ -448,17 +446,16 @@ test("getProviderCredentialsWithQuotaPreflight invokes the fetcher when an overr
 });
 
 test("getProviderCredentialsWithQuotaPreflight: explicit quotaPreflightEnabled:false bypasses preflight even when provider has global window defaults (#2831)", async () => {
-  // Regression: when a provider has providerWindowDefaults set AND a connection
-  // carries quotaWindowThresholds, the AND-of-negations gate in auth.ts would
-  // proceed to preflight even if the connection explicitly opted out with
-  // providerSpecificData.quotaPreflightEnabled === false.
+  // Regression: when a provider has providerWindowDefaults set AND a connection carries
+  // quotaWindowThresholds, the AND-of-negations gate in auth.ts would proceed to preflight even if
+  // the connection explicitly opted out with providerSpecificData.quotaPreflightEnabled === false.
   const conn = await seedConnection("github", {
     name: "github-explicit-opt-out",
     apiKey: "ghp-opt-out-test",
     providerSpecificData: { quotaPreflightEnabled: false },
   });
-  // Give the connection per-window overrides (simulates a user-configured
-  // threshold) — this is the field that previously caused the gate to keep going.
+  // Give the connection per-window overrides (simulates a user-configured threshold) — this is the
+  // field that previously caused the gate to keep going.
   await (
     await import("../../src/lib/db/providers.ts")
   ).updateProviderConnection(conn.id, {
@@ -766,10 +763,10 @@ test("getProviderCredentials refuses a forced pin outside allowedConnections ins
     }
   );
 
-  // #12080 (supersedes the #8893 fallback): a forced pin that is absent from the
-  // policy-allowed pool keeps its constraint — resolution yields no credential instead
-  // of silently continuing on another connection. The policy-blocked connection must
-  // never be selected, and the allowed one must not be picked behind the caller's back.
+  // #12080 (supersedes the #8893 fallback): a forced pin that is absent from the policy-allowed pool
+  // keeps its constraint — resolution yields no credential instead of silently continuing on another
+  // connection. The policy-blocked connection must never be selected, and the allowed one must not
+  // be picked behind the caller's back.
   assert.equal(selected, null);
 });
 
@@ -1074,9 +1071,9 @@ test("getProviderCredentials least-used prefers an account without backoff over 
     name: "least-used-healthy",
     priority: 9,
   });
-  // createProviderConnection does not persist backoffLevel; write it through
-  // update. rateLimitedUntil in the future keeps the backoff from auto-decaying,
-  // and allowRateLimitedConnections below keeps the account in the pool.
+  // createProviderConnection does not persist backoffLevel; write it through update.
+  // rateLimitedUntil in the future keeps the backoff from auto-decaying, and
+  // allowRateLimitedConnections below keeps the account in the pool.
   await providersDb.updateProviderConnection(backedOff.id, {
     backoffLevel: 2,
     rateLimitedUntil: futureIso(),
@@ -1318,8 +1315,8 @@ test("markAccountUnavailable applies a model-only lockout for compatible provide
   assert.equal(Number(updated.errorCode), 429);
 });
 
-// #3027 — a per-model subscription/permission 403 from a passthrough provider
-// (ollama-cloud) must lock only the paid model, not the whole connection.
+// #3027 — a per-model subscription/permission 403 from a passthrough provider (ollama-cloud) must
+// lock only the paid model, not the whole connection.
 test("markAccountUnavailable: ollama-cloud per-model subscription 403 locks the model, not the connection (#3027)", async () => {
   fallback.clearAllModelLockouts();
   const connection = await seedConnection("ollama-cloud", {
@@ -1350,8 +1347,8 @@ test("markAccountUnavailable: ollama-cloud per-model subscription 403 locks the 
   assert.equal(fallback.isModelLocked("ollama-cloud", connection.id, "gemma4:31b"), false);
 });
 
-// #3027 regression — a genuine whole-key 403 (deactivated/banned key) must NOT
-// be downgraded to a model lockout; the connection still becomes terminal.
+// #3027 regression — a genuine whole-key 403 (deactivated/banned key) must NOT be downgraded to a
+// model lockout; the connection still becomes terminal.
 test("markAccountUnavailable: a whole-key 403 still deactivates the ollama-cloud connection (#3027 regression)", async () => {
   fallback.clearAllModelLockouts();
   const connection = await seedConnection("ollama-cloud", {
@@ -1376,8 +1373,8 @@ test("markAccountUnavailable: a whole-key 403 still deactivates the ollama-cloud
   );
 });
 
-// #3027 — repeated subscription 403s on the paid model must never escalate a
-// connection-wide cooldown/backoff (only the model lockout escalates).
+// #3027 — repeated subscription 403s on the paid model must never escalate a connection-wide
+// cooldown/backoff (only the model lockout escalates).
 test("markAccountUnavailable: repeated ollama-cloud subscription 403s never escalate connection backoff (#3027)", async () => {
   fallback.clearAllModelLockouts();
   const connection = await seedConnection("ollama-cloud", {

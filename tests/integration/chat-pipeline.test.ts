@@ -553,8 +553,8 @@ test("chat pipeline handles OpenAI passthrough with valid API key auth", async (
 });
 
 test("#11884 chat pipeline sends a custom node's edited Chat API type upstream", async () => {
-  // Mirror POST /api/provider-nodes: the generated node id embeds the API type chosen at
-  // creation time, so a node created as Responses keeps "responses" in its id forever.
+  // Mirror POST /api/provider-nodes: the generated node id embeds the API type chosen at creation
+  // time, so a node created as Responses keeps "responses" in its id forever.
   const providerId = "openai-compatible-responses-11884";
   const prefix = "edited-node-11884";
   const baseUrl = "https://edited-node-11884.example.invalid/v1";
@@ -572,8 +572,8 @@ test("#11884 chat pipeline sends a custom node's edited Chat API type upstream",
     providerSpecificData: { baseUrl, apiType: "responses" },
   });
 
-  // The operator edits the node from Responses to Chat through the real route, which also
-  // rewrites the connection's saved apiType.
+  // The operator edits the node from Responses to Chat through the real route, which also rewrites
+  // the connection's saved apiType.
   const editResponse = await providerNodeRoute.PUT(
     new Request(`http://localhost/api/provider-nodes/${providerId}`, {
       method: "PUT",
@@ -779,16 +779,16 @@ test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", 
   assert.equal(call.headers.Version, getCodexClientVersion());
   assert.equal(call.headers["Openai-Beta"], "responses=experimental");
   assert.equal(call.headers["X-Codex-Beta-Features"], "responses_websockets");
-  // Derive from the same source the code reads (see getCodexClientVersion() two
-  // lines above) instead of pinning the literal — #9323's version bump to 0.146.0
-  // broke this assertion while the rest of the test kept passing.
+  // Derive from the same source the code reads (see getCodexClientVersion() two lines above) instead
+  // of pinning the literal — #9323's version bump to 0.146.0 broke this assertion while the rest of
+  // the test kept passing.
   assert.equal(
     call.headers["User-Agent"],
     `codex-cli/${getCodexClientVersion()} (Windows 10.0.26200; x64)`
   );
-  // Session convergence derives a fresh session/thread id instead of passing the
-  // client's raw conversation_id straight through, so the window id must be derived
-  // from the (converged) request id header, not the original client-supplied literal.
+  // Session convergence derives a fresh session/thread id instead of passing the client's raw
+  // conversation_id straight through, so the window id must be derived from the (converged) request
+  // id header, not the original client-supplied literal.
   assert.notEqual(call.headers["session_id"], "conv_codex_fingerprint");
   assert.equal(call.headers["x-codex-window-id"], `${call.headers["x-client-request-id"]}:0`);
   assert.ok(call.headers["x-client-request-id"], "expected Codex request id header");
@@ -801,9 +801,9 @@ test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", 
 
   const bodyOrder = Object.keys(JSON.parse(call.bodyString));
   // Order must match the canonical Codex fingerprint bodyFieldOrder (cliFingerprints.ts):
-  // …reasoning, prompt_cache_key, …, include — i.e. prompt_cache_key precedes include.
-  // (#4584 inadvertently flipped these two; fast-gates skip integration tests so it only
-  // surfaced on the release PR full CI.)
+  // …reasoning, prompt_cache_key, …, include — i.e. prompt_cache_key precedes include. (#4584
+  // inadvertently flipped these two; fast-gates skip integration tests so it only surfaced on the
+  // release PR full CI.)
   assert.deepEqual(
     bodyOrder.slice(0, 8),
     "model stream input instructions store reasoning prompt_cache_key include".split(" ")
@@ -850,19 +850,18 @@ test("chat pipeline fails closed on an unresolvable previous_response_id and kee
     })
   );
 
-  // #10262 virtualized `previous_response_id`: in any mode other than "preserve"
-  // the id is resolved against OmniRoute's own continuation store BEFORE routing.
-  // An id it cannot resolve fails closed with OpenAI's own contract instead of
-  // being silently stripped and forwarded as a fresh turn (which would have
-  // dropped the conversation history without telling the client).
+  // #10262 virtualized `previous_response_id`: in any mode other than "preserve" the id is resolved
+  // against OmniRoute's own continuation store BEFORE routing. An id it cannot resolve fails closed
+  // with OpenAI's own contract instead of being silently stripped and forwarded as a fresh turn
+  // (which would have dropped the conversation history without telling the client).
   const failClosed = (await response.json()) as { error?: { code?: string } };
   assert.equal(response.status, 400);
   assert.equal(failClosed.error?.code, "previous_response_not_found");
   assert.equal(fetchCalls.length, 0, "a request that fails closed must not reach the upstream");
 
-  // Positive anchor: the same stateless Codex connection, without the unresolvable
-  // continuation id, still dispatches — and the stateless contract still holds
-  // (store:false, no previous_response_id on the wire).
+  // Positive anchor: the same stateless Codex connection, without the unresolvable continuation id,
+  // still dispatches — and the stateless contract still holds (store:false, no previous_response_id
+  // on the wire).
   const followUp = await handleChat(
     buildRequest({
       url: "http://localhost/v1/responses",
@@ -1228,10 +1227,10 @@ test("chat pipeline allows unauthenticated requests through to provider resoluti
   );
   const json = (await response.json()) as any;
 
-  // handleChat does not enforce REQUIRE_API_KEY — that's the authz pipeline's job.
-  // Without provider credentials seeded, the request falls through to the "no credentials" path.
-  // Upstream port decolua/9router#336: 400 → 404 so combo routing can fall through.
-  // #10797: single-model (non-combo) no-credentials now remaps 404 → 401.
+  // handleChat does not enforce REQUIRE_API_KEY — that's the authz pipeline's job. Without provider
+  // credentials seeded, the request falls through to the "no credentials" path. Upstream port
+  // decolua/9router#336: 400 → 404 so combo routing can fall through. #10797: single-model
+  // (non-combo) no-credentials now remaps 404 → 401.
   assert.equal(response.status, 401);
   assert.match(json.error.message, /No active credentials for provider/i);
 });
@@ -1256,10 +1255,10 @@ test("chat pipeline treats Accept text/event-stream as streaming mode and return
 
   globalThis.fetch = async () => buildOpenAIStreamResponse("Accept header stream");
 
-  // #5305/#5309: only a PURE `text/event-stream` Accept (without application/json)
-  // forces SSE when `stream` is omitted. A mixed `application/json, text/event-stream`
-  // Accept is the Vercel/OpenAI SDK non-stream signature and now resolves to JSON, so
-  // this SSE-opt-in test must send the pure-SSE Accept header.
+  // #5305/#5309: only a PURE `text/event-stream` Accept (without application/json) forces SSE when
+  // `stream` is omitted. A mixed `application/json, text/event-stream` Accept is the Vercel/OpenAI
+  // SDK non-stream signature and now resolves to JSON, so this SSE-opt-in test must send the
+  // pure-SSE Accept header.
   const response = await handleChat(
     buildRequest({
       headers: { Accept: "text/event-stream" },
@@ -1350,8 +1349,8 @@ test("chat pipeline returns current no-credentials contract when no provider con
   );
 
   const json = (await response.json()) as any;
-  // Upstream port decolua/9router#336: 400 → 404 so combo routing can fall through.
-  // #10797: single-model (non-combo) no-credentials now remaps 404 → 401.
+  // Upstream port decolua/9router#336: 400 → 404 so combo routing can fall through. #10797:
+  // single-model (non-combo) no-credentials now remaps 404 → 401.
   assert.equal(response.status, 401);
   assert.match(json.error.message, /No active credentials for provider: openai/);
 });
@@ -1563,9 +1562,9 @@ test("chat pipeline injects skills into tools and intercepts tool calls with ski
     enabled: true,
   });
 
-  // #9058: provider tool names must match ^[a-zA-Z0-9_-]+$, so `name@version`
-  // identifiers travel base64url-encoded. Derive the expectation from the helper
-  // instead of pinning the encoded literal.
+  // #9058: provider tool names must match ^[a-zA-Z0-9_-]+$, so `name@version` identifiers travel
+  // base64url-encoded. Derive the expectation from the helper instead of pinning the encoded
+  // literal.
   const expectedSkillToolName = encodeSkillToolName("lookupWeather", "1.0.0");
   assert.match(expectedSkillToolName, /^[a-zA-Z0-9_-]+$/);
   assert.notEqual(expectedSkillToolName, "lookupWeather@1.0.0");
@@ -1576,9 +1575,8 @@ test("chat pipeline injects skills into tools and intercepts tool calls with ski
       url: String(url),
       body: init.body ? JSON.parse(String(init.body)) : null,
     });
-    // #9058: the upstream echoes back exactly the tool name it was given — the
-    // provider-safe encoded one — so this also exercises decodeSkillToolName()
-    // on the interception path.
+    // #9058: the upstream echoes back exactly the tool name it was given — the provider-safe encoded
+    // one — so this also exercises decodeSkillToolName() on the interception path.
     return buildOpenAIToolCallResponse({ toolName: expectedSkillToolName });
   };
 

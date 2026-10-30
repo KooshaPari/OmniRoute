@@ -105,10 +105,7 @@ test("Batch API and Processing", async () => {
   assert.ok(batch.id.startsWith("batch_"), "Batch ID should start with batch_");
   assert.strictEqual(batch.status, "validating");
 
-  // 3. Start the processor manually for one tick (or wait if we used initBatchProcessor)
-  // For testing, we might want to expose the processing functions or just wait.
-  // We'll use a shorter interval in the processor if we want to test polling.
-  // Here we'll just call processPendingBatches if it was exported, but it's not.
+  // 3. Start the processor manually for one tick (or wait if we used initBatchProcessor) For testing, we might want to expose the processing functions or just wait. We'll use a shorter interval in the processor if we want to test polling. Here we'll just call processPendingBatches if it was exported, but it's not.
 
   // Instead of polling, let's just wait a bit if we started the processor
   initBatchProcessor();
@@ -1036,8 +1033,7 @@ test("File upload with expiration and spec-compliant response", async () => {
     type: "text/plain",
   };
 
-  // We'll test the DB logic and the formatting logic separately
-  // as it's hard to call the Next.js route directly in this unit test.
+  // We'll test the DB logic and the formatting logic separately as it's hard to call the Next.js route directly in this unit test.
 
   const expiresAfterSeconds = 3600;
   const expiresAt = Math.floor(Date.now() / 1000) + expiresAfterSeconds;
@@ -1229,9 +1225,7 @@ test("Batch dispatches to embeddings handler for /v1/embeddings URL", async () =
     );
     assert.strictEqual(currentBatch?.requestCountsTotal, 1);
 
-    // Verify the batch item was dispatched to the embeddings handler, not the chat handler.
-    // The chat handler would return errors about missing "messages", "Missing model", etc.
-    // The embeddings handler returns errors about missing credentials or invalid embedding models.
+    // Verify the batch item was dispatched to the embeddings handler, not the chat handler. The chat handler would return errors about missing "messages", "Missing model", etc. The embeddings handler returns errors about missing credentials or invalid embedding models.
     const outputFileId = currentBatch?.outputFileId || currentBatch?.errorFileId;
     assert.ok(outputFileId, "Should have an output or error file");
     const outputContent = getFileContent(outputFileId!);

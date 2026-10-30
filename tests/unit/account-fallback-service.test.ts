@@ -5,14 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-// #10460: DATA_DIR must be assigned BEFORE any transitive DB import. The
-// accountFallback.ts import below statically imports `@/lib/db/providers`, which
-// imports `src/lib/db/core.ts`, whose `DATA_DIR` is a top-level
-// `export const DATA_DIR = resolveWritableDataDir(...)` captured once at module-load
-// time. Setting `process.env.DATA_DIR` after that first import is a no-op — the DB
-// singleton keeps whatever DATA_DIR it resolved at import time, so an isolated test
-// directory assigned later is silently never used and the #10460 tests below would
-// actually read/write the shared default DATA_DIR instead.
+// #10460: DATA_DIR must be assigned BEFORE any transitive DB import. The accountFallback.ts import below statically imports `@/lib/db/providers`, which imports `src/lib/db/core.ts`, whose `DATA_DIR` is a top-level `export const DATA_DIR = resolveWritableDataDir(...)` captured once at module-load time. Setting `process.env.DATA_DIR` after that first import is a no-op — the DB singleton keeps whatever DATA_DIR it resolved at import time, so an isolated test directory assigned later is silently never used and the #10460 tests below would actually read/write the shared default DATA_DIR instead.
 const TEST_DATA_DIR_10460 = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-10460-"));
 process.env.DATA_DIR = TEST_DATA_DIR_10460;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "10460-test-secret";
@@ -271,9 +264,7 @@ test("checkFallbackError treats a genuine 400 model-access error as combo fallba
 });
 
 test("checkFallbackError does NOT treat a bad-credential 400 as model-access fallback", () => {
-  // Phrased so it would otherwise match MODEL_ACCESS_DENIED_PATTERNS ("...api key
-  // ... model"), but the bad-credential signal must keep it terminal so the real
-  // auth error surfaces instead of silently exhausting every combo target.
+  // Phrased so it would otherwise match MODEL_ACCESS_DENIED_PATTERNS ("...api key ... model"), but the bad-credential signal must keep it terminal so the real auth error surfaces instead of silently exhausting every combo target.
   const result = checkFallbackError(400, "Invalid API key provided for model gpt-4o");
   assert.deepEqual(result, {
     shouldFallback: false,
@@ -455,10 +446,7 @@ test("hasPerModelQuota returns true for GitHub Copilot provider (#1624)", () => 
 });
 
 test("hasPerModelQuota honors shared-registry passthrough providers (#11071)", () => {
-  // These declare passthroughModels:true in src/shared/constants/providers/, but are absent
-  // from the open-sse REGISTRY passthrough set and are neither local nor self-hosted — so the
-  // isLocalProvider/isSelfHostedChatProvider branch (#11078) never reaches them. Without the
-  // shared-registry lookup a missing model on one of these cools the WHOLE connection.
+  // These declare passthroughModels:true in src/shared/constants/providers/, but are absent from the open-sse REGISTRY passthrough set and are neither local nor self-hosted — so the isLocalProvider/isSelfHostedChatProvider branch (#11078) never reaches them. Without the shared-registry lookup a missing model on one of these cools the WHOLE connection.
   assert.equal(hasPerModelQuota("novita"), true);
   assert.equal(hasPerModelQuota("uncloseai"), true);
   assert.equal(hasPerModelQuota("orcarouter"), true);
@@ -1120,9 +1108,7 @@ test("checkFallbackError detects model access denied via structured error type (
 });
 
 test("checkFallbackError does NOT fallback on a permission_error that is a key/feature scope issue (not model access)", () => {
-  // permission_error is ambiguous on Anthropic — also raised for API-key scope,
-  // org restrictions and feature gating. Without a model-related message it must
-  // surface the real error instead of silently exhausting every combo target.
+  // permission_error is ambiguous on Anthropic — also raised for API-key scope, org restrictions and feature gating. Without a model-related message it must surface the real error instead of silently exhausting every combo target.
   const result = checkFallbackError(
     400,
     "Your API key does not have permission to use the Message Batches API",
@@ -1161,8 +1147,7 @@ test("checkFallbackError ignores structured error with unrelated code on 400", (
     code: "invalid_api_key",
     type: null,
   });
-  // "invalid_api_key" is not in MODEL_ACCESS_DENIED_CODES,
-  // no MODEL_ACCESS_DENIED_PATTERNS match either → shouldFallback: false
+  // "invalid_api_key" is not in MODEL_ACCESS_DENIED_CODES, no MODEL_ACCESS_DENIED_PATTERNS match either → shouldFallback: false
   assert.equal(result.shouldFallback, false);
 });
 
@@ -1183,11 +1168,7 @@ test("isCreditsExhausted returns true for actual credits-exhausted signals", () 
   assert.equal(isCreditsExhausted("Insufficient account balance"), true);
   assert.equal(isCreditsExhausted("insufficient_balance"), true);
   assert.equal(isCreditsExhausted("Insufficient credit balance"), true);
-  // Command Code returns 400 "You have insufficient credits to make this
-  // request. Please purchase more credits to continue using the service."
-  // when the account's billing credits run out. Without this signal the
-  // error is unclassified (errorType=null), so the connection is never
-  // marked credits_exhausted and keeps being re-selected on every request.
+  // Command Code returns 400 "You have insufficient credits to make this request. Please purchase more credits to continue using the service." when the account's billing credits run out. Without this signal the error is unclassified (errorType=null), so the connection is never marked credits_exhausted and keeps being re-selected on every request.
   assert.equal(isCreditsExhausted("insufficient credits"), true);
   assert.equal(
     isCreditsExhausted(
@@ -1205,8 +1186,7 @@ test("CREDITS_EXHAUSTED_SIGNALS no longer contains generic gRPC resource-exhaust
 });
 
 test("checkFallbackError classifies Gemini RPM 429 as RATE_LIMIT_EXCEEDED (not QUOTA_EXHAUSTED)", () => {
-  // provider=null → preserveQuota429=true → text quota checks run
-  // isCreditsExhausted must NOT match Gemini's "Resource has been exhausted"
+  // provider=null → preserveQuota429=true → text quota checks run isCreditsExhausted must NOT match Gemini's "Resource has been exhausted"
   const result = checkFallbackError(
     429,
     "Resource has been exhausted (e.g. check quota).",
@@ -1284,8 +1264,7 @@ test("Gemini RPM 429: recordModelLockoutFailure uses exponential backoff for rat
       rateLimitCooldown: 5000,
     });
 
-    // auth.ts flow: 429 + fallbackResult.reason=RATE_LIMIT_EXCEEDED
-    // → reason="rate_limited" → recordModelLockoutFailure
+    // auth.ts flow: 429 + fallbackResult.reason=RATE_LIMIT_EXCEEDED → reason="rate_limited" → recordModelLockoutFailure
     const first = recordModelLockoutFailure(
       provider,
       connectionId,
@@ -1357,9 +1336,7 @@ test("Gemini RPD (quota_exhausted) still triggers midnight lockout in recordMode
   }
 });
 
-// ─── G-02: X-Omni-Fallback-Hint: connection_cooldown ─────────────────────────
-// When 9router executor signals a supervisor-not-running 503, checkFallbackError
-// must return 5s cooldown with skipProviderBreaker:true — not trip the circuit breaker.
+// ─── G-02: X-Omni-Fallback-Hint: connection_cooldown ───────────────────────── When 9router executor signals a supervisor-not-running 503, checkFallbackError must return 5s cooldown with skipProviderBreaker:true — not trip the circuit breaker.
 
 test("G-02: X-Omni-Fallback-Hint connection_cooldown on 503 returns 5s cooldown + skipProviderBreaker", () => {
   const headers = new Headers({ "X-Omni-Fallback-Hint": "connection_cooldown" });
@@ -1447,8 +1424,7 @@ test("recordModelLockoutFailure caps cooldown at BACKOFF_CONFIG.max to prevent a
 
     clearModelLock(provider, connectionId, model);
 
-    // Fire 9 consecutive failures so the backoff exceeds the 120s cap
-    // baseCooldownMs=1000 (getQuotaCooldown(0)), failure 9: 1000*2^8=256000 > 120000
+    // Fire 9 consecutive failures so the backoff exceeds the 120s cap baseCooldownMs=1000 (getQuotaCooldown(0)), failure 9: 1000*2^8=256000 > 120000
     let lastResult;
     for (let i = 0; i < 9; i++) {
       lastResult = recordModelLockoutFailure(
@@ -1551,11 +1527,7 @@ test("recordModelLockoutFailure escalates backoff correctly after cooldown expir
     Date.now = originalNow;
   }
 });
-// ── Custom banned signals (PR #3454) ──────────────────────────────────────────
-// Operators can extend ACCOUNT_DEACTIVATED_SIGNALS with provider-specific
-// permanent-ban phrasing via Settings → Security. These persist in the
-// key_value settings store and are applied at boot + on hot-reload through
-// setCustomBannedSignals(). Regression guard for the merge/detection behavior.
+// ── Custom banned signals (PR #3454) ────────────────────────────────────────── Operators can extend ACCOUNT_DEACTIVATED_SIGNALS with provider-specific permanent-ban phrasing via Settings → Security. These persist in the key_value settings store and are applied at boot + on hot-reload through setCustomBannedSignals(). Regression guard for the merge/detection behavior.
 
 const {
   setCustomBannedSignals,
@@ -1612,9 +1584,7 @@ test("isAccountDeactivated matches a custom signal after setCustomBannedSignals"
   setCustomBannedSignals([]); // cleanup — restore module state for other tests
 });
 
-// ─── #10460: model-unsupported 400 skips account rotation ────────────────────
-// TEST_DATA_DIR_10460 / DATA_DIR / core / providersDb / auth are set up at the top
-// of this file, BEFORE the accountFallback.ts import — see the comment there.
+// ─── #10460: model-unsupported 400 skips account rotation ──────────────────── TEST_DATA_DIR_10460 / DATA_DIR / core / providersDb / auth are set up at the top of this file, BEFORE the accountFallback.ts import — see the comment there.
 
 async function resetStorage10460() {
   core.resetDbInstance();
@@ -1721,8 +1691,7 @@ test("#10460: non-400 status with model-unsupported text does NOT trigger guard"
     true,
     "non-400 must not be short-circuited by model guard"
   );
-  // The key assertion: guard returns shouldFallback:false. If we get here with
-  // shouldFallback:true, the guard did NOT fire (correct behavior).
+  // The key assertion: guard returns shouldFallback:false. If we get here with shouldFallback:true, the guard did NOT fire (correct behavior).
 });
 
 test("#10460: empty errorText with status 400 does NOT trigger guard", async () => {
@@ -1739,8 +1708,7 @@ test("#10460: auth-credential 400 text does NOT match model-unsupported guard", 
   await resetStorage10460();
   const connId = await seedConn10460("github");
 
-  // "Invalid API key provided for model gpt-4o" contains "model" but is NOT a
-  // model-unsupported error — it's a credential issue. The guard must not fire.
+  // "Invalid API key provided for model gpt-4o" contains "model" but is NOT a model-unsupported error — it's a credential issue. The guard must not fire.
   const result = await auth.markAccountUnavailable(
     connId,
     400,
@@ -1749,16 +1717,13 @@ test("#10460: auth-credential 400 text does NOT match model-unsupported guard", 
     "gpt-4o"
   );
 
-  // This text does NOT match MODEL_ACCESS_DENIED_PATTERNS (verified by regex test)
-  // so it falls through to checkFallbackError which returns shouldFallback:false for generic 400
+  // This text does NOT match MODEL_ACCESS_DENIED_PATTERNS (verified by regex test) so it falls through to checkFallbackError which returns shouldFallback:false for generic 400
   assert.strictEqual(
     result.shouldFallback,
     false,
     "auth-credential 400 must not be caught by model guard"
   );
-  // The generic 400 path returns cooldownMs:0 — same as the guard, but the
-  // connection was NOT touched (no rateLimitedUntil set). This distinguishes
-  // it from the normal fallback path which would set a cooldown.
+  // The generic 400 path returns cooldownMs:0 — same as the guard, but the connection was NOT touched (no rateLimitedUntil set). This distinguishes it from the normal fallback path which would set a cooldown.
   const conn = await providersDb.getProviderConnectionById(connId);
   assert.ok(!conn.rateLimitedUntil, "generic 400 must not rate-limit connection");
 });
@@ -1810,12 +1775,7 @@ test("#10460: account-scoped permission/entitlement 400 keeps rotating (not misc
   }
   let calls = 0;
 
-  // Phrased so it matches the broader/ambiguous MODEL_ACCESS_DENIED_PATTERNS
-  // ("permission" ... "model") but is NOT an unambiguous provider-wide "model not
-  // supported" response — it reads as an account/key entitlement gap (e.g. this
-  // key's plan doesn't include this model), where a DIFFERENT account of the same
-  // provider may still have access. Rotation through all 3 accounts must continue,
-  // unlike the unambiguous "model is not supported" case above.
+  // Phrased so it matches the broader/ambiguous MODEL_ACCESS_DENIED_PATTERNS ("permission" ... "model") but is NOT an unambiguous provider-wide "model not supported" response — it reads as an account/key entitlement gap (e.g. this key's plan doesn't include this model), where a DIFFERENT account of the same provider may still have access. Rotation through all 3 accounts must continue, unlike the unambiguous "model is not supported" case above.
   for (const connId of connIds) {
     calls += 1;
     const result = await auth.markAccountUnavailable(
@@ -1911,24 +1871,9 @@ test("#10460: 429 rate limit keeps rotating through all 3 accounts", async () =>
 
 // ─── #10460 acceptance criteria: 3-account rotation + combo target advancement ─
 //
-// Reproduces the exact regression from issue #10460: a combo with a
-// (github/model, 3 accounts) target followed by a sibling target. When GitHub
-// returns an unambiguous "model not supported" 400, the account-rotation loop
-// must make exactly ONE upstream call (not one per account) and the combo must
-// advance to the next target — not just that markAccountUnavailable() in
-// isolation returns shouldFallback:false (covered above), but that a realistic
-// rotation loop wired to the REAL markAccountUnavailable()/
-// isProviderModelUnsupported400() gating actually stops after account 1 and lets
-// handleComboChat() move on.
+// Reproduces the exact regression from issue #10460: a combo with a (github/model, 3 accounts) target followed by a sibling target. When GitHub returns an unambiguous "model not supported" 400, the account-rotation loop must make exactly ONE upstream call (not one per account) and the combo must advance to the next target — not just that markAccountUnavailable() in isolation returns shouldFallback:false (covered above), but that a realistic rotation loop wired to the REAL markAccountUnavailable()/ isProviderModelUnsupported400() gating actually stops after account 1 and lets handleComboChat() move on.
 //
-// The inner loop below is a faithful, minimal reproduction of the account-rotation
-// contract in src/sse/handlers/chat.ts::handleSingleModelChat step 8 ("Fallback to
-// next account", ~line 1936): call markAccountUnavailable(); continue to the next
-// connection only while shouldFallback is true, otherwise stop immediately and
-// surface the failure. Reimplemented at this scope (rather than driving the full
-// handleChat()/route stack) so the test can assert on upstream-call counts and
-// per-connection DB state directly, while still exercising the real gating logic
-// that decides whether rotation continues.
+// The inner loop below is a faithful, minimal reproduction of the account-rotation contract in src/sse/handlers/chat.ts::handleSingleModelChat step 8 ("Fallback to next account", ~line 1936): call markAccountUnavailable(); continue to the next connection only while shouldFallback is true, otherwise stop immediately and surface the failure. Reimplemented at this scope (rather than driving the full handleChat()/route stack) so the test can assert on upstream-call counts and per-connection DB state directly, while still exercising the real gating logic that decides whether rotation continues.
 test("#10460 acceptance: unambiguous model-unsupported 400 makes exactly ONE upstream call across 3 accounts, then the combo advances to the next target", async () => {
   await resetStorage10460();
   const { handleComboChat } = await import("../../open-sse/services/combo.ts");
@@ -1960,8 +1905,7 @@ test("#10460 acceptance: unambiguous model-unsupported 400 makes exactly ONE ups
           { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
-      // A test-fixture bug (guard not firing) would otherwise silently exhaust
-      // every account and mask the regression this test exists to catch.
+      // A test-fixture bug (guard not firing) would otherwise silently exhaust every account and mask the regression this test exists to catch.
       throw new Error("all 3 github accounts were tried — the guard did not fire");
     }
     // Second combo target (a different provider) — succeeds immediately.
@@ -1993,9 +1937,7 @@ test("#10460 acceptance: unambiguous model-unsupported 400 makes exactly ONE ups
   assert.equal(triedGithubConnections.length, 1, "only the first account should have been tried");
   assert.equal(result.status, 200, "the combo must advance to the next target and succeed");
 
-  // The two untouched accounts must remain completely unaffected — proves the
-  // guard did not just avoid an upstream call but also never cooled them down,
-  // so they stay immediately eligible for the next unrelated request.
+  // The two untouched accounts must remain completely unaffected — proves the guard did not just avoid an upstream call but also never cooled them down, so they stay immediately eligible for the next unrelated request.
   for (const connId of githubConnIds.slice(1)) {
     const conn = await providersDb.getProviderConnectionById(connId);
     assert.ok(!conn.rateLimitedUntil, `untried account ${connId} must not be rate-limited`);

@@ -725,14 +725,12 @@ test("handleComboChat p2c selects the better of two random choices by metrics", 
 });
 
 test("handleComboChat least-used strategy prefers the model with fewer recorded requests", async () => {
-  // Least-used sorts by the per-target executionKey (combo-name + step-id),
-  // not by the bare model string (#7015/#7059 — sortTargetsByUsage keys
-  // byTarget[executionKey] so accounts sharing a modelStr don't collapse into
-  // one shared bucket). Calling recordComboRequest() directly without a
-  // `target` falls back to keying by modelStr, which never matches the real
-  // executionKey computed at combo-resolution time. Drive usage through real
-  // handleComboChat calls instead, so recordComboRequest is invoked with the
-  // actual resolved target (matching production behavior).
+  // Least-used sorts by the per-target executionKey (combo-name + step-id), not by the bare model
+  // string (#7015/#7059 — sortTargetsByUsage keys byTarget[executionKey] so accounts sharing a
+  // modelStr don't collapse into one shared bucket). Calling recordComboRequest() directly without a
+  // `target` falls back to keying by modelStr, which never matches the real executionKey computed at
+  // combo-resolution time. Drive usage through real handleComboChat calls instead, so
+  // recordComboRequest is invoked with the actual resolved target (matching production behavior).
   const comboDef = {
     name: "least-used-combo",
     strategy: "least-used",
@@ -754,10 +752,9 @@ test("handleComboChat least-used strategy prefers the model with fewer recorded 
       allCombos: null,
     });
 
-  // Tied at 0 usage, order is preserved: 1st priming call picks model-a,
-  // 2nd priming call (model-a now at 1) picks model-b (tied with model-c at
-  // 0, but model-b sorts first). That leaves model-a and model-b each used
-  // once, model-c untouched.
+  // Tied at 0 usage, order is preserved: 1st priming call picks model-a, 2nd priming call (model-a
+  // now at 1) picks model-b (tied with model-c at 0, but model-b sorts first). That leaves model-a
+  // and model-b each used once, model-c untouched.
   await runPrimingCall();
   await runPrimingCall();
   assert.deepEqual(primingCalls, ["model-a", "model-b"]);
@@ -900,14 +897,13 @@ test("handleComboChat records per-target metrics separately when the same model 
   assert.equal(metrics.byTarget[secondStep.id].connectionId, "conn-openai-b");
 });
 
-// #10314/#10501: superseded the original "last writer wins" contract (a single
-// `lastError` + raw `[model (status), ...]` suffix). Combo terminal aggregation
-// now lists every distinct per-target reason separately (comboErrorAggregation.ts
-// ::formatComboOutcomes) and derives the terminal status from an explicit policy
-// instead of whichever target happened to fail LAST — a provider 500 mixed with a
-// rate_limit 429 is a heterogeneous, non-client-fault outcome, so it normalizes to
-// a 5xx (::resolveComboTerminalStatus), never a bare 429 that would misrepresent
-// model-a's real 500 as "the client should retry the rate limit".
+// #10314/#10501: superseded the original "last writer wins" contract (a single `lastError` + raw
+// `[model (status), ...]` suffix). Combo terminal aggregation now lists every distinct per-target
+// reason separately (comboErrorAggregation.ts ::formatComboOutcomes) and derives the terminal
+// status from an explicit policy instead of whichever target happened to fail LAST — a provider
+// 500 mixed with a rate_limit 429 is a heterogeneous, non-client-fault outcome, so it normalizes
+// to a 5xx (::resolveComboTerminalStatus), never a bare 429 that would misrepresent model-a's real
+// 500 as "the client should retry the rate limit".
 test("handleComboChat surfaces EVERY failing target's reason (never drops one) and normalizes a heterogeneous 500+429 mix to 5xx (#8486/#10314/#10501)", async () => {
   const result = await handleComboChat({
     body: {},
@@ -949,16 +945,15 @@ test("handleComboChat global comboTimeoutMs stops iterating remaining targets an
       name: "timeout-combo",
       strategy: "priority",
       models: ["model-a", "model-b", "model-c"],
-      // An effectively-zero ceiling: the FIRST target still dispatches (the
-      // check only runs after a target completes), but by the time it
-      // resolves any nonzero elapsed time trips the timeout, so the loop
-      // must stop instead of trying model-b/model-c.
+      // An effectively-zero ceiling: the FIRST target still dispatches (the check only runs after a
+      // target completes), but by the time it resolves any nonzero elapsed time trips the timeout, so
+      // the loop must stop instead of trying model-b/model-c.
       config: { maxRetries: 0, comboTimeoutMs: 1 },
     },
     handleSingleModel: async (_body: unknown, modelStr: string) => {
       calls.push(modelStr);
-      // A tiny real delay guarantees Date.now() advances past the 1ms ceiling
-      // before the post-target timeout check runs.
+      // A tiny real delay guarantees Date.now() advances past the 1ms ceiling before the post-target
+      // timeout check runs.
       await new Promise((resolve) => setTimeout(resolve, 5));
       return errorResponse(500, `fail:${modelStr}`);
     },
@@ -1356,9 +1351,9 @@ test("#11408 guard: no-executable-targets early exit still records the combo fai
   });
 
   assert.equal(result.status, 404);
-  // The quota-share slot release must not replace the #5923 silent-stop
-  // bookkeeping: the consecutive-failure counter must still advance so the
-  // session pin auto-clears after COMBO_FAILURE_THRESHOLD no-target failures.
+  // The quota-share slot release must not replace the #5923 silent-stop bookkeeping: the
+  // consecutive-failure counter must still advance so the session pin auto-clears after
+  // COMBO_FAILURE_THRESHOLD no-target failures.
   assert.equal(
     getComboFailureCount("sess-guard-11408", "guard-empty-11408"),
     1,
@@ -1727,11 +1722,11 @@ test("handleComboChat round-robin falls through generic 400s when a later model 
   assert.deepEqual(calls, ["model-a", "model-b"]);
 });
 
-// #10314/#10501: same policy update as the priority-strategy test above, applied
-// to the round-robin twin. model-a's 400 is a genuine request-shape/model-class
-// error, but model-b's 500 is an infra/provider failure — since NOT every target
-// failed with a "model" (request-is-invalid) reason, this is a heterogeneous mix
-// and must normalize to a 5xx, never a bare "trust the last target's status" 500.
+// #10314/#10501: same policy update as the priority-strategy test above, applied to the
+// round-robin twin. model-a's 400 is a genuine request-shape/model-class error, but model-b's 500
+// is an infra/provider failure — since NOT every target failed with a "model" (request-is-invalid)
+// reason, this is a heterogeneous mix and must normalize to a 5xx, never a bare "trust the last
+// target's status" 500.
 test("handleComboChat round-robin surfaces EVERY target's reason and normalizes a heterogeneous 400+500 mix to 5xx (#8486/#10314/#10501)", async () => {
   const calls: any[] = [];
 
@@ -2310,10 +2305,9 @@ test("handleComboChat eval-driven routing can match bare model eval target ids",
 });
 
 test("handleComboChat normalizes legacy strategy names at runtime", async () => {
-  // See the least-used test above: recordComboRequest() must be driven
-  // through a real handleComboChat call so it records against the actual
-  // resolved executionKey, not a bare modelStr fallback that never matches
-  // sortTargetsByUsage's lookup (#7015/#7059).
+  // See the least-used test above: recordComboRequest() must be driven through a real
+  // handleComboChat call so it records against the actual resolved executionKey, not a bare modelStr
+  // fallback that never matches sortTargetsByUsage's lookup (#7015/#7059).
   const comboDef = {
     name: "legacy-usage-combo",
     strategy: "usage",
@@ -2601,8 +2595,8 @@ test("handleComboChat standalone lkgp strategy updates LKGP after a successful c
 });
 
 test("handleComboChat standalone lkgp strategy clears LKGP after the last-known-good target fails", async () => {
-  // A prior successful request pinned "openai" as the last known good provider —
-  // exactly the state left behind by the previous (success) test's own scenario.
+  // A prior successful request pinned "openai" as the last known good provider — exactly the state
+  // left behind by the previous (success) test's own scenario.
   await settingsDb.setLKGP("standalone-lkgp-clear", "standalone-lkgp-clear", "openai");
 
   const calls: string[] = [];
@@ -2612,9 +2606,9 @@ test("handleComboChat standalone lkgp strategy clears LKGP after the last-known-
       id: "standalone-lkgp-clear",
       name: "standalone-lkgp-clear",
       strategy: "lkgp",
-      // maxRetries: 0 below means this single target is tried exactly once,
-      // then the combo loop gives up on it (and on the whole combo, since it's
-      // the only model) — the exact "Done retrying this model" failure path.
+      // maxRetries: 0 below means this single target is tried exactly once, then the combo loop gives up
+      // on it (and on the whole combo, since it's the only model) — the exact "Done retrying this model"
+      // failure path.
       models: ["openai/gpt-4o-mini"],
       config: { maxRetries: 0 },
     },
@@ -2641,8 +2635,8 @@ test("handleComboChat standalone lkgp strategy clears LKGP after the last-known-
 
   assert.equal(result.ok, false, "the only target failed, so the whole combo call fails");
   assert.deepEqual(calls, ["openai/gpt-4o-mini"]);
-  // The bug this guards: without clearing, a *separate* subsequent request would
-  // keep re-selecting "openai" via LKGP reordering even though it just failed.
+  // The bug this guards: without clearing, a *separate* subsequent request would keep re-selecting
+  // "openai" via LKGP reordering even though it just failed.
   assert.equal(
     persistedProvider,
     null,
@@ -2794,9 +2788,9 @@ test("handleComboChat auto strategy can route by SLA targets", async () => {
 });
 
 test("handleComboChat context cache protection pins the model and tags tool-call responses", async () => {
-  // PR #3399: <omniModel> tag extraction replaced by server-side session pinning.
-  // combo uses priority order; the tag in the input message is stripped but no
-  // longer drives routing. No <omniModel> tag is injected in responses.
+  // PR #3399: <omniModel> tag extraction replaced by server-side session pinning. combo uses
+  // priority order; the tag in the input message is stripped but no longer drives routing. No
+  // <omniModel> tag is injected in responses.
   const calls: any[] = [];
   const result = await handleComboChat({
     body: {
@@ -3014,11 +3008,10 @@ test("handleComboChat round-robin retries a transient failure on the same model 
 });
 
 test("handleComboChat round-robin: failoverBeforeRetry skips the same-model retry and goes straight to the sibling", async () => {
-  // #2417's whole point: failoverBeforeRetry should prefer a sibling model
-  // over hammering a rate-limited one again. Same shape as the test above
-  // (maxRetries: 1, a transient 429 on the first call) but with a second
-  // model available and failoverBeforeRetry set — calls must show a single
-  // model-a attempt followed directly by model-b, never a same-model retry.
+  // #2417's whole point: failoverBeforeRetry should prefer a sibling model over hammering a
+  // rate-limited one again. Same shape as the test above (maxRetries: 1, a transient 429 on the
+  // first call) but with a second model available and failoverBeforeRetry set — calls must show a
+  // single model-a attempt followed directly by model-b, never a same-model retry.
   const calls = [];
 
   const result = await handleComboChat({
@@ -3181,8 +3174,8 @@ test("handleComboChat falls back to next model when first model returns all-acco
       if (modelStr === "model-b") {
         return okResponse({ choices: [{ message: { content: "ok" } }] });
       }
-      // Simulate handleNoCredentials returning a 503 with "unavailable" message
-      // This is the signal emitted when getProviderCredentialsWithQuotaPreflight exhausts all accounts
+      // Simulate handleNoCredentials returning a 503 with "unavailable" message This is the signal
+      // emitted when getProviderCredentialsWithQuotaPreflight exhausts all accounts
       return new Response(
         JSON.stringify({ error: { message: `[provider/model] Service temporarily unavailable` } }),
         {
@@ -3199,8 +3192,8 @@ test("handleComboChat falls back to next model when first model returns all-acco
   });
 
   const payload = (await result.json()) as any;
-  // First model returns 503 with "unavailable" → combo should try model-b next
-  // If the fix is not applied, combo would abort here and return 503 immediately
+  // First model returns 503 with "unavailable" → combo should try model-b next If the fix is not
+  // applied, combo would abort here and return 503 immediately
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["model-a", "model-b"]);
   assert.equal(payload.choices[0].message.content, "ok");
@@ -3210,7 +3203,8 @@ test("handleComboChat round-robin falls back when all-accounts-rate-limited 503 
   const calls: any[] = [];
 
   // Use distinct provider prefixes so #1731 exhaustedProviders does not block model-b
-  // (getTargetProvider("openai/model-a") → "openai"; getTargetProvider("anthropic/model-b") → "anthropic")
+  // (getTargetProvider("openai/model-a") → "openai"; getTargetProvider("anthropic/model-b") →
+  // "anthropic")
   const result = await handleComboChat({
     body: {},
     combo: {
@@ -3259,8 +3253,8 @@ test("handleComboChat aborts combo when 503 response does NOT contain the unavai
     },
     handleSingleModel: async (_body: any, modelStr: any) => {
       calls.push(modelStr);
-      // A generic 503 that is NOT an all-accounts-rate-limited signal
-      // (missing "unavailable" in message or wrong content-type)
+      // A generic 503 that is NOT an all-accounts-rate-limited signal (missing "unavailable" in message
+      // or wrong content-type)
       return new Response(JSON.stringify({ error: { message: "Server error" } }), {
         status: 503,
         headers: { "content-type": "text/html" },
@@ -3274,8 +3268,8 @@ test("handleComboChat aborts combo when 503 response does NOT contain the unavai
   });
 
   const payload = (await result.json()) as any;
-  // Without the fix, combo would abort (still 503). With the fix, it's still 503 because
-  // the signal check filters out non-JSON or non-"unavailable" responses.
+  // Without the fix, combo would abort (still 503). With the fix, it's still 503 because the signal
+  // check filters out non-JSON or non-"unavailable" responses.
   assert.equal(result.status, 503);
   // Model-a was tried, it failed with 503, so it fell back to model-b, which also returned 503.
   assert.deepEqual(calls, ["model-a", "model-b"]);
@@ -3476,11 +3470,11 @@ test("#3587 non-reasoning model does not get max_tokens buffer", async () => {
 });
 
 test("#3587 round-robin buffer does NOT compound across reasoning models", async () => {
-  // Two reasoning models in a round-robin combo. The first fails (400) so the
-  // loop falls through to the second. The buffer must be computed from the
-  // ORIGINAL max_tokens for each attempt — never from an already-buffered value —
-  // so both attempts see the original 4096 (no enlargement per #9507), not a compounded value. Regression for
-  // the shared-`body` mutation that compounded the buffer on every RR iteration.
+  // Two reasoning models in a round-robin combo. The first fails (400) so the loop falls through to
+  // the second. The buffer must be computed from the ORIGINAL max_tokens for each attempt — never
+  // from an already-buffered value — so both attempts see the original 4096 (no enlargement per
+  // #9507), not a compounded value. Regression for the shared-`body` mutation that compounded the
+  // buffer on every RR iteration.
   saveModelsDevCapabilities({
     openai: {
       "rr-reasoning-a": capabilityEntry(12000, { reasoning: true, limit_output: 12000 }),

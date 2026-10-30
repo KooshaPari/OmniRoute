@@ -20,14 +20,14 @@ const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const { createRequestLogger } = await import("../../open-sse/utils/requestLogger.ts");
 
 // Retained stream chunks are prefixed with a fixed-width per-chunk arrival timestamp
-// ("[HH:MM:SS.mmm] ", 15 chars) by the request logger for streaming-latency
-// observability (added in #5834). Strip it before comparing raw chunk payloads.
+// ("[HH:MM:SS.mmm] ", 15 chars) by the request logger for streaming-latency observability (added
+// in #5834). Strip it before comparing raw chunk payloads.
 const STREAM_CHUNK_TS_PREFIX_LEN = "[HH:MM:SS.mmm] ".length;
 const stripChunkTs = (chunk: string): string => chunk.replace(/^\[\d{2}:\d{2}:\d{2}\.\d{3}\] /, "");
 
 const textEncoder = new TextEncoder();
-// PR #3399 intentionally changed the synthetic empty-response text to "" so that
-// proxy internals no longer leak into chat history. Tests assert on the new behavior.
+// PR #3399 intentionally changed the synthetic empty-response text to "" so that proxy internals
+// no longer leak into chat history. Tests assert on the new behavior.
 const SYNTHETIC_CLAUDE_EMPTY_RESPONSE_TEXT = "";
 
 async function readTransformed(chunks, options) {
@@ -754,10 +754,10 @@ test("createSSEStream passthrough preserves event metadata in a single SSE event
     }
   );
 
-  // #10017 drops `:` comments, `id:` and `retry:` for every client format — none of
-  // the OpenAI Chat-Completions, OpenAI Responses or Claude Messages protocols define
-  // them. What this case still pins is the framing: the surviving lines stay inside ONE
-  // event instead of being split apart by blank lines.
+  // #10017 drops `:` comments, `id:` and `retry:` for every client format — none of the OpenAI
+  // Chat-Completions, OpenAI Responses or Claude Messages protocols define them. What this case
+  // still pins is the framing: the surviving lines stay inside ONE event instead of being split
+  // apart by blank lines.
   assert.match(text, /^trace: upstream-abc\ndata: /);
   assert.doesNotMatch(text, /: upstream-note/);
   assert.doesNotMatch(text, /\bid: 42\b/);
@@ -1059,10 +1059,9 @@ Arguments: {"command":"systemctl status omniroute"}`;
   assert.doesNotMatch(text, /Arguments:/);
   assert.match(text, /response.output_item.added/);
   assert.match(text, /response.function_call_arguments.done/);
-  // 5 synthesized function-call events (from the textual tool-call conversion)
-  // + 1 for the terminal response.completed itself, now also pushed so
-  // previous_response_id continuation can recover a real id/output for a
-  // passthrough Responses-API reply (see responsesContinuationStore.ts).
+  // 5 synthesized function-call events (from the textual tool-call conversion) + 1 for the terminal
+  // response.completed itself, now also pushed so previous_response_id continuation can recover a
+  // real id/output for a passthrough Responses-API reply (see responsesContinuationStore.ts).
   assert.equal(onCompletePayload.clientPayload._eventCount, 6);
   assert.equal(onCompletePayload.responseBody.choices[0].finish_reason, "tool_calls");
   assert.equal(onCompletePayload.responseBody.choices[0].message.content, null);
@@ -1115,14 +1114,13 @@ test("createSSEStream passthrough preserves Responses API events and completion 
 });
 
 // Real bug found live (dashboard log id 1786032832181-1c6275, #9315 follow-up):
-// providerPayloadCollector was keyed on `sourceFormat` (the CLIENT's format)
-// instead of `targetFormat` (the PROVIDER's format — see createSSEStream's own
-// @param doc). A Responses-API client routed to a plain-OpenAI-chat-completions
-// upstream (exactly this OpenClaw/opencode-zen combo) fed the provider's real
-// chat.completion.chunk deltas into the Responses-API reducer, which never
-// recognizes them — so the dashboard's "Provider Response" panel stayed stuck
-// empty (`output: []`) forever while "Client Response" correctly showed full
-// content, reading as if the two panels disagreed about the same request.
+// providerPayloadCollector was keyed on `sourceFormat` (the CLIENT's format) instead of
+// `targetFormat` (the PROVIDER's format — see createSSEStream's own @param doc). A Responses-API
+// client routed to a plain-OpenAI-chat-completions upstream (exactly this OpenClaw/opencode-zen
+// combo) fed the provider's real chat.completion.chunk deltas into the Responses-API reducer,
+// which never recognizes them — so the dashboard's "Provider Response" panel stayed stuck empty
+// (`output: []`) forever while "Client Response" correctly showed full content, reading as if the
+// two panels disagreed about the same request.
 test("createSSEStream translate mode: providerPayload summary reflects the PROVIDER's format, not the client's", async () => {
   let onCompletePayload = null;
   await readTransformed(
@@ -1148,9 +1146,8 @@ test("createSSEStream translate mode: providerPayload summary reflects the PROVI
     ],
     {
       mode: "translate",
-      // Client speaks Responses API; the upstream provider (opencode-zen-style)
-      // speaks plain OpenAI chat-completions — exactly the OpenClaw combo that
-      // surfaced this live.
+      // Client speaks Responses API; the upstream provider (opencode-zen-style) speaks plain OpenAI
+      // chat-completions — exactly the OpenClaw combo that surfaced this live.
       sourceFormat: FORMATS.OPENAI_RESPONSES,
       targetFormat: FORMATS.OPENAI,
       provider: "opencode-zen",
@@ -1164,8 +1161,8 @@ test("createSSEStream translate mode: providerPayload summary reflects the PROVI
 
   const summary = onCompletePayload.providerPayload.summary;
   assert.ok(summary, "providerPayload.summary must not be null/undefined");
-  // The bug's exact symptom: a Responses-API reducer fed chat-completion chunks
-  // never recognizes them, so it stays at "no output" — assert the OPPOSITE.
+  // The bug's exact symptom: a Responses-API reducer fed chat-completion chunks never recognizes
+  // them, so it stays at "no output" — assert the OPPOSITE.
   assert.equal(summary.object, "chat.completion");
   assert.equal(summary.choices?.[0]?.message?.content, "Hello world");
   assert.equal(summary.choices?.[0]?.finish_reason, "stop");
@@ -2172,8 +2169,8 @@ test("createRequestLogger skips disabled logs and caps retained stream chunk byt
   const logger = await createRequestLogger("openai", "openai", "gpt-test", {
     enabled: true,
     captureStreamChunks: true,
-    // The byte budget now also counts the 15-char timestamp prefix, so size it as
-    // prefix + 5 to keep the original intent: cap the *payload* to 5 bytes ("abcde").
+    // The byte budget now also counts the 15-char timestamp prefix, so size it as prefix + 5 to keep
+    // the original intent: cap the *payload* to 5 bytes ("abcde").
     maxStreamChunkBytes: STREAM_CHUNK_TS_PREFIX_LEN + 5,
   });
   logger.appendProviderChunk("abcdef");
@@ -2207,8 +2204,8 @@ test("createRequestLogger caps retained stream chunk item count", async () => {
   assert.equal(payloads.streamChunks.provider.length, 2);
 });
 
-// T-VERIFY: passthrough mode failure decrements pending requests
-// Regression test for missing trackPendingRequest(false) on passthrough failure
+// T-VERIFY: passthrough mode failure decrements pending requests Regression test for missing
+// trackPendingRequest(false) on passthrough failure
 import { getPendingRequests, clearPendingRequests } from "../../src/lib/usage/usageHistory.ts";
 
 test("createSSEStream passthrough mode decrements pending requests on failure", async () => {
@@ -2305,10 +2302,10 @@ test("createSSEStream passthrough drops empty choices array chunks", async () =>
     }
   );
 
-  // Empty choices WITHOUT usage are DROPPED, never replaced with a synthetic
-  // "[OmniRoute] Upstream returned an empty response. Please retry." chunk. That
-  // injection (reintroduced by #3422) was fed back by clients as a turn and caused
-  // the retry loop #3388/#3502, which #3400 had fixed by dropping the chunk.
+  // Empty choices WITHOUT usage are DROPPED, never replaced with a synthetic "[OmniRoute] Upstream
+  // returned an empty response. Please retry." chunk. That injection (reintroduced by #3422) was fed
+  // back by clients as a turn and caused the retry loop #3388/#3502, which #3400 had fixed by
+  // dropping the chunk.
   assert.doesNotMatch(text, /\[OmniRoute\] Upstream returned an empty response/);
   // Subsequent valid chunks must still pass through untouched.
   assert.match(text, /"content":"Hello"/);

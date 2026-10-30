@@ -443,8 +443,8 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
     return { status: 200, headers: new Headers(), text: null, body: null };
   });
 
-  // Perplexity now uses tlsFetchPerplexity (TLS-impersonating client) instead of globalThis.fetch
-  // to bypass Cloudflare Enterprise. Use the test-only override hook to intercept calls.
+  // Perplexity now uses tlsFetchPerplexity (TLS-impersonating client) instead of globalThis.fetch to
+  // bypass Cloudflare Enterprise. Use the test-only override hook to intercept calls.
   let pplxTlsCall: { url: string; options: Record<string, unknown> } | null = null;
   __setPplxTlsFetchOverride(async (url, options) => {
     pplxTlsCall = { url, options };
@@ -521,8 +521,8 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
   assert.equal(grokBody.modeId, "fast");
   assert.equal("modelName" in grokBody, false);
   assert.equal("modelMode" in grokBody, false);
-  // Perplexity goes through tlsFetchPerplexity (TLS override), not globalThis.fetch.
-  // options.headers is a plain object; the validator sets Cookie from the session token.
+  // Perplexity goes through tlsFetchPerplexity (TLS override), not globalThis.fetch. options.headers
+  // is a plain object; the validator sets Cookie from the session token.
   assert.ok(pplxTlsCall, "perplexity TLS override was called");
   assert.ok(pplxTlsCall!.url.includes("perplexity.ai/rest/sse/perplexity_ask"));
   assert.equal(
@@ -539,8 +539,8 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
 });
 
 test("web-cookie provider validators surface auth and subscription failures", async () => {
-  // Perplexity uses tlsFetchPerplexity (TLS-impersonating client). Return 403 to simulate
-  // an invalid session cookie so the validator emits the expected error message.
+  // Perplexity uses tlsFetchPerplexity (TLS-impersonating client). Return 403 to simulate an invalid
+  // session cookie so the validator emits the expected error message.
   __setPplxTlsFetchOverride(async () => {
     return { status: 403, headers: new Headers(), text: null, body: null };
   });
@@ -660,9 +660,9 @@ test("grok-web validator: generic non-auth 403 maps to IP-reputation guidance, n
 
   const result = await validateProviderApiKey({ provider: "grok-web", apiKey: "any-cookie" });
   assert.equal(result.valid, false);
-  // A bare/non-auth 403 from grok.com is almost always an anti-bot/IP-reputation
-  // block — the cookie itself is likely fine. The message must point the user to a
-  // residential IP or proxy, NOT tell them the cookie is invalid.
+  // A bare/non-auth 403 from grok.com is almost always an anti-bot/IP-reputation block — the cookie
+  // itself is likely fine. The message must point the user to a residential IP or proxy, NOT tell
+  // them the cookie is invalid.
   assert.match(result.error || "", /residential IP|proxy/i);
   assert.doesNotMatch(result.error || "", /invalid SSO cookie/i);
 });
@@ -718,9 +718,9 @@ test("grok-web validator: IP-reputation 403 message does not leak a stack/raw er
 });
 
 test("grok-web validator: structured non-auth 403 (resource error) still surfaces upstream body for maintainers (#3474)", async () => {
-  // Distinct from an anti-bot block: a genuine upstream API error (e.g. the probe
-  // model was renamed) carries a structured error.message and must NOT be masked
-  // by the IP-reputation guidance — the maintainer needs to see the real cause.
+  // Distinct from an anti-bot block: a genuine upstream API error (e.g. the probe model was renamed)
+  // carries a structured error.message and must NOT be masked by the IP-reputation guidance — the
+  // maintainer needs to see the real cause.
   __setGrokTlsFetchOverride(async () => {
     return {
       status: 403,
@@ -769,10 +769,10 @@ test("grok-web validator: 403 with credential-rejection body is treated as auth-
   assert.match(result.error || "", /Invalid SSO cookie/i);
 });
 
-// #5350 — when the user DID supply a cf_clearance, an auth-shaped 401 / invalid-credentials 403
-// is almost always an IP-reputation block (cf_clearance is IP+TLS+UA-pinned and cannot be
-// replayed from a different machine), NOT a bad cookie. Surface the IP guidance instead of the
-// misleading "Invalid SSO cookie" verdict.
+// #5350 — when the user DID supply a cf_clearance, an auth-shaped 401 / invalid-credentials 403 is
+// almost always an IP-reputation block (cf_clearance is IP+TLS+UA-pinned and cannot be replayed
+// from a different machine), NOT a bad cookie. Surface the IP guidance instead of the misleading
+// "Invalid SSO cookie" verdict.
 test("grok-web validator: 401 WITH a cf_clearance maps to IP-reputation guidance, not 'invalid cookie' (#5350)", async () => {
   __setGrokTlsFetchOverride(async () => {
     return { status: 401, headers: new Headers(), text: "Unauthorized", body: null };
@@ -1309,8 +1309,8 @@ test("specialty validators cover remaining status branches for Deepgram, Assembl
     if (target.match(/inworld/i)) {
       throw new Error("inworld offline");
     }
-    // Alibaba-family hosts: dashscope.aliyuncs.com (pay-as-you-go / AIGC) and
-    // *.maas.aliyuncs.com (Token Plan).
+    // Alibaba-family hosts: dashscope.aliyuncs.com (pay-as-you-go / AIGC) and *.maas.aliyuncs.com
+    // (Token Plan).
     if (target.match(/(?:dashscope|maas)\.aliyuncs\.com/i)) {
       return new Response(JSON.stringify({ error: "server" }), { status: 500 });
     }
@@ -1870,10 +1870,9 @@ test("specialty validator accepts Nous Research credentials on chat completions"
 });
 
 test("BytePlus key validation reaches the Ark endpoint instead of 'not supported' (#3877)", async () => {
-  // #3877: byteplus was in APIKEY_PROVIDERS but never registered in the routing
-  // registry, so validation returned {unsupported:true} → UI showed "invalid" for any
-  // key. With the registry entry, a valid ark-... key probes the Ark /models endpoint
-  // with Bearer auth and validates.
+  // #3877: byteplus was in APIKEY_PROVIDERS but never registered in the routing registry, so
+  // validation returned {unsupported:true} → UI showed "invalid" for any key. With the registry
+  // entry, a valid ark-... key probes the Ark /models endpoint with Bearer auth and validates.
   let probedModelsUrl: string | null = null;
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
@@ -1918,9 +1917,9 @@ test("specialty validator rejects invalid Nous Research credentials", async () =
 });
 
 test("specialty validator accepts Nous Research key when probe model is rejected (400)", async () => {
-  // #3881: a valid key whose probe model is rejected (model-not-found / bad request)
-  // must still validate — the 4xx proves auth was accepted, only the request shape
-  // was wrong. Mirrors the longcat/nvidia validators.
+  // #3881: a valid key whose probe model is rejected (model-not-found / bad request) must still
+  // validate — the 4xx proves auth was accepted, only the request shape was wrong. Mirrors the
+  // longcat/nvidia validators.
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
 
@@ -2171,8 +2170,8 @@ test("validateCommandCodeProvider sends Command Code probe URL, headers, and fla
 
   assert.deepEqual(result, { valid: true, error: null });
   assert.equal(calls.length, 1);
-  // Probe targets the documented /provider/v1/chat/completions endpoint, not
-  // the CLI-only /alpha/generate (#10265).
+  // Probe targets the documented /provider/v1/chat/completions endpoint, not the CLI-only
+  // /alpha/generate (#10265).
   assert.equal(calls[0].url, "https://api.commandcode.ai/provider/v1/chat/completions");
   assert.equal(calls[0].method, "POST");
   assert.equal(calls[0].headers.Authorization, "Bearer cc_test_key");
@@ -2320,11 +2319,10 @@ test("claude-web validator: 401 → invalid session cookie", async () => {
   __setClaudeTlsFetchOverride(null);
 });
 
-// #9406 inverted this contract: a 429 session shows as UNHEALTHY (valid:false)
-// so the dashboard stops painting rate-limited sessions green. The dedicated
-// repro (tests/unit/repro-9406-claude-web-429-valid.test.ts) owns the full
-// contract incl. Retry-After forwarding; this sibling keeps the validator-level
-// assertion aligned with it.
+// #9406 inverted this contract: a 429 session shows as UNHEALTHY (valid:false) so the dashboard
+// stops painting rate-limited sessions green. The dedicated repro
+// (tests/unit/repro-9406-claude-web-429-valid.test.ts) owns the full contract incl. Retry-After
+// forwarding; this sibling keeps the validator-level assertion aligned with it.
 test("claude-web validator: 429 → invalid (rate limited session is not healthy, #9406)", async () => {
   __setClaudeTlsFetchOverride(async () =>
     makeClaudeTlsResponse(429, JSON.stringify({ error: "rate limited" }))
@@ -2817,9 +2815,9 @@ test("gitlawb-gmi validator: accepts custom baseUrl override", async () => {
   assert.equal(result.valid, true);
 });
 
-// #3288 / #3758: a blocked redirect (REDIRECT_BLOCKED) to a PUBLIC host is benign — the
-// redirect was never followed, so it must NOT be mislabeled as an SSRF security block.
-// Only a redirect whose target is a private/internal host is a genuine security event.
+// #3288 / #3758: a blocked redirect (REDIRECT_BLOCKED) to a PUBLIC host is benign — the redirect
+// was never followed, so it must NOT be mislabeled as an SSRF security block. Only a redirect
+// whose target is a private/internal host is a genuine security event.
 test("isSecurityBlockError: public-host redirect block is NOT a security block", () => {
   const publicRedirect = new SafeOutboundFetchError("Redirect blocked", {
     code: "REDIRECT_BLOCKED",
@@ -2857,10 +2855,10 @@ test("isSecurityBlockError: a URL-guard block remains a security block", () => {
   assert.equal(isSecurityBlockError(guardBlock), true);
 });
 
-// ─── huggingface validator (whoami-v2 auth probe) ────────────────────────────
-// Fine-grained HF Inference-Provider tokens are valid even when model/task
-// endpoints reject them. The validator must probe whoami-v2 as a pure auth
-// check: only 401/403 is invalid; any other non-OK status is transient.
+// ─── huggingface validator (whoami-v2 auth probe) ──────────────────────────── Fine-grained HF
+// Inference-Provider tokens are valid even when model/task endpoints reject them. The validator
+// must probe whoami-v2 as a pure auth check: only 401/403 is invalid; any other non-OK status is
+// transient.
 
 test("huggingface validator accepts a token whoami-v2 recognizes", async () => {
   const calls: { url: string; headers: Record<string, string> }[] = [];
@@ -2896,9 +2894,9 @@ test("huggingface validator treats 401/403 as an invalid token", async () => {
 });
 
 test("huggingface validator does NOT mark a fine-grained token invalid on a non-auth status", async () => {
-  // This is the false-negative the port fixes: a 503/404 from a model/task
-  // probe used to read as "invalid key". whoami-v2 returning a non-auth,
-  // non-OK status must surface as a transient error, never "Invalid API key".
+  // This is the false-negative the port fixes: a 503/404 from a model/task probe used to read as
+  // "invalid key". whoami-v2 returning a non-auth, non-OK status must surface as a transient error,
+  // never "Invalid API key".
   globalThis.fetch = async () => new Response("upstream down", { status: 503 });
 
   const result = await validateProviderApiKey({

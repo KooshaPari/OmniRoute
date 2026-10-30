@@ -436,15 +436,13 @@ test("DefaultExecutor.buildHeaders handles GLM, default auth and anthropic-compa
 });
 
 test("DefaultExecutor.buildHeaders keeps a caller-supplied Anthropic-Version (case-insensitive guard) for anthropic-compatible providers", () => {
-  // An operator may configure a Title-Case "Anthropic-Version" via the provider
-  // config headers. The default-guard at the anthropic-compatible-* branch must
-  // detect it case-insensitively and NOT add a second lowercase
-  // "anthropic-version" key, which undici would otherwise combine into
+  // An operator may configure a Title-Case "Anthropic-Version" via the provider config headers. The
+  // default-guard at the anthropic-compatible-* branch must detect it case-insensitively and NOT add
+  // a second lowercase "anthropic-version" key, which undici would otherwise combine into
   // "2025-01-01, 2023-06-01" and break the upstream request.
   const anthropicCompat = new DefaultExecutor("anthropic-compatible-test");
-  // `config` is shared across instances via the provider registry, so snapshot
-  // and restore `config.headers` to avoid leaking the Title-Case override into
-  // other tests.
+  // `config` is shared across instances via the provider registry, so snapshot and restore
+  // `config.headers` to avoid leaking the Title-Case override into other tests.
   const originalConfigHeaders = anthropicCompat.config.headers;
   anthropicCompat.config.headers = {
     ...originalConfigHeaders,
@@ -678,10 +676,10 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
     calls[1].headers["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
     true
   );
-  // claude-sonnet-4-6 GA'd 1M context (2026-02-17) and was added to CONTEXT_1M_SUPPORTED_MODELS
-  // by #7129; a non-CC anthropic-compatible target with extendedContext:true now legitimately
-  // gets the context-1m beta header (shouldForwardExtendedContext in base.ts), same as any other
-  // 1M-capable model.
+  // claude-sonnet-4-6 GA'd 1M context (2026-02-17) and was added to CONTEXT_1M_SUPPORTED_MODELS by
+  // #7129; a non-CC anthropic-compatible target with extendedContext:true now legitimately gets the
+  // context-1m beta header (shouldForwardExtendedContext in base.ts), same as any other 1M-capable
+  // model.
   assert.equal(calls[2].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
   // Opus 5 has a native 1M window and must not receive the legacy context beta.
   assert.equal(calls[3].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
@@ -1001,10 +999,10 @@ test("DefaultExecutor.transformRequest strips stream_options from Anthropic-comp
   assert.equal((ccResult as any).stream_options, undefined);
 });
 
-// Port of decolua/9router#1343: openai-compatible-* providers (DeepSeek / Ollama /
-// local OpenAI-compatible models) often lack native Structured Output, so a
-// `json_schema` response_format is downgraded to `json_object` with the schema
-// injected into the system prompt instead.
+// Port of decolua/9router#1343: openai-compatible-* providers (DeepSeek / Ollama / local
+// OpenAI-compatible models) often lack native Structured Output, so a `json_schema`
+// response_format is downgraded to `json_object` with the schema injected into the system prompt
+// instead.
 test("DefaultExecutor.transformRequest downgrades json_schema to json_object for openai-compatible providers and injects the schema into a fresh system prompt", () => {
   const executor = new DefaultExecutor("openai-compatible-deepseek");
   const schema = {
@@ -1065,13 +1063,11 @@ test("DefaultExecutor.transformRequest appends the json_schema prompt to an exis
   assert.equal(body.messages[0].content, "You are concise.");
 });
 
-// kilocode's DeepSeek V4 Flash rejects ANY `response_format` with HTTP 400
-// (verified live 2026-08-15: both json_schema AND json_object 400 with
-// `param: response_format`) — same class as the opencode #9992 fix, but the
-// default executor's gate only covered `openai-compatible-*`, so kilocode
-// forwarded the unsupported format raw. For kilocode the format must be
-// STRIPPED entirely (schema injected into the system prompt), because even
-// the json_object downgrade is rejected.
+// kilocode's DeepSeek V4 Flash rejects ANY `response_format` with HTTP 400 (verified live
+// 2026-08-15: both json_schema AND json_object 400 with `param: response_format`) — same class as
+// the opencode #9992 fix, but the default executor's gate only covered `openai-compatible-*`, so
+// kilocode forwarded the unsupported format raw. For kilocode the format must be STRIPPED entirely
+// (schema injected into the system prompt), because even the json_object downgrade is rejected.
 test("DefaultExecutor.transformRequest strips response_format for kilocode (DeepSeek 400 regression)", () => {
   const executor = new DefaultExecutor("kilocode");
   const schema = {
@@ -1523,12 +1519,11 @@ test("BaseExecutor.execute clears the startup timeout after headers arrive", asy
   }
 });
 
-// Regression test for issue #1454: duplicate anthropic-version header when
-// Claude Code CLI headers are detected on the native `claude` provider.
-// The provider config seeds headers with Title-Case "Anthropic-Version" while
-// the Claude-Code patch injects lowercase "anthropic-version".  Before the fix,
-// both keys coexisted in the JS object and undici combined their values into
-// "2023-06-01, 2023-06-01", causing a 400 from Anthropic.
+// Regression test for issue #1454: duplicate anthropic-version header when Claude Code CLI headers
+// are detected on the native `claude` provider. The provider config seeds headers with Title-Case
+// "Anthropic-Version" while the Claude-Code patch injects lowercase "anthropic-version". Before
+// the fix, both keys coexisted in the JS object and undici combined their values into "2023-06-01,
+// 2023-06-01", causing a 400 from Anthropic.
 test("DefaultExecutor.execute does not produce duplicate anthropic-version header when Claude Code CLI headers are present", async () => {
   const executor = new DefaultExecutor("claude");
   const originalFetch = globalThis.fetch;

@@ -1075,8 +1075,7 @@ test("Gemini stream: checks lastParen before lastBracket when identifying partia
     ],
   };
 
-  // Имитируем чанк, который содержит и "(", и "[", кончаясь на "(empty)[Tool"
-  // Если бы мы проверяли lastBracket первым, мы бы отрезали по "[", оставив "(empty)" утекать пользователю.
+  // Имитируем чанк, который содержит и "(", и "[", кончаясь на "(empty)[Tool" Если бы мы проверяли lastBracket первым, мы бы отрезали по "[", оставив "(empty)" утекать пользователю.
   const chunk2 = {
     candidates: [
       {
@@ -1124,9 +1123,7 @@ test("Gemini stream: checks lastParen before lastBracket when identifying partia
   assert.equal(toolCall.function.arguments, "{}");
 });
 
-// #3821-review LEDGER-4 — a signed native functionCall arriving while a textual
-// `<thinking>` wrapper opened in an earlier chunk is still buffered must flush that
-// buffered reasoning as reasoning_content, not silently discard it.
+// #3821-review LEDGER-4 — a signed native functionCall arriving while a textual `<thinking>` wrapper opened in an earlier chunk is still buffered must flush that buffered reasoning as reasoning_content, not silently discard it.
 test("Gemini stream: open textual reasoning is flushed before a signed native tool call", () => {
   const state = createStreamingState();
 
@@ -1181,9 +1178,7 @@ test("Gemini stream: open textual reasoning is flushed before a signed native to
   );
 });
 
-// #3821-review LEDGER-15 — a reasoning-only chunk interrupting a partially-buffered
-// textual "[Tool call: ...]" must not strand the buffer; it resolves once the rest of
-// the tool-call text arrives (or at finishReason).
+// #3821-review LEDGER-15 — a reasoning-only chunk interrupting a partially-buffered textual "[Tool call: ...]" must not strand the buffer; it resolves once the rest of the tool-call text arrives (or at finishReason).
 test("Gemini stream: partial textual tool call survives a reasoning-only chunk", () => {
   const state = createStreamingState();
 

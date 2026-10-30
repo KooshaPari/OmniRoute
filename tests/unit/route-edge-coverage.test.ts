@@ -120,9 +120,7 @@ async function withPrepareOverride(match, override, fn) {
     const sqlText = String(sql);
     const matched = typeof match === "function" ? match(sqlText) : sqlText.includes(match);
     const statement = originalPrepare(sql, ...args);
-    if (!matched) {
-      return statement;
-    }
+    if (!matched) return statement;
     return override({ sqlText, statement, args });
   };
 
