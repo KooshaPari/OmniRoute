@@ -38,13 +38,13 @@ OmniRoute currently implements all of the above in TypeScript (in
 `open-sse/executors/` and `open-sse/services/`). The TypeScript
 implementation works well but has cost ceilings:
 
-| Concern | Current (OmniRoute TS) | With Bifrost (Go) |
-|---|---|---|
-| Hot-path latency | ~5-10 ms (Node event loop) | ~1-2 ms (Go goroutines) |
-| Memory per connection | ~4-8 MB (Node) | ~50-200 KB (Go) |
-| Provider mesh code | ~50k LOC TS | ~6k LOC Go (vendored) |
-| Maintenance | Ours alone | Upstream + community |
-| MCP client | Built ourselves | Native, maintained |
+| Concern               | Current (OmniRoute TS)     | With Bifrost (Go)       |
+| --------------------- | -------------------------- | ----------------------- |
+| Hot-path latency      | ~5-10 ms (Node event loop) | ~1-2 ms (Go goroutines) |
+| Memory per connection | ~4-8 MB (Node)             | ~50-200 KB (Go)         |
+| Provider mesh code    | ~50k LOC TS                | ~6k LOC Go (vendored)   |
+| Maintenance           | Ours alone                 | Upstream + community    |
+| MCP client            | Built ourselves            | Native, maintained      |
 
 The migration is **opt-in per provider** in Phase 1. By default, all
 providers continue to use OmniRoute's TypeScript executors. Operators
@@ -84,7 +84,7 @@ cache, MCP client.
 ### 1. Run Bifrost
 
 Bifrost runs as a **sidecar process** alongside OmniRoute. OmniRoute is
-the *client*; it never invokes the Bifrost binary directly. Operators
+the _client_; it never invokes the Bifrost binary directly. Operators
 are responsible for the lifecycle of the Bifrost process.
 
 ```bash
@@ -152,7 +152,7 @@ providers:
   openai:
     upstream_proxy_config:
       type: bifrost
-      base_url: http://bifrost:8080  # override default
+      base_url: http://bifrost:8080 # override default
   anthropic:
     upstream_proxy_config:
       type: bifrost
@@ -164,7 +164,7 @@ request to Bifrost's `/v1/chat/completions`.
 
 ### 4. Model catalog cache (B4)
 
-`/v1/chat/completions` is hot-path; `/v1/models` is *warm-path*. The
+`/v1/chat/completions` is hot-path; `/v1/models` is _warm-path_. The
 executor lazily populates a local SQLite cache (`bifrost_models`,
 migration 100) on the first call that needs to validate a model name,
 and reuses the cached result for `BIFROST_DEFAULT_TTL_SECONDS` (1 h).
@@ -184,8 +184,8 @@ and reuses the cached result for `BIFROST_DEFAULT_TTL_SECONDS` (1 h).
   - On a 404 from Bifrost, it calls `purgeBifrostModelsByProvider(provider)`
     so the next refresh re-derives the truth.
 - **Stale-tolerant reads**: when the cache is expired, the executor
-  still falls through to the live Bifrost call (cache is a *lookup
-  optimization*, not a hard gate). The `includeExpired=true` flag on
+  still falls through to the live Bifrost call (cache is a _lookup
+  optimization_, not a hard gate). The `includeExpired=true` flag on
   `getBifrostModel` is reserved for the dashboard's "show last-known
   models" view.
 - **Refresh cadence**: per-provider refresh is triggered:
@@ -210,23 +210,23 @@ rationale.
 The `BifrostProviderMap` (`open-sse/executors/bifrostProviderMap.ts`)
 declares which OmniRoute providers Bifrost can serve:
 
-| Category | Providers | Bifrost status |
-|---|---|---|
-| **First-class APIs** | openai, anthropic, gemini, bedrock, cohere, mistral, groq, together, fireworks, openrouter, azure, vertex, perplexity, deepseek, xai, ollama, voyage | `native` (1:1 ID match) |
-| **Legacy aliases** | claude → anthropic, gpt → openai, palm/bard/palm2 → gemini | `alias` |
-| **OpenAI-compat passthrough** | anyscale, replicate, lepton, octoai, ai21, huggingface | `passthrough` |
-| **Azure deployment names** | azure-gpt4 (deployment-name → model-id override) | `alias` + `modelOverride` |
-| **Web-cookie providers** | claude-web, chatgpt-web, gemini-web, grok-web, kimi-web, qwen-web, deepseek-web, perplexity-web, copilot-web, duckduckgo-web | `unsupported` — stay on chatCore |
-| **Custom CLI executors** | cliproxyapi, ninerouter, codex, cursor, trae, qoder, kiro, antigravity, devin, windsurf, commandcode | `unsupported` — stay on chatCore |
+| Category                      | Providers                                                                                                                                            | Bifrost status                   |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| **First-class APIs**          | openai, anthropic, gemini, bedrock, cohere, mistral, groq, together, fireworks, openrouter, azure, vertex, perplexity, deepseek, xai, ollama, voyage | `native` (1:1 ID match)          |
+| **Legacy aliases**            | claude → anthropic, gpt → openai, palm/bard/palm2 → gemini                                                                                           | `alias`                          |
+| **OpenAI-compat passthrough** | anyscale, replicate, lepton, octoai, ai21, huggingface                                                                                               | `passthrough`                    |
+| **Azure deployment names**    | azure-gpt4 (deployment-name → model-id override)                                                                                                     | `alias` + `modelOverride`        |
+| **Web-cookie providers**      | claude-web, chatgpt-web, gemini-web, grok-web, kimi-web, qwen-web, deepseek-web, perplexity-web, copilot-web, duckduckgo-web                         | `unsupported` — stay on chatCore |
+| **Custom CLI executors**      | cliproxyapi, ninerouter, codex, cursor, trae, qoder, kiro, antigravity, devin, windsurf, commandcode                                                 | `unsupported` — stay on chatCore |
 
 To check at runtime whether Bifrost supports a provider:
 
 ```ts
 import { isBifrostSupported, listBifrostSupportedProviders } from "./bifrostProviderMap.ts";
 
-isBifrostSupported("openai");              // → true
-isBifrostSupported("claude-web");          // → false
-listBifrostSupportedProviders();           // → [{omnirouteId, bifrostId, status, note}, …]
+isBifrostSupported("openai"); // → true
+isBifrostSupported("claude-web"); // → false
+listBifrostSupportedProviders(); // → [{omnirouteId, bifrostId, status, note}, …]
 ```
 
 ---
@@ -291,7 +291,7 @@ Per ADR-031 § "Decision Review":
 - [`docs/ROUTING-CONVERGENCE-STATUS.md`](../ROUTING-CONVERGENCE-STATUS.md) — Tier-1/Tier-2 split
 - `open-sse/executors/bifrost.ts` — BifrostBackendExecutor implementation
 - `open-sse/executors/bifrostProviderMap.ts` — provider ID translation
-- `tests/unit/bifrost-backend.test.ts` — vitest suite (12 cases)
+- `tests/unit/vitest/bifrost-backend.test.ts` — vitest suite (12 cases)
 - `scripts/build-bifrost.sh` — builds the Go sidecar binary
 - `vendor/bifrost/VENDOR.md` — vendored canonical source provenance
 
