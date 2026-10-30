@@ -27,11 +27,11 @@ import fs from "node:fs";
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-synced-del-"));
 process.env.DATA_DIR = tmpDir;
 
-const {
-  replaceSyncedAvailableModelsForConnection,
-  getSyncedAvailableModels,
-  mergeModelCompatOverride,
-} = await import("../../src/lib/localDb.ts");
+// Import the owning modules directly. The old src/lib/localDb.ts re-export
+// barrel was removed, so importing it now fails with ERR_MODULE_NOT_FOUND.
+const { replaceSyncedAvailableModelsForConnection, getSyncedAvailableModels } =
+  await import("../../src/lib/db/models.ts");
+const { mergeModelCompatOverride } = await import("../../src/lib/db/models/compat.ts");
 const { resetDbInstance } = await import("../../src/lib/db/core.ts");
 
 before(() => {
