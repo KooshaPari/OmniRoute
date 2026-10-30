@@ -224,15 +224,7 @@ export function updateAntigravityRemainingCredits(accountId: string, balance: nu
   } catch {}
 }
 
-/**
- * Pass-through TransformStream that extracts `remainingCredits` from SSE
- * data without consuming the stream (the downstream client receives the
- * unmodified bytes). Thin wrapper around the pure implementation in
- * streamingPassthrough.ts, injecting this executor's credit-balance cache
- * writer so the two modules don't import each other. See that module's
- * doc comment for the full parameter behavior.
- * @internal Exported for unit testing only.
- */
+/** Pass-through TransformStream that extracts `remainingCredits` from SSE data without consuming the stream (the downstream client receives the unmodified bytes). Thin wrapper around the pure implementation in streamingPassthrough.ts, injecting this executor's credit-balance cache writer so the two modules don't import each other. See that module's doc comment for the full parameter behavior. @internal Exported for unit testing only. */
 export function createCreditsExtractionTransform(
   accountId: string,
   bufferSize = 0

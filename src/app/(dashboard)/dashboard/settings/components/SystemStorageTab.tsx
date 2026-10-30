@@ -506,7 +506,6 @@ export default function SystemStorageTab() {
     };
   }, [applyStorageHealth, applyDatabaseSettings]);
 
-  /** Triggers a browser file download from an existing Blob. */
   const triggerDownload = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

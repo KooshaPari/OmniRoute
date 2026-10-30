@@ -1005,7 +1005,6 @@ export default function RoutingTab() {
           </div>
         </div>
 
-        {/* Add provider — moved to TOP per UX brief. */}
         <div className="mb-4 flex items-end gap-2 rounded-lg border border-dashed border-border/40 bg-surface/30 p-3">
           <Select
             label={t("systemTransformsAddProvider")}

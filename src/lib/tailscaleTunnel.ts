@@ -287,12 +287,7 @@ function buildExecEnv() {
   };
 }
 
-/**
- * Probe which tailscaled socket is actually live.
- * Priority: system daemon socket → OmniRoute custom socket.
- * When the system daemon is running (e.g. via systemd), we MUST use its socket
- * because only one tailscaled can hold the TUN device.
- */
+/** Probe which tailscaled socket is actually live. Priority: system daemon socket → OmniRoute custom socket. When the system daemon is running (e.g. via systemd), we MUST use its socket because only one tailscaled can hold the TUN device. */
 async function getActiveSocketPath(): Promise<string> {
   const now = Date.now();
   if (_cachedActiveSocket && now - _cachedActiveSocketTimestamp < SOCKET_CACHE_TTL_MS) {
@@ -330,13 +325,7 @@ function invalidateSocketCache() {
   _cachedActiveSocketTimestamp = 0;
 }
 
-/**
- * Build the `tailscale up` argument list. When an auth key is provided (e.g. from
- * the `TAILSCALE_AUTHKEY` env var) it is passed via `--auth-key=` so a
- * pre-authenticated / headless daemon logs in non-interactively instead of waiting
- * for (and timing out on) an interactive auth URL. (#1263) The key is an argv
- * element passed to `spawn(binary, args)` with no shell, so it is not shell-interpolated.
- */
+/** Build the `tailscale up` argument list. When an auth key is provided (e.g. from the `TAILSCALE_AUTHKEY` env var) it is passed via `--auth-key=` so a pre-authenticated / headless daemon logs in non-interactively instead of waiting for (and timing out on) an interactive auth URL. (#1263) The key is an argv element passed to `spawn(binary, args)` with no shell, so it is not shell-interpolated. */
 export function tailscaleUpArgs(hostname?: string, authKey?: string): string[] {
   return [
     "up",

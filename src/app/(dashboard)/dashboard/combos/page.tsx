@@ -3250,7 +3250,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
 
           {showBasicsSection && (
             <>
-              {/* Name */}
               <div>
                 <Input
                   label={t("comboName")}
@@ -3342,7 +3341,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
             </>
           )}
 
-          {/* Strategy Toggle */}
           {showStrategySection && (
             <div>
               <div className="flex items-center gap-1 mb-1.5">
@@ -3418,7 +3416,6 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
             />
           )}
 
-          {/* Models */}
           {showStepsSection && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
