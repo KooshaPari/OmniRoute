@@ -1,7 +1,5 @@
 // oxlint-disable no-unused-vars
-/**
- * db/apiKeys.js — API key management.
- */
+/** db/apiKeys.js — API key management. */
 
 import { createHash } from "crypto";
 import { v4 as uuidv4 } from "uuid";
