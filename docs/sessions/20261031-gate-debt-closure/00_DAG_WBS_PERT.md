@@ -218,6 +218,23 @@ honest reason this time, instead of dying before it audited anything.
 The remedy is a dependency bump, not a workflow change. **Another lane already has that bump in
 flight**: `package.json` carries an uncommitted `next` `16.3.8` → `16.4.3`. Do not duplicate it.
 
+**That bump is verified sufficient** (OSV query, `api.osv.dev`, package `next` / npm):
+
+| Version              | Vulnerabilities | Critical |
+| -------------------- | --------------- | -------- |
+| `16.3.8` (current)   | 3               | **2**    |
+| `16.4.3` (in flight) | **0**           | **0**    |
+
+The two criticals and their fix boundaries:
+
+```
+GHSA-2464-fhr4-w9xw  Next.js: Unauthenticated RCE in Image Optimization   fixed: 16.4.1 (15.x: 15.5.28)
+GHSA-673q-mjm6-r5xr  Next.js: Unauthenticated RCE in `use cache`        fixed: 16.4.1
+```
+
+So landing the pending `next` bump should clear the audit entirely — no workflow surgery needed on
+top of it. Do not add `|| true` or drop the step; the dependency change is the real fix.
+
 Also note three **unmerged** prior branches attempt this same audit fix and should be checked before
 writing a fourth: `fix/audit-deps-pnpm-2026-10-19` (`8e5b6b847`), `fix/ci-audit-deps` (`c9b34051b`),
 `fix/ci-lint-audit-script` (`94209d407`). All three are ancestors-free of `main`.
