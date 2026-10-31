@@ -29,19 +29,13 @@
  * useful (and it is — for observability), expose it as a single
  * well-typed function with a stable shape.
  */
-import {
-  COMBOS_CACHE_TTL_MS,
-  __getCombosCacheStateForTests,
-} from "./chatCombosCache";
+import { COMBOS_CACHE_TTL_MS, __getCombosCacheStateForTests } from "./chatCombosCache";
 import {
   PROVIDER_BREAKER_FAILURE_STATUSES,
   PROVIDER_BREAKER_FAILURE_STATUSES_SORTED,
   isProviderBreakerFailureStatus,
 } from "./chatPredicates";
-import {
-  formatWaitSeconds,
-  describeCooldownWait,
-} from "./chatCooldown";
+import { formatWaitSeconds, describeCooldownWait } from "./chatCooldown";
 
 /**
  * Fork-versioning metadata. Bumped whenever the snapshot shape changes
@@ -179,7 +173,7 @@ export interface ForkChatStateDiff {
 
 export function diffForkChatStates(
   before: ForkChatStateSnapshot | null | undefined,
-  after: ForkChatStateSnapshot | null | undefined,
+  after: ForkChatStateSnapshot | null | undefined
 ): ForkChatStateDiff {
   if (!before || !after) {
     return {
@@ -250,14 +244,14 @@ export function formatForkChatStateForCli(snapshot?: ForkChatStateSnapshot): str
   lines.push(`breakerPredicates.size         ${snap.breakerPredicates.size}`);
   lines.push(`breakerPredicates.statusCodes  [${snap.breakerPredicates.statusCodes.join(", ")}]`);
   lines.push(
-    `breakerPredicates.sampleTrue   { status: ${snap.breakerPredicates.sampleTrue.status}, tripsBreaker: ${snap.breakerPredicates.sampleTrue.tripsBreaker} }`,
+    `breakerPredicates.sampleTrue   { status: ${snap.breakerPredicates.sampleTrue.status}, tripsBreaker: ${snap.breakerPredicates.sampleTrue.tripsBreaker} }`
   );
   lines.push(
-    `breakerPredicates.sampleFalse  { status: ${snap.breakerPredicates.sampleFalse.status}, tripsBreaker: ${snap.breakerPredicates.sampleFalse.tripsBreaker} }`,
+    `breakerPredicates.sampleFalse  { status: ${snap.breakerPredicates.sampleFalse.status}, tripsBreaker: ${snap.breakerPredicates.sampleFalse.tripsBreaker} }`
   );
 
   lines.push(
-    `cooldownHelpers.formatSample   ${snap.cooldownHelpers.sampleFormatSeconds.inputMs}ms → ${snap.cooldownHelpers.sampleFormatSeconds.outputSec}s`,
+    `cooldownHelpers.formatSample   ${snap.cooldownHelpers.sampleFormatSeconds.inputMs}ms → ${snap.cooldownHelpers.sampleFormatSeconds.outputSec}s`
   );
   lines.push(`cooldownHelpers.describeSample ${snap.cooldownHelpers.sampleDescribeWait.output}`);
   lines.push(`cooldownHelpers.noRetrySample  ${snap.cooldownHelpers.sampleNoRetry.output}`);
@@ -304,11 +298,10 @@ export const FORK_MODULES: readonly ForkModuleMetadata[] = [
     name: "chatPredicates",
     description:
       "Pure predicates + tuning constants for chat.ts (PR-δ/ε/θ). Owns the breaker-trip decision surface.",
-    exportCount: 6,
+    exportCount: 7,
     notableExports: [
       "PROVIDER_BREAKER_FAILURE_STATUSES",
       "shouldTripProviderBreakerForResult",
-      "shouldTripBreakerForAllRateLimited",
       "isProviderBreakerFailureStatus",
       "isAntigravityMissingProjectError",
     ],
