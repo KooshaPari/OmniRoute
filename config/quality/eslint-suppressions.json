@@ -1607,11 +1607,6 @@
       "count": 1
     }
   },
-  "src/lib/db/probeUtils.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
   "src/lib/db/prompts.ts": {
     "no-restricted-syntax": {
       "count": 1
@@ -2010,11 +2005,6 @@
     "@next/next/no-img-element": {
       "count": 1
     },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "src/shared/components/analytics/charts.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
     }

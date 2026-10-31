@@ -8,7 +8,6 @@
 
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage } from "node:http";
-import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { maskSecret } from "../maskSecrets.ts";
 import { sanitizeHeaders } from "../sanitizeHeaders.ts";
 import type { AgentId } from "../types.ts";
@@ -104,34 +103,8 @@ export async function recordRequestStart(
  * Finalise the buffer entry with the upstream response data. Latencies are
  * stored as-given and combined into `totalLatencyMs`.
  */
-export function recordRequestComplete(
-  intercepted: InterceptedRequest,
-  opts: RecordRequestCompleteOpts
-): void {
-  intercepted.status = opts.status;
-  // SECURITY_AUDIT M6: mask secret-bearing upstream response headers (Set-Cookie,
-  // Authorization, …) before they land in inspector JSON. The request side already
-  // sanitizes (line ~69); the response side was storing headers verbatim.
-  intercepted.responseHeaders = sanitizeHeaders(opts.responseHeaders);
-  intercepted.responseBody =
-    opts.responseBody != null ? maskSecret(opts.responseBody) : null;
-  intercepted.responseSize = opts.responseSize;
-  intercepted.proxyLatencyMs = opts.proxyLatencyMs;
-  intercepted.upstreamLatencyMs = opts.upstreamLatencyMs;
-  intercepted.totalLatencyMs = opts.proxyLatencyMs + opts.upstreamLatencyMs;
-
-  globalTrafficBuffer.update(intercepted.id, intercepted);
-}
 
 /**
  * Mark the buffer entry as failed. Error messages are sanitized so stack
  * traces or absolute paths cannot leak to dashboards/exports (Hard Rule #12).
  */
-export function recordRequestError(
-  intercepted: InterceptedRequest,
-  err: unknown
-): void {
-  intercepted.status = "error";
-  intercepted.error = sanitizeErrorMessage(err);
-  globalTrafficBuffer.update(intercepted.id, intercepted);
-}

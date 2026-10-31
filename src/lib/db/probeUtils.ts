@@ -10,8 +10,6 @@
  * isSqliteDriverUnavailableError) and the safe-probe-close utility
  * (closeProbeIfSafe) used by both the probe path and state-capture logic.
  */
-import fs from "node:fs";
-import path from "node:path";
 
 /**
  * Identifies transient SQLite/OS probe errors that should be retried instead of
@@ -51,39 +49,6 @@ export function isTransientProbeError(error: unknown): boolean {
 
 // ──────────────── Error Classification ────────────────
 
-function getErrorCode(error: unknown): string | undefined {
-  if (!error || typeof error !== "object" || !("code" in error)) return undefined;
-  const code = (error as { code?: unknown }).code;
-  return typeof code === "string" ? code : undefined;
-}
-
-export function isNativeSqliteLoadError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  const code = getErrorCode(error);
-  return (
-    message.includes("Module did not self-register") ||
-    message.includes("NODE_MODULE_VERSION") ||
-    message.includes("ERR_DLOPEN_FAILED") ||
-    // bun and similar runtimes that skip the postinstall script never download
-    // the prebuilt *.node binary, so `bindings()` fails with this message
-    // before any DLOPEN even happens (#2358).
-    message.includes("Could not locate the bindings file") ||
-    message.includes("Cannot find module 'better-sqlite3'") ||
-    code === "ERR_DLOPEN_FAILED" ||
-    code === "MODULE_NOT_FOUND"
-  );
-}
-
-export function isSqliteDriverUnavailableError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-
-  return (
-    message.includes("Nenhum driver SQLite disponível") ||
-    message.includes("Chame ensureDbInitialized() no startup") ||
-    message.includes("sql.js WASM ainda não foi pré-inicializado")
-  );
-}
-
 // ──────────────── Safe Probe Close ────────────────
 
 /**
@@ -98,12 +63,6 @@ export function isSqliteDriverUnavailableError(error: unknown): boolean {
  * throws sql.js's raw "Database closed" string (#7494). Skip the close for
  * sql.js and let the same live adapter flow through untouched.
  */
-export function closeProbeIfSafe(
-  adapter: { driver: string; open: boolean; close(): void } | null | undefined
-): void {
-  if (!adapter || adapter.driver === "sql.js") return;
-  if (adapter.open) adapter.close();
-}
 
 /**
  * Synchronous sleep that blocks the event loop for `ms` milliseconds.

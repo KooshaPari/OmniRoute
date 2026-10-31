@@ -49,11 +49,6 @@ export function emitUsageRecorded(
 
 type StatsEventKey = "update" | "pending";
 
-const statsEmitTimers: Record<StatsEventKey, ReturnType<typeof setTimeout> | null> = {
-  update: null,
-  pending: null,
-};
-
 const statsListeners: Record<StatsEventKey, Set<() => void>> = {
   update: new Set(),
   pending: new Set(),
@@ -72,20 +67,3 @@ export function onStatsEvent(event: StatsEventKey, listener: () => void): () => 
  * into a single notification. Safe to call from hot paths — subsequent calls
  * within the same window are no-ops.
  */
-export function scheduleStatsEvent(event: StatsEventKey, delayMs = 200): void {
-  if (statsEmitTimers[event] != null) return;
-  statsEmitTimers[event] = setTimeout(() => {
-    statsEmitTimers[event] = null;
-    for (const listener of statsListeners[event]) {
-      try {
-        listener();
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[usageEvents] stats listener (${event}) failed: ${message}`);
-      }
-    }
-  }, delayMs);
-  // Allow Node.js to exit naturally even if the timer is still pending
-  // (avoids keeping the event loop alive for a stray stats notification).
-  (statsEmitTimers[event] as any)?.unref?.();
-}
