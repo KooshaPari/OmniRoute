@@ -1,11 +1,15 @@
 # OmniRoute gate-debt closure — DAG / WBS / PERT
 
-**Status:** `OPEN` — 3 of 20 quality gates fail on pristine `main`; 2 CI workflows broken at the
-definition level. File-size goal is closed.
+**Status:** `PARTIALLY CLOSED` — file-size goal closed; 3 of 20 gates fixed this session
+(`check:api-docs-refs`, `check:public-creds`, and the CI `audit:deps` step). One gate
+(`check:test-discovery`) is triaged but deliberately not wired. `fork-drift-warning.yml` root
+cause still NOT established.
 
 **Written:** 2026-10-31
 **Verified at write time:** `HEAD == origin/main == 50fa1822c` (`git rev-parse --short=9` plus
 `git ls-remote origin refs/heads/main`, both observed in this session).
+**Last updated at:** `HEAD == origin/main == c86514289d` — same two commands re-run after pushing
+`09a495d455`, `331b3836a8`, `c86514289d`.
 
 > Standing caveat for every future reader/agent: prior commit state is UNVERIFIED until you run
 > `git log -1` / `git status` / `git ls-remote` yourself in this repo. Never assert a commit exists,
@@ -71,7 +75,7 @@ errors when tested on `apiKeys.ts`; shrink elsewhere instead.
 These fail in a clean worktree at `50fa1822c`, so they are committed main-branch debt, not
 dirty-tree noise.
 
-### R1 — `check:public-creds` (6 literals)
+### R1 — `check:public-creds` (6 literals) — **CLOSED** (`331b3836a8`)
 
 `open-sse/lib/deviceCodeProviders.ts` hardcodes 6 device-code client IDs, which violates
 CLAUDE.md Hard Rule #11:
@@ -97,7 +101,7 @@ Honest note: these are _public_ OAuth client IDs (not secrets), so freezing is d
 freezing without a tracking item would silently widen the allowlist. Prefer migrating if the
 values are already present in `publicCreds.ts`.
 
-### R2 — `check:api-docs-refs` (2 stale spec paths)
+### R2 — `check:api-docs-refs` (2 stale spec paths) — **CLOSED** (`09a495d455`)
 
 ```
 [openapi-routes] 2 path(s) documentado(s) sem rota real:
@@ -111,38 +115,59 @@ justification. Pick based on whether oneproxy routes are _supposed_ to exist.
 
 ### R3 — `check:test-discovery` (31 problems) — **highest severity finding**
 
-This one is not cosmetic. ~20 test files exist that **no runner ever collects**, so they have
-never executed. Silent coverage loss, not a lint nit:
+**STATUS: triaged, NOT fixed. Do not wire these on blind — 17 of 30 would go red.**
+
+30 test files are collected by **no runner**, so they have never executed. The reason is subtler
+than "forgotten files", and it changes the correct fix. Two independent collection gaps:
+
+1. **vitest `include` gap.** `vitest.config.ts` `test.include` covers `tests/unit/**`,
+   `tests/performance/**`, `open-sse/**/__tests__/**`, `src/lib/memory/__tests__/**`,
+   `src/lib/skills/__tests__/**` and a few dashboard `.tsx` paths. It does **not** cover
+   `src/app/api/**/__tests__`, `src/sse/handlers/__tests__`, `src/lib/db/__tests__`,
+   `src/lib/resilience/__tests__`, or `src/shared/utils/`. Those files are silently dropped.
+   **Measurement trap:** running `npx vitest run <path>` on one prints
+   `No test files found, exiting with code 1`. That is not a test failure, but it reads like one
+   and produced a false "13 failing files" result before it was caught. To measure truth you must
+   force collection (a scratch config that extends `test.include`).
+2. **`package.json` brace-list gap.** The node:test runner enumerates subdirectories explicitly
+   (`tests/unit/{api,auth,...,usage}/**/*.test.ts`). `tests/unit/quota/`, `tests/unit/open-sse/`
+   and top-level `tests/*.test.ts` fall outside it. Separately the gate reports **glob drift**:
+   the brace string the runner uses is no longer the string `check-test-discovery.mjs`'s
+   `COLLECTORS` expects, so checker and runner have diverged.
+
+Measured result for all 30 files:
+
+| Bucket                       | Files  | Detail                                                           |
+| ---------------------------- | ------ | ---------------------------------------------------------------- |
+| **Would pass if wired**      | **11** | 5 vitest + 6 node:test — safe wire-in candidates                 |
+| **Stale / genuinely broken** | **17** | 12 vitest (74 failing, 225 passing tests) + 5 node:test          |
+| **Needs a browser (UNRUN)**  | **2**  | `tests/a11y/baseline.spec.ts`, `tests/visual/regression.spec.ts` |
+
+Worst by failing count: `src/sse/handlers/__tests__/chatPredicates.predicates.test.ts` (32 fail /
+28 pass), `chatForkState.diff.test.ts` (10/13), `src/shared/utils/formatting.test.ts` (6/8),
+`src/app/api/settings/__tests__/settings.test.ts` (4 fail / 0 pass).
+
+Representative root cause of the stale set (verified, not inferred):
 
 ```
-src/app/api/compression/replay/__tests__/route.test.ts
-src/app/api/settings/__tests__/memory.test.ts
-src/app/api/settings/__tests__/settings.test.ts
-src/lib/db/__tests__/providerHealthHistory.test.ts
-src/lib/db/__tests__/quotaSnapshots.test.ts
-src/lib/resilience/__tests__/anomalyDetector.test.ts
-src/lib/resilience/__tests__/playbooks.test.ts
-src/lib/resilience/__tests__/selfHealingManager.test.ts
-src/lib/resilience/__tests__/selfHealingSettings.test.ts
-src/shared/utils/formatting.test.ts
-src/sse/handlers/__tests__/chatCombosCache.test.ts
-src/sse/handlers/__tests__/chatCooldown.helpers.test.ts
-src/sse/handlers/__tests__/chatCooldown.test.ts
-src/sse/handlers/__tests__/chatForkState.diff.test.ts
-src/sse/handlers/__tests__/chatForkState.modules.test.ts
-src/sse/handlers/__tests__/chatForkState.test.ts
-src/sse/handlers/__tests__/chatPredicates.predicates.test.ts
-src/sse/handlers/__tests__/chatPredicates.test.ts
-tests/a11y/baseline.spec.ts
-tests/performance/provider-routing-benchmark.test.ts
+tests/unit/quota/keyvQuotaStore.test.ts
+SyntaxError: The requested module 'keyv' does not provide an export named 'Keyv'
 ```
 
-Plus one glob-drift entry: the `tests/unit/{api,auth,...}/**/*.test.ts` glob in `package.json` no
-longer matches what `check-test-discovery.mjs`'s `COLLECTORS` expects — so the checker and the
-runner have diverged and _either_ could be wrong.
+A dependency-contract break, not a flaky test: `keyv` changed its export shape and nothing noticed
+because the file never ran.
 
-Fixing this is **not** just moving files: adding these to the runner could surface real failures.
-Triage each: does it pass if run? Then either wire it into a runner glob or delete it deliberately.
+**Consequence: "wire them all in" is the wrong move** — it would turn `main` red with 74 failing
+tests. Correct sequence:
+
+1. Resolve the `package.json` brace-list / `COLLECTORS` divergence (T9) first. It blocks every
+   runner change, and `package.json` currently holds another lane's uncommitted dependency bump,
+   so editing it now would sweep that bump into an unrelated commit.
+2. Wire only the **11 passing** files.
+3. Triage the **17 stale** files individually: fix the assertion or delete the file deliberately.
+   Never leave a file that neither runs nor is deleted — that state is what hid this.
+
+Deliberately not done this session: step 1 is blocked on a contested file.
 
 ---
 
@@ -151,7 +176,7 @@ Triage each: does it pass if run? Then either wire it into a runner glob or dele
 These fail on **every** push to `main`, and `Fork Drift Warning` fails even on `schedule`-only
 runs, so they are deterministic rather than flaky.
 
-### C1 — `audit:deps` cannot run under pnpm (`ENOLOCK`)
+### C1 — `audit:deps` cannot run under pnpm (`ENOLOCK`) — **CLOSED** (`c86514289d`)
 
 `package.json:234`:
 
@@ -193,12 +218,12 @@ Effort is a _PERT three-point estimate in 10-minute units_ (optimistic / likely 
 | T3  | Classify each CI failure pre-existing vs new                  | T1               | 3   | 5   | 8   | 5.2      | **DONE** |
 | T4  | Root-cause `audit:deps` ENOLOCK                               | T1               | 4   | 6   | 10  | 6.3      | **DONE** |
 | T5  | Read `fork-drift-warning.yml`, root-cause it                  | T1               | 3   | 5   | 12  | 5.8      | OPEN     |
-| T6  | Fix `audit:deps` → pnpm-native audit                          | T4               | 2   | 3   | 6   | 3.3      | OPEN     |
+| T6  | Fix `audit:deps` → pnpm-native audit                          | T4               | 2   | 3   | 6   | 3.3      | **DONE** |
 | T7  | Fix fork-drift workflow                                       | T5               | 3   | 6   | 12  | 6.5      | OPEN     |
-| T8  | Triage 20 orphan test files (run each, decide wire-or-delete) | T2               | 10  | 20  | 40  | 21.7     | OPEN     |
+| T8  | Triage 30 orphan test files (run each, decide wire-or-delete) | T2               | 10  | 20  | 40  | 21.7     | TRIAGED  |
 | T9  | Resolve `test-discovery` glob drift                           | T8               | 3   | 5   | 10  | 5.5      | OPEN     |
-| T10 | Resolve `public-creds` 6 literals                             | T2               | 3   | 6   | 12  | 6.5      | OPEN     |
-| T11 | Resolve 2 stale `oneproxy` spec paths                         | T2               | 2   | 3   | 8   | 3.7      | OPEN     |
+| T10 | Resolve `public-creds` 6 literals                             | T2               | 3   | 6   | 12  | 6.5      | **DONE** |
+| T11 | Resolve 2 stale `oneproxy` spec paths                         | T2               | 2   | 3   | 8   | 3.7      | **DONE** |
 | T12 | Re-run aggregate scan in pristine worktree                    | T6,T7,T9,T10,T11 | 4   | 6   | 8   | 6.0      | OPEN     |
 | T13 | Push verified fixes to `origin/main`                          | T12              | 1   | 2   | 4   | 2.2      | OPEN     |
 | T14 | Write + commit this closure artifact                          | T1               | 2   | 3   | 5   | 3.2      | **DONE** |
