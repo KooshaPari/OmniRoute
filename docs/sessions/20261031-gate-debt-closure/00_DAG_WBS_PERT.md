@@ -20,15 +20,16 @@ cause still NOT established.
 
 ## 1. Verified evidence base
 
-| Observation                                          | Value                | How measured                                               |
-| ---------------------------------------------------- | -------------------- | ---------------------------------------------------------- |
-| `HEAD`                                               | `50fa1822c`          | `git rev-parse --short=9 HEAD`                             |
-| `origin/main`                                        | `50fa1822c`          | `git ls-remote origin refs/heads/main`                     |
-| Unpushed commits                                     | 0                    | `git log --oneline origin/main..HEAD`                      |
-| Dirty paths (other lanes)                            | 52                   | `git status --porcelain \| wc -l`                          |
-| `check:file-size`                                    | **PASS**             | 138 frozen files, 0 violations (was **37** violations)     |
-| Aggregate gate scan, pristine worktree @ `50fa1822c` | **17 PASS / 3 FAIL** | `npm run quality:scan:fast` in `git worktree add --detach` |
-| Aggregate gate scan, shared dirty checkout           | 16 PASS / 4 FAIL     | same command, plus `check:deps` failing                    |
+| Observation                                           | Value                | How measured                                               |
+| ----------------------------------------------------- | -------------------- | ---------------------------------------------------------- |
+| `HEAD`                                                | `50fa1822c`          | `git rev-parse --short=9 HEAD`                             |
+| `origin/main`                                         | `50fa1822c`          | `git ls-remote origin refs/heads/main`                     |
+| Unpushed commits                                      | 0                    | `git log --oneline origin/main..HEAD`                      |
+| Dirty paths (other lanes)                             | 52                   | `git status --porcelain \| wc -l`                          |
+| `check:file-size`                                     | **PASS**             | 138 frozen files, 0 violations (was **37** violations)     |
+| Aggregate gate scan, pristine worktree @ `50fa1822c`  | **17 PASS / 3 FAIL** | `npm run quality:scan:fast` in `git worktree add --detach` |
+| Aggregate gate scan, pristine worktree @ `015fa44964` | **19 PASS / 1 FAIL** | same command, after the three fixes below                  |
+| Aggregate gate scan, shared dirty checkout            | 16 PASS / 4 FAIL     | same command, plus `check:deps` failing                    |
 
 **The single most important discriminator** found this session: `check:deps` FAILS in the shared
 checkout but PASSES in a pristine worktree. Cause: another lane has uncommitted edits to
