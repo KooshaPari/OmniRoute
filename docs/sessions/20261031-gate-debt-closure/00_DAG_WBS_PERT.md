@@ -2,8 +2,9 @@
 
 **Status:** `PARTIALLY CLOSED` — file-size goal closed; 3 of 20 gates fixed this session
 (`check:api-docs-refs`, `check:public-creds`, and the CI `audit:deps` step). One gate
-(`check:test-discovery`) is triaged but deliberately not wired. `fork-drift-warning.yml` root
-cause still NOT established.
+(`check:test-discovery`) is triaged but deliberately not wired. Both chronic CI workflow defects
+root-caused: `fork-drift-warning.yml` fixed (corrupted action SHA), `audit:deps` fixed but Lint
+stays red until a real Next.js CVE bump lands.
 
 **Written:** 2026-10-31
 **Verified at write time:** `HEAD == origin/main == 50fa1822c` (`git rev-parse --short=9` plus
@@ -195,14 +196,67 @@ runs, so they are deterministic rather than flaky.
 `package-lock.json` and `pnpm-lock.yaml`, but the pnpm-installed tree is what npm audit trips on.
 
 **Correct fix:** make the audit pnpm-native (`pnpm audit --audit-level critical`) so it reads
-`pnpm-lock.yaml`, preserving the security intent rather than deleting the step.
+`pnpm-lock.yaml`, preserving the security intent rather than deleting the step. Applied in
+`c86514289d` to `ci.yml` only; `package.json`'s `audit:deps` was left alone because another lane
+holds an uncommitted dependency bump there.
 
-### C2 — `fork-drift-warning.yml`
+#### C1a — the audit now RUNS, and it fails on real vulnerabilities (expect Lint to stay red)
 
-Workflow at `.github/workflows/fork-drift-warning.yml` (~120 lines). Fails on scheduled runs too,
-so the comparison is deterministic. **Root cause NOT yet established** — the next reader must read
-the workflow and decide between (a) genuine upstream drift needing a merge, (b) a comparison that
-can never pass, (c) missing token/permission. Do not guess.
+This is the consequence nobody should misread as "the fix did not work". The repo's
+`security.yml` already runs a pnpm audit, and it reports:
+
+```
+pnpm audit --prod --audit-level=high
+21 vulnerabilities found
+Severity: 2 low | 9 moderate | 8 high | 2 critical
+```
+
+Both **critical** findings are Next.js unauthenticated RCE. So a working
+`pnpm audit --audit-level critical` will exit non-zero and the Lint job will still be red — for an
+honest reason this time, instead of dying before it audited anything.
+
+The remedy is a dependency bump, not a workflow change. **Another lane already has that bump in
+flight**: `package.json` carries an uncommitted `next` `16.3.8` → `16.4.3`. Do not duplicate it.
+
+Also note three **unmerged** prior branches attempt this same audit fix and should be checked before
+writing a fourth: `fix/audit-deps-pnpm-2026-10-19` (`8e5b6b847`), `fix/ci-audit-deps` (`c9b34051b`),
+`fix/ci-lint-audit-script` (`94209d407`). All three are ancestors-free of `main`.
+
+### C2 — `fork-drift-warning.yml` — **CLOSED** (`926a9cc04c`)
+
+Root cause found, and it was never drift logic. The job dies at **"Set up job"**, before any step
+runs, so its own fail-safe logic (failed upstream fetch → warn → `ahead=0`) was never reached:
+
+```
+##[error]Unable to resolve action
+`actions/checkout@11bd71901bbe5f3643e0a07ce4d2c8b4e2c6b3b0`,
+unable to find version `11bd71901bbe5f3643e0a07ce4d2c8b4e2c6b3b0`
+```
+
+A corrupted transcription of the v4.2.2 SHA. The real pin, used in **40** other workflow files:
+
+```
+11bd71901bbe5b1630ceea73d27597364c9af683     <- valid
+11bd71901bbe5f3643e0a07ce4d2c8b4e2c6b3b0     <- this one file only, does not exist
+```
+
+The first 12 characters are identical, which is exactly why it survived review. Proven via
+GitHub's API: the good SHA resolves to `Prepare 4.2.2 Release (#1953)`; the bad one returns
+**HTTP 422 "No commit found for SHA"**.
+
+Fixed by restoring the valid SHA (keeping SHA pinning rather than a floating tag). Expect
+`Fork Drift Warning` to go green on the next run; if it then fails, that is the real drift check
+speaking for the first time, which is a different and legitimate signal.
+
+### C3 — other chronic failures, classified (not fixed, and not all fixable here)
+
+| Workflow                          | Failing step                                 | Cause                                                                  | Actionable by code?                                       |
+| --------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------- |
+| `Publish to Docker Hub`           | Login to Docker Hub                          | `##[error]Username and password required`                              | **No** — missing secrets; operator must add `DOCKERHUB_*` |
+| `Security Scan`                   | Dependency Audit (npm) → `Run pnpm audit`    | 2 critical + 8 high real vulns                                         | Only via dependency bump (see C1a)                        |
+| `Cross-Platform Build & Test`     | —                                            | `The operation was canceled` / `runner has received a shutdown signal` | **No** — runner infrastructure, not code                  |
+| `Release-Green (continuous)`      | Open / update tracking issue on HARD failure | Consequence of an upstream HARD failure                                | No — it is a symptom reporter                             |
+| `Auto Release (channel resolver)` | —                                            | No failing run in the last 10 samples                                  | Unknown; do not assert                                    |
 
 ---
 
@@ -218,9 +272,9 @@ Effort is a _PERT three-point estimate in 10-minute units_ (optimistic / likely 
 | T2  | Pristine-worktree gate scan (baseline truth)                  | T1               | 4   | 6   | 10  | 6.3      | **DONE** |
 | T3  | Classify each CI failure pre-existing vs new                  | T1               | 3   | 5   | 8   | 5.2      | **DONE** |
 | T4  | Root-cause `audit:deps` ENOLOCK                               | T1               | 4   | 6   | 10  | 6.3      | **DONE** |
-| T5  | Read `fork-drift-warning.yml`, root-cause it                  | T1               | 3   | 5   | 12  | 5.8      | OPEN     |
+| T5  | Read `fork-drift-warning.yml`, root-cause it                  | T1               | 3   | 5   | 12  | 5.8      | **DONE** |
 | T6  | Fix `audit:deps` → pnpm-native audit                          | T4               | 2   | 3   | 6   | 3.3      | **DONE** |
-| T7  | Fix fork-drift workflow                                       | T5               | 3   | 6   | 12  | 6.5      | OPEN     |
+| T7  | Fix fork-drift workflow                                       | T5               | 3   | 6   | 12  | 6.5      | **DONE** |
 | T8  | Triage 30 orphan test files (run each, decide wire-or-delete) | T2               | 10  | 20  | 40  | 21.7     | TRIAGED  |
 | T9  | Resolve `test-discovery` glob drift                           | T8               | 3   | 5   | 10  | 5.5      | OPEN     |
 | T10 | Resolve `public-creds` 6 literals                             | T2               | 3   | 6   | 12  | 6.5      | **DONE** |
