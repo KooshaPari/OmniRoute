@@ -1,10 +1,10 @@
 # OmniRoute gate-debt closure — DAG / WBS / PERT
 
 **Status:** `PARTIALLY CLOSED` — file-size goal closed; 3 of 20 gates fixed this session
-(`check:api-docs-refs`, `check:public-creds`, and the CI `audit:deps` step). One gate
-(`check:test-discovery`) is triaged but deliberately not wired. Both chronic CI workflow defects
-root-caused: `fork-drift-warning.yml` fixed (corrupted action SHA), `audit:deps` fixed but Lint
-stays red until a real Next.js CVE bump lands.
+(`check:api-docs-refs`, `check:public-creds`, CI `audit:deps`). One gate (`check:test-discovery`)
+is triaged but deliberately not wired. Both chronic CI workflow defects closed, one of them
+CI-verified green. Lint remains red on a real critical CVE and clears when the pending `next` bump
+lands.
 
 **Written:** 2026-10-31
 **Verified at write time:** `HEAD == origin/main == 50fa1822c` (`git rev-parse --short=9` plus
@@ -239,7 +239,35 @@ Also note three **unmerged** prior branches attempt this same audit fix and shou
 writing a fourth: `fix/audit-deps-pnpm-2026-10-19` (`8e5b6b847`), `fix/ci-audit-deps` (`c9b34051b`),
 `fix/ci-lint-audit-script` (`94209d407`). All three are ancestors-free of `main`.
 
-### C2 — `fork-drift-warning.yml` — **CLOSED** (`926a9cc04c`)
+#### C1b — CI proof (run `41163384266`, tip `541ff826eb`)
+
+The mechanism fix is confirmed in CI. Lint step statuses:
+
+```
+success | Run ./.github/actions/npm-ci-retry
+success | Run npm run check:node-runtime
+failure | Audit dependencies (pnpm-native)      <- now EXECUTES
+skipped | (every later step)
+```
+
+Before the change the step never audited anything — it died at
+`ENOLOCK / loadVirtual requires existing shrinkwrap file`. It now runs and reports:
+
+```
+critical | Next.js: Unauthenticated Remote Code Execution in Image
+         | Optimization API when SVG files are used
+Package             next
+Vulnerable versions >=16.0.0 <=16.4.0
+```
+
+`<=16.4.0` independently confirms the OSV result: the pending `16.4.3` is outside the vulnerable
+range, so the Lint job goes green on that dependency bump alone.
+
+**Read this before concluding the change failed:** Lint is still red, and that is correct
+behaviour — it is red because a critical RCE is actually present, not because the audit is broken.
+A silent audit that never ran was strictly worse.
+
+### C2 — `fork-drift-warning.yml` — **CLOSED and CI-verified** (`926a9cc04c`)
 
 Root cause found, and it was never drift logic. The job dies at **"Set up job"**, before any step
 runs, so its own fail-safe logic (failed upstream fetch → warn → `ahead=0`) was never reached:
@@ -261,9 +289,17 @@ The first 12 characters are identical, which is exactly why it survived review. 
 GitHub's API: the good SHA resolves to `Prepare 4.2.2 Release (#1953)`; the bad one returns
 **HTTP 422 "No commit found for SHA"**.
 
-Fixed by restoring the valid SHA (keeping SHA pinning rather than a floating tag). Expect
-`Fork Drift Warning` to go green on the next run; if it then fails, that is the real drift check
-speaking for the first time, which is a different and legitimate signal.
+Fixed by restoring the valid SHA (keeping SHA pinning rather than a floating tag).
+
+**CI-verified in run `41163384222` (tip `541ff826eb`):**
+
+```
+conclusion=success
+job=Count commits ahead of upstream/main -> success
+```
+
+The same workflow had failed on every prior run in the observed history, including schedule-only
+runs. It now passes, so this is closed on evidence rather than on a local lint.
 
 ### C3 — other chronic failures, classified (not fixed, and not all fixable here)
 
