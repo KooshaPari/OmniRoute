@@ -115,11 +115,30 @@ values are already present in `publicCreds.ts`.
 Three options: create the routes, remove the spec entries, or add `KNOWN_STALE_SPEC` with a
 justification. Pick based on whether oneproxy routes are _supposed_ to exist.
 
-### R3 — `check:test-discovery` (31 problems) — **highest severity finding**
+### R3 — `check:test-discovery` (31 → 26 problems) — **highest severity finding**
 
-**STATUS: triaged, NOT fixed. Do not wire these on blind — 17 of 30 would go red.**
+**STATUS: partly fixed.** The glob-drift half is closed (`6f0ca1a27f`); 26 genuine orphans remain.
+Do not wire those blind — 17 of the original 30 go red when collected.
 
-30 test files are collected by **no runner**, so they have never executed. The reason is subtler
+**Fixed: 4 of the 30 "orphans" were false.** `package.json`'s `test:unit` brace list has 27
+subdirectories and includes `fleet`, but `COLLECTORS` in `check-test-discovery.mjs` still had the
+older 26-entry list. The checker therefore reported all four `tests/unit/fleet/**` files as
+"orfão NOVO" although they have been running all along. Verified against the real runner rather
+than assumed:
+
+```
+node -e 'globSync("tests/unit/fleet/**/*.test.ts")'  -> 4 matches
+```
+
+Syncing that one token took the gate from **31 problems to 26**, and drift errors from 1 to 0.
+
+The 26 that remain are genuinely uncollected. Wiring them needs either the `package.json` brace list
+(`quota`, `open-sse`, and top-level `tests/*.test.ts` fall outside every runner glob) — currently
+holding another lane's uncommitted dependency bump — or per-file work on the 17 that actually fail
+once collected. Not frozen into `test-discovery-baseline.json`: that ratchet's own header says new
+orphans must be fixed, not frozen, and it currently freezes 9 unrelated older entries.
+
+30 test files were collected by **no runner**, so they had never executed. The reason is subtler
 than "forgotten files", and it changes the correct fix. Two independent collection gaps:
 
 1. **vitest `include` gap.** `vitest.config.ts` `test.include` covers `tests/unit/**`,
@@ -329,7 +348,7 @@ Effort is a _PERT three-point estimate in 10-minute units_ (optimistic / likely 
 | T6  | Fix `audit:deps` → pnpm-native audit                          | T4               | 2   | 3   | 6   | 3.3      | **DONE** |
 | T7  | Fix fork-drift workflow                                       | T5               | 3   | 6   | 12  | 6.5      | **DONE** |
 | T8  | Triage 30 orphan test files (run each, decide wire-or-delete) | T2               | 10  | 20  | 40  | 21.7     | TRIAGED  |
-| T9  | Resolve `test-discovery` glob drift                           | T8               | 3   | 5   | 10  | 5.5      | OPEN     |
+| T9  | Resolve `test-discovery` glob drift                           | T8               | 3   | 5   | 10  | 5.5      | **DONE** |
 | T10 | Resolve `public-creds` 6 literals                             | T2               | 3   | 6   | 12  | 6.5      | **DONE** |
 | T11 | Resolve 2 stale `oneproxy` spec paths                         | T2               | 2   | 3   | 8   | 3.7      | **DONE** |
 | T12 | Re-run aggregate scan in pristine worktree                    | T6,T7,T9,T10,T11 | 4   | 6   | 8   | 6.0      | OPEN     |
