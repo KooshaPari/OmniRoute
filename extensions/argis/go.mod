@@ -1,6 +1,6 @@
 module github.com/kooshapari/bifrost-extensions
 
-go 1.26
+go 1.26.0
 
 toolchain go1.26.4
 
@@ -27,8 +27,8 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/valyala/fasthttp v1.70.0
 	github.com/vektah/gqlparser/v2 v2.5.33
-	golang.org/x/crypto v0.55.0
-	golang.org/x/net v0.58.0
+	golang.org/x/crypto v0.57.0
+	golang.org/x/net v0.60.0
 )
 
 require (
@@ -66,11 +66,11 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
-	github.com/labstack/echo/v4 v4.15.3 // indirect
+	github.com/labstack/echo/v4 v4.16.3 // indirect
 	github.com/labstack/gommon v0.5.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.12.3 // indirect
-	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nats-io/nkeys v0.4.15 // indirect
@@ -105,9 +105,9 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.41.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	google.golang.org/grpc v1.83.2 // indirect
