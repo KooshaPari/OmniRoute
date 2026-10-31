@@ -64,13 +64,12 @@ has escaped the nominal database directory, including CLI and proxy/runtime code
 | Signal                                                                           | Files | Occurrences |
 | -------------------------------------------------------------------------------- | ----: | ----------: |
 | Direct `getDbInstance()` call syntax outside comments/literals and `src/lib/db/` |    45 |         150 |
-| `localDb` import consumers                                                       |   211 |           — |
 | `SqliteAdapter` type consumers outside comments/literals and `src/lib/db/`       |     3 |           — |
 
-The `localDb` barrel already gives many callers a domain-function seam, but
-`src/lib/localDb.ts` remains a re-export layer rather than a backend contract. The 45 direct
-singleton consumers are the clearest first review set because they bypass that logical seam and
-hold an adapter-shaped handle directly.
+The former localDb re-export barrel was deleted (a80d4df827) once its last consumers imported
+their owning db module directly, so the domain-function seam is now the only path. The 45 direct
+singleton consumers are the clearest first review set because they bypass that seam and hold an
+adapter-shaped handle directly.
 
 The three non-test source files outside `src/lib/db/` that mention the `SqliteAdapter` type in code
 syntax are:

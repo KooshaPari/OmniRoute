@@ -24,8 +24,42 @@ export default defineConfig({
       "src/shared/components/**/*.test.tsx",
       "src/shared/hooks/__tests__/**/*.test.tsx",
       "src/app/(dashboard)/**/__tests__/**/*.test.tsx",
+      // check:test-discovery caught these as NEW orphans once vitest.config.ts
+      // stopped taking the whole `tests/unit/**/*.test.ts` tree (5,285 files:
+      // test:vitest:ui could never finish, so nothing there actually ran).
+      // They are vitest suites, so they belong here, not in the node runner.
+      "src/app/api/settings/__tests__/**/*.test.ts",
+      "src/lib/db/__tests__/**/*.test.ts",
+      "src/lib/resilience/__tests__/**/*.test.ts",
+      "src/sse/handlers/__tests__/**/*.test.ts",
+      "src/shared/utils/**/*.test.ts",
+      "tests/unit/open-sse/**/*.test.ts",
+      // Only the contract suite: keyvQuotaStore{,.Extras}.test.ts need the
+      // optional `keyv` backend, which is not a declared dependency, so they
+      // cannot run here (tracked in test-discovery-baseline.json instead).
+      "tests/unit/quota/quotaStore.contract.test.ts",
+      // vitest-style suites that were sitting in the node runner's
+      // `tests/unit/*.test.ts` glob, where every one of them died at import with
+      // "Vitest failed to find the runner" — one failing file per shard. These
+      // six pass against the current implementation; the rest of that batch is
+      // tracked in test-discovery-baseline.json (they need code or an owner).
+      "tests/unit/vitest/otel-exporter.test.ts",
+      "tests/unit/vitest/traceparent.test.ts",
+      "tests/unit/vitest/combo-span.test.ts",
+      "tests/unit/vitest/bifrost-span.test.ts",
+      "tests/unit/vitest/bifrost-backend.test.ts",
+      "tests/unit/vitest/a2a-mint-virtual-key.test.ts",
+      "tests/unit/vitest/phenotype-contracts-conformance.test.ts",
     ],
-    exclude: ["**/node_modules/**", "**/.git/**"],
+    exclude: [
+      "**/node_modules/**",
+      "**/.git/**",
+      // node:test suite: it imports `node:test` (and node:test's before/after),
+      // so Vitest reports "No test suite found in file" and fails the whole run.
+      // It is a node-native test; run it with
+      //   node --import tsx/esm --test tests/unit/autoCombo/arenaEloFreeAlias-migration.test.ts
+      "tests/unit/autoCombo/arenaEloFreeAlias-migration.test.ts",
+    ],
     coverage: {
       reportsDirectory: "coverage",
     },

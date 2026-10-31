@@ -69,3 +69,22 @@ runs:
       if: steps.node-modules.outputs.cache-hit == 'true'
       shell: bash
       run: echo "node_modules restored from cache (key hit) — npm ci skipped"
+
+    # pnpm does not run dependency lifecycle scripts, so the `bun` devDependency
+    # lands as a JS shim only: node_modules/.bin/bun exits with
+    # "Error: Bun's postinstall script was not run." npm puts node_modules/.bin
+    # first on PATH for every script, so `npm run <script>` reaches that shim
+    # before any globally installed bun. Scripts that shell out to bun
+    # (check:provider-consistency, check:known-symbols, test:bun:db, ...) then
+    # fail before running anything. Fetch the platform binary once when missing.
+    - name: Ensure bun platform binary (pnpm skips postinstall)
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ ! -f node_modules/bun/install.js ]; then
+          exit 0
+        fi
+        if node_modules/.bin/bun --version >/dev/null 2>&1; then
+          exit 0
+        fi
+        node node_modules/bun/install.js

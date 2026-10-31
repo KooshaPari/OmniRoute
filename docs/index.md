@@ -22,7 +22,6 @@ This index lists the design notes, ADRs, and supporting documentation maintained
 - [`ops/`](ops/) — Ops (9 documents)
 - [`providers/`](providers/) — Providers (1 document)
 - [`reference/`](reference/) — Reference (5 documents)
-- [`research/`](research/) — Research (2 documents)
 - [`routing/`](routing/) — Routing (3 documents)
 - [`security/`](security/) — Security (10 documents)
 

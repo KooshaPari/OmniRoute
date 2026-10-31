@@ -1,7 +1,7 @@
 // oxlint-disable no-unused-vars
 import { SkillHandler } from "../types";
 
-export const browserSkill: SkillHandler = async (input, context) => {
+export const browserSkill: SkillHandler = async (input, _context) => {
   const { action } = input as {
     action: "navigate" | "click" | "type" | "screenshot" | "extract";
     url?: string;

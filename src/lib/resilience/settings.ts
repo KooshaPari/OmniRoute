@@ -27,17 +27,7 @@ import {
 // public API is unchanged.
 export type {
   RequestQueueSettings,
-  ConnectionCooldownProfileSettings,
-  ProviderBreakerProfileSettings,
-  WaitForCooldownSettings,
   ComboCooldownWaitSettings,
-  QuotaShareConcurrencyLimitSettings,
-  ProviderCooldownSettings,
-  QuotaPreflightSettings,
-  StreamRecoverySettings,
-  StreamThroughputWatchdogSettings,
-  ProviderQuotaOverrideSettings,
-  CredentialHealthCheckSettings,
   ResilienceSettings,
   ResilienceSettingsPatch,
 } from "./settings/types";
@@ -229,8 +219,7 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
         DEFAULT_RESILIENCE_SETTINGS.requestQueue.concurrentRequests,
         { min: 1, max: 10_000 }
       ),
-      globalConcurrentRequests:
-        DEFAULT_RESILIENCE_SETTINGS.requestQueue.globalConcurrentRequests,
+      globalConcurrentRequests: DEFAULT_RESILIENCE_SETTINGS.requestQueue.globalConcurrentRequests,
       maxWaitMs: DEFAULT_RESILIENCE_SETTINGS.requestQueue.maxWaitMs,
       executionMaxWaitMs: DEFAULT_RESILIENCE_SETTINGS.requestQueue.executionMaxWaitMs,
       maxQueueDepth: DEFAULT_RESILIENCE_SETTINGS.requestQueue.maxQueueDepth,

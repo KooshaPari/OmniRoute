@@ -62,8 +62,6 @@ export const ACCOUNT_FALLBACK_STRATEGY_VALUES = [
   "strict-random",
 ] as const;
 
-export type AccountFallbackStrategyValue = (typeof ACCOUNT_FALLBACK_STRATEGY_VALUES)[number];
-
 export function normalizeRoutingStrategy(value: unknown): AnyRoutingStrategyValue {
   if (typeof value !== "string") return "priority";
   const normalized = value.trim().toLowerCase();

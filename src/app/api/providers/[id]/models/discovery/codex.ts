@@ -6,7 +6,6 @@ import {
 import { isCodexDiscoveryModelExcluded } from "@/shared/services/codexDiscoveryPolicy";
 
 export {
-  CODEX_DISCOVERY_EXCLUDED_IDS,
   CODEX_DISCOVERY_EXCLUDED_ID_PREFIXES,
   isCodexDiscoveryModelExcluded,
 } from "@/shared/services/codexDiscoveryPolicy";

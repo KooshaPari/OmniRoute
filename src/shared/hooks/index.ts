@@ -4,5 +4,4 @@ export {
   useDisplayBaseUrl,
   DEFAULT_DISPLAY_BASE_URL,
   isPublicDisplayBaseUrl,
-  resolveDisplayBaseUrl,
 } from "./useDisplayBaseUrl";

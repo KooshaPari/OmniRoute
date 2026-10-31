@@ -249,6 +249,11 @@ const REQUEST_SCOPED_UPSTREAM_ERROR_CODES: Record<string, true> = {
   // #10360: our own executor-result contract violation. An internal defect, not
   // a provider/account fault — it must never cool a connection or trip a breaker.
   [EXECUTOR_CONTRACT_VIOLATION_CODE]: true,
+  // #8255: stream readiness / early-EOF happen per request (the upstream closed
+  // before useful content). They say nothing about the connection's health, so
+  // they must not cool an account or trip the provider breaker.
+  stream_readiness_timeout: true,
+  stream_early_eof: true,
 };
 
 /** Request/model-specific failures must not poison provider-wide resilience state. */
@@ -261,7 +266,9 @@ export function isRequestScopedUpstreamFailure(error?: {
   return (
     REQUEST_SCOPED_UPSTREAM_ERROR_CODES[code] === true ||
     type === "context_length_exceeded" ||
-    type === "local_queue_capacity"
+    type === "local_queue_capacity" ||
+    type === "stream_readiness_timeout" ||
+    type === "stream_early_eof"
   );
 }
 

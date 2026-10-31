@@ -20,6 +20,7 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs";
 import { pathToFileURL } from "node:url";
+import YAML from "yaml";
 
 const ROOT = process.cwd();
 
@@ -128,8 +129,96 @@ export function runWorkspaceDependencyCheck(options = {}) {
   }
 }
 
+/**
+ * pnpm-native equivalent of the npm lockfile policy.
+ *
+ * lockfile-lint only parses npm/yarn lockfiles, but this repo is pnpm-managed
+ * (packageManager: pnpm@<v>) and ships pnpm-lock.yaml only. Rather than keep a
+ * stale npm-only gate that can never pass, validate the real lockfile for the
+ * same two properties the npm path checks:
+ *   1. no http:// resolution anywhere (downgrade / poisoning attempt),
+ *   2. every package resolution carries a sha512 integrity hash.
+ *
+ * Lockfile-vs-package.json consistency is already enforced by the install step
+ * (`pnpm install --frozen-lockfile` in .github/actions/npm-ci-retry), which hard
+ * fails when they drift, so this function reports that rather than re-running it.
+ *
+ * @param {string} lockfilePath
+ * @returns {{ ok: boolean, packages: number, httpsViolations: string[], integrityViolations: string[] }}
+ */
+export function validatePnpmLockfile(lockfilePath) {
+  const raw = fs.readFileSync(lockfilePath, "utf8");
+  const httpsViolations = [];
+  for (const line of raw.split("\n")) {
+    const idx = line.indexOf("http://");
+    if (idx !== -1) httpsViolations.push(line.trim());
+  }
+
+  let doc;
+  try {
+    doc = YAML.parse(raw);
+  } catch (err) {
+    return {
+      ok: false,
+      packages: 0,
+      httpsViolations,
+      integrityViolations: [`unparseable pnpm-lock.yaml: ${err.message}`],
+    };
+  }
+
+  const integrityViolations = [];
+  const packages = doc?.packages ?? {};
+  for (const [name, meta] of Object.entries(packages)) {
+    const resolution = meta?.resolution;
+    if (!resolution) continue;
+    // Local/link/workspace entries have no registry tarball to hash.
+    if (resolution.directory || resolution.type === "directory") continue;
+    if (typeof resolution.tarball === "string" && resolution.tarball.startsWith("file:")) continue;
+    const integrity = resolution.integrity;
+    if (typeof integrity !== "string" || !integrity.startsWith("sha512-")) {
+      integrityViolations.push(
+        `${name}: ${integrity ? "non-sha512 integrity" : "missing integrity"}`
+      );
+    }
+  }
+
+  return {
+    ok: httpsViolations.length === 0 && integrityViolations.length === 0,
+    packages: Object.keys(packages).length,
+    httpsViolations,
+    integrityViolations,
+  };
+}
+
 function main() {
   const cfg = getLockfileLintConfig();
+
+  // pnpm is the package manager of record (packageManager field), so validate
+  // pnpm-lock.yaml when that is the lockfile that exists.
+  const pnpmLockfile = path.join(ROOT, "pnpm-lock.yaml");
+  if (!fs.existsSync(cfg.lockfilePath) && fs.existsSync(pnpmLockfile)) {
+    const result = validatePnpmLockfile(pnpmLockfile);
+    if (!result.ok) {
+      console.error("[check-lockfile] FAIL — pnpm-lock.yaml violates the lockfile policy:");
+      for (const v of result.httpsViolations.slice(0, 10)) {
+        console.error(`  • http:// resolution: ${v}`);
+      }
+      for (const v of result.integrityViolations.slice(0, 10)) {
+        console.error(`  • ${v}`);
+      }
+      console.error(
+        "\n  → Regenerate with `pnpm install --lockfile-only` and confirm every entry\n" +
+          "    resolves over HTTPS with a sha512 integrity hash."
+      );
+      process.exit(1);
+    }
+    console.log(
+      `[check-lockfile] OK — pnpm-lock.yaml: ${result.packages} entries, HTTPS only, ` +
+        "all registry resolutions carry sha512 integrity (lockfile-vs-manifest sync is " +
+        "enforced by `pnpm install --frozen-lockfile` during install)"
+    );
+    return;
+  }
 
   if (!fs.existsSync(cfg.lockfilePath)) {
     console.error(

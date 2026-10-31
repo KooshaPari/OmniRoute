@@ -18,6 +18,7 @@ import os from "node:os";
 // @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
 import {
   getLockfileLintConfig,
+  validatePnpmLockfile,
   buildLockfileLintArgs,
   getWorkspaceDependencyCheckCommand,
   runWorkspaceDependencyCheck,
@@ -312,4 +313,45 @@ test("workspace check validates lock entries independently of node_modules", (t)
       stdio: ["ignore", "pipe", "pipe"],
     })
   );
+});
+
+// ─── pnpm lockfile policy (the repo is pnpm-managed, lockfile-lint is npm-only) ─
+test("validatePnpmLockfile accepts the shipped pnpm-lock.yaml", () => {
+  const root = path.resolve(import.meta.dirname, "../../..");
+  const result = validatePnpmLockfile(path.join(root, "pnpm-lock.yaml"));
+  assert.equal(result.ok, true, JSON.stringify(result.integrityViolations.slice(0, 5)));
+  assert.equal(result.httpsViolations.length, 0);
+  assert.ok(result.packages > 0);
+});
+
+test("validatePnpmLockfile flags http resolutions and non-sha512/missing integrity", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "pnpm-lock-policy-"));
+  try {
+    const lockfile = path.join(dir, "pnpm-lock.yaml");
+    writeFileSync(
+      lockfile,
+      [
+        'lockfileVersion: "9.0"',
+        "packages:",
+        "  ok@1.0.0:",
+        "    resolution: {integrity: sha512-AAA}",
+        "  plain-http@2.0.0:",
+        "    resolution: {tarball: http://evil.example/p.tgz}",
+        "  weak-hash@3.0.0:",
+        "    resolution: {integrity: md5-BBB}",
+        "",
+      ].join("\n")
+    );
+
+    const result = validatePnpmLockfile(lockfile);
+
+    assert.equal(result.ok, false);
+    assert.equal(result.httpsViolations.length, 1);
+    assert.deepEqual(result.integrityViolations.sort(), [
+      "plain-http@2.0.0: missing integrity",
+      "weak-hash@3.0.0: non-sha512 integrity",
+    ]);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

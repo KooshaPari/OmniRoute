@@ -81,6 +81,45 @@ test("raw HTTP guard allows documented methods through", () => {
     maybeHandleDisallowedMethod({ method: "QUERY", url: "/api/health/ping" }, response),
     false
   );
+  // dast-smoke 2026-10-29: `groups` is a single segment under /api/keys, so the
+  // `^/api/keys/[^/]+$` rule captured the collection and 405'd the real POST
+  // ("POST is not allowed"). The collection rule now matches first.
+  assert.equal(
+    maybeHandleDisallowedMethod({ method: "POST", url: "/api/keys/groups" }, response),
+    false
+  );
+  assert.equal(
+    maybeHandleDisallowedMethod({ method: "GET", url: "/api/keys/groups" }, response),
+    false
+  );
+  assert.equal(
+    maybeHandleDisallowedMethod({ method: "PUT", url: "/api/keys/groups/g1" }, response),
+    false
+  );
+  assert.equal(
+    maybeHandleDisallowedMethod({ method: "DELETE", url: "/api/keys/groups/g1/keys" }, response),
+    false
+  );
+});
+
+test("raw HTTP guard still 405s unsupported verbs on the key-group paths", () => {
+  for (const [method, url] of [
+    ["QUERY", "/api/keys/groups"],
+    ["POST", "/api/keys/groups/g1"],
+    ["POST", "/api/keys/g1/devices"],
+  ] as const) {
+    let body = "";
+    const response = {
+      statusCode: 0,
+      setHeader() {},
+      end(chunk: string) {
+        body += chunk;
+      },
+    };
+    assert.equal(maybeHandleDisallowedMethod({ method, url }, response), true, `${method} ${url}`);
+    assert.equal(response.statusCode, 405);
+    assert.match(body, /METHOD_NOT_ALLOWED/);
+  }
 });
 
 test("raw HTTP guard rejects undici-unsupported methods (TRACE/TRACK/CONNECT) on ANY path", () => {

@@ -14,25 +14,6 @@ import { fileURLToPath } from "node:url";
 import { isNextBuildPhase } from "../buildPhase";
 
 // ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-export interface CodeGraphNode {
-  id: string;
-  kind: string;
-  name: string;
-  qualifiedName: string;
-  filePath: string;
-  language: string;
-  startLine: number;
-  endLine: number;
-  signature?: string;
-  docstring?: string;
-  isExported: boolean;
-  visibility?: string;
-}
-
-// ---------------------------------------------------------------------------
 // Database access (lazy loaded)
 // ---------------------------------------------------------------------------
 

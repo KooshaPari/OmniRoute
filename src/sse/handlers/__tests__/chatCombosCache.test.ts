@@ -12,16 +12,21 @@
  */
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
-// Mock the localDb module before importing chatCombosCache.
+// Mock the combos/readCache modules before importing chatCombosCache.
 let mockCombosReturn: unknown[] = [{ id: "default-combo" }];
 let mockGetCombosCalls = 0;
 let mockCacheVersion = 0;
 
-vi.mock("@/lib/localDb", () => ({
+// chatCombosCache imports these from their owning modules (the @/lib/localDb
+// barrel is gone), so mock those modules instead of the barrel.
+vi.mock("@/lib/db/combos", () => ({
   getCombos: vi.fn(async () => {
     mockGetCombosCalls += 1;
     return mockCombosReturn;
   }),
+}));
+
+vi.mock("@/lib/db/readCache", () => ({
   getCombosCacheVersion: vi.fn(() => mockCacheVersion),
 }));
 
@@ -31,6 +36,22 @@ import {
   __resetCombosCacheForTests,
   __getCombosCacheStateForTests,
 } from "../chatCombosCache";
+
+// Tests below swap getCombos for throwing implementations. Those stick for the
+// rest of the file (vi.mock is module-wide), which silently starved every later
+// test of the counting mock — the reset suite then saw 0 calls, not 1. Reinstall
+// the counting implementation before each test so per-test overrides stay local.
+beforeEach(async () => {
+  const combosModule = await import("@/lib/db/combos");
+  vi.mocked(combosModule.getCombos).mockImplementation(async () => {
+    mockGetCombosCalls += 1;
+    return mockCombosReturn;
+  });
+  vi.mocked((await import("@/lib/db/readCache")).getCombosCacheVersion).mockImplementation(
+    () => mockCacheVersion
+  );
+  __resetCombosCacheForTests();
+});
 
 describe("chatCombosCache.COMBOS_CACHE_TTL_MS", () => {
   it("is exactly 10_000", () => {
@@ -104,8 +125,8 @@ describe("chatCombosCache.getCombosCachedForChat", () => {
       throw new Error("localDb unavailable");
     }) as any;
     // Override the mock to throw instead.
-    const localDb = await import("@/lib/localDb");
-    vi.mocked(localDb.getCombos).mockImplementationOnce(async () => {
+    const combosModule = await import("@/lib/db/combos");
+    vi.mocked(combosModule.getCombos).mockImplementationOnce(async () => {
       throw new Error("localDb unavailable");
     });
 
@@ -115,8 +136,8 @@ describe("chatCombosCache.getCombosCachedForChat", () => {
   });
 
   it("caches the empty result from a caught error", async () => {
-    const localDb = await import("@/lib/localDb");
-    vi.mocked(localDb.getCombos).mockImplementation(async () => {
+    const combosModule = await import("@/lib/db/combos");
+    vi.mocked(combosModule.getCombos).mockImplementation(async () => {
       throw new Error("nope");
     });
 
@@ -126,14 +147,14 @@ describe("chatCombosCache.getCombosCachedForChat", () => {
 
     // Restore a working mock that returns a non-empty array; but the
     // cache should still serve the cached empty array.
-    vi.mocked(localDb.getCombos).mockImplementation(async () => [{ id: "fresh" }]);
+    vi.mocked(combosModule.getCombos).mockImplementation(async () => [{ id: "fresh" }]);
     const second = await getCombosCachedForChat();
     expect(second).toEqual([]);
   });
 
   it("returns empty array (not undefined) when getCombos rejects", async () => {
-    const localDb = await import("@/lib/localDb");
-    vi.mocked(localDb.getCombos).mockImplementation(async () => {
+    const combosModule = await import("@/lib/db/combos");
+    vi.mocked(combosModule.getCombos).mockImplementation(async () => {
       throw new Error("db down");
     });
     __resetCombosCacheForTests();

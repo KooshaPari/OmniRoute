@@ -2,6 +2,7 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 import { resolveFetchStartTimeout } from "../utils/fetchStartTimeoutPolicy.ts";
+import { ensureFetchResponse } from "../utils/fetchResponse.ts";
 import {
   resolveAlternateFormat,
   type AlternateFormat,
@@ -679,7 +680,6 @@ export class BaseExecutor {
         body: JSON.stringify(requestBody),
         signal: activeSignal || undefined,
       });
-
       const text = await response.text();
       if (!response.ok) {
         const parsedError = this.parseError(response, text);
@@ -948,7 +948,7 @@ export class BaseExecutor {
             : requestOptions;
 
           try {
-            return await fetch(requestUrl, optionsWithSignal);
+            return ensureFetchResponse(await fetch(requestUrl, optionsWithSignal));
           } finally {
             if (timeoutId) clearTimeout(timeoutId);
           }

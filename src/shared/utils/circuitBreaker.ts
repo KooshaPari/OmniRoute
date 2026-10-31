@@ -50,6 +50,13 @@ export function isLocalStreamLifecycleError(error: unknown): boolean {
       ? ((error as { name: string }).name as string)
       : "";
   if (errName === "AbortError") return true;
+  // Some call sites forward `{ code: "request_signal_aborted" }` instead of a
+  // message; the abort marker is the code, not the text.
+  const code =
+    typeof (error as { code?: unknown }).code === "string"
+      ? ((error as { code: string }).code as string)
+      : "";
+  if (/request_signal_aborted|client_disconnected/i.test(code)) return true;
   const message =
     typeof error === "string"
       ? error

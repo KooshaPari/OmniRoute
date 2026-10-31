@@ -399,6 +399,19 @@ const SKIP_DOC_FILES = new Set([
   "docs/sessions/20260912-omniroute-fork-audit/07_SVELTEKIT_MIGRATION_PLAN.md",
   "docs/sessions/20260912-omniroute-fork-audit/08_BIFROST_INTEGRATION_PLAN.md",
   "docs/sessions/20260912-omniroute-fork-audit/15_PEP_ASSESSMENT_REMEDIATION.md",
+  // 2026-10-14 Q5 cleanup record: both files intentionally name the paths that
+  // the cleanup DELETED (electron stubs, the discard-spike script, a removed
+  // benchmark) as evidence of what was present before removal. Rewriting them to
+  // satisfy the "file exists" rule would falsify the incident record.
+  "docs/sessions/20261014-omniroute-q5-dependabot-cleanup/05_KNOWN_ISSUES.md",
+  "docs/sessions/20261014-omniroute-q5-dependabot-cleanup/08_HANDOFF.md",
+  "docs/sessions/20261014-omniroute-q5-dependabot-cleanup/00_SESSION_OVERVIEW.md",
+  // Dated state-of-the-repo reports and the 2026-10-08 recovery trace: frozen
+  // snapshots that quote paths as they were when written, including paths a
+  // later commit removed. Same append-only rule as the session notes above.
+  "docs/reports/2026-10-17-state-and-fwd/DOCKET.md",
+  "docs/reports/2026-10-17-state-and-fwd/PROGRESS-TREE.md",
+  "docs/recovery/traceability.md",
   // ── Forward-looking plan docs (`- [ ]` acceptance checklists, "Files: … (new)") ──
   // Same rationale as docs/ops/COVERAGE_PLAN.md above: these enumerate files to be
   // CREATED, so a missing path is a plan item, not a fabricated claim about today.

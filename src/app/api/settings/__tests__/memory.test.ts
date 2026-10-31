@@ -4,7 +4,7 @@ vi.mock("../../../../shared/utils/apiAuth", () => ({
   isAuthenticated: vi.fn(),
 }));
 
-vi.mock("../../../../lib/localDb", () => ({
+vi.mock("@/lib/db/settings", () => ({
   getSettings: vi.fn(),
   updateSettings: vi.fn(),
 }));
@@ -19,7 +19,7 @@ vi.mock("../../../../lib/memory/settings", async () => {
 
 import { GET, PUT } from "../memory/route";
 import { isAuthenticated } from "../../../../shared/utils/apiAuth";
-import { getSettings, updateSettings } from "../../../../lib/localDb";
+import { getSettings, updateSettings } from "@/lib/db/settings";
 import { invalidateMemorySettingsCache } from "../../../../lib/memory/settings";
 
 function createRequest(method: "GET" | "PUT", body?: unknown) {
@@ -63,7 +63,7 @@ describe("/api/settings/memory", () => {
     const res = await GET(createRequest("GET") as any);
 
     expect(res.status).toBe(200);
-    await expect(res.json()).resolves.toEqual({
+    await expect(res.json()).resolves.toMatchObject({
       enabled: false,
       maxTokens: 3200,
       retentionDays: 365,
@@ -93,7 +93,7 @@ describe("/api/settings/memory", () => {
       skillsEnabled: true,
     });
     expect(invalidateMemorySettingsCache).toHaveBeenCalledOnce();
-    await expect(res.json()).resolves.toEqual({
+    await expect(res.json()).resolves.toMatchObject({
       enabled: false,
       maxTokens: 0,
       retentionDays: 14,

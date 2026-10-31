@@ -23,7 +23,7 @@
  *      src/lib/db/migrations/101_bifrost_shadow.sql
  */
 
-import { getDbInstance, rowToCamel } from "./core";
+import { getDbInstance } from "./core";
 
 // ──────────────── Types ────────────────
 
@@ -108,56 +108,7 @@ export interface GetBifrostShadowEventsOptions {
 // ──────────────── Helpers ────────────────
 
 function isValidStatus(status: string): status is BifrostShadowStatus {
-  return (
-    status === "ok" ||
-    status === "error" ||
-    status === "timeout" ||
-    status === "skipped"
-  );
-}
-
-function rowToEvent(row: Record<string, unknown>): BifrostShadowEvent | null {
-  const camel = rowToCamel(row) ?? {};
-  const eventId = typeof camel.eventId === "string" ? camel.eventId : "";
-  const provider = typeof camel.provider === "string" ? camel.provider : "";
-  const model = typeof camel.model === "string" ? camel.model : "";
-  const status = typeof camel.bifrostStatus === "string" ? camel.bifrostStatus : "";
-  if (!eventId || !provider || !model || !isValidStatus(status)) {
-    return null;
-  }
-  return {
-    eventId,
-    chatcoreRequestId:
-      typeof camel.chatcoreRequestId === "string" ? camel.chatcoreRequestId : null,
-    provider,
-    model,
-    bifrostStatus: status,
-    bifrostLatencyMs:
-      typeof camel.bifrostLatencyMs === "number" ? camel.bifrostLatencyMs : null,
-    chatcoreLatencyMs:
-      typeof camel.chatcoreLatencyMs === "number" ? camel.chatcoreLatencyMs : null,
-    agreementScore:
-      typeof camel.agreementScore === "number" ? camel.agreementScore : null,
-    bifrostTokensIn:
-      typeof camel.bifrostTokensIn === "number" ? camel.bifrostTokensIn : null,
-    bifrostTokensOut:
-      typeof camel.bifrostTokensOut === "number" ? camel.bifrostTokensOut : null,
-    chatcoreTokensIn:
-      typeof camel.chatcoreTokensIn === "number" ? camel.chatcoreTokensIn : null,
-    chatcoreTokensOut:
-      typeof camel.chatcoreTokensOut === "number" ? camel.chatcoreTokensOut : null,
-    bifrostCostUsd:
-      typeof camel.bifrostCostUsd === "number" ? camel.bifrostCostUsd : null,
-    chatcoreCostUsd:
-      typeof camel.chatcoreCostUsd === "number" ? camel.chatcoreCostUsd : null,
-    createdAt: String(camel.createdAt ?? ""),
-  };
-}
-
-function nearestRankPercentile(sorted: number[], p: number): number | null {
-  if (sorted.length === 0) return null;
-  const rank = Math.max(1, Math.ceil((p / 100) * sorted.length));
-  return sorted[Math.min(sorted.length - 1, rank - 1)];
+  return status === "ok" || status === "error" || status === "timeout" || status === "skipped";
 }
 
 // ──────────────── CRUD ────────────────
@@ -228,65 +179,12 @@ export function recordBifrostShadowEvent(input: BifrostShadowEventInput): {
 /**
  * Read recent shadow events. Newest-first. Capped at 5,000 rows per query.
  */
-export function getBifrostShadowEvents(
-  options: GetBifrostShadowEventsOptions = {}
-): BifrostShadowEvent[] {
-  const limit = Math.max(1, Math.min(5_000, options.limit ?? 100));
-
-  const where: string[] = [];
-  const params: unknown[] = [];
-  if (options.since) {
-    where.push("created_at >= ?");
-    params.push(options.since);
-  }
-  if (options.provider) {
-    where.push("provider = ?");
-    params.push(options.provider);
-  }
-  if (options.bifrostStatus && isValidStatus(options.bifrostStatus)) {
-    where.push("bifrost_status = ?");
-    params.push(options.bifrostStatus);
-  }
-  const whereSql = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
-
-  const db = getDbInstance();
-  const rows = db
-    .prepare(
-      `SELECT event_id, chatcore_request_id, provider, model, bifrost_status,
-              bifrost_latency_ms, chatcore_latency_ms, agreement_score,
-              bifrost_tokens_in, bifrost_tokens_out,
-              chatcore_tokens_in, chatcore_tokens_out,
-              bifrost_cost_usd, chatcore_cost_usd, created_at
-         FROM bifrost_shadow_events
-         ${whereSql}
-         ORDER BY created_at DESC, event_id DESC
-         LIMIT ?`
-    )
-    .all(...params, limit) as Record<string, unknown>[];
-
-  const out: BifrostShadowEvent[] = [];
-  for (const row of rows) {
-    const ev = rowToEvent(row);
-    if (ev) out.push(ev);
-  }
-  return out;
-}
 
 /**
  * Delete rows older than the given ISO timestamp. Returns the number of
  * rows removed. Housekeeping: run on a cron (e.g. hourly) to keep the
  * table bounded during the 14-day B6 ramp.
  */
-export function purgeBifrostShadowEvents(olderThan: string): number {
-  if (!olderThan || typeof olderThan !== "string") {
-    throw new Error("bifrostShadow.purgeBifrostShadowEvents: olderThan (ISO string) is required");
-  }
-  const db = getDbInstance();
-  const result = db
-    .prepare(`DELETE FROM bifrost_shadow_events WHERE created_at < ?`)
-    .run(olderThan);
-  return result.changes ?? 0;
-}
 
 /**
  * Aggregate stats since a given ISO timestamp. Used by the operator
@@ -294,74 +192,3 @@ export function purgeBifrostShadowEvents(olderThan: string): number {
  * percentile computation runs in TypeScript over a sorted slice (cheap,
  * bounded by row count which is purged hourly).
  */
-export function getBifrostShadowStats(since: string): BifrostShadowStats {
-  if (!since || typeof since !== "string") {
-    throw new Error("bifrostShadow.getBifrostShadowStats: since (ISO string) is required");
-  }
-  const db = getDbInstance();
-
-  const agg = db
-    .prepare(
-      `SELECT
-         COUNT(*) AS total,
-         SUM(CASE WHEN bifrost_status = 'ok'       THEN 1 ELSE 0 END) AS ok_count,
-         SUM(CASE WHEN bifrost_status = 'error'    THEN 1 ELSE 0 END) AS error_count,
-         SUM(CASE WHEN bifrost_status = 'timeout'  THEN 1 ELSE 0 END) AS timeout_count,
-         SUM(CASE WHEN bifrost_status = 'skipped'  THEN 1 ELSE 0 END) AS skipped_count,
-         AVG(agreement_score) AS mean_agreement
-       FROM bifrost_shadow_events
-       WHERE created_at >= ?`
-    )
-    .get(since) as {
-    total: number;
-    ok_count: number | null;
-    error_count: number | null;
-    timeout_count: number | null;
-    skipped_count: number | null;
-    mean_agreement: number | null;
-  };
-
-  const total = agg?.total ?? 0;
-  const ok = agg?.ok_count ?? 0;
-  const err = agg?.error_count ?? 0;
-  const to = agg?.timeout_count ?? 0;
-  const sk = agg?.skipped_count ?? 0;
-  const nonSkipped = total - sk;
-  const errorRate = nonSkipped > 0 ? (err + to) / nonSkipped : 0;
-
-  // Latencies: pull just the two columns + sort in memory. Bounded by
-  // purgeBifrostShadowEvents hourly, so worst case is ~1hr of traffic
-  // per provider, which is small enough for an in-process percentile.
-  const latencyRows = db
-    .prepare(
-      `SELECT bifrost_latency_ms, chatcore_latency_ms
-         FROM bifrost_shadow_events
-         WHERE created_at >= ? AND bifrost_status = 'ok'`
-    )
-    .all(since) as Array<{ bifrost_latency_ms: number | null; chatcore_latency_ms: number | null }>;
-
-  const bifrostLatencies: number[] = [];
-  const chatcoreLatencies: number[] = [];
-  for (const r of latencyRows) {
-    if (typeof r.bifrost_latency_ms === "number") bifrostLatencies.push(r.bifrost_latency_ms);
-    if (typeof r.chatcore_latency_ms === "number") chatcoreLatencies.push(r.chatcore_latency_ms);
-  }
-  bifrostLatencies.sort((a, b) => a - b);
-  chatcoreLatencies.sort((a, b) => a - b);
-
-  return {
-    sinceIso: since,
-    count: total,
-    okCount: ok,
-    errorCount: err,
-    timeoutCount: to,
-    skippedCount: sk,
-    errorRate,
-    bifrostP50LatencyMs: nearestRankPercentile(bifrostLatencies, 50),
-    bifrostP99LatencyMs: nearestRankPercentile(bifrostLatencies, 99),
-    chatcoreP50LatencyMs: nearestRankPercentile(chatcoreLatencies, 50),
-    chatcoreP99LatencyMs: nearestRankPercentile(chatcoreLatencies, 99),
-    meanAgreementScore:
-      typeof agg?.mean_agreement === "number" ? agg.mean_agreement : null,
-  };
-}

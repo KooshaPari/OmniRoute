@@ -48,8 +48,7 @@
     "TS2322": 1
   },
   "src/app/api/combos/test/route.ts": {
-    "TS2345": 1,
-    "TS2339": 1
+    "TS2345": 1
   },
   "src/app/api/compression/compare/route.ts": {
     "TS2345": 1
@@ -124,13 +123,10 @@
   "src/app/api/provider-nodes/validate/route.ts": {
     "TS2339": 2
   },
-  "src/app/api/providers/[id]/login/route.ts": {
-    "TS2739": 1
-  },
   "src/app/api/providers/[id]/models/route.ts": {
     "TS2367": 1,
-    "TS2339": 2,
     "TS2322": 2,
+    "TS2339": 2,
     "TS2554": 2,
     "TS2345": 3
   },
@@ -165,24 +161,6 @@
   },
   "src/app/api/providers/validate/route.ts": {
     "TS2322": 1
-  },
-  "src/app/api/providers/volcengine-plan/connect/[sessionId]/cancel/route.ts": {
-    "TS2739": 1
-  },
-  "src/app/api/providers/volcengine-plan/connect/[sessionId]/code/route.ts": {
-    "TS2739": 1
-  },
-  "src/app/api/providers/volcengine-plan/connect/[sessionId]/identity/route.ts": {
-    "TS2739": 1
-  },
-  "src/app/api/providers/volcengine-plan/connect/[sessionId]/resend/route.ts": {
-    "TS2739": 1
-  },
-  "src/app/api/providers/volcengine-plan/connect/[sessionId]/status/route.ts": {
-    "TS2739": 1
-  },
-  "src/app/api/providers/volcengine-plan/connect/route.ts": {
-    "TS2739": 1
   },
   "src/app/api/radar/local-model-state/route.ts": {
     "TS2339": 4
@@ -266,9 +244,6 @@
   },
   "src/app/api/v1/classify/route.ts": {
     "TS2322": 1
-  },
-  "src/app/api/v1/files/[id]/content/route.ts": {
-    "TS2345": 1
   },
   "src/app/api/v1/files/route.ts": {
     "TS2339": 1
@@ -360,12 +335,6 @@
   "src/lib/proxySubscription/parse.ts": {
     "TS2345": 3
   },
-  "src/lib/quota/quotaAnalytics.ts": {
-    "TS2769": 1
-  },
-  "src/lib/quota/quotaResetTimers.ts": {
-    "TS2769": 2
-  },
   "src/lib/usage/comboForecast.ts": {
     "TS2345": 1
   },
@@ -381,9 +350,6 @@
     "TS2558": 5,
     "TS2339": 12,
     "TS2345": 1
-  },
-  "src/lib/vscode/modelPresentation.ts": {
-    "TS2554": 1
   },
   "src/lib/ws/handshake.ts": {
     "TS2339": 1

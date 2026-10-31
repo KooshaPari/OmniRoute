@@ -26,6 +26,8 @@ import { join } from "node:path";
 // top-level node:fs/node:os/node:path imports into the browser build — doing so
 // made webpack fail with `UnhandledSchemeError: Reading from "node:fs"` and
 // returned HTTP 500 for every page route. Re-exported to preserve the API.
+// The value is imported (not only re-exported) because this module also uses it
+// as the fallback pin below; a bare `export ... from` creates no local binding.
 import { CURSOR_AGENT_CLI_VERSION } from "./cursorAgentCliVersion.constants.ts";
 export { CURSOR_AGENT_CLI_VERSION };
 
