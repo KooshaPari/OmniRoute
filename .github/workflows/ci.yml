@@ -105,7 +105,18 @@ jobs:
           cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      - run: npm run audit:deps
+      # Audit with the package manager that owns the lockfile. `npm run audit:deps`
+      # cannot work in this job: dependencies are installed by pnpm (npm-ci-retry
+      # runs `pnpm install --frozen-lockfile`), and npm's Arborist requires
+      # node_modules/.package-lock.json, which pnpm never writes. The step died on
+      # every run with `ENOLOCK / loadVirtual requires existing shrinkwrap file`
+      # before auditing anything, so the security check was silently not running.
+      # Semantics preserved from the old audit:deps script: critical severities
+      # fail the job (bash -e on the first line), high severities only warn.
+      - name: Audit dependencies (pnpm-native)
+        run: |
+          pnpm audit --audit-level critical
+          pnpm audit --audit-level high || echo '::warning::high-severity advisories present (non-blocking)'
       - name: Restore ESLint file cache
         uses: actions/cache@v6
         with:
