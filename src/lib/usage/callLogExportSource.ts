@@ -23,13 +23,6 @@ import type { LogExportRecord, LogExportSourceRow } from "../logExport/types";
 /** Cap applied per payload field when a destination does not set its own. */
 export const DEFAULT_MAX_BODY_BYTES = 262_144;
 
-export interface CallLogExportOptions {
-  /** Attach request/response payloads. Off by default: these carry prompt content. */
-  includeBodies?: boolean;
-  /** Per-field byte cap; oversized payloads are truncated, never dropped. */
-  maxBodyBytes?: number;
-}
-
 const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
 
 type ExportSourceRow = {

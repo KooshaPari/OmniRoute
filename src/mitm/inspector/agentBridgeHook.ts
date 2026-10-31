@@ -24,15 +24,6 @@ export interface RecordRequestStartOpts {
   sessionId?: string;
 }
 
-export interface RecordRequestCompleteOpts {
-  status: number;
-  responseHeaders: Record<string, string>;
-  responseBody: string | null;
-  responseSize: number;
-  proxyLatencyMs: number;
-  upstreamLatencyMs: number;
-}
-
 /**
  * Build the initial buffer entry and push it. Returned object is mutable by
  * design — handlers call `recordRequestComplete()` (or `recordRequestError`)
