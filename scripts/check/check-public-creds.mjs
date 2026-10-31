@@ -102,6 +102,22 @@ export const KNOWN_LITERAL_CREDS = new Set([
   "open-sse/services/usage/minimax.ts:213:minimax", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (getMiniMaxUsage signature)
   "open-sse/services/usage/minimax.ts:213:minimax-cn", // TODO(6A.8): pre-existing FP — TS fn-param type, not a credential (getMiniMaxUsage signature)
   "open-sse/executors/zcodeProtocol.ts:313:omniroute-${process.pid}", // local per-process ZCode handshake ID, not an upstream credential
+  // RFC 8252 public OAuth client identifiers for native/device-code apps. These are
+  // distributed inside the providers' own public clients, so they are credentials by
+  // name only — they cannot be secret. Five of the six are plain app slugs
+  // ("qwen-cli", "kiro-cli", "kimi-coding-cli", "kilocode-cli", "codebuddy-cn-cli")
+  // and trip this gate purely because the assignment key is named `clientId`; only
+  // "Iv1.b507a08c87ecfe98" (GitHub) matches a scanner regex. Freezing rather than
+  // masking because XOR-masking a non-secret slug is obfuscation with no security
+  // value. Tracked migration: option to route these through resolvePublicCred() so
+  // self-hosted operators can override client IDs via env; not done here to keep
+  // this change comment-only at the call site.
+  "open-sse/lib/deviceCodeProviders.ts:14:qwen-cli",
+  "open-sse/lib/deviceCodeProviders.ts:19:kiro-cli",
+  "open-sse/lib/deviceCodeProviders.ts:24:Iv1.b507a08c87ecfe98",
+  "open-sse/lib/deviceCodeProviders.ts:29:kimi-coding-cli",
+  "open-sse/lib/deviceCodeProviders.ts:34:kilocode-cli",
+  "open-sse/lib/deviceCodeProviders.ts:39:codebuddy-cn-cli",
 ]);
 
 /**
