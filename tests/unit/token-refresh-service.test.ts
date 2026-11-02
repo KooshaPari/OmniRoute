@@ -394,10 +394,7 @@ test("refreshCodexToken recognizes refresh_token_reused responses", async () => 
   );
 });
 
-// Port from decolua/9router#1821 (sacwooky): a 401 from OpenAI's OAuth token
-// endpoint means the refresh credential itself was rejected (e.g. rotated away
-// or a payload whose error code we do not yet recognize). Retrying with the
-// same refresh token will never succeed — surface re-auth, do not loop.
+// Port from decolua/9router#1821 (sacwooky): a 401 from OpenAI's OAuth token endpoint means the refresh credential itself was rejected (e.g. rotated away or a payload whose error code we do not yet recognize). Retrying with the same refresh token will never succeed — surface re-auth, do not loop.
 test("refreshCodexToken treats any 401 from the token endpoint as unrecoverable", async () => {
   const log = createLog();
 
@@ -406,8 +403,7 @@ test("refreshCodexToken treats any 401 from the token endpoint as unrecoverable"
       textResponse(
         JSON.stringify({
           error: {
-            // A payload variant whose code/type are NOT in the existing
-            // unrecoverable set — only the 401 status proves the token is dead.
+            // A payload variant whose code/type are NOT in the existing unrecoverable set — only the 401 status proves the token is dead.
             message: "Could not validate your token. Please try signing in again.",
             type: "invalid_request_error",
           },
@@ -537,9 +533,7 @@ test("refreshKiroToken falls back to the social-auth refresh endpoint", async ()
   });
 });
 
-// Issue #2328 — once a social-auth token has clientId/clientSecret stored
-// (because it was imported after v3.8.0), refreshKiroToken must use the AWS OIDC
-// endpoint, not the shared social-auth endpoint, even though authMethod is "google".
+// Issue #2328 — once a social-auth token has clientId/clientSecret stored (because it was imported after v3.8.0), refreshKiroToken must use the AWS OIDC endpoint, not the shared social-auth endpoint, even though authMethod is "google".
 test("refreshKiroToken uses AWS OIDC path for social-auth token when clientId is present (#2328)", async () => {
   const log = createLog();
   const calls: any[] = [];
@@ -591,10 +585,7 @@ test("refreshKiroToken uses AWS OIDC path for social-auth token when clientId is
   });
 });
 
-// Issue #2467 — an IMPORTED social token (authMethod === "imported") carries a
-// freshly-registered clientId/clientSecret, but its refresh token is Kiro-social-issued
-// and the isolated OIDC client cannot refresh it. It must use the social-auth endpoint,
-// NOT AWS OIDC (which is what #2328 enabled for authMethod "google").
+// Issue #2467 — an IMPORTED social token (authMethod === "imported") carries a freshly-registered clientId/clientSecret, but its refresh token is Kiro-social-issued and the isolated OIDC client cannot refresh it. It must use the social-auth endpoint, NOT AWS OIDC (which is what #2328 enabled for authMethod "google").
 test("refreshKiroToken uses social-auth path for imported token even with clientId (#2467)", async () => {
   const log = createLog();
   const calls: any[] = [];
@@ -677,12 +668,7 @@ test("refreshQoderToken uses basic auth once qoder oauth settings are configured
 });
 
 test("refreshGitHubToken sends the real public github client_id and no client_secret (port from 9router#442)", async () => {
-  // GitHub Copilot's OAuth app is a public device-flow client: it has a client_id but
-  // NO client_secret. PROVIDERS.github.clientId must be populated from the embedded public
-  // cred so the refresh request actually carries a client_id — a missing one makes GitHub
-  // reject the refresh. The previous test patched a fake clientId/clientSecret onto
-  // PROVIDERS.github, masking the fact that the real config had neither. This uses the real
-  // config and asserts the real client_id is sent and no client_secret leaks out.
+  // GitHub Copilot's OAuth app is a public device-flow client: it has a client_id but NO client_secret. PROVIDERS.github.clientId must be populated from the embedded public cred so the refresh request actually carries a client_id — a missing one makes GitHub reject the refresh. The previous test patched a fake clientId/clientSecret onto PROVIDERS.github, masking the fact that the real config had neither. This uses the real config and asserts the real client_id is sent and no client_secret leaks out.
   const log = createLog();
   const calls: any[] = [];
 
@@ -1299,10 +1285,7 @@ test("getAccessToken per-connection mutex: mutex cleared after success, next cal
   const log = createLog();
   let upstreamCallCount = 0;
 
-  // The rotation map (added for the codex-multi-auth pattern) is process-wide
-  // and intentionally redirects a stale-token caller to the cached rotated
-  // tokens. Clear it BEFORE and BETWEEN calls so this test exercises the
-  // lower-level mutex semantics it was designed for.
+  // The rotation map (added for the codex-multi-auth pattern) is process-wide and intentionally redirects a stale-token caller to the cached rotated tokens. Clear it BEFORE and BETWEEN calls so this test exercises the lower-level mutex semantics it was designed for.
   tokenRefresh._clearTokenRotationMap();
 
   await withPatchedProperties(

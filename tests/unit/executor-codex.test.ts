@@ -251,8 +251,7 @@ test("CodexExecutor.transformRequest injects default instructions, clamps reason
   assert.equal(result.stream_options, undefined);
 });
 
-// Issue #2608: gpt-5.5 models reject residual Chat Completions fields via Codex OAuth.
-// The non-passthrough path must strip ALL non-Responses-API fields using an allowlist.
+// Issue #2608: gpt-5.5 models reject residual Chat Completions fields via Codex OAuth. The non-passthrough path must strip ALL non-Responses-API fields using an allowlist.
 test("CodexExecutor.transformRequest non-passthrough allowlist strips all residual Chat Completions fields (#2608)", () => {
   const executor = new CodexExecutor();
   const body = {
@@ -525,8 +524,7 @@ test("CodexExecutor.transformRequest preserves commentary and strips orphan summ
     ),
     true
   );
-  // Summary-only reasoning is display state, not continuation state. Replaying it
-  // with store=false only inflates every subsequent agentic turn (decolua/9router#1599).
+  // Summary-only reasoning is display state, not continuation state. Replaying it with store=false only inflates every subsequent agentic turn (decolua/9router#1599).
   assert.equal(
     result.input.some((item) => item.type === "reasoning"),
     false
@@ -966,8 +964,7 @@ test("CodexExecutor.execute falls back to HTTP when websocket transport is unava
       },
     });
 
-    // When WS transport is unavailable, isCodexResponsesWebSocketRequired returns false
-    // and the executor falls back to HTTP via super.execute()
+    // When WS transport is unavailable, isCodexResponsesWebSocketRequired returns false and the executor falls back to HTTP via super.execute()
     assert.equal(result.response.status, 200);
     assert.equal(getRecord(result.transformedBody).model, "gpt-5.5");
   } finally {
@@ -1388,10 +1385,7 @@ test("CodexExecutor.refreshCredentials refreshes OAuth tokens and returns null w
 });
 
 test("CodexExecutor.refreshCredentials returns null for unrecoverable errors to preserve original credentials", async () => {
-  // Source intentionally returns null (not an error object) so that base.ts does
-  // not spread stale error fields onto activeCredentials. The upstream 401/403
-  // drives the proper re-auth / mark-expired path instead.
-  // Source: open-sse/executors/codex.ts — refreshCredentials(), lines ~1205-1216.
+  // Source intentionally returns null (not an error object) so that base.ts does not spread stale error fields onto activeCredentials. The upstream 401/403 drives the proper re-auth / mark-expired path instead. Source: open-sse/executors/codex.ts — refreshCredentials(), lines ~1205-1216.
   const executor = new CodexExecutor();
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>

@@ -261,8 +261,7 @@ test("Responses -> Chat filters orphan tool outputs and supports role-based mess
 });
 
 test("Responses -> Chat rejects unsupported built-in tools (non-web_search)", () => {
-  // file_search and code_interpreter are Responses-API-only tools with no Chat Completions
-  // equivalent and are not in the web_search family — they must still throw 400.
+  // file_search and code_interpreter are Responses-API-only tools with no Chat Completions equivalent and are not in the web_search family — they must still throw 400.
   assert.throws(
     () =>
       openaiResponsesToOpenAIRequest(
@@ -279,8 +278,7 @@ test("Responses -> Chat rejects unsupported built-in tools (non-web_search)", ()
 });
 
 test("Responses -> Chat passes through web_search_preview tool (web_search family)", () => {
-  // web_search_preview is OpenAI's Responses API server tool; it matches ^web_search and
-  // is preserved as-is rather than rejected with 400.
+  // web_search_preview is OpenAI's Responses API server tool; it matches ^web_search and is preserved as-is rather than rejected with 400.
   const result = openaiResponsesToOpenAIRequest(
     "gpt-4o",
     {
@@ -296,10 +294,7 @@ test("Responses -> Chat passes through web_search_preview tool (web_search famil
 });
 
 test("Responses -> Chat strips background flag and degrades to synchronous execution", () => {
-  // Previously this threw 400 unsupported_feature. OmniRoute is a forward proxy
-  // and cannot host the deferred run + poll contract, so background=true is
-  // silently dropped and the request runs synchronously. Clients that set the
-  // flag opportunistically (Capy Captain Pro, Codex agents) work unchanged.
+  // Previously this threw 400 unsupported_feature. OmniRoute is a forward proxy and cannot host the deferred run + poll contract, so background=true is silently dropped and the request runs synchronously. Clients that set the flag opportunistically (Capy Captain Pro, Codex agents) work unchanged.
   const warnLog: string[] = [];
   const originalWarn = console.warn;
   console.warn = (msg: unknown) => warnLog.push(String(msg));
@@ -327,10 +322,7 @@ test("Responses -> Chat strips background flag and degrades to synchronous execu
 });
 
 test("Responses -> Chat passes through when background flag is unset or false (no degrade log)", () => {
-  // Verifies the inverse of the degradation case: when background is absent or
-  // explicitly false, no warning should be emitted and the request body should
-  // not carry a residual background field. Guards against accidental log spam
-  // and confirms the degradation logic is conditional on background === true.
+  // Verifies the inverse of the degradation case: when background is absent or explicitly false, no warning should be emitted and the request body should not carry a residual background field. Guards against accidental log spam and confirms the degradation logic is conditional on background === true.
   const warnLog: string[] = [];
   const originalWarn = console.warn;
   console.warn = (msg: unknown) => warnLog.push(String(msg));
@@ -367,8 +359,7 @@ test("Responses -> Chat passes through when background flag is unset or false (n
 });
 
 test("Responses -> Chat strips safety_identifier (LobeHub #2770)", () => {
-  // LobeHub sends safety_identifier in Responses API bodies. Chat Completions rejects it
-  // with HTTP 400. The translator must strip it in the Responses-API cleanup block.
+  // LobeHub sends safety_identifier in Responses API bodies. Chat Completions rejects it with HTTP 400. The translator must strip it in the Responses-API cleanup block.
   const result = openaiResponsesToOpenAIRequest(
     "gpt-4o",
     {
@@ -388,9 +379,7 @@ test("Responses -> Chat strips safety_identifier (LobeHub #2770)", () => {
 });
 
 test("Responses -> Chat strips client_metadata (Mistral 422 fix)", () => {
-  // Codex CLI always sends client_metadata in Responses API requests. Mistral (and other
-  // strict upstreams) reject it with HTTP 422 extra_forbidden. The translator must strip
-  // the field in the Responses-API cleanup block so it never reaches the upstream.
+  // Codex CLI always sends client_metadata in Responses API requests. Mistral (and other strict upstreams) reject it with HTTP 422 extra_forbidden. The translator must strip the field in the Responses-API cleanup block so it never reaches the upstream.
   const result = openaiResponsesToOpenAIRequest(
     "mistral-large-latest",
     {
@@ -411,9 +400,7 @@ test("Responses -> Chat strips client_metadata (Mistral 422 fix)", () => {
 });
 
 test("Chat -> Responses clamps call_id to 64 chars and keeps the pair matched (port from 9router#396)", () => {
-  // The Responses API rejects call_id values longer than 64 characters. A long
-  // upstream tool-call id must be clamped on BOTH the function_call and its matching
-  // function_call_output, identically, so the orphan filter still pairs them.
+  // The Responses API rejects call_id values longer than 64 characters. A long upstream tool-call id must be clamped on BOTH the function_call and its matching function_call_output, identically, so the orphan filter still pairs them.
   const longId = "call_" + "a".repeat(80); // 85 chars, > 64
   const result = openaiToOpenAIResponsesRequest(
     "gpt-4o",
@@ -872,9 +859,7 @@ test("Chat -> Responses maps reasoning_effort into Responses reasoning", () => {
     null
   );
 
-  // Effort-only chat requests now default `summary: "auto"` + the encrypted
-  // reasoning include so Responses-API upstreams stream thinking back to the
-  // chat client (previously the summary was empty and no think was visible).
+  // Effort-only chat requests now default `summary: "auto"` + the encrypted reasoning include so Responses-API upstreams stream thinking back to the chat client (previously the summary was empty and no think was visible).
   assert.deepEqual((result as any).reasoning, { effort: "low", summary: "auto" });
   assert.deepEqual((result as Record<string, unknown>).include, ["reasoning.encrypted_content"]);
   assert.equal((result as any).reasoning_effort, undefined);
@@ -1003,9 +988,7 @@ test("Chat -> Responses prefers max_completion_tokens over max_tokens when both 
 });
 
 test("Responses -> Chat drops `reasoning` and promotes effort to reasoning_effort even without Copilot marker", () => {
-  // Updated per upstream PR decolua/9router#1817 (ryanngit): the OpenAI-native
-  // `reasoning_effort` hint is always preserved across the Responses -> Chat
-  // hop; only the Copilot-specific `summary` -> Claude marker stays gated.
+  // Updated per upstream PR decolua/9router#1817 (ryanngit): the OpenAI-native `reasoning_effort` hint is always preserved across the Responses -> Chat hop; only the Copilot-specific `summary` -> Claude marker stays gated.
   const result = openaiResponsesToOpenAIRequest(
     "claude-opus-4-7",
     {
@@ -1168,8 +1151,7 @@ test("Responses -> Chat: unknown tool type still throws unsupported_feature (no 
 // --- Issue #2766: tool_search built-in should be silently dropped ---
 
 test("Responses -> Chat: tool_search does not throw (issue #2766)", () => {
-  // Codex newer clients send tool_search as a Responses API built-in.
-  // OmniRoute must not return 400 — it should silently drop the tool_search entry.
+  // Codex newer clients send tool_search as a Responses API built-in. OmniRoute must not return 400 — it should silently drop the tool_search entry.
   assert.doesNotThrow(() =>
     openaiResponsesToOpenAIRequest(
       "gpt-4o",
@@ -1184,9 +1166,7 @@ test("Responses -> Chat: tool_search does not throw (issue #2766)", () => {
 });
 
 test("Responses -> Chat: tool_search is mapped to a Chat function tool, not dropped (#7532)", () => {
-  // tool_search (execution: "client") is client-resolved, same as local_shell -> shell;
-  // dropping it (#2766) hid the tool and broke Codex's deferred tool-discovery on
-  // downgrade (#7532) — it is now mapped to a Chat function tool instead.
+  // tool_search (execution: "client") is client-resolved, same as local_shell -> shell; dropping it (#2766) hid the tool and broke Codex's deferred tool-discovery on downgrade (#7532) — it is now mapped to a Chat function tool instead.
   const result = openaiResponsesToOpenAIRequest(
     "gpt-4o",
     {
@@ -1222,9 +1202,7 @@ test("Responses -> Chat: tool_search is mapped to a Chat function tool, not drop
 // --- Issue #2950: image_generation built-in should be silently dropped ---
 
 test("Responses -> Chat: image_generation does not throw (issue #2950)", () => {
-  // Codex Desktop injects an image_generation hosted tool into every Responses
-  // request, even text-only ones. It has no Chat Completions equivalent and must
-  // be dropped silently, not rejected with 400.
+  // Codex Desktop injects an image_generation hosted tool into every Responses request, even text-only ones. It has no Chat Completions equivalent and must be dropped silently, not rejected with 400.
   assert.doesNotThrow(() =>
     openaiResponsesToOpenAIRequest(
       "gpt-4o",
@@ -1424,9 +1402,7 @@ test("Responses -> Chat: a valid function_call/output pair is preserved (issue #
 
 // --- AI SDK image content part (#1330) ---
 test("Chat -> Responses converts AI SDK image content part to input_image", () => {
-  // AI SDK emits image parts as { type: "image", image: "data:...;base64,..." }
-  // rather than the OpenAI { type: "image_url", image_url: { url } } shape. The
-  // Responses translator must forward them as input_image (#1330).
+  // AI SDK emits image parts as { type: "image", image: "data:...;base64,..." } rather than the OpenAI { type: "image_url", image_url: { url } } shape. The Responses translator must forward them as input_image (#1330).
   const imageUrl = "data:image/png;base64,iVBORw0KGgo=";
   const result = openaiToOpenAIResponsesRequest(
     "gpt-5.2",

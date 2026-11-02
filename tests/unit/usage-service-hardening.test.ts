@@ -22,13 +22,11 @@ test.afterEach(() => {
 });
 
 test("usage service covers GitHub free-plan parsing, auth denial and unsupported providers", async () => {
-  // Free-plan fixture aligned with the upstream protocol (#2876): in
-  // `copilot_internal/user`, `limited_user_quotas[name]` is the REMAINING
-  // count for the month and counts down toward 0; `monthly_quotas[name]`
-  // is the total allowance. The chat numbers below (410 / 500) are the
-  // example values from robinebers/openusage docs/providers/copilot.md.
-  // We also keep an out-of-range premium_interactions remaining (70 > 50)
-  // to assert the defensive clamp at the upstream boundary.
+  // Free-plan fixture aligned with the upstream protocol (#2876): in `copilot_internal/user`,
+  // `limited_user_quotas[name]` is the REMAINING count for the month and counts down toward 0;
+  // `monthly_quotas[name]` is the total allowance. The chat numbers below (410 / 500) are the
+  // example values from robinebers/openusage docs/providers/copilot.md. We also keep an out-of-range
+  // premium_interactions remaining (70 > 50) to assert the defensive clamp at the upstream boundary.
   const calls: any[] = [];
   globalThis.fetch = async (_url, init = {}) => {
     calls.push(init);
@@ -57,8 +55,8 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
   });
 
   assert.equal(freeUsage.plan, "Copilot Free");
-  // premium_interactions: upstream remaining=70 clamped to total=50 → fully
-  // available, 0 used, 100% remaining.
+  // premium_interactions: upstream remaining=70 clamped to total=50 → fully available, 0 used, 100%
+  // remaining.
   assert.equal(freeUsage.quotas.premium_interactions.total, 50);
   assert.equal(freeUsage.quotas.premium_interactions.remaining, 50);
   assert.equal(freeUsage.quotas.premium_interactions.used, 0);
@@ -210,9 +208,9 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   });
 
   assert.equal(usage.plan, "Ultra");
-  // #3184: claude-sonnet-4-6 is user-callable on the Antigravity backend, so its quota is
-  // surfaced. tab_flash_lite_preview (not chat-callable), gemini-unlimited (no quota), and
-  // internal-model (internal) are still filtered out by the hardening logic.
+  // #3184: claude-sonnet-4-6 is user-callable on the Antigravity backend, so its quota is surfaced.
+  // tab_flash_lite_preview (not chat-callable), gemini-unlimited (no quota), and internal-model
+  // (internal) are still filtered out by the hardening logic.
   assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-pro-agent"]);
   assert.equal(usage.quotas["gemini-pro-agent"].total, 0);
   assert.equal(usage.quotas["gemini-pro-agent"].remainingPercentage, 100);
@@ -876,8 +874,8 @@ test("usage service covers Codex auth failures, Kiro hard failures and Kimi no-q
 });
 
 test("usage service covers Qoder, GLM, Z.AI and GLMT branches", async () => {
-  // Qoder now reads its PAT from `apiKey` (not `accessToken`); with no PAT the
-  // usage fetcher returns a friendly prompt instead of hitting the network.
+  // Qoder now reads its PAT from `apiKey` (not `accessToken`); with no PAT the usage fetcher returns
+  // a friendly prompt instead of hitting the network.
   const qoder: any = await usageService.getUsageForProvider({
     provider: "qoder",
     accessToken: "qoder-token",
@@ -1450,15 +1448,15 @@ test("usage service opencode no-key returns missing-key message", async () => {
 });
 
 test("usage service opencode catch-block uses sanitizeErrorMessage (no raw stack in output)", async () => {
-  // getOpencodeUsage's catch block now calls sanitizeErrorMessage(error) instead of
-  // (error as Error).message. Verify the sanitization contract by directly invoking
-  // the exposed __testing.getOpencodeUsage with a fake fetchOpencodeQuota that
-  // throws an error whose message embeds a stack-trace path.
+  // getOpencodeUsage's catch block now calls sanitizeErrorMessage(error) instead of (error as
+  // Error).message. Verify the sanitization contract by directly invoking the exposed
+  // __testing.getOpencodeUsage with a fake fetchOpencodeQuota that throws an error whose message
+  // embeds a stack-trace path.
   //
-  // Because fetchOpencodeQuota is fail-open (always returns null on error), the
-  // only way to exercise the catch branch inside getOpencodeUsage is to import the
-  // sanitization function directly and assert it behaves correctly for the exact
-  // error format used in that catch block — confirming the fix is load-bearing.
+  // Because fetchOpencodeQuota is fail-open (always returns null on error), the only way to exercise
+  // the catch branch inside getOpencodeUsage is to import the sanitization function directly and
+  // assert it behaves correctly for the exact error format used in that catch block — confirming the
+  // fix is load-bearing.
   const { sanitizeErrorMessage } = await import("../../open-sse/utils/error.ts");
 
   const rawMsg =
@@ -1466,8 +1464,8 @@ test("usage service opencode catch-block uses sanitizeErrorMessage (no raw stack
 
   const sanitized = sanitizeErrorMessage(rawMsg);
 
-  // sanitizeErrorMessage strips everything after the first newline (stack frames)
-  // and replaces absolute paths on the first line with <path>.
+  // sanitizeErrorMessage strips everything after the first newline (stack frames) and replaces
+  // absolute paths on the first line with <path>.
   assert.ok(
     !sanitized.includes("at /home"),
     `sanitized message must not contain 'at /home', got: ${sanitized}`

@@ -907,11 +907,7 @@ function buildWsUrl(authorization: string, requestId: string): string {
 
 type GraphqlResult = { ok: true } | { ok: false; error: string };
 
-/**
- * Narrows the failure arm. Under this workspace's `strictNullChecks: false`, a
- * boolean-literal discriminant narrows the positive branch but not the negative one, so
- * `!result.ok` leaves the full union and `.error` is unreachable to the checker.
- */
+/** Narrows the failure arm. Under this workspace's `strictNullChecks: false`, a boolean-literal discriminant narrows the positive branch but not the negative one, so `!result.ok` leaves the full union and `.error` is unreachable to the checker. */
 function isGraphqlFailure(result: GraphqlResult): result is Extract<GraphqlResult, { ok: false }> {
   return !result.ok;
 }

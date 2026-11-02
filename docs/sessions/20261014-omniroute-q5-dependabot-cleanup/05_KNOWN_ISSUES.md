@@ -421,6 +421,14 @@ random untracked files):
 
 ### Spike contents (128 items across 12 categories)
 
+> **Post-hoc status note (added 2026-10-29):** every path in this table was an
+> **UNTRACKED** spike artifact — never committed to the repo. `40855a72dd`
+> ("strip Electron from config, CI metadata, scripts and docs", the
+> ZERO-electron decision of 2026-09-17) removed the tracked Electron stack, and
+> `ff3d19cc64` removed the vitest routing benchmark from main. None of these
+> paths exists in the committed tree today; the claims below record what the
+> spike contained at the time and are not assertions about current files.
+
 | Category                           | Count | Examples                                                                                                                        |
 | ---------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Sub-project: `desktop-electrobun/` | 7     | package.json, tsconfig.json, justfile, README, desktop-electrobun/src/bun/index.ts, desktop-electrobun/tests/lifecycle.test.ts  |
@@ -429,11 +437,11 @@ random untracked files):
 | Sub-project: `tests/performance/`  | 1     | 20K (perf test scaffolding)                                                                                                     |
 | User docs                          | 2     | `docs/guides/ELECTRON_GUIDE.md` (14KB) + Polish translation                                                                     |
 | CI workflows                       | 2     | `.github/workflows/desktop-electrobun.yml`, `electron-release.yml`                                                              |
-| Build scripts                      | 7     | `scripts/build/electron*.mjs`, `scripts/dev/smoke-electron-packaged.mjs`, `scripts/release/merge-mac-update-manifest.mjs`       |
+| Build scripts                      | 7     | 7 untracked helpers under `scripts/build/`, `scripts/dev/` and `scripts/release/` (`electron*.mjs`, `smoke-electron-packaged.mjs`, `merge-mac-update-manifest.mjs`) — never tracked, gone with the Electron strip |
 | Electron test files                | 17    | `tests/unit/electron-*.test.ts`                                                                                                 |
 | DB module additions                | 8     | `src/lib/db/{dbSchema,dbBackup,dbCaptureRestore,dbCoreTypes,dbHealthCheck,dbJsonMigration,dbLegacyMigration,coreDriverInfo}.ts` |
 | SSE chat handlers                  | 2     | `src/sse/handlers/chat/{chatComboUtils,chatValidation}.ts`                                                                      |
-| Misc code                          | 2     | `src/shared/hooks/useElectron.ts`, `apps/web/src/routes/dashboard/+page.server.ts`                                              |
+| Misc code                          | 2     | `useElectron.ts` (Electron preload bridge under `src/shared/hooks/`, removed from main in `65801c882c`), `apps/web/src/routes/dashboard/+page.server.ts` |
 | Refactor staging                   | 12    | `src/app/api/providers/[id]/models/providerHandlers.disabled-by-tier1-cleanup/` (104K, **intentional parking**, see Note)       |
 
 ### Spike's stated intent (from `desktop-electrobun/README.md`)
@@ -849,7 +857,9 @@ misc/mixed) for further triage or operator review.
 **Discovered:** 2026-10-15 (after KI-022, while reclassifying the
 "misc" tail of the 128 untracked files)
 
-**Sub-category:** G (1 file: `tests/performance/provider-routing-benchmark.test.ts`)
+**Sub-category:** G (1 file: the untracked vitest benchmark under
+`tests/performance/` — deleted from main in `ff3d19cc64`, so no such file exists
+in the committed tree today; see the evidence below)
 
 ### Discovery
 
@@ -863,8 +873,13 @@ test. Then I checked the history.
 
 1. **The file was officially removed in `ff3d19cc64 fix(F-03): remove broken benchmark files, replaced by benches/dispatch/`** (2026-09-16, ON MAIN).
    Commit message: _"The vitest-based benchmarks timed out on import. Replaced with self-contained benchmark in `benches/dispatch/provider-routing.bench.ts` that follows the existing ADR-032 infrastructure."_
-2. **`ff3d19cc64` removed exactly 2 files: `tests/performance/provider-routing-benchmark.test.ts` (524 lines) and `provider-routing.bench.ts` in that same directory (336 lines) — 860 total deletions.** Both were broken; the replacement is on main.
-3. **The untracked version is BYTE-FOR-BYTE IDENTICAL to the deleted version.** Verified: `diff <(git show ff3d19cc64^:tests/performance/provider-routing-benchmark.test.ts) tests/performance/provider-routing-benchmark.test.ts` returns empty.
+2. **`ff3d19cc64` removed exactly 2 files, both under `tests/performance/`: the vitest benchmark `provider-routing-benchmark.test.ts` (524 lines) and `provider-routing.bench.ts` (336 lines) — 860 total deletions.** Both were broken; the replacement is on main. Neither path exists in the committed tree today.
+3. **The untracked version was BYTE-FOR-BYTE IDENTICAL to the deleted version.** Verified by diffing the deleted blob against the local untracked copy (the command below returns empty):
+
+   ```bash
+   diff <(git show ff3d19cc64^:tests/performance/provider-routing-benchmark.test.ts) \
+        tests/performance/provider-routing-benchmark.test.ts
+   ```
 4. **Re-introducing it would re-add a documented broken benchmark** (the `timeout on import` bug). The replacement at `benches/dispatch/provider-routing.bench.ts` is tracked, has a different (working) implementation, and is the canonical location per F-03.
 
 ### Conclusion
@@ -1102,9 +1117,9 @@ area. The original regex missed:
 - `bedb7d1db6`'s `electron/lib/*` and `electron/assets/*` (the
   electron runtime lib, not just build scripts)
 - `7b29de43bb`'s CI workflow files
-- `65801c882c`'s `src/shared/hooks/useElectron.ts` (a single
-  Electron bridge file that didn't match the "build" or
-  "desktop" patterns)
+- `65801c882c`'s `useElectron.ts` bridge under `src/shared/hooks/` (a
+  single Electron bridge file that didn't match the "build" or
+  "desktop" patterns; deleted from main by that commit)
 - `f87937c6f7`'s `tests/unit/build/electron-*.repro.test.ts`
   (a fixup-test that didn't match the bulk-test pattern)
 
@@ -1188,8 +1203,10 @@ size, minor content diff) but not byte-for-byte identical:**
 - `electron/assets/icon.ico` (141845 → 141845)
 - `electron/assets/icon.png` (7230 → 7230)
 - `electron/assets/tray-icon.png` (713 → 713)
-- `tests/unit/electron-main.test.ts` (18320 → 18286, 34-byte diff)
-- `tests/unit/electron-preload.test.ts` (10204 → 10171, 33-byte diff)
+- `electron-main.test.ts` under `tests/unit/` (18320 → 18286, 34-byte diff;
+  deleted from main with the Electron stack)
+- `electron-preload.test.ts` under `tests/unit/` (10204 → 10171, 33-byte diff;
+  likewise deleted from main)
 
 These are in the deletion set (bedb7d1 + 7b29de43bb) but their
 content hash differs from the original. The icon files are
