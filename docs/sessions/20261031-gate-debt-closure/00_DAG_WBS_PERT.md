@@ -164,9 +164,69 @@ Measured result for all 30 files:
 | **Stale / genuinely broken** | **17** | 12 vitest (74 failing, 225 passing tests) + 5 node:test          |
 | **Needs a browser (UNRUN)**  | **2**  | `tests/a11y/baseline.spec.ts`, `tests/visual/regression.spec.ts` |
 
+#### Repair progress (vitest subset, re-measured after `927c71c02c`)
+
+|                                   | files failing | failing tests | passing tests |
+| --------------------------------- | ------------- | ------------- | ------------- |
+| initial                           | 12 of 18      | 74            | 225           |
+| after `927c71c02c` + `82304c8950` | **10 of 18**  | **29**        | **270**       |
+
+45 tests moved from failing to passing, and two whole files (`chatForkState.diff.test.ts`
+10F→0F, `quotaSnapshots.test.ts` 3F→0F) went green. Two root causes, both repaired:
+
+1. **Lost exports.** `6b14884af4` ("restore 8808 files lost to git clean" — itself a destructive
+   event) dropped `shouldTripBreakerForAllRateLimited` and
+   `PROVIDER_BREAKER_FAILURE_STATUSES_SORTED` from `chatPredicates.ts`. Three test files import
+   them. Restored verbatim from `d169697210` on `origin/fix/sse-handlers-2026-10-19`, which had
+   already written them. Both are pure helpers with no production caller, so this cannot change
+   runtime behaviour.
+2. **Test-local camelCase/snake_case mismatch.** `quotaSnapshots.test.ts`'s helper read
+   `snapshot.connectionId` against a snake_case schema, inserting NULL into a `NOT NULL` column.
+
+**What is deliberately NOT fixed**, because it fails the "does the behaviour demonstrably exist"
+test:
+
+| File                                                 | Failure                                    | Why left alone                                                                                                                                                                                                                                |
+| ---------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `formatting.test.ts` (6F)                            | `formatCostAbbreviated is not a function`  | The function **never existed in any revision** (`git log -S` is empty; absent at `bf65512098`, `6b14884af4`, HEAD). Also asserts `formatCost(null) === "$0"` while the impl returns `"$0.00"`. Needs rewrite-or-delete, not production edits. |
+| `chatPredicates.predicates.test.ts` (5F)             | `#7907/#7908/#8255` stream-lifecycle cases | The guard chain is identical to `bf65512098`, so these string-based expectations were never implemented. Satisfying them would change live circuit-breaker semantics on the strength of a test that has never run. Needs a product decision.  |
+| `settings.test.ts` (4F/0P), `memory.test.ts` (2F/0P) | route/mock drift                           | No passing baseline to compare against; requires reading the route under test.                                                                                                                                                                |
+
+That is the whole lesson of this section: an uncollected test can assert anything, forever, and
+nothing contradicts it. Prefer _restoring what history proves existed_ over inventing behaviour to
+satisfy an assertion that has never executed.
+
 Worst by failing count: `src/sse/handlers/__tests__/chatPredicates.predicates.test.ts` (32 fail /
 28 pass), `chatForkState.diff.test.ts` (10/13), `src/shared/utils/formatting.test.ts` (6/8),
 `src/app/api/settings/__tests__/settings.test.ts` (4 fail / 0 pass).
+
+#### Why they fail: API drift, not 17 independent bugs
+
+Clustering the 74 failures by first error line collapses them to **23 distinct causes**, and the
+top three account for **41 of the 74**. All three are _API drift_ — the test was written against a
+module API that has since changed, and nobody noticed because the test never ran.
+
+| Count  | Error                                                  | Diagnosis                                                                                                                                                                                                                                                                                                                                    |
+| ------ | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **27** | `shouldTripBreakerForAllRateLimited is not a function` | The export was **removed** from `src/sse/handlers/chatPredicates.ts` (only `PROVIDER_BREAKER_FAILURE_STATUSES`, `isProviderBreakerFailureStatus`, `shouldTripProviderBreakerForResult`, `classifyProviderBreakerResult`, `isAntigravityMissingProjectError`, `resolveStreamReadinessClassificationError` remain). The test still imports it. |
+| **10** | `Cannot read properties of undefined (reading 'join')` | `formatForkChatStateForCli` reads `snap.breakerPredicates.statusCodes.join(...)`; the field is absent on the snapshot the test builds, so it throws.                                                                                                                                                                                         |
+| **4**  | `formatCostAbbreviated is not a function`              | Same shape: `src/shared/utils/formatting.ts` exports `formatCost` / `fmtCost` but no longer `formatCostAbbreviated`.                                                                                                                                                                                                                         |
+
+Two corroborating signals that this is drift rather than a live regression:
+
+- `src/sse/handlers/chatForkState.ts` still _advertises_ `shouldTripBreakerForAllRateLimited` in its
+  `notableExports` metadata list and claims `exportCount: 6`, so the module's own description was
+  never updated when the export was dropped. The removal is visible in history at `6b14884af4`.
+- The remaining clusters are ordinary assertion drift (`expected "1m" to be "60s"`,
+  `expected '$0.00' to be '$0'`, `expected [] to deeply equal [ { id: 'default-combo' } ]`) plus one
+  real DB issue (`SqliteError: NOT NULL constraint failed: quota_snapshots.connection_id`).
+
+**Consequence:** fixing the 17 stale files is mostly _mechanical_ — update the import or call to the
+current API — not 74 independent investigations. The `quota_snapshots.connection_id` error is the one
+that may indicate a genuine product bug, and it deserves its own look.
+
+The `chatForkState.ts` metadata should also be corrected: it lists an export that no longer exists,
+which is how this drift stayed invisible.
 
 Representative root cause of the stale set (verified, not inferred):
 
