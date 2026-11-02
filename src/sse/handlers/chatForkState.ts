@@ -298,10 +298,11 @@ export const FORK_MODULES: readonly ForkModuleMetadata[] = [
     name: "chatPredicates",
     description:
       "Pure predicates + tuning constants for chat.ts (PR-δ/ε/θ). Owns the breaker-trip decision surface.",
-    exportCount: 7,
+    exportCount: 9,
     notableExports: [
       "PROVIDER_BREAKER_FAILURE_STATUSES",
       "shouldTripProviderBreakerForResult",
+      "shouldTripBreakerForAllRateLimited",
       "isProviderBreakerFailureStatus",
       "isAntigravityMissingProjectError",
     ],

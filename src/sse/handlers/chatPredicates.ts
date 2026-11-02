@@ -108,3 +108,31 @@ export function resolveStreamReadinessClassificationError(
   }
   return fallback;
 }
+
+/**
+ * Canonical sorted array form of PROVIDER_BREAKER_FAILURE_STATUSES. Used by tests and
+ * the fork-state snapshot to assert the exact set without depending on Set iteration
+ * order. Not consumed by the production dispatch path.
+ */
+export const PROVIDER_BREAKER_FAILURE_STATUSES_SORTED: readonly number[] = Object.freeze(
+  [...PROVIDER_BREAKER_FAILURE_STATUSES].sort((a, b) => a - b)
+);
+
+/**
+ * Pure predicate for the all-accounts-rate-limited breaker trip: never during a live
+ * combo test, only when every credential is rate limited, and only for a status in
+ * PROVIDER_BREAKER_FAILURE_STATUSES.
+ */
+export function shouldTripBreakerForAllRateLimited(
+  forceLiveComboTest: boolean,
+  allRateLimited: boolean | null | undefined,
+  status: number | null | undefined
+): boolean {
+  return (
+    !forceLiveComboTest &&
+    allRateLimited === true &&
+    typeof status === "number" &&
+    Number.isFinite(status) &&
+    PROVIDER_BREAKER_FAILURE_STATUSES.has(status)
+  );
+}
