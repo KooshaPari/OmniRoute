@@ -11,8 +11,10 @@ for (const name of ["163_radar_feed_cache_generated_at.sql", "169_model_capabili
   fs.copyFileSync(path.join(process.cwd(), "src/lib/db/migrations", name), path.join(dir, name));
 }
 const originalDir = process.env.OMNIROUTE_MIGRATIONS_DIR;
+await import("../../src/lib/db/migrationRunner.ts");
 process.env.OMNIROUTE_MIGRATIONS_DIR = dir;
-const { runMigrations } = await import("../../src/lib/db/migrationRunner.ts");
+const runnerPath = `../../src/lib/db/migrationRunner.ts?test163=${Date.now()}`;
+const { runMigrations } = await import(runnerPath);
 if (originalDir === undefined) delete process.env.OMNIROUTE_MIGRATIONS_DIR;
 else process.env.OMNIROUTE_MIGRATIONS_DIR = originalDir;
 
@@ -89,5 +91,38 @@ test("an occupied target slot aborts without changing the legacy ledger or data"
     );
   } finally {
     db.close();
+  }
+});
+
+test("a competing connection applying radar after planning is accepted only for the same migration", () => {
+  for (const name of ["radar_feed_cache_generated_at", "unexpected"]) {
+    const file = path.join(dir, `${name}.sqlite`);
+    const db = createNodeSqliteAdapterFromDatabase(new DatabaseSync(file), ":memory:");
+    const other = new DatabaseSync(file);
+    db.exec(`CREATE TABLE _omniroute_migrations (version TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL DEFAULT (datetime('now')));
+      INSERT INTO _omniroute_migrations (version, name) VALUES ('169', 'model_capabilities');
+      CREATE TABLE radar_feed_cache (id INTEGER PRIMARY KEY, payload TEXT);
+      INSERT INTO radar_feed_cache VALUES (1, 'preserve');`);
+    const transaction = db.transaction.bind(db);
+    let injected = false;
+    db.transaction = (fn) => {
+      if (!injected) {
+        injected = true;
+        other.exec(`ALTER TABLE radar_feed_cache ADD COLUMN generated_at TEXT;
+          INSERT INTO _omniroute_migrations (version, name) VALUES ('163', '${name}');`);
+      }
+      return transaction(fn);
+    };
+    try {
+      if (name === "unexpected") assert.throws(() => runMigrations(db), /unexpected/);
+      else assert.equal(runMigrations(db), 0);
+      assert.equal(
+        (db.prepare("SELECT payload FROM radar_feed_cache").get() as { payload: string }).payload,
+        "preserve"
+      );
+    } finally {
+      other.close();
+      db.close();
+    }
   }
 });

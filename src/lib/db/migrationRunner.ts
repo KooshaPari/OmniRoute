@@ -1054,7 +1054,22 @@ export function runMigrations(
   for (const migration of pending) {
     if (isDeferredUnsupportedMigration(db, migration)) continue;
 
+    let appliedByAnotherRunner = false;
     const applyMigration = db.transaction(() => {
+      if (migration.version === "163" && migration.name === "radar_feed_cache_generated_at") {
+        const existing = db
+          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .get(migration.version) as { name: string } | undefined;
+        if (existing) {
+          if (existing.name !== migration.name) {
+            throw new Error(
+              `[Migration] Version ${migration.version} is occupied by unexpected migration ${existing.name}.`
+            );
+          }
+          appliedByAnotherRunner = true;
+          return;
+        }
+      }
       if (atomicPhysicalReplays.has(migration.version)) {
         const removed = db
           .prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?")
@@ -1089,6 +1104,7 @@ export function runMigrations(
 
     try {
       applyMigration();
+      if (appliedByAnotherRunner) continue;
       count += 1;
       console.log(`[Migration] Applied: ${migration.version}_${migration.name}`);
     } catch (err: unknown) {
