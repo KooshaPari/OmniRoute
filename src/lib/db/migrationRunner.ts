@@ -589,6 +589,11 @@ function isSchemaAlreadyApplied(
         db.prepare("SELECT 1 FROM provider_connections WHERE provider = 'freepik' LIMIT 1").get() ==
         null
       );
+    case "163":
+      return (
+        migration.name === "radar_feed_cache_generated_at" &&
+        hasColumn(db, "radar_feed_cache", "generated_at")
+      );
     case "172":
       return (
         hasColumn(db, "provider_nodes", "daily_quota_reset_timezone") &&
@@ -1174,3 +1179,4 @@ export function getMigrationStatus(db: SqliteAdapter): {
 
   return { applied: appliedRows, pending };
 }
+

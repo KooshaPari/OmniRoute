@@ -10,6 +10,12 @@
 
 export const RENAMED_MIGRATION_COMPATIBILITY = [
   {
+    fromVersion: "163",
+    fromName: "model_capabilities",
+    toVersion: "169",
+    toName: "model_capabilities",
+  },
+  {
     fromVersion: "022",
     fromName: "call_logs_summary_storage",
     toVersion: "025",
@@ -258,3 +264,4 @@ export const PHYSICAL_SCHEMA_SENTINELS = [
 
 export const INITIAL_SCHEMA_SENTINELS = ["provider_connections", "combos", "call_logs"] as const;
 export const OPTIONAL_FTS5_MIGRATION_VERSIONS = new Set(["022", "023"]);
+
