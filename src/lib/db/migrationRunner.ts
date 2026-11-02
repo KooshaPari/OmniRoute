@@ -1063,7 +1063,7 @@ export function runMigrations(
         if (existing) {
           if (existing.name !== migration.name) {
             throw new Error(
-              `[Migration] Version ${migration.version} is occupied by unexpected migration ${existing.name}.`
+              `[Migration] Version ${migration.version} is occupied by an unexpected migration.`
             );
           }
           appliedByAnotherRunner = true;

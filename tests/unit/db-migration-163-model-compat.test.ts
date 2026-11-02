@@ -95,7 +95,7 @@ test("an occupied target slot aborts without changing the legacy ledger or data"
 });
 
 test("a competing connection applying radar after planning is accepted only for the same migration", () => {
-  for (const name of ["radar_feed_cache_generated_at", "unexpected"]) {
+  for (const name of ["radar_feed_cache_generated_at", "unexpected", "duplicate column name"]) {
     const file = path.join(dir, `${name}.sqlite`);
     const db = createNodeSqliteAdapterFromDatabase(new DatabaseSync(file), ":memory:");
     const other = new DatabaseSync(file);
@@ -114,8 +114,15 @@ test("a competing connection applying radar after planning is accepted only for 
       return transaction(fn);
     };
     try {
-      if (name === "unexpected") assert.throws(() => runMigrations(db), /unexpected/);
-      else assert.equal(runMigrations(db), 0);
+      if (name !== "radar_feed_cache_generated_at") {
+        assert.throws(() => runMigrations(db), /unexpected/);
+      } else {
+        assert.equal(runMigrations(db), 0);
+      }
+      assert.equal(
+        (db.prepare("SELECT name FROM _omniroute_migrations WHERE version = '163'").get() as { name: string }).name,
+        name
+      );
       assert.equal(
         (db.prepare("SELECT payload FROM radar_feed_cache").get() as { payload: string }).payload,
         "preserve"
