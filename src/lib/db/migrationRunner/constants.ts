@@ -264,4 +264,3 @@ export const PHYSICAL_SCHEMA_SENTINELS = [
 
 export const INITIAL_SCHEMA_SENTINELS = ["provider_connections", "combos", "call_logs"] as const;
 export const OPTIONAL_FTS5_MIGRATION_VERSIONS = new Set(["022", "023"]);
-

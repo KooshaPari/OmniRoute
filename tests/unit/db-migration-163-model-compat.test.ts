@@ -91,4 +91,3 @@ test("an occupied target slot aborts without changing the legacy ledger or data"
     db.close();
   }
 });
-
