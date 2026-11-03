@@ -900,7 +900,9 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          powershell -c "iwr bun.sh/install.ps1 -useb | iex"
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).devDependencies.bun
+          & ([scriptblock]::Create((Invoke-WebRequest bun.sh/install.ps1 -UseBasicParsing).Content)) -Version $version
+          if ((& "$env:USERPROFILE\.bun\bin\bun.exe" --version) -ne $version) { throw "Bun version mismatch" }
           echo "$env:USERPROFILE\.bun\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
       - name: Install Bun (non-Windows)
         if: runner.os != 'Windows'
