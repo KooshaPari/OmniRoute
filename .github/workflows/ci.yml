@@ -910,8 +910,8 @@ jobs:
         run: |
           set -o pipefail
           version=$(node -p "require('./package.json').devDependencies.bun")
-          curl -fsSL https://bun.com/install | bash -s "bun-v$version"
-          test "$("$HOME/.bun/bin/bun" --version)" = "$version"
+          npm install --prefix "$RUNNER_TEMP/bun-ci" --ignore-scripts=false --no-audit --no-fund "bun@$version"
+          test "$("$RUNNER_TEMP/bun-ci/node_modules/.bin/bun" --version)" = "$version"
       - name: Test Bun SQLite (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -920,7 +920,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Test Bun SQLite (non-Windows)
         if: runner.os != 'Windows'
-        run: $HOME/.bun/bin/bun test tests/unit/db-adapters/bunSqliteAdapter.test.ts tests/unit/db-adapters/driverFactory.test.ts tests/unit/db-adapters/cliSqlite.test.mjs
+        run: $RUNNER_TEMP/bun-ci/node_modules/.bin/bun test tests/unit/db-adapters/bunSqliteAdapter.test.ts tests/unit/db-adapters/driverFactory.test.ts tests/unit/db-adapters/cliSqlite.test.mjs
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
