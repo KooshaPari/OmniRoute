@@ -423,44 +423,6 @@ export async function runRestoreCommand(backupId, opts = {}) {
     return 0;
   }
 
-  const safeBackupId = String(backupId).replace(/[/\\]/g, "_");
-  const backupPath = join(backupDir, `omniroute-backup-${safeBackupId}`);
-  if (!existsSync(backupPath)) {
-    console.error(t("backup.notFound", { name: backupId }));
-    return 1;
-  }
-
-  const infoPath = join(backupPath, "backup-info.json");
-  const ts = existsSync(infoPath) ? JSON.parse(readFileSync(infoPath, "utf8")).timestamp : backupId;
-
-  if (!opts.yes) {
-    const readline = await import("node:readline");
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    const answer = await new Promise((resolve) =>
-      rl.question(t("backup.confirmRestore", { ts }) + " [y/N] ", resolve)
-    );
-    rl.close();
-    if (!/^y(es)?$/i.test(answer)) {
-      console.log(t("common.cancelled"));
-      return 0;
-    }
-  }
-
-  console.log(t("backup.restoring", { path: backupPath }));
-
-  const dataDir = resolveDataDir();
-  try {
-    for (const file of FILES_TO_BACKUP) {
-      const sourcePath = join(backupPath, file.name);
-      if (existsSync(sourcePath)) {
-        copyFileSync(sourcePath, join(dataDir, file.name));
-        console.log(`\x1b[2m  Restored: ${file.name}\x1b[0m`);
-      }
-    }
-    console.log(t("backup.restored"));
-    return 0;
-  } catch (err) {
-    console.error(t("common.error", { message: err instanceof Error ? err.message : String(err) }));
-    return 1;
-  }
+  console.error("Database and configuration restore is unavailable until exclusive writer ownership is enforced. Preserve your backup and use administrator-led offline recovery.");
+  return 1;
 }

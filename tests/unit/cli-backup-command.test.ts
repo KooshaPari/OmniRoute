@@ -107,3 +107,37 @@ test("restore returns 1 when backup id not found", async () => {
     assert.equal(result, 1);
   });
 });
+
+test("restore refuses without changing an active SQLite WAL or configuration", async () => {
+  await withBackupEnv(async (dataDir) => {
+    const { default: Database } = await import("better-sqlite3");
+    const { runRestoreCommand } = await import("../../bin/cli/commands/backup.mjs");
+    const dbPath = path.join(dataDir, "storage.sqlite");
+    const db = new Database(dbPath);
+    db.pragma("journal_mode = WAL");
+    db.exec("CREATE TABLE witness (value TEXT); INSERT INTO witness VALUES ('preserved')");
+    const config = path.join(dataDir, "settings.json");
+    fs.writeFileSync(config, "preserved-config");
+    const candidate = path.join(dataDir, "backups", "omniroute-backup-witness");
+    fs.mkdirSync(candidate, { recursive: true });
+    fs.writeFileSync(path.join(candidate, "storage.sqlite"), "candidate-data");
+    fs.writeFileSync(path.join(candidate, "settings.json"), "candidate-config");
+    const originalMain = fs.readFileSync(dbPath);
+    const originalWal = fs.readFileSync(`${dbPath}-wal`);
+    const originalError = console.error;
+    const messages: string[] = [];
+    console.error = (...args) => { messages.push(args.map(String).join(" ")); };
+    try {
+      assert.equal(await runRestoreCommand("witness", { yes: true }), 1);
+      assert.equal(await runRestoreCommand("witness"), 1);
+      assert.equal(await runRestoreCommand(undefined, { list: true }), 0);
+      assert.ok(messages.every((message) => /offline recovery/i.test(message)));
+      assert.equal(messages.length, 2);
+      assert.ok(fs.readFileSync(dbPath).equals(originalMain));
+      assert.ok(fs.readFileSync(`${dbPath}-wal`).equals(originalWal));
+      assert.equal(fs.readFileSync(config, "utf8"), "preserved-config");
+      assert.deepEqual(db.prepare("SELECT value FROM witness").get(), { value: "preserved" });
+      assert.equal(fs.readFileSync(path.join(candidate, "storage.sqlite"), "utf8"), "candidate-data");
+    } finally { console.error = originalError; db.close(); }
+  });
+});

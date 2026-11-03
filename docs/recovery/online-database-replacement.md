@@ -15,3 +15,5 @@ Startup now refuses automatic recovery when a legacy schema or failed probe woul
 The sql.js fallback refuses to open an existing database while a WAL or rollback journal sidecar is present, because its in-memory load does not replay those files. The startup file check also runs before the asynchronous initializer's first driver probe. These point-in-time checks do not prevent another writer from creating a sidecar after inspection, cover cached sql.js adapters, or establish cross-process ownership.
 
 The CLI database opener also refuses to create a missing main file when SQLite sidecars or preserved probe-failed files exist. This check does not prevent a file appearing after inspection; CLI schema and pragma writes on an existing database still lack a writer fence and pre-write snapshot.
+
+The CLI restore command also refuses replacement of database and configuration files until the ownership protocol is available; `restore --list` remains available. The refusal is not an implementation of offline recovery. Preserve the current data and backup until a verified recovery procedure is in place.
