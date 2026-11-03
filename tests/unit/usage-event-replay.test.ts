@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import Database from "better-sqlite3";
 
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-usage-event-"));
 process.env.DATA_DIR = dataDir;
@@ -33,4 +34,18 @@ test("identified usage persists once and fails closed on conflicts and receipt f
   const receipt = reopened.prepare("SELECT usage_row_id FROM usage_event_receipts WHERE event_id = ?").get("event-a") as { usage_row_id: number };
   reopened.prepare("DELETE FROM usage_history WHERE id = ?").run(receipt.usage_row_id);
   await assert.rejects(saveRequestUsage(entry), /missing usage row/);
+  reopened.exec("DROP TRIGGER fixture_receipt_failure");
+  reopened.pragma("busy_timeout = 25");
+  const controller = new Database(reopened.name);
+  controller.exec("BEGIN IMMEDIATE");
+  try {
+    await assert.rejects(saveRequestUsage({ ...entry, eventId: "event-lock" }),
+      (error: unknown) => (error as { code?: string }).code === "SQLITE_BUSY");
+  } finally {
+    controller.exec("ROLLBACK");
+    controller.close();
+  }
+  assert.equal((reopened.prepare("SELECT COUNT(*) AS n FROM usage_history").get() as { n: number }).n, 1);
+  await saveRequestUsage({ ...entry, eventId: "event-lock" });
+  assert.equal((reopened.prepare("SELECT COUNT(*) AS n FROM usage_history").get() as { n: number }).n, 2);
 });
