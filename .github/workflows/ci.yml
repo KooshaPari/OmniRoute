@@ -906,12 +906,12 @@ jobs:
           echo "$env:USERPROFILE\.bun\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
       - name: Install Bun (non-Windows)
         if: runner.os != 'Windows'
-        run: npm install -g bun
-      # .npmrc sets ignore-scripts=true, which skips bun's postinstall binary
-      # download; run it explicitly or bun is a stub without the platform binary.
-      - name: Fetch bun binary (ignore-scripts workaround)
-        if: runner.os != 'Windows'
-        run: node "$(npm root -g)/bun/install.js"
+        shell: bash
+        run: |
+          set -o pipefail
+          version=$(node -p "require('./package.json').devDependencies.bun")
+          curl -fsSL https://bun.com/install | bash -s "bun-v$version"
+          test "$("$HOME/.bun/bin/bun" --version)" = "$version"
       - name: Test Bun SQLite (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -920,7 +920,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Test Bun SQLite (non-Windows)
         if: runner.os != 'Windows'
-        run: npm run test:bun:db
+        run: $HOME/.bun/bin/bun test tests/unit/db-adapters/bunSqliteAdapter.test.ts tests/unit/db-adapters/driverFactory.test.ts tests/unit/db-adapters/cliSqlite.test.mjs
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
