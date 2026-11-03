@@ -183,3 +183,59 @@ test("ordinary SQLite busy is not retried", () => {
     assert.equal(calls, 1);
   } finally { db.close(); }
 });
+
+test("a competing migration 169 is accepted only when its ledger name matches", () => {
+  for (const name of ["model_capabilities", "duplicate column name"]) {
+    const file = path.join(dir, `race169-${name}.sqlite`);
+    const db = createNodeSqliteAdapterFromDatabase(new DatabaseSync(file), ":memory:");
+    const other = new DatabaseSync(file);
+    db.exec("CREATE TABLE _omniroute_migrations (version TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL DEFAULT (datetime('now'))); INSERT INTO _omniroute_migrations (version, name) VALUES ('163', 'radar_feed_cache_generated_at'); CREATE TABLE preserved (value TEXT); INSERT INTO preserved VALUES ('retained');");
+    const transaction = db.transaction.bind(db);
+    let injected = false;
+    db.transaction = (fn) => {
+      if (!injected) {
+        injected = true;
+        other.exec(`CREATE TABLE model_capabilities (provider TEXT, model_id TEXT); INSERT INTO model_capabilities VALUES ('p', 'm'); INSERT INTO _omniroute_migrations (version, name) VALUES ('169', '${name}');`);
+      }
+      return transaction(fn);
+    };
+    try {
+      if (name === "model_capabilities") {
+        assert.equal(runMigrations(db), 0);
+        assert.equal(runMigrations(db), 0);
+      } else assert.throws(() => runMigrations(db), /occupied by an unexpected migration/);
+      assert.equal((db.prepare("SELECT value FROM preserved").get() as { value: string }).value, "retained");
+      assert.equal((db.prepare("SELECT model_id FROM model_capabilities").get() as { model_id: string }).model_id, "m");
+      assert.equal((db.prepare("SELECT name FROM _omniroute_migrations WHERE version = '169'").get() as { name: string }).name, name);
+    } finally { other.close(); db.close(); }
+  }
+});
+
+test("a WAL snapshot conflict on migration 169 retries after rollback", () => {
+  const file = path.join(dir, "wal169.sqlite");
+  const db = createNodeSqliteAdapterFromDatabase(new DatabaseSync(file), ":memory:");
+  const other = new DatabaseSync(file);
+  db.exec("PRAGMA journal_mode=WAL; CREATE TABLE _omniroute_migrations (version TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL DEFAULT (datetime('now'))); INSERT INTO _omniroute_migrations (version, name) VALUES ('163', 'radar_feed_cache_generated_at');");
+  const prepare = db.prepare.bind(db);
+  let injected = false;
+  db.prepare = (sql) => {
+    const stmt = prepare(sql);
+    if (sql === "SELECT name FROM _omniroute_migrations WHERE version = ?") {
+      const get = stmt.get.bind(stmt);
+      stmt.get = (...args) => {
+        const result = get(...args);
+        if (!injected) {
+          injected = true;
+          other.exec("CREATE TABLE model_capabilities (provider TEXT, model_id TEXT); INSERT INTO model_capabilities VALUES ('p', 'm'); INSERT INTO _omniroute_migrations (version, name) VALUES ('169', 'model_capabilities');");
+        }
+        return result;
+      };
+    }
+    return stmt;
+  };
+  try {
+    assert.equal(runMigrations(db), 0);
+    assert.equal(runMigrations(db), 0);
+    assert.equal((db.prepare("SELECT model_id FROM model_capabilities").get() as { model_id: string }).model_id, "m");
+  } finally { other.close(); db.close(); }
+});

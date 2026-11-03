@@ -1056,7 +1056,10 @@ export function runMigrations(
 
     let appliedByAnotherRunner = false;
     const applyMigration = db.transaction(() => {
-      if (migration.version === "163" && migration.name === "radar_feed_cache_generated_at") {
+      if (
+        (migration.version === "163" && migration.name === "radar_feed_cache_generated_at") ||
+        (migration.version === "169" && migration.name === "model_capabilities")
+      ) {
         const existing = db
           .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
           .get(migration.version) as { name: string } | undefined;
@@ -1107,8 +1110,8 @@ export function runMigrations(
         applyMigration();
       } catch (err: unknown) {
         if (
-          migration.version !== "163" ||
-          migration.name !== "radar_feed_cache_generated_at" ||
+          !((migration.version === "163" && migration.name === "radar_feed_cache_generated_at") ||
+            (migration.version === "169" && migration.name === "model_capabilities")) ||
           ((err as { errcode?: number; code?: string })?.errcode !== 517 &&
             (err as { code?: string })?.code !== "SQLITE_BUSY_SNAPSHOT")
         ) throw err;
