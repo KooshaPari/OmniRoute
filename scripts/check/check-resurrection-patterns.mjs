@@ -71,6 +71,7 @@
 // window, the deletion set is typically 1k-5k entries (<1 MB).
 
 import { execFileSync } from "node:child_process";
+import { shouldSuppressHistoricalMatch } from "./resurrection-historical-exceptions.mjs";
 import { createHash } from "node:crypto";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import path from "node:path";
@@ -310,6 +311,17 @@ function check(deletionSet, candidates) {
     if (!currentHash) continue;
     for (const [deletionPath, entry] of deletionSet) {
       if (entry.hash === currentHash) {
+        const historicalException =
+          EFFECTIVE_TRACKED &&
+          shouldSuppressHistoricalMatch(
+            (...gitArgs) => git(...gitArgs),
+            deletionPath,
+            filepath,
+            entry.commit,
+            entry.hash,
+            currentHash
+          );
+        if (historicalException) break;
         const allow = isAllowlisted(filepath);
         matches.push({
           newPath: filepath,
