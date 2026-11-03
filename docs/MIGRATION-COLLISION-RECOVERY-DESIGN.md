@@ -29,3 +29,9 @@ A read-only snapshot examined separately contained 53 version/name mismatches. T
 ## Known limits
 
 Physical schema checks cannot establish that historical data updates occurred. A checksum identifies the bytes examined, not the safety of a migration. Existing ledger rows do not identify the hash of their original migration file. Provenance and a reviewed recipe are necessary; ambiguous cases remain blocked for manual investigation. The plan must distinguish authorization to examine, simulate, and commit a repair; neither audit nor simulation grants permission to mutate a live database.
+
+## Opt-in startup identity preflight prototype
+
+`OMNIROUTE_STRICT_MIGRATION_IDENTITIES=1` enables a conservative read-only version/name check before core initialization can restore a probe-failed database or initialize its schema. Existing databases with an absent, empty, malformed, or mismatched ledger, an empty migration inventory, duplicate canonical slots, or no usable read-only native adapter fail startup. A fresh path with no preserved probe-failed backup follows the existing startup path. If an auto-restore candidate exists, the selected candidate is checked before the existing restore proceeds. Leave this option unset until the operator has a tested recovery path: known historical renames and invalid legacy identities can be blocked, and no compatibility rewrite or automatic migration is authorized by the preflight.
+
+The check closes its read-only connection before startup continues. It is a point-in-time alarm, not a single-writer fence: a competing writer or replacement can change the database after the check. It does not compare migration checksums or prove data transformations, does not establish request draining, and is not a no-loss live migration mechanism. A strict failure requires investigation and a separately validated recovery; do not bypass it by rewriting the original ledger.
