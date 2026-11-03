@@ -3,6 +3,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { auditMigrationCollisions } from "./migration-collision-audit.mjs";
+import { assessUsage185 } from "./migration-usage185-assessment.mjs";
 
 /** Reads an operator-supplied, standalone offline snapshot; never use on a live database. */
 export function auditOfflineSnapshot({ snapshotPath, migrationsDir, offlineSnapshot, recipes = [] }) {
@@ -22,7 +23,12 @@ export function auditOfflineSnapshot({ snapshotPath, migrationsDir, offlineSnaps
     const rows = db.prepare("SELECT version, name FROM _omniroute_migrations").all();
     const numeric = rows.filter((row) => typeof row.version === "string" && /^\d+$/.test(row.version));
     const report = auditMigrationCollisions(numeric, files, recipes);
+    const collision = report.collisions.find((item) => item.version === "185");
+    const tableExists = Boolean(db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='usage_history'").get());
+    const columns = tableExists ? db.prepare("PRAGMA table_info(usage_history)").all() : [];
+    const usage185 = assessUsage185({ ...collision, tableExists, columns });
     return { ...report, ledgerRecords: rows.length, unsupportedLedgerRecords: rows.length - numeric.length,
+      usage185,
       snapshotAssumption: "operator-confirmed offline standalone snapshot; WAL contents are not read" };
   } finally {
     db.close();
