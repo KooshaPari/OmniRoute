@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, renameSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -35,5 +35,26 @@ test('lease excludes cooperating processes, releases after crash, and does not f
     assert.equal(afterCrash.status, 0, afterCrash.stderr);
   } finally {
     if (holder.exitCode === null && holder.signalCode === null) holder.kill();
+  }
+});
+
+test('replacing the lease path can split ownership where the OS permits rename', t => {
+  const dir = mkdtempSync(join(tmpdir(), 'omni-lease-rename-'));
+  const lease = join(dir, 'lease.sqlite');
+  const release = acquireWriterLease(lease);
+  try {
+    try {
+      renameSync(lease, join(dir, 'original.sqlite'));
+    } catch (error) {
+      if (['EPERM', 'EACCES', 'EBUSY'].includes(error.code)) {
+        t.skip(`OS refused to rename the held lease: ${error.code}`);
+        return;
+      }
+      throw error;
+    }
+    const releaseSecond = acquireWriterLease(lease);
+    releaseSecond();
+  } finally {
+    release();
   }
 });
