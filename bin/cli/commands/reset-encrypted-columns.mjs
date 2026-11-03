@@ -48,7 +48,7 @@ export async function runResetEncryptedColumns(argv) {
     const require = createRequire(import.meta.url);
     const Database = require("better-sqlite3");
 
-    db = new Database(dbPath);
+    db = new Database(dbPath, { fileMustExist: true });
 
     // Build WHERE clause for encrypted values
     const whereClause = ENCRYPTED_COLUMNS.map((col) => `${col} LIKE '${ENCRYPTED_PATTERN}'`).join(
