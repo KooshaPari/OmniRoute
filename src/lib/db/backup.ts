@@ -6,14 +6,12 @@ import path from "path";
 import fs from "fs";
 import {
   getDbInstance,
-  resetDbInstance,
   isBuildPhase,
   isCloud,
   SQLITE_FILE,
   DB_BACKUPS_DIR,
   DATA_DIR,
 } from "./core";
-import { resetAllDbModuleState } from "./stateReset";
 import {
   MAX_DB_BACKUPS,
   DEFAULT_DB_BACKUP_RETENTION_DAYS,
@@ -385,6 +383,16 @@ export async function listDbBackups() {
 
 // ──────────────── Restore Backup ────────────────
 
+export const ONLINE_REPLACEMENT_UNAVAILABLE =
+  "Online database replacement is unavailable until exclusive writer ownership is enforced. Preserve your backup and contact your administrator for offline recovery.";
+
+export class UnsafeOnlineRestoreError extends Error {
+  constructor() {
+    super(ONLINE_REPLACEMENT_UNAVAILABLE);
+    this.name = "UnsafeOnlineRestoreError";
+  }
+}
+
 export async function restoreDbBackup(backupId: string) {
   const backupDir = getBackupDir();
 
@@ -433,78 +441,7 @@ export async function restoreDbBackup(backupId: string) {
     throw new Error(`Backup file is corrupt: ${message}`);
   }
 
-  // Force pre-restore backup (bypass throttle) and await so the DB is not closed while backup runs
-  if (!isSqliteAutoBackupDisabled()) {
-    _lastBackupAt = 0;
-    const backupDirForPre = getBackupDir();
-    if (SQLITE_FILE && fs.existsSync(SQLITE_FILE)) {
-      const stat = fs.statSync(SQLITE_FILE);
-      if (stat.size >= 4096) {
-        if (!fs.existsSync(backupDirForPre)) fs.mkdirSync(backupDirForPre, { recursive: true });
-        const preBackupPath = path.join(
-          backupDirForPre,
-          `db_${new Date().toISOString().replace(/[:.]/g, "-")}_pre-restore.sqlite`
-        );
-        const dbForBackup = getDbInstance();
-        await dbForBackup.backup(preBackupPath);
-        _lastBackupAt = Date.now();
-      }
-    }
-  }
-
-  // Close and reset current connection
-  resetDbInstance();
-
-  // Clear all cached prepared statements and other state bound to the old connection
-  resetAllDbModuleState();
-
-  const sqliteFile = SQLITE_FILE;
-  if (!sqliteFile) {
-    throw new Error("SQLITE_FILE is unavailable in local backup restore");
-  }
-
-  // On Windows, the file handle may be released asynchronously after close; give it a moment.
-  await sleep(500);
-
-  // Remove main file and WAL sidecars to avoid stale frame replay after restore.
-  // Retry unlink on EBUSY/EPERM (Windows may hold the handle briefly).
-  const sqliteFilesToReplace = [
-    sqliteFile,
-    `${sqliteFile}-wal`,
-    `${sqliteFile}-shm`,
-    `${sqliteFile}-journal`,
-  ];
-  for (const filePath of sqliteFilesToReplace) {
-    if (!filePath) continue;
-    await unlinkFileWithRetry(filePath);
-  }
-
-  // Copy backup over current DB
-  fs.copyFileSync(backupPath, sqliteFile);
-
-  // Reopen
-  const db = getDbInstance();
-  const connCount =
-    (db.prepare("SELECT COUNT(*) as cnt FROM provider_connections").get() as CountRow | undefined)
-      ?.cnt || 0;
-  const nodeCount =
-    (db.prepare("SELECT COUNT(*) as cnt FROM provider_nodes").get() as CountRow | undefined)?.cnt ||
-    0;
-  const comboCount =
-    (db.prepare("SELECT COUNT(*) as cnt FROM combos").get() as CountRow | undefined)?.cnt || 0;
-  const keyCount =
-    (db.prepare("SELECT COUNT(*) as cnt FROM api_keys").get() as CountRow | undefined)?.cnt || 0;
-
-  console.log(`[DB] Restored backup: ${backupId} (${connCount} connections)`);
-
-  return {
-    restored: true,
-    backupId,
-    connectionCount: connCount,
-    nodeCount,
-    comboCount,
-    apiKeyCount: keyCount,
-  };
+  throw new UnsafeOnlineRestoreError();
 }
 
 // ──────────────── Export-All helpers (for /api/db-backups/exportAll) ────────────────

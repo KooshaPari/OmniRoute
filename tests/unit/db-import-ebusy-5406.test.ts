@@ -16,13 +16,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "..", "..");
 const importRoute = join(repoRoot, "src/app/api/db-backups/import/route.ts");
 
-test("#5406: import route uses unlinkFileWithRetry (EBUSY-safe on Windows)", () => {
+test("#5406: online import is unavailable until writers are fenced", () => {
   const src = readFileSync(importRoute, "utf8");
-  assert.match(
-    src,
-    /unlinkFileWithRetry/,
-    "import route must delete the sqlite files via unlinkFileWithRetry (EBUSY retry)"
-  );
+  assert.match(src, /ONLINE_REPLACEMENT_UNAVAILABLE/);
+  assert.doesNotMatch(src, /unlinkFileWithRetry|resetDbInstance|copyFileSync/);
 });
 
 test("#5406: import route does not raw-unlink the live sqlite files (EBUSY race)", () => {

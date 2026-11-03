@@ -118,7 +118,7 @@ test("token refresh dedupe key avoids collision for same-prefix tokens", async (
 });
 
 test(
-  "restoreDbBackup clears stale sqlite sidecars before reopen",
+  "restoreDbBackup preserves sqlite sidecars without exclusive ownership",
   { skip: isWindows },
   async () => {
     await resetStorage();
@@ -139,20 +139,16 @@ test(
     fs.writeFileSync(`${core.SQLITE_FILE}-shm`, "STALE-SHM-MARKER");
     fs.writeFileSync(`${core.SQLITE_FILE}-journal`, "STALE-JOURNAL-MARKER");
 
-    await backupDb.restoreDbBackup(backupId);
+    await assert.rejects(() => backupDb.restoreDbBackup(backupId), /exclusive writer ownership/);
 
     for (const suffix of ["-wal", "-shm", "-journal"]) {
       const sidecarPath = `${core.SQLITE_FILE}${suffix}`;
       if (!fs.existsSync(sidecarPath)) continue;
       const text = fs.readFileSync(sidecarPath, "utf8");
-      assert.equal(text.includes("STALE-"), false, `sidecar ${suffix} still contains stale marker`);
+      assert.equal(text.includes("STALE-"), true, `sidecar ${suffix} must be preserved`);
     }
 
-    const reopenedDb = core.getDbInstance();
-    const row = reopenedDb
-      .prepare("SELECT COUNT(*) AS cnt FROM provider_connections WHERE id = ?")
-      .get("restore-test-conn");
-    assert.equal((row as any).cnt, 1);
+
   }
 );
 

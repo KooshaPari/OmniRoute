@@ -26,20 +26,10 @@ const HERMES = "src/app/api/cli-tools/hermes-agent-settings/route.ts";
 const COPILOT_CHAT = "src/app/api/copilot/chat/route.ts";
 const DB_IMPORT = "src/app/api/db-backups/import/route.ts";
 
-test("db-backups/import awaits getSettings() before re-hydrating the system prompt", () => {
-  // getSettings() is async; without `await`, importedSettings is a Promise and
-  // `.systemPrompt` is always undefined, so the #2470 re-hydration silently
-  // never fires after a DB import.
+test("db-backups/import returns the fixed safe-recovery error", () => {
   const src = readRoute(DB_IMPORT);
-  assert.match(
-    src,
-    /const importedSettings = await getSettings\(\);/,
-    "must await getSettings() so systemPrompt re-hydration actually runs"
-  );
-  assert.ok(
-    !/const importedSettings = getSettings\(\);/.test(src),
-    "must not read systemPrompt off an un-awaited Promise"
-  );
+  assert.match(src, /ONLINE_REPLACEMENT_UNAVAILABLE/);
+  assert.match(src, /status: 503/);
 });
 
 test("cache/stats route routes errors through sanitizeErrorMessage", () => {

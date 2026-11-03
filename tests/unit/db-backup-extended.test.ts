@@ -150,7 +150,7 @@ test(
   }
 );
 
-test("restoreDbBackup restores SQLite contents and returns entity counts", async () => {
+test("restoreDbBackup refuses replacement and preserves current rows", async () => {
   seedConnections(1);
 
   const backupId = "db_2002-01-01T00-00-00-000Z_manual.sqlite";
@@ -162,19 +162,16 @@ test("restoreDbBackup restores SQLite contents and returns entity counts", async
     .prepare("DELETE FROM provider_connections WHERE id = ?")
     .run("backup-conn-0");
 
-  const restored = await backupDb.restoreDbBackup(backupId);
+  await assert.rejects(() => backupDb.restoreDbBackup(backupId), /exclusive writer ownership/);
+  const response = await dbBackupsRoute.POST(makeDbBackupsJsonRequest("POST", { backupId }));
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).error, /exclusive writer ownership/);
   const row = core
     .getDbInstance()
     .prepare("SELECT COUNT(*) AS cnt FROM provider_connections WHERE id = ?")
     .get("backup-conn-0") as { cnt: number };
 
-  assert.equal(restored.restored, true);
-  assert.equal(restored.backupId, backupId);
-  assert.equal(restored.connectionCount, 1);
-  assert.equal(restored.nodeCount, 0);
-  assert.equal(restored.comboCount, 0);
-  assert.equal(restored.apiKeyCount, 0);
-  assert.equal(row.cnt, 1);
+  assert.equal(row.cnt, 0);
 });
 
 test("cleanupDbBackups removes overflow families and orphaned sidecars", async () => {
