@@ -21,6 +21,7 @@ for (const body of ['{"id":"u-1234567"}', "{}", '{"user":{"id":"u-2"}}', "<<not 
       apiKey: "qwen-token-abc123",
     });
     assert.strictEqual(result.valid, false);
+    assert.strictEqual(result.unsupported, true);
     assert.match(result.error, /provider validation not supported/i);
     assert.strictEqual(called, false);
   });
