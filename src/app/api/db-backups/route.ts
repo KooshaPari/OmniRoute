@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   listDbBackups,
-  restoreDbBackup,
-  UnsafeOnlineRestoreError,
   ONLINE_REPLACEMENT_UNAVAILABLE,
   backupDbFile,
   cleanupDbBackups,
@@ -108,14 +106,8 @@ export async function POST(request: NextRequest) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { backupId } = validation.data;
-
-    const result = await restoreDbBackup(backupId);
-    return NextResponse.json(result);
+    return NextResponse.json({ error: ONLINE_REPLACEMENT_UNAVAILABLE }, { status: 503 });
   } catch (error) {
-    if (error instanceof UnsafeOnlineRestoreError) {
-      return NextResponse.json({ error: ONLINE_REPLACEMENT_UNAVAILABLE }, { status: 503 });
-    }
     console.error("[API] Error restoring DB backup:", error);
     return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }

@@ -55,10 +55,18 @@ test("online restore rejects before changing the open database or its WAL", asyn
     const authorizedRestore = await backupRoute.POST(new Request("http://localhost/api/db-backups", {
       method: "POST", headers, body: JSON.stringify({ backupId: id }),
     }));
+    const unavailableRestore = await backupRoute.POST(new Request("http://localhost/api/db-backups", {
+      method: "POST", headers, body: JSON.stringify({ backupId: "db_missing_manual.sqlite" }),
+    }));
+    const malformedRestore = await backupRoute.POST(new Request("http://localhost/api/db-backups", {
+      method: "POST", headers, body: "{",
+    }));
     const authorizedImport = await importRoute.POST(new Request("http://localhost/api/db-backups/import", {
       method: "POST", headers,
     }));
     assert.equal(authorizedRestore.status, 503);
+    assert.equal(unavailableRestore.status, 503);
+    assert.equal(malformedRestore.status, 400);
     assert.equal(authorizedImport.status, 503);
     assert.match((await authorizedRestore.json()).error, /offline recovery/);
     assert.match((await authorizedImport.json()).error, /offline recovery/);
