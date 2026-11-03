@@ -71,6 +71,11 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
+test("unauthenticated memory request is rejected when login is required", async () => {
+  const response = await GET(new Request("http://localhost/api/memory"));
+  assert.equal(response.status, 401);
+});
+
 test("GET /api/memory filters by metadata.category and keeps totals in sync", async () => {
   insertMemoryRow({ id: "codegraph-1", category: "codegraph", type: "factual" });
   insertMemoryRow({ id: "codegraph-2", category: "codegraph", type: "semantic" });
@@ -130,8 +135,4 @@ test("GET /api/memory ignores malformed metadata when applying category filter",
   assert.equal(unfiltered.total, 2);
 });
 
-test("unauthenticated memory request is rejected when login is required", async () => {
-  await localDb.updateSettings({ requireLogin: true });
-  const response = await GET(new Request("http://localhost/api/memory"));
-  assert.equal(response.status, 401);
-});
+
