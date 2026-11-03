@@ -84,3 +84,47 @@ test("actual fallback adapters cannot authorize raw backup merely by exposing ba
     }
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test("CLI SQLite backup never overwrites an existing destination", async () => {
+  const { default: Database } = await import("better-sqlite3");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cli-backup-existing-"));
+  const source = path.join(dir, "source.sqlite");
+  const destination = path.join(dir, "existing.sqlite");
+  const writer = new Database(source);
+  writer.pragma("journal_mode = WAL");
+  writer.exec("CREATE TABLE witness (value TEXT); INSERT INTO witness VALUES ('committed')");
+  fs.writeFileSync(destination, "preserve-existing");
+  const wal = fs.readFileSync(`${source}-wal`);
+  try {
+    await assert.rejects(backupSqliteFile(source, destination), /EEXIST|already exists/i);
+    assert.equal(fs.readFileSync(destination, "utf8"), "preserve-existing");
+    assert.ok(fs.readFileSync(`${source}-wal`).equals(wal));
+    assert.deepEqual(writer.prepare("SELECT value FROM witness").get(), { value: "committed" });
+    const stages = fs.readdirSync(dir).filter((name) => name.startsWith(".sqlite-backup-"));
+    assert.equal(stages.length, 1);
+    assert.equal(fs.existsSync(path.join(dir, stages[0], "snapshot.sqlite")), true);
+  } finally { writer.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("SQLite backup does not publish if source close fails", async () => {
+  const { default: Database } = await import("better-sqlite3");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-close-failure-"));
+  const source = path.join(dir, "source.sqlite");
+  const destination = path.join(dir, "backup.sqlite");
+  const seed = new Database(source);
+  seed.exec("CREATE TABLE witness (id INTEGER PRIMARY KEY); INSERT INTO witness VALUES (1)");
+  seed.close();
+  const originalClose = Database.prototype.close;
+  Database.prototype.close = function (...args) {
+    originalClose.call(this, ...args);
+    throw new Error("forced source close failure");
+  };
+  try {
+    await assert.rejects(backupSqliteFile(source, destination));
+    assert.equal(fs.existsSync(destination), false);
+    assert.equal(fs.readdirSync(dir).filter((name) => name.startsWith(".sqlite-backup-")).length, 1);
+  } finally {
+    Database.prototype.close = originalClose;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

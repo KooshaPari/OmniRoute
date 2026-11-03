@@ -189,10 +189,41 @@ export async function backupOpenSqliteDatabase(db, sourcePath, destPath) {
 
 export async function backupSqliteFile(sourcePath, destPath) {
   const db = await openSqliteDatabase(sourcePath, { readonly: true, fileMustExist: true });
+  const destinationDir = path.dirname(destPath);
+  let stageDir;
+  let closed = false;
   try {
-    await backupOpenSqliteDatabase(db, sourcePath, destPath);
-  } finally {
+    stageDir = fs.mkdtempSync(path.join(destinationDir, ".sqlite-backup-"));
+    const stagePath = path.join(stageDir, "snapshot.sqlite");
+    const fd = fs.openSync(stagePath, "wx", 0o600);
+    fs.closeSync(fd);
+    await backupOpenSqliteDatabase(db, sourcePath, stagePath);
     db.close();
+    closed = true;
+    await withReadonlySqlite(stagePath, (snapshot) => {
+      if (snapshot.pragma("integrity_check", { simple: true }) !== "ok") {
+        throw new Error("SQLite backup integrity check failed");
+      }
+    });
+    const syncFd = fs.openSync(stagePath, "r+");
+    try { fs.fsyncSync(syncFd); } finally { fs.closeSync(syncFd); }
+    fs.linkSync(stagePath, destPath);
+    try {
+      fs.unlinkSync(stagePath);
+      fs.rmdirSync(stageDir);
+    } catch (error) {
+      console.warn("SQLite backup published; staging cleanup failed:", error instanceof Error ? error.message : String(error));
+    }
+  } catch (error) {
+    if (stageDir && error instanceof Error) error.message += `; staging files preserved in ${stageDir}`;
+    throw error;
+  } finally {
+    if (!closed) {
+      try { db.close(); }
+      catch (error) {
+        console.warn("SQLite backup source close failed:", error instanceof Error ? error.message : String(error));
+      }
+    }
   }
 }
 

@@ -187,6 +187,11 @@ export async function runBackupCommand(opts = {}) {
   const backupPath = join(backupDir, backupName);
   const excludePatterns = opts.exclude || [];
 
+  if (opts.encrypt && !shouldExclude("storage.sqlite", excludePatterns) && existsSync(join(dataDir, "storage.sqlite"))) {
+    console.error("Encrypted SQLite backup is unavailable until private staging is verified on this platform. Database files were not copied.");
+    return 1;
+  }
+
   console.log(t("backup.creating"));
 
   let passphrase = null;
@@ -207,6 +212,7 @@ export async function runBackupCommand(opts = {}) {
 
     let backedUp = 0;
     let skipped = 0;
+    const backedUpFiles = [];
 
     for (const file of FILES_TO_BACKUP) {
       if (shouldExclude(file.name, excludePatterns)) {
@@ -219,6 +225,9 @@ export async function runBackupCommand(opts = {}) {
         const destPath = join(backupPath, destName);
         mkdirSync(dirname(destPath), { recursive: true });
         if (file.name.endsWith(".sqlite")) {
+          if (opts.encrypt) {
+            throw new Error("Encrypted SQLite backup is unavailable until private staging is verified on this platform. Database files were not copied.");
+          }
           const tmpPath = destPath.replace(/\.enc$/, "");
           await backupSqliteFile(sourcePath, tmpPath);
           if (opts.encrypt) {
@@ -231,6 +240,7 @@ export async function runBackupCommand(opts = {}) {
           copyFileSync(sourcePath, destPath);
         }
         backedUp++;
+        backedUpFiles.push(destName);
       } else {
         skipped++;
       }
@@ -241,9 +251,7 @@ export async function runBackupCommand(opts = {}) {
         timestamp: new Date().toISOString(),
         version: "omniroute-cli-v1",
         encrypted: !!opts.encrypt,
-        files: FILES_TO_BACKUP.filter(
-          (f) => existsSync(join(dataDir, f.name)) && !shouldExclude(f.name, excludePatterns)
-        ).map((f) => (opts.encrypt ? `${f.name}.enc` : f.name)),
+        files: backedUpFiles,
       };
       writeFileSync(join(backupPath, "backup-info.json"), JSON.stringify(info, null, 2), "utf8");
 

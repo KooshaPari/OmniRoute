@@ -141,3 +141,114 @@ test("restore refuses without changing an active SQLite WAL or configuration", a
     } finally { console.error = originalError; db.close(); }
   });
 });
+
+test("encrypted SQLite backup refuses before reading keys or creating staging files", async () => {
+  await withBackupEnv(async (dataDir) => {
+    const { default: Database } = await import("better-sqlite3");
+    const { runBackupCommand } = await import("../../bin/cli/commands/backup.mjs");
+    const dbPath = path.join(dataDir, "storage.sqlite");
+    const db = new Database(dbPath);
+    db.pragma("journal_mode = WAL");
+    db.exec("CREATE TABLE witness (value TEXT); INSERT INTO witness VALUES ('preserved')");
+    const before = fs.readFileSync(dbPath);
+    const walBefore = fs.readFileSync(`${dbPath}-wal`);
+    const previousError = console.error;
+    const messages: string[] = [];
+    console.error = (...args) => { messages.push(args.map(String).join(" ")); };
+    try {
+      assert.equal(await runBackupCommand({ encrypt: true, keyFile: path.join(dataDir, "missing-key") }), 1);
+      assert.match(messages.join(" "), /private staging/i);
+      assert.equal(fs.existsSync(path.join(dataDir, "backups")), false);
+      assert.ok(fs.readFileSync(dbPath).equals(before));
+      assert.ok(fs.readFileSync(`${dbPath}-wal`).equals(walBefore));
+      assert.deepEqual(db.prepare("SELECT value FROM witness").get(), { value: "preserved" });
+    } finally { console.error = previousError; db.close(); }
+  });
+});
+
+test("encrypted backup refuses a database created while passphrase input is pending", async () => {
+  const { spawn } = await import("node:child_process");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-encryption-race-"));
+  const dbPath = path.join(dir, "storage.sqlite");
+  const script = `import {runBackupCommand} from './bin/cli/commands/backup.mjs'; const code=await runBackupCommand({encrypt:true,name:'witness'}); process.exit(code);`;
+  const child = spawn(process.execPath, ["--input-type=module", "-e", script], {
+    cwd: process.cwd(), env: { ...process.env, DATA_DIR: dir, LANG: "en_US.UTF-8" }, stdio: ["pipe", "pipe", "pipe"],
+  });
+  let output = "";
+  let observedPrompt = false;
+  let stderr = "";
+  child.stdout.on("data", (chunk) => {
+    output += String(chunk);
+    if (!observedPrompt && /passphrase/i.test(output)) {
+      observedPrompt = true;
+      fs.writeFileSync(dbPath, "arrived-after-preflight");
+      child.stdin.write("test-passphrase\n");
+    }
+  });
+  child.stderr.on("data", (chunk) => { stderr += String(chunk); });
+  try {
+    const code = await new Promise<number | null>((resolve, reject) => {
+      child.once("error", reject);
+      child.once("close", resolve);
+    });
+    assert.equal(observedPrompt, true, output);
+    assert.equal(code, 1, stderr);
+    assert.match(stderr, /private staging/i);
+    assert.equal(fs.readFileSync(dbPath, "utf8"), "arrived-after-preflight");
+    const backupPath = path.join(dir, "backups", "omniroute-backup-witness");
+    assert.equal(fs.existsSync(path.join(backupPath, "storage.sqlite")), false);
+    assert.equal(fs.existsSync(path.join(backupPath, "storage.sqlite.enc")), false);
+    assert.equal(fs.readdirSync(backupPath).some((name) => name.startsWith(".sqlite-backup-")), false);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("backup metadata lists published files when a database appears after its turn", async () => {
+  const { syncBuiltinESMExports } = await import("node:module");
+  await withBackupEnv(async (dataDir) => {
+    const { runBackupCommand } = await import("../../bin/cli/commands/backup.mjs");
+    const sqlitePath = path.join(dataDir, "storage.sqlite");
+    const key = path.join(dataDir, "key.txt");
+    fs.writeFileSync(path.join(dataDir, "settings.json"), "settings");
+    fs.writeFileSync(key, "test-key");
+    const original = fs.existsSync;
+    let checks = 0;
+    fs.existsSync = ((value) => {
+      if (String(value) === sqlitePath && ++checks === 2) {
+        fs.writeFileSync(sqlitePath, "arrived-after-scan");
+        return false;
+      }
+      return original(value);
+    }) as typeof fs.existsSync;
+    syncBuiltinESMExports();
+    try {
+      assert.equal(await runBackupCommand({ encrypt: true, keyFile: key, name: "appearance" }), 0);
+    } finally { fs.existsSync = original; syncBuiltinESMExports(); }
+    const dir = path.join(dataDir, "backups", "omniroute-backup-appearance");
+    const info = JSON.parse(fs.readFileSync(path.join(dir, "backup-info.json"), "utf8"));
+    assert.deepEqual(info.files, ["settings.json.enc"]);
+    assert.equal(fs.readFileSync(sqlitePath, "utf8"), "arrived-after-scan");
+    assert.equal(fs.existsSync(path.join(dir, "storage.sqlite.enc")), false);
+  });
+});
+
+test("backup metadata retains a published file when its source disappears", async () => {
+  const { syncBuiltinESMExports } = await import("node:module");
+  await withBackupEnv(async (dataDir) => {
+    const { runBackupCommand } = await import("../../bin/cli/commands/backup.mjs");
+    const source = path.join(dataDir, "settings.json");
+    const nextFile = path.join(dataDir, "combos.json");
+    fs.writeFileSync(source, "preserved-settings");
+    const original = fs.existsSync;
+    fs.existsSync = ((value) => {
+      if (String(value) === nextFile && original(source)) fs.unlinkSync(source);
+      return original(value);
+    }) as typeof fs.existsSync;
+    syncBuiltinESMExports();
+    try { assert.equal(await runBackupCommand({ name: "disappearance" }), 0); }
+    finally { fs.existsSync = original; syncBuiltinESMExports(); }
+    const dir = path.join(dataDir, "backups", "omniroute-backup-disappearance");
+    const info = JSON.parse(fs.readFileSync(path.join(dir, "backup-info.json"), "utf8"));
+    assert.deepEqual(info.files, ["settings.json"]);
+    assert.equal(fs.readFileSync(path.join(dir, "settings.json"), "utf8"), "preserved-settings");
+  });
+});
