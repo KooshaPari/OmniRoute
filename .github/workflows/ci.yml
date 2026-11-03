@@ -910,7 +910,15 @@ jobs:
       - name: Fetch bun binary (ignore-scripts workaround)
         if: runner.os != 'Windows'
         run: node "$(npm root -g)/bun/install.js"
-      - run: npm run test:bun:db
+      - name: Test Bun SQLite (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          & "$env:USERPROFILE\.bun\bin\bun.exe" test tests/unit/db-adapters/bunSqliteAdapter.test.ts tests/unit/db-adapters/driverFactory.test.ts tests/unit/db-adapters/cliSqlite.test.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Test Bun SQLite (non-Windows)
+        if: runner.os != 'Windows'
+        run: npm run test:bun:db
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
