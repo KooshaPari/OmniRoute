@@ -136,7 +136,7 @@ export function deadSymbolKeys(knipJson) {
     }
   }
   for (const entry of knipJson?.issues || []) {
-    for (const f of entry.files || []) keys.add(`${f}:<file>`);
+    for (const f of entry.files || []) keys.add(`${typeof f === "string" ? f : f.name}:<file>`);
   }
   return keys;
 }

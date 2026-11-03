@@ -127,3 +127,17 @@ test("newDeadSymbols reports only symbols that are new on HEAD, in touched files
   ]);
   assert.deepEqual(newDeadSymbols(base, head, ["src/a.ts"]), []);
 });
+
+test("newDeadSymbols detects Knip file objects and retains string compatibility", () => {
+  const base = { issues: [{ file: "src/old.ts", files: [{ name: "src/old.ts" }] }] };
+  const head = { issues: [
+    ...base.issues,
+    { file: "src/new.ts", files: [{ name: "src/new.ts" }, "src/new.ts"] },
+    { file: "src/other.ts", files: [{ name: "src/other.ts" }] },
+  ] };
+  assert.deepEqual(newDeadSymbols(head, base, ["src/old.ts", "src/new.ts"]), ["src/new.ts:<file>"]);
+  assert.deepEqual(newDeadSymbols(head, base, [], { includeUntouched: true }), [
+    "src/new.ts:<file>",
+    "src/other.ts:<file>",
+  ]);
+});
