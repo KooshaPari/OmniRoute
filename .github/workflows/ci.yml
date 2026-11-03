@@ -918,11 +918,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          & "$env:USERPROFILE\.bun\bin\bun.exe" test tests/unit/db-adapters/bunSqliteAdapter.test.ts tests/unit/db-adapters/driverFactory.test.ts tests/unit/db-adapters/cliSqlite.test.mjs
+          & "$env:USERPROFILE\.bun\bin\bun.exe" run --bun test:bun:db
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Test Bun SQLite (non-Windows)
         if: runner.os != 'Windows'
-        run: .github/bun-ci/node_modules/@oven/bun-linux-x64/bin/bun test tests/unit/db-adapters/bunSqliteAdapter.test.ts tests/unit/db-adapters/driverFactory.test.ts tests/unit/db-adapters/cliSqlite.test.mjs
+        run: .github/bun-ci/node_modules/@oven/bun-linux-x64/bin/bun run --bun test:bun:db
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
