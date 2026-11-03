@@ -62,7 +62,7 @@ async function getMemories(query = "") {
 
 test.beforeEach(async () => {
   await resetStorage();
-  await localDb.updateSettings({ requireLogin: false });
+  await localDb.updateSettings({ setupComplete: true, requireLogin: false });
 });
 
 test.after(() => {
@@ -127,4 +127,10 @@ test("GET /api/memory ignores malformed metadata when applying category filter",
 
   const unfiltered = await getMemories();
   assert.equal(unfiltered.total, 2);
+});
+
+test("unauthenticated memory request is rejected when login is required", async () => {
+  await localDb.updateSettings({ requireLogin: true });
+  const response = await GET(new Request("http://localhost/api/memory"));
+  assert.equal(response.status, 401);
 });
