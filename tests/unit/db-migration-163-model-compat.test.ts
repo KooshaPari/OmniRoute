@@ -133,3 +133,53 @@ test("a competing connection applying radar after planning is accepted only for 
     }
   }
 });
+
+for (const [rivalName, symbolic] of [["radar_feed_cache_generated_at", false], ["unexpected", false], ["radar_feed_cache_generated_at", true]] as const) test(`competing WAL writer after ledger read: ${rivalName} symbolic=${symbolic}`, () => {
+  const file = path.join(dir, `wal-race-${rivalName}-${symbolic}.sqlite`);
+  const db = createNodeSqliteAdapterFromDatabase(new DatabaseSync(file), ":memory:");
+  const other = new DatabaseSync(file);
+  db.exec(`PRAGMA journal_mode=WAL; CREATE TABLE _omniroute_migrations (version TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL DEFAULT (datetime('now'))); INSERT INTO _omniroute_migrations (version, name) VALUES ('169', 'model_capabilities'); CREATE TABLE radar_feed_cache (id INTEGER PRIMARY KEY, payload TEXT); INSERT INTO radar_feed_cache VALUES (1, 'preserve');`);
+  const prepare = db.prepare.bind(db);
+  let injected = false;
+  const transaction = db.transaction.bind(db);
+  if (symbolic) db.transaction = (fn) => {
+    const run = transaction(fn);
+    return () => {
+      try { return run(); } catch (err) {
+        if ((err as { errcode?: number }).errcode === 517) throw Object.assign(new Error("busy snapshot"), { code: "SQLITE_BUSY_SNAPSHOT" });
+        throw err;
+      }
+    };
+  };
+  db.prepare = (sql) => {
+    const stmt = prepare(sql);
+    if (sql === "SELECT name FROM _omniroute_migrations WHERE version = ?") {
+      const get = stmt.get.bind(stmt);
+      stmt.get = (...args) => {
+        const result = get(...args);
+        if (!injected) {
+          injected = true;
+          other.exec(`ALTER TABLE radar_feed_cache ADD COLUMN generated_at TEXT; INSERT INTO _omniroute_migrations (version, name) VALUES ('163', '${rivalName}');`);
+        }
+        return result;
+      };
+    }
+    return stmt;
+  };
+  try {
+    if (rivalName === "unexpected") assert.throws(() => runMigrations(db), /unexpected/);
+    else assert.equal(runMigrations(db), 0);
+  } finally { other.close(); db.close(); }
+});
+
+test("ordinary SQLite busy is not retried", () => {
+  const db = legacyDb(false);
+  let calls = 0;
+  db.transaction = () => {
+    return () => { calls++; throw Object.assign(new Error("busy"), { code: "SQLITE_BUSY" }); };
+  };
+  try {
+    assert.throws(() => runMigrations(db), /busy/);
+    assert.equal(calls, 1);
+  } finally { db.close(); }
+});

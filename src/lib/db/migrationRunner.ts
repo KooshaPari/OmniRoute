@@ -1103,7 +1103,17 @@ export function runMigrations(
     });
 
     try {
-      applyMigration();
+      try {
+        applyMigration();
+      } catch (err: unknown) {
+        if (
+          migration.version !== "163" ||
+          migration.name !== "radar_feed_cache_generated_at" ||
+          ((err as { errcode?: number; code?: string })?.errcode !== 517 &&
+            (err as { code?: string })?.code !== "SQLITE_BUSY_SNAPSHOT")
+        ) throw err;
+        applyMigration();
+      }
       if (appliedByAnotherRunner) continue;
       count += 1;
       console.log(`[Migration] Applied: ${migration.version}_${migration.name}`);
