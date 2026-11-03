@@ -782,6 +782,7 @@ test("orphaned database sidecars prevent fresh database creation", serial, async
     try {
       await withEnv({ DATA_DIR: dataDir }, async () => {
         const core = await importFresh("src/lib/db/core.ts");
+        await assert.rejects(core.ensureDbInitialized(), /Manual offline recovery required/i);
         assert.throws(() => core.getDbInstance(), /Manual offline recovery required/i);
         assert.equal(fs.existsSync(sqliteFile), false);
         assert.equal(fs.readFileSync(sidecar, "utf8"), "preserve-sidecar");
@@ -799,6 +800,7 @@ test("preserved probe-failed databases are never automatically moved", serial, a
   try {
     await withEnv({ DATA_DIR: dataDir }, async () => {
       const core = await importFresh("src/lib/db/core.ts");
+      await assert.rejects(core.ensureDbInitialized(), /Manual offline recovery required/i);
       assert.throws(() => core.getDbInstance(), /Manual offline recovery required/i);
       assert.equal(fs.existsSync(sqliteFile), false);
       assert.ok(fs.readFileSync(preserved).equals(before));

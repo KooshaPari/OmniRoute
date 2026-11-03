@@ -223,6 +223,9 @@ async function loadSqlJs(): Promise<typeof _sqlJsLib> {
 }
 
 export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapter> {
+  if (filePath !== ":memory:" && ["-wal", "-journal"].some((suffix) => fs.existsSync(filePath + suffix))) {
+    throw new Error("[sqljsAdapter] Refusing to open a database with SQLite WAL or journal sidecars; use a native SQLite driver and establish exclusive ownership.");
+  }
   const SQLLib = await loadSqlJs();
   if (!SQLLib) throw new Error("[sqljsAdapter] Failed to load sql.js");
 

@@ -544,6 +544,22 @@ function listProbeFailureBackups(sqliteFile: string): string[] {
     .map((backup) => backup.path);
 }
 
+function assertSafeStartupFiles(sqliteFile: string): void {
+  if (fs.existsSync(sqliteFile)) return;
+  if (["-wal", "-shm", "-journal"].some((ext) => fs.existsSync(sqliteFile + ext))) {
+    throw new UnsafeStartupRecoveryError(
+      `[DB] Manual offline recovery required: database sidecar files exist without ${sqliteFile}. ` +
+        `Files were preserved; establish exclusive writer ownership before recovery.`
+    );
+  }
+  if (listProbeFailureBackups(sqliteFile).length > 0) {
+    throw new UnsafeStartupRecoveryError(
+      `[DB] Manual offline recovery required: a preserved probe-failed database exists in ${path.dirname(sqliteFile)}. ` +
+        `No database files were moved. Establish exclusive writer ownership before recovery.`
+    );
+  }
+}
+
 function parseLegacyError(value: unknown): unknown {
   if (typeof value !== "string" || value.trim().length === 0) return null;
   try {
@@ -750,19 +766,7 @@ export function getDbInstance(): SqliteDatabase {
     throw new Error("SQLITE_FILE is unavailable for local mode");
   }
   const jsonDbFile = JSON_DB_FILE;
-  const probeFailureBackups = listProbeFailureBackups(sqliteFile);
-  if (!fs.existsSync(sqliteFile) && ["-wal", "-shm", "-journal"].some((ext) => fs.existsSync(sqliteFile + ext))) {
-    throw new UnsafeStartupRecoveryError(
-      `[DB] Manual offline recovery required: database sidecar files exist without ${sqliteFile}. ` +
-        `Files were preserved; establish exclusive writer ownership before recovery.`
-    );
-  }
-  if (!fs.existsSync(sqliteFile) && probeFailureBackups.length > 0) {
-    throw new UnsafeStartupRecoveryError(
-      `[DB] Manual offline recovery required: a preserved probe-failed database exists in ${path.dirname(sqliteFile)}. ` +
-        `No database files were moved. Establish exclusive writer ownership before recovery.`
-    );
-  }
+  assertSafeStartupFiles(sqliteFile);
 
   // Track whether the DB file is brand new (fresh DATA_DIR / Docker volume).
   // This is needed so the migration runner skips the mass-migration safety abort
@@ -1087,6 +1091,7 @@ export async function ensureDbInitialized(): Promise<void> {
   }
 
   // Tenta drivers síncronos primeiro
+  assertSafeStartupFiles(SQLITE_FILE);
   const sync = tryOpenSync(SQLITE_FILE);
   if (sync) {
     // Drivers síncronos disponíveis — fechar o probe, getDbInstance() vai abrir com setup completo

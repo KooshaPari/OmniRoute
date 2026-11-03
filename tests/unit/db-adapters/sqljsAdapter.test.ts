@@ -4,6 +4,75 @@ import assert from "node:assert/strict";
 const { createSqlJsAdapter } = await import("../../../src/lib/db/adapters/sqljsAdapter.ts");
 
 describe("sqljsAdapter", () => {
+  test("refuses sidecars before loading a database", async () => {
+    const fs = await import("node:fs");
+    const os = await import("node:os");
+    const path = await import("node:path");
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-sqljs-sidecar-portable-"));
+    const file = path.join(dir, "storage.sqlite");
+    try {
+      fs.writeFileSync(file, "preserve-main");
+      for (const suffix of ["-wal", "-journal"]) {
+        const sidecar = `${file}${suffix}`;
+        fs.writeFileSync(sidecar, "preserve-sidecar");
+        await assert.rejects(createSqlJsAdapter(file), /WAL or journal sidecars/);
+        assert.equal(fs.readFileSync(file, "utf8"), "preserve-main");
+        assert.equal(fs.readFileSync(sidecar, "utf8"), "preserve-sidecar");
+        fs.unlinkSync(sidecar);
+      }
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("refuses a database with committed WAL or rollback journal sidecars", async (t) => {
+    const fs = await import("node:fs");
+    const os = await import("node:os");
+    const path = await import("node:path");
+    let Database: typeof import("better-sqlite3")["default"];
+    try {
+      ({ default: Database } = await import("better-sqlite3"));
+    } catch (error) {
+      if (/Cannot find (package|module).*better-sqlite3|ERR_DLOPEN_FAILED/i.test(String(error))) {
+        t.skip("native better-sqlite3 is unavailable");
+        return;
+      }
+      throw error;
+    }
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-sqljs-sidecar-"));
+    const file = path.join(dir, "storage.sqlite");
+    let db: InstanceType<typeof Database>;
+    try {
+      db = new Database(file);
+    } catch (error) {
+      fs.rmSync(dir, { recursive: true, force: true });
+      if (/Could not locate the bindings file|NODE_MODULE_VERSION|ERR_DLOPEN_FAILED/i.test(String(error))) {
+        t.skip("native better-sqlite3 binding is unavailable");
+        return;
+      }
+      throw error;
+    }
+    try {
+      db.pragma("journal_mode = WAL");
+      db.exec("CREATE TABLE witness (value TEXT); INSERT INTO witness VALUES ('committed')");
+      const before = fs.readFileSync(file);
+      const walBefore = fs.readFileSync(`${file}-wal`);
+      await assert.rejects(createSqlJsAdapter(file), /WAL or journal sidecars/);
+      assert.ok(fs.readFileSync(file).equals(before));
+      assert.ok(fs.readFileSync(`${file}-wal`).equals(walBefore));
+      assert.deepEqual(db.prepare("SELECT value FROM witness").get(), { value: "committed" });
+    } finally {
+      db.close();
+    }
+    try {
+      fs.writeFileSync(`${file}-journal`, "preserve-journal");
+      await assert.rejects(createSqlJsAdapter(file), /WAL or journal sidecars/);
+      assert.equal(fs.readFileSync(`${file}-journal`, "utf8"), "preserve-journal");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   test("abre DB in-memory e executa CRUD básico", async () => {
     const adapter = await createSqlJsAdapter(":memory:");
 
