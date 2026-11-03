@@ -110,6 +110,9 @@ test("deadSymbolKeys covers exports, types, namespace members and unused files",
     "src/dead.ts:<file>",
   ]);
   assert.equal(deadSymbolKeys(null).size, 0);
+  for (const file of [null, {}, { name: "" }, { name: 42 }, 42]) {
+    assert.throws(() => deadSymbolKeys({ issues: [{ files: [file] }] }), /Invalid Knip file entry/);
+  }
 });
 
 test("newDeadSymbols reports only symbols that are new on HEAD, in touched files by default", () => {
