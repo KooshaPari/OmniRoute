@@ -574,83 +574,47 @@ test(
   }
 );
 
-test(
-  "legacy empty schema databases are renamed before a fresh sqlite database is created",
-  serial,
-  async () => {
-    const dataDir = makeTempDir("omniroute-db-legacy-empty-");
-    const sqliteFile = path.join(dataDir, "storage.sqlite");
-    createLegacySchemaDb(sqliteFile);
+test("legacy empty schema preserves its database and fails closed", serial, async () => {
+  const dataDir = makeTempDir("omniroute-db-legacy-empty-");
+  const sqliteFile = path.join(dataDir, "storage.sqlite");
+  createLegacySchemaDb(sqliteFile);
+  const writer = new Database(sqliteFile);
+  writer.pragma("journal_mode = WAL");
+  writer.exec("CREATE TABLE recovery_witness (value TEXT); INSERT INTO recovery_witness VALUES ('preserve')");
+  const before = fs.readFileSync(sqliteFile);
+  const walBefore = fs.readFileSync(`${sqliteFile}-wal`);
+  try {
+    await withEnv({ DATA_DIR: dataDir }, async () => {
+      const core = await importFresh("src/lib/db/core.ts");
+      assert.throws(() => core.getDbInstance(), /Manual offline recovery required/i);
+      assert.ok(fs.readFileSync(sqliteFile).equals(before));
+      assert.ok(fs.readFileSync(`${sqliteFile}-wal`).equals(walBefore));
+      assert.deepEqual(writer.prepare("SELECT value FROM recovery_witness").get(), { value: "preserve" });
+      assert.equal(fs.existsSync(`${sqliteFile}.old-schema`), false);
+    });
+  } finally { writer.close(); removePath(dataDir); }
+});
 
-    try {
-      await withEnv({ DATA_DIR: dataDir }, async () => {
-        const core = await importFresh("src/lib/db/core.ts");
-        const db = core.getDbInstance();
-
-        assert.equal(fs.existsSync(`${sqliteFile}.old-schema`), true);
-        assert.ok(
-          db
-            .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-            .get("_omniroute_migrations")
-        );
-        assert.equal(
-          db
-            .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-            .get("schema_migrations"),
-          undefined
-        );
-
-        core.resetDbInstance();
-      });
-    } finally {
-      removePath(dataDir);
-    }
-  }
-);
-
-test(
-  "legacy databases with data preserve rows while removing the old migration table",
-  serial,
-  async () => {
-    const dataDir = makeTempDir("omniroute-db-legacy-data-");
-    const sqliteFile = path.join(dataDir, "storage.sqlite");
-    createLegacySchemaDb(sqliteFile, { withData: true });
-
-    try {
-      await withEnv({ DATA_DIR: dataDir }, async () => {
-        const core = await importFresh("src/lib/db/core.ts");
-        const db = core.getDbInstance();
-
-        assert.deepEqual(
-          db
-            .prepare("SELECT id, provider FROM provider_connections WHERE id = ?")
-            .get("legacy-openai"),
-          { id: "legacy-openai", provider: "openai" }
-        );
-        assert.equal(
-          db
-            .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-            .get("schema_migrations"),
-          undefined
-        );
-        assert.ok(
-          db
-            .prepare("SELECT name FROM pragma_table_info('provider_connections') WHERE name = ?")
-            .get("rate_limit_protection")
-        );
-        assert.ok(
-          db
-            .prepare("SELECT name FROM pragma_table_info('provider_connections') WHERE name = ?")
-            .get("last_used_at")
-        );
-
-        core.resetDbInstance();
-      });
-    } finally {
-      removePath(dataDir);
-    }
-  }
-);
+test("populated legacy database and active WAL are preserved", serial, async () => {
+  const dataDir = makeTempDir("omniroute-db-legacy-data-");
+  const sqliteFile = path.join(dataDir, "storage.sqlite");
+  createLegacySchemaDb(sqliteFile, { withData: true });
+  const writer = new Database(sqliteFile);
+  writer.pragma("journal_mode = WAL");
+  writer.exec("CREATE TABLE recovery_witness (value TEXT); INSERT INTO recovery_witness VALUES ('preserve')");
+  const before = fs.readFileSync(sqliteFile);
+  const walBefore = fs.readFileSync(`${sqliteFile}-wal`);
+  try {
+    await withEnv({ DATA_DIR: dataDir }, async () => {
+      const core = await importFresh("src/lib/db/core.ts");
+      assert.throws(() => core.getDbInstance(), /Manual offline recovery required/i);
+      assert.ok(fs.readFileSync(sqliteFile).equals(before));
+      assert.ok(fs.readFileSync(`${sqliteFile}-wal`).equals(walBefore));
+      assert.ok(writer.prepare("SELECT name FROM sqlite_master WHERE name = 'schema_migrations'").get());
+      assert.deepEqual(writer.prepare("SELECT id, provider FROM provider_connections WHERE id = ?").get("legacy-openai"), { id: "legacy-openai", provider: "openai" });
+    });
+  } finally { writer.close(); removePath(dataDir); }
+});
 
 test(
   "provider connection max_concurrent column is healed even if migration 029 was already recorded",
@@ -789,107 +753,58 @@ test(
   }
 );
 
-test(
-  "probe failures restore preserved critical state instead of booting with an empty database",
-  serial,
-  async () => {
-    const dataDir = makeTempDir("omniroute-db-probe-recover-");
+test("probe failure preserves the database instead of rebuilding", serial, async () => {
+  const dataDir = makeTempDir("omniroute-db-probe-recover-");
+  const sqliteFile = path.join(dataDir, "storage.sqlite");
+  createRecoverableDb(sqliteFile);
+  const before = fs.readFileSync(sqliteFile);
+  const originalPrepare = Database.prototype.prepare;
+  try {
+    Database.prototype.prepare = function patchedPrepare(sql, ...args) {
+      if (String(sql).includes("schema_migrations")) throw new Error("forced probe failure");
+      return originalPrepare.call(this, sql, ...args);
+    };
+    await withEnv({ DATA_DIR: dataDir }, async () => {
+      const core = await importFresh("src/lib/db/core.ts");
+      assert.throws(() => core.getDbInstance(), /Manual offline recovery required/i);
+      assert.ok(fs.readFileSync(sqliteFile).equals(before));
+      assert.equal(listProbeFailedBackups(sqliteFile).length, 0);
+    });
+  } finally { Database.prototype.prepare = originalPrepare; removePath(dataDir); }
+});
+
+test("orphaned database sidecars prevent fresh database creation", serial, async () => {
+  for (const suffix of ["-wal", "-shm", "-journal"]) {
+    const dataDir = makeTempDir("omniroute-db-orphan-sidecar-");
     const sqliteFile = path.join(dataDir, "storage.sqlite");
-    createRecoverableDb(sqliteFile);
-
-    const originalPrepare = Database.prototype.prepare;
-
-    try {
-      Database.prototype.prepare = function patchedPrepare(sql, ...args) {
-        if (String(sql).includes("schema_migrations")) {
-          throw new Error("forced probe failure");
-        }
-        return originalPrepare.call(this, sql, ...args);
-      };
-
-      await withEnv({ DATA_DIR: dataDir }, async () => {
-        const core = await importFresh("src/lib/db/core.ts");
-        const db = core.getDbInstance();
-
-        assert.deepEqual(
-          db
-            .prepare("SELECT id, provider, name FROM provider_connections WHERE id = ?")
-            .get("recover-openai"),
-          { id: "recover-openai", provider: "openai", name: "Recover Me" }
-        );
-        assert.deepEqual(
-          db.prepare("SELECT id, name FROM provider_nodes WHERE id = ?").get("recover-node"),
-          { id: "recover-node", name: "Recover Node" }
-        );
-        assert.deepEqual(
-          db.prepare("SELECT id, name FROM combos WHERE id = ?").get("recover-combo"),
-          { id: "recover-combo", name: "Recover Combo" }
-        );
-        assert.deepEqual(
-          db.prepare("SELECT id, name, no_log FROM api_keys WHERE id = ?").get("recover-key"),
-          { id: "recover-key", name: "Recover Key", no_log: 1 }
-        );
-        assert.deepEqual(
-          db
-            .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = ?")
-            .get("globalFallbackModel"),
-          { value: JSON.stringify("openai/gpt-4o-mini") }
-        );
-        assert.equal(listProbeFailedBackups(sqliteFile).length >= 1, true);
-
-        core.resetDbInstance();
-      });
-    } finally {
-      Database.prototype.prepare = originalPrepare;
-      removePath(dataDir);
-    }
-  }
-);
-
-test(
-  "auto-restore picks latest probe-failed timestamp instead of latest mtime",
-  serial,
-  async () => {
-    const dataDir = makeTempDir("omniroute-db-probe-latest-");
-    const sqliteFile = path.join(dataDir, "storage.sqlite");
-    const olderBackup = `${sqliteFile}.probe-failed-1000`;
-    const newerBackup = `${sqliteFile}.probe-failed-2000`;
-
-    createLegacySchemaDbWithName(olderBackup, "Older Backup");
-    createLegacySchemaDbWithName(newerBackup, "Newer Backup");
-    fs.utimesSync(
-      olderBackup,
-      new Date("2030-01-01T00:00:00.000Z"),
-      new Date("2030-01-01T00:00:00.000Z")
-    );
-    fs.utimesSync(
-      newerBackup,
-      new Date("2020-01-01T00:00:00.000Z"),
-      new Date("2020-01-01T00:00:00.000Z")
-    );
-
+    const sidecar = `${sqliteFile}${suffix}`;
+    fs.writeFileSync(sidecar, "preserve-sidecar");
     try {
       await withEnv({ DATA_DIR: dataDir }, async () => {
         const core = await importFresh("src/lib/db/core.ts");
-        const db = core.getDbInstance();
-
-        assert.deepEqual(
-          db
-            .prepare("SELECT id, provider, name FROM provider_connections WHERE id = ?")
-            .get("legacy-openai"),
-          { id: "legacy-openai", provider: "openai", name: "Newer Backup" }
-        );
-        assert.equal(fs.existsSync(sqliteFile), true);
-        assert.equal(fs.existsSync(newerBackup), false);
-        assert.equal(fs.existsSync(olderBackup), true);
-
-        core.resetDbInstance();
+        assert.throws(() => core.getDbInstance(), /Manual offline recovery required/i);
+        assert.equal(fs.existsSync(sqliteFile), false);
+        assert.equal(fs.readFileSync(sidecar, "utf8"), "preserve-sidecar");
       });
-    } finally {
-      removePath(dataDir);
-    }
+    } finally { removePath(dataDir); }
   }
-);
+});
+
+test("preserved probe-failed databases are never automatically moved", serial, async () => {
+  const dataDir = makeTempDir("omniroute-db-probe-latest-");
+  const sqliteFile = path.join(dataDir, "storage.sqlite");
+  const preserved = `${sqliteFile}.probe-failed-2000`;
+  createLegacySchemaDbWithName(preserved, "Preserved Backup");
+  const before = fs.readFileSync(preserved);
+  try {
+    await withEnv({ DATA_DIR: dataDir }, async () => {
+      const core = await importFresh("src/lib/db/core.ts");
+      assert.throws(() => core.getDbInstance(), /Manual offline recovery required/i);
+      assert.equal(fs.existsSync(sqliteFile), false);
+      assert.ok(fs.readFileSync(preserved).equals(before));
+    });
+  } finally { removePath(dataDir); }
+});
 
 test(
   "probe failures without a safe snapshot abort startup and keep manual recovery explicit",
@@ -903,16 +818,16 @@ test(
       await withEnv({ DATA_DIR: dataDir }, async () => {
         const core = await importFresh("src/lib/db/core.ts");
 
-        assert.throws(() => core.getDbInstance(), /Manual recovery required after probe failure/i);
-        assert.equal(fs.existsSync(sqliteFile), false);
-        assert.equal(listProbeFailedBackups(sqliteFile).length >= 1, true);
+        assert.throws(() => core.getDbInstance(), /Manual offline recovery required after database probe failure/i);
+        assert.equal(fs.readFileSync(sqliteFile, "utf8"), "not-a-valid-sqlite-database");
+        assert.equal(listProbeFailedBackups(sqliteFile).length, 0);
 
         const restartedCore = await importFresh("src/lib/db/core.ts");
         assert.throws(
           () => restartedCore.getDbInstance(),
-          /Manual recovery required after probe failure/i
+          /Manual offline recovery required after database probe failure/i
         );
-        assert.equal(fs.existsSync(sqliteFile), false);
+        assert.equal(fs.readFileSync(sqliteFile, "utf8"), "not-a-valid-sqlite-database");
         core.resetDbInstance();
       });
     } finally {

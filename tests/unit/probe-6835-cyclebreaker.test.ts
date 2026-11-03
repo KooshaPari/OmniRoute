@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-test("getDbInstance() caps the probe-failed/restore cycle at 3 attempts (#6835)", async () => {
+test("preserved probe-failed file prevents repeated automatic restore attempts", async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-6835-"));
   process.env.DATA_DIR = tmpDir;
   const sqliteFile = path.join(tmpDir, "storage.sqlite");
@@ -21,8 +21,9 @@ test("getDbInstance() caps the probe-failed/restore cycle at 3 attempts (#6835)"
       errors.push(err instanceof Error ? err.message : String(err));
     }
   }
-  const abortIndex = errors.findIndex((e) => e.includes("Aborting startup"));
-  assert.notEqual(abortIndex, -1, "Expected the cap to trip; got: " + errors.join(" | "));
-  assert.ok(abortIndex <= 4, "Expected cap by call #4; took until #" + abortIndex);
+  assert.equal(errors.length, 6);
+  assert.ok(errors.every((e) => /Manual offline recovery required/.test(e)));
+  assert.equal(fs.existsSync(sqliteFile), false);
+  assert.equal(fs.readFileSync(backupFile, "utf8"), "not a real sqlite file, always fails to open");
   fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
