@@ -910,8 +910,10 @@ jobs:
         run: |
           set -o pipefail
           version=$(node -p "require('./package.json').devDependencies.bun")
-          npm install --prefix "$RUNNER_TEMP/bun-ci" --ignore-scripts=false --no-audit --no-fund "bun@$version"
-          test "$("$RUNNER_TEMP/bun-ci/node_modules/.bin/bun" --version)" = "$version"
+          test "$(node -p "require('./.github/bun-ci/package.json').dependencies['@oven/bun-linux-x64']")" = "$version"
+          test "$(uname -m)" = x86_64
+          npm ci --prefix .github/bun-ci --ignore-scripts --no-audit --no-fund
+          test "$(.github/bun-ci/node_modules/@oven/bun-linux-x64/bin/bun --version)" = "$version"
       - name: Test Bun SQLite (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -920,7 +922,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Test Bun SQLite (non-Windows)
         if: runner.os != 'Windows'
-        run: $RUNNER_TEMP/bun-ci/node_modules/.bin/bun test tests/unit/db-adapters/bunSqliteAdapter.test.ts tests/unit/db-adapters/driverFactory.test.ts tests/unit/db-adapters/cliSqlite.test.mjs
+        run: .github/bun-ci/node_modules/@oven/bun-linux-x64/bin/bun test tests/unit/db-adapters/bunSqliteAdapter.test.ts tests/unit/db-adapters/driverFactory.test.ts tests/unit/db-adapters/cliSqlite.test.mjs
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
