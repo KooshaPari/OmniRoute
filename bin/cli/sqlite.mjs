@@ -4,6 +4,8 @@ import { resolveDataDir, resolveStoragePath } from "./data-dir.mjs";
 import { ensureProviderSchema } from "./provider-store.mjs";
 import { ensureSettingsSchema, hashManagementPassword, updateSettings } from "./settings-store.mjs";
 
+const onlineBackupModes = new WeakMap();
+
 async function loadSqlite() {
   if (process.versions.bun) {
     try {
@@ -134,7 +136,9 @@ async function openSqliteDatabase(dbPath, options = {}) {
     return openWithSyncDriverFallback(dbPath, options, loaded.error);
   }
   try {
-    return new loaded.Database(dbPath, options);
+    const db = new loaded.Database(dbPath, options);
+    onlineBackupModes.set(db, "better-sqlite3");
+    return db;
   } catch (error) {
     return openWithSyncDriverFallback(dbPath, options, error);
   }
@@ -172,19 +176,21 @@ export async function withReadonlySqlite(dbPath, callback) {
   }
 }
 
+export async function backupOpenSqliteDatabase(db, sourcePath, destPath) {
+  const mode = onlineBackupModes.get(db);
+  if (mode === "better-sqlite3") {
+    await db.backup(destPath);
+  } else if (sourcePath === ":memory:" && typeof db.serialize === "function") {
+    fs.writeFileSync(destPath, Buffer.from(db.serialize()));
+  } else {
+    throw new Error("A WAL-consistent SQLite backup driver is required; install a working better-sqlite3 native binding. Database files were not copied.");
+  }
+}
+
 export async function backupSqliteFile(sourcePath, destPath) {
-  const db = await openSqliteDatabase(sourcePath, { readonly: true });
+  const db = await openSqliteDatabase(sourcePath, { readonly: true, fileMustExist: true });
   try {
-    if (typeof db.backup === "function") {
-      await db.backup(destPath);
-    } else if (sourcePath === ":memory:" && typeof db.serialize === "function") {
-      fs.writeFileSync(destPath, Buffer.from(db.serialize()));
-    } else {
-      try {
-        db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
-      } catch {}
-      fs.copyFileSync(sourcePath, destPath);
-    }
+    await backupOpenSqliteDatabase(db, sourcePath, destPath);
   } finally {
     db.close();
   }

@@ -17,3 +17,5 @@ The sql.js fallback refuses to open an existing database while a WAL or rollback
 The CLI database opener also refuses to create a missing main file when SQLite sidecars or preserved probe-failed files exist. This check does not prevent a file appearing after inspection; CLI schema and pragma writes on an existing database still lack a writer fence and pre-write snapshot.
 
 The CLI restore command also refuses replacement of database and configuration files until the ownership protocol is available; `restore --list` remains available. The refusal is not an implementation of offline recovery. Preserve the current data and backup until a verified recovery procedure is in place.
+
+CLI SQLite backup now requires the directly opened better-sqlite3 online backup API and fails if that capability is unavailable; Bun and node:sqlite fallback adapters are not accepted because their backup methods can fall back to an unsafe raw copy. Install a working better-sqlite3 native binding to use this CLI path. This change prevents that raw-copy fallback; it does not establish exclusive, atomic or crash-safe publication of the output, nor writer ownership.
