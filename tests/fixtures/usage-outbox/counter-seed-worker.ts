@@ -6,7 +6,8 @@ const {getCurrentWindowUsage} = await import("../../../open-sse/services/tokenLi
 const db = getDbInstance();
 const original = db.prepare.bind(db);
 const barrier = process.argv[2];
-(db as any).prepare = (sql:string) => {
+const now = Number(process.argv[3]);
+(db as unknown as { prepare: (sql: string) => ReturnType<typeof original> }).prepare = (sql:string) => {
   if (sql.startsWith("INSERT OR IGNORE INTO api_key_token_counters")) {
     fs.writeFileSync(path.join(barrier,String(process.pid)),"ready",{flag:"wx"});
     const deadline = Date.now() + 60000;
@@ -18,4 +19,4 @@ const barrier = process.argv[2];
   return original(sql);
 };
 const limit = getTokenLimitsForRequest("concurrent-seed","openai","fixture")[0];
-if (getCurrentWindowUsage(limit,Date.now(),true) !== 5) throw new Error("unexpected counter");
+if (getCurrentWindowUsage(limit,now,true) !== 5) throw new Error("unexpected counter");
