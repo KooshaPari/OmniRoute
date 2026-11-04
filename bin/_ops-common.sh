@@ -66,5 +66,5 @@ ops_find_snapshot() {
       [ -f "$cand/storage.sqlite" ] && { printf '%s\n' "$cand"; return 0; }
     done
   fi
-  ops_die "no snapshot matching '$id' under $OMNIROUTE_BACKUPS_DIR (run bin/snapshot-data.sh first)"
+  ops_die "no snapshot matching '$id' under $OMNIROUTE_BACKUPS_DIR (snapshot creation is currently unavailable)"
 }
