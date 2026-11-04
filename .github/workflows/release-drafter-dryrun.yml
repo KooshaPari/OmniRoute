@@ -29,18 +29,25 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/rd
-          # release-drafter ships a CLI. --dry-run writes the generated body
-          # to RELEASE_TEMPLATE.md and exits 0. On config/template error it
-          # exits non-zero; stderr shows what went wrong.
-          if npx --yes release-drafter@5.7.5 --dry-run >/tmp/rd/CHANGELOG.md 2>/tmp/rd/stderr; then
-            bytes=$(wc -c </tmp/rd/CHANGELOG.md)
-            echo "✅ release-drafter dry-run ok (${bytes} bytes drafted for next release)"
+          # release-drafter ships a CLI. --dry-run calculates the next release
+          # without writing it and exits 0; on config/template error it exits
+          # non-zero and stderr shows what went wrong.
+          #
+          # The CLI moved to a repository-first interface in 7.x (5.7.5 was
+          # never published to npm, so the old pin failed with
+          # "npm error notarget No matching version found for
+          # release-drafter@5.7.5"). Pass the repository explicitly and use
+          # --json so the step has a stable, parseable artifact.
+          if npx --yes release-drafter@7.10.0 "$GITHUB_REPOSITORY" --dry-run --json \
+              -c .github/release-drafter.yml >/tmp/rd/CHANGELOG.json 2>/tmp/rd/stderr; then
+            bytes=$(wc -c </tmp/rd/CHANGELOG.json)
+            echo "✅ release-drafter dry-run ok (${bytes} bytes of dry-run output for next release)"
           else
             echo "::error title=release-drafter dry-run failed::config or template error — check CI logs"
             echo "--- stderr ---"
             cat /tmp/rd/stderr || true
             echo "--- stdout (partial) ---"
-            head -20 /tmp/rd/CHANGELOG.md || true
+            head -20 /tmp/rd/CHANGELOG.json || true
             echo "--- .github/release-drafter.yml ---"
             cat .github/release-drafter.yml || true
             exit 1

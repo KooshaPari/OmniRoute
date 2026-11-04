@@ -130,27 +130,69 @@ function collectTestLoc() {
 }
 
 /**
- * Computa LOC por arquivo a partir de um ref git (branch, SHA, tag).
- * Usado pelo modo --base-ref para obter a contagem na base do PR (#8522).
- * @param {string} ref — git ref (e.g. SHA da branch base)
- * @param {string[]} files — lista de paths relativos ao ROOT
- * @returns {Object} mapa file → line count
+ * Conta linhas como `source.split("\n").length` (mesma semantica de countLines).
+ * @param {Buffer} body
+ * @returns {number}
  */
-function getBaseLoc(ref, files) {
+function countBufferLines(body) {
+  let newlines = 0;
+  for (let i = 0; i < body.length; i++) if (body[i] === 0x0a) newlines++;
+  return newlines + 1;
+}
+
+/**
+ * Parse do stream de `git cat-file --batch`: para cada objeto sai um cabecalho
+ * "<oid> <tipo> <tamanho>\n" seguido do conteudo e de um "\n". Objetos ausentes
+ * saem como "<nome> missing" / "<nome> ambiguous" (2 campos, sem conteudo).
+ * @param {Buffer} buf
+ * @param {string[]} files — ordem dos objetos pedidos no stdin
+ * @returns {Object} mapa file → line count (ausentes ficam de fora)
+ */
+export function parseBatchOutput(buf, files) {
   const out = {};
+  let off = 0;
   for (const file of files) {
-    try {
-      const buf = execFileSync("git", ["show", `${ref}:${file}`], {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"],
-        timeout: 5000,
-      });
-      out[file] = buf.split("\n").length;
-    } catch {
-      // Arquivo nao existe na base (novo no PR) — tratado como 0
-    }
+    const nl = buf.indexOf(0x0a, off);
+    if (nl < 0) break;
+    const header = buf.toString("utf8", off, nl);
+    off = nl + 1;
+    const parts = header.split(" ");
+    const size = Number(parts[2]);
+    if (parts.length < 3 || !Number.isFinite(size)) continue; // missing/ambiguous
+    out[file] = countBufferLines(buf.subarray(off, off + size));
+    off += size + 1; // LF que o --batch escreve depois do conteudo
   }
   return out;
+}
+
+/**
+ * Computa LOC por arquivo a partir de um ref git (branch, SHA, tag).
+ * Usado pelo modo --base-ref para obter a contagem na base do PR (#8522).
+ *
+ * Um unico `git cat-file --batch` serve todos os paths. A versao anterior
+ * chamava `git show` por arquivo: ~5k processos num PR grande, o que deixava
+ * o modo --base-ref lento demais para rodar em CI (medido >10 min local).
+ * @param {string} ref — git ref (e.g. SHA da branch base)
+ * @param {string[]} files — lista de paths relativos ao ROOT
+ * @param {{cwd?: string}} [opts]
+ * @returns {Object} mapa file → line count
+ */
+export function getBaseLoc(ref, files, opts = {}) {
+  if (!files.length) return {};
+  let buf;
+  try {
+    buf = execFileSync("git", ["cat-file", "--batch"], {
+      cwd: opts.cwd || ROOT,
+      input: files.map((f) => `${ref}:${f}\n`).join(""),
+      maxBuffer: 1 << 28,
+      stdio: ["pipe", "pipe", "ignore"],
+      timeout: 120000,
+    });
+  } catch {
+    // ref ausente (checkout shallow) ou git indisponivel → sem base relativa
+    return {};
+  }
+  return parseBatchOutput(buf, files);
 }
 
 function main() {
@@ -162,9 +204,18 @@ function main() {
   const cap = baseline.cap;
   const frozen = baseline.frozen || {};
   const current = collectLoc();
+  const testCap = baseline.testCap;
+  const testFrozen = baseline.testFrozen || {};
+  const currentTests = collectTestLoc();
 
-  // Modo PR: computa LOC na branch base para comparacao relativa (#8522)
-  const baseLoc = BASE_REF ? getBaseLoc(BASE_REF, Object.keys(current)) : undefined;
+  // Modo PR: computa LOC na branch base para comparacao relativa (#8522).
+  // Inclui os arquivos de teste: o gate de test-file-size reusa o mesmo mapa,
+  // e antes ele so recebia os paths de SCAN_DIRS, entao um test file com drift
+  // herdado continuava vermelho mesmo em modo --base-ref.
+  const baseFiles = BASE_REF
+    ? [...new Set([...Object.keys(current), ...Object.keys(currentTests)])]
+    : undefined;
+  const baseLoc = baseFiles ? getBaseLoc(BASE_REF, baseFiles) : undefined;
   if (BASE_REF) {
     const baseKeys = Object.keys(baseLoc).length;
     console.log(
@@ -176,15 +227,12 @@ function main() {
 
   // Test-file gate (Layer 1 anti-reinflation): same shrink-only + new-≤cap semantics,
   // reusing evaluateFileSizes against the testFrozen baseline + testCap.
-  const testCap = baseline.testCap;
-  const testFrozen = baseline.testFrozen || {};
-  const currentTests = collectTestLoc();
   const {
     violations: testViolations,
     improvements: testImprovements,
     redundant: testRedundant,
   } = typeof testCap === "number"
-    ? evaluateFileSizes(currentTests, testFrozen, testCap, BASE_REF ? baseLoc : undefined)
+    ? evaluateFileSizes(currentTests, testFrozen, testCap, baseLoc)
     : { violations: [], improvements: [], redundant: [] };
 
   if (UPDATE) {

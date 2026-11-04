@@ -79,11 +79,6 @@ export function deriveCookieExpiryIso(credential: unknown): string | null {
   return ms === null ? null : new Date(ms).toISOString();
 }
 
-/** Structural view of stored providerSpecificData this module reads/writes. */
-export interface CookieExpiryData {
-  cookieExpiresAt?: string | null;
-}
-
 export function readCookieExpiresAt(providerSpecificData: unknown): string | null {
   if (!providerSpecificData || typeof providerSpecificData !== "object") return null;
   const value = (providerSpecificData as Record<string, unknown>).cookieExpiresAt;

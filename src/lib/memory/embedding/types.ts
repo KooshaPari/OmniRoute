@@ -1,5 +1,3 @@
-export type EmbeddingSource = "remote" | "static" | "transformers" | "auto";
-
 export interface EmbeddingProviderListing {
   provider: string; // e.g. "openai"
   hasKey: boolean;

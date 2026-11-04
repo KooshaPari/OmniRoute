@@ -174,9 +174,8 @@ async function loginMaxaiEmail(
   body: { step?: unknown; email?: unknown; code?: unknown }
 ): Promise<NextResponse> {
   const { randomUUID } = await import("node:crypto");
-  const { requestMaxaiEmailCode, verifyMaxaiEmailCode } = await import(
-    "@omniroute/open-sse/executors/maxai/emailLogin.ts"
-  );
+  const { requestMaxaiEmailCode, verifyMaxaiEmailCode } =
+    await import("@omniroute/open-sse/executors/maxai/emailLogin.ts");
 
   const psd = (connection.providerSpecificData ?? {}) as Record<string, unknown>;
   const step = String(body.step || "request");
@@ -289,7 +288,7 @@ async function loginMaxaiEmail(
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse> {
+): Promise<Response> {
   const auth = await requireManagementAuth(req);
   if (auth) return auth;
 
@@ -309,11 +308,15 @@ export async function POST(
   // {step:"request",email} emails a code; {step:"verify",code} mints + persists.
   if (providerSlug === "maxai" || providerSlug === "mx") {
     try {
-      return await loginMaxaiEmail(id, provider as Record<string, unknown>, body as {
-        step?: unknown;
-        email?: unknown;
-        code?: unknown;
-      });
+      return await loginMaxaiEmail(
+        id,
+        provider as Record<string, unknown>,
+        body as {
+          step?: unknown;
+          email?: unknown;
+          code?: unknown;
+        }
+      );
     } catch (err) {
       const msg = sanitizeErrorMessage(err instanceof Error ? err.message : err);
       return NextResponse.json(

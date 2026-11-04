@@ -74,9 +74,7 @@ describe("detect", () => {
   });
 
   test("returns no signals on a perfectly flat window (stdev 0 guard)", () => {
-    const prior = Array.from({ length: 30 }, (_, i) =>
-      mkSample(i, { errorRate: 0.05 })
-    );
+    const prior = Array.from({ length: 30 }, (_, i) => mkSample(i, { errorRate: 0.05 }));
     const latest = mkSample(31, { errorRate: 0.99, p95LatencyMs: 800 });
     const out = detect(latest, prior);
     // error_rate: prior stdev is 0, so signal should be skipped.
@@ -84,10 +82,16 @@ describe("detect", () => {
   });
 
   test("flags an outlier in error_rate when z >= warn threshold", () => {
+    // A perfectly flat window has stdev 0 and is skipped by design (previous
+    // test), so the prior needs real spread: 0.01 ± 0.05 → mean 0.01, stdev 0.05.
     const prior = Array.from({ length: 30 }, (_, i) =>
-      mkSample(i, { errorRate: 0.01, p95LatencyMs: 800, consecutiveFailures: 0 })
+      mkSample(i, {
+        errorRate: i % 2 === 0 ? 0.06 : -0.04,
+        p95LatencyMs: 800,
+        consecutiveFailures: 0,
+      })
     );
-    const latest = mkSample(31, { errorRate: 0.5 });
+    const latest = mkSample(31, { errorRate: 0.16 }); // z = 3.0 → warn band [2.5, 4.0)
     const out = detect(latest, prior);
     const errRateSignal = out.find((s) => s.dimension === "error_rate");
     expect(errRateSignal).toBeDefined();
@@ -97,9 +101,13 @@ describe("detect", () => {
 
   test("escalates to critical when z >= critical threshold", () => {
     const prior = Array.from({ length: 30 }, (_, i) =>
-      mkSample(i, { errorRate: 0.01, p95LatencyMs: 800, consecutiveFailures: 0 })
+      mkSample(i, {
+        errorRate: i % 2 === 0 ? 0.06 : -0.04,
+        p95LatencyMs: 800,
+        consecutiveFailures: 0,
+      })
     );
-    const latest = mkSample(31, { errorRate: 0.99 });
+    const latest = mkSample(31, { errorRate: 0.99 }); // z ≈ 19.8 → critical
     const out = detect(latest, prior);
     const errRateSignal = out.find((s) => s.dimension === "error_rate")!;
     expect(errRateSignal.severity).toBe("critical");
@@ -137,12 +145,10 @@ describe("scanWindow", () => {
   test("scores every point after the first against the running history", () => {
     const window: ProviderHealthSample[] = [
       ...Array.from({ length: 30 }, (_, i) =>
-        mkSample(i, { errorRate: 0.01, p95LatencyMs: 800 })
+        mkSample(i, { errorRate: i % 2 === 0 ? 0.06 : -0.04, p95LatencyMs: 800 })
       ),
       mkSample(31, { errorRate: 0.5 }), // anomaly
-      ...Array.from({ length: 5 }, (_, i) =>
-        mkSample(32 + i, { errorRate: 0.01 })
-      ),
+      ...Array.from({ length: 5 }, (_, i) => mkSample(32 + i, { errorRate: 0.01 })),
     ];
     const out = scanWindow(window);
     // The anomaly sample should produce exactly 3 signals (one per

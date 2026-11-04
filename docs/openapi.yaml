@@ -8477,6 +8477,8 @@ paths:
       responses:
         "200":
           description: OK
+        "401":
+          description: Unauthorized
   /api/auth/status:
     get:
       tags:
@@ -9589,6 +9591,13 @@ paths:
         "200":
           description: OK
   /api/keys/{id}/regenerate:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     post:
       tags:
         - Keys
@@ -9596,7 +9605,18 @@ paths:
       responses:
         "200":
           description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Key not found
   /api/keys/{id}/reveal:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     get:
       tags:
         - Keys
@@ -9604,7 +9624,20 @@ paths:
       responses:
         "200":
           description: OK
+        "401":
+          description: Unauthorized
+        "403":
+          description: Reveal disabled by configuration
+        "404":
+          description: Key not found
   /api/keys/{id}/usage-limits:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     get:
       tags:
         - Keys
@@ -9612,6 +9645,10 @@ paths:
       responses:
         "200":
           description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Key not found
   /api/keys/groups:
     get:
       tags:
@@ -9620,14 +9657,27 @@ paths:
       responses:
         "200":
           description: OK
+        "401":
+          description: Unauthorized
     post:
       tags:
         - Keys
       summary: "POST keys › groups"
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
+        "400":
+          description: Invalid request body
+        "401":
+          description: Unauthorized
   /api/keys/groups/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     delete:
       tags:
         - Keys
@@ -9635,6 +9685,10 @@ paths:
       responses:
         "200":
           description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Group not found
     get:
       tags:
         - Keys
@@ -9642,6 +9696,10 @@ paths:
       responses:
         "200":
           description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Group not found
     put:
       tags:
         - Keys
@@ -9649,7 +9707,18 @@ paths:
       responses:
         "200":
           description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Group not found
   /api/keys/groups/{id}/keys:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     delete:
       tags:
         - Keys
@@ -9657,6 +9726,12 @@ paths:
       responses:
         "200":
           description: OK
+        "400":
+          description: Invalid request body or missing keyId query param
+        "401":
+          description: Unauthorized
+        "404":
+          description: Group or key not found
     get:
       tags:
         - Keys
@@ -9664,6 +9739,10 @@ paths:
       responses:
         "200":
           description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Group or key not found
     post:
       tags:
         - Keys
@@ -9671,7 +9750,20 @@ paths:
       responses:
         "200":
           description: OK
+        "400":
+          description: Invalid request body or missing keyId query param
+        "401":
+          description: Unauthorized
+        "404":
+          description: Group or key not found
   /api/keys/groups/{id}/permissions:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Resource identifier
     delete:
       tags:
         - Keys
@@ -9679,6 +9771,12 @@ paths:
       responses:
         "200":
           description: OK
+        "400":
+          description: Invalid request body or missing permissionId query param
+        "401":
+          description: Unauthorized
+        "404":
+          description: Group or permission not found
     get:
       tags:
         - Keys
@@ -9686,6 +9784,10 @@ paths:
       responses:
         "200":
           description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Group or permission not found
     post:
       tags:
         - Keys
@@ -9693,6 +9795,12 @@ paths:
       responses:
         "200":
           description: OK
+        "400":
+          description: Invalid request body or missing permissionId query param
+        "401":
+          description: Unauthorized
+        "404":
+          description: Group or permission not found
   /api/local/redis/start:
     post:
       tags:

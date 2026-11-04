@@ -40,14 +40,15 @@ test("migrations run cleanly (no version collision) on a fresh DB", async () => 
 });
 
 test("returns the base model's arena_elo when given a -free variant", async () => {
-  const { getTaskFitnessWithSource, invalidateFitnessCache } = await import(
-    "../../../open-sse/services/autoCombo/taskFitness.ts"
-  );
-  const { upsertModelIntelligence, deleteModelIntelligence } = await import(
-    "../../../src/lib/db/modelIntelligence.ts"
-  );
-  const baseId = "alias-base-test-4517";
-  const freeId = "alias-base-test-4517-free";
+  const { getTaskFitnessWithSource, invalidateFitnessCache } =
+    await import("../../../open-sse/services/autoCombo/taskFitness.ts");
+  const { upsertModelIntelligence, deleteModelIntelligence } =
+    await import("../../../src/lib/db/modelIntelligence.ts");
+  // #11489 made the base-id lookup catalog-anchored, so a synthetic id that no
+  // provider ships is a ghost: inheriting a score for it was never meaningful.
+  // Mirror the vitest case and use a real catalog pair.
+  const baseId = "mimo-v2.5";
+  const freeId = "mimo-v2.5-free";
   upsertModelIntelligence({
     model: baseId,
     source: "arena_elo",
@@ -61,7 +62,7 @@ test("returns the base model's arena_elo when given a -free variant", async () =
   try {
     const result = getTaskFitnessWithSource(freeId, "coding");
     assert.ok(Math.abs(result.score - 0.42) < 1e-5, `expected ~0.42, got ${result.score}`);
-    assert.equal(result.source, "arena_elo_free_alias");
+    assert.equal(result.source, "arena_elo:inherited");
   } finally {
     deleteModelIntelligence(baseId, "arena_elo", "coding");
     invalidateFitnessCache();
@@ -69,8 +70,12 @@ test("returns the base model's arena_elo when given a -free variant", async () =
 });
 
 test("does not strip -free when arena_elo is present on the literal model id", async () => {
-  const { getTaskFitnessWithSource, invalidateFitnessCache, setUserFitnessOverride, clearUserFitnessOverride } =
-    await import("../../../open-sse/services/autoCombo/taskFitness.ts");
+  const {
+    getTaskFitnessWithSource,
+    invalidateFitnessCache,
+    setUserFitnessOverride,
+    clearUserFitnessOverride,
+  } = await import("../../../open-sse/services/autoCombo/taskFitness.ts");
   setUserFitnessOverride("foo-free", "coding", 0.91);
   try {
     const result = getTaskFitnessWithSource("foo-free", "coding");

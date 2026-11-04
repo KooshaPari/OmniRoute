@@ -9,7 +9,6 @@
  *     telemetry failures
  */
 
-import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import { resolveSelfHealingSettings } from "./selfHealingSettings";
 import { SelfHealingManager } from "./selfHealingManager";
 import { createAnomalyDetector } from "./anomalyDetector";
@@ -31,22 +30,19 @@ export function getSelfHealingManager(): Manager {
         degrade: async (providerId, cooloffSec, reason) => {
           const reg = getProviderManagerRegistry();
           const mgr = reg.get(providerId) as
-            | { markDegraded?: (s: number, r: string) => Promise<void> | void }
-            | undefined;
+            { markDegraded?: (s: number, r: string) => Promise<void> | void } | undefined;
           if (mgr?.markDegraded) await mgr.markDegraded(cooloffSec, reason);
         },
         rotateProxy: async (providerId, rotateCount, reason) => {
           const reg = getProviderManagerRegistry();
           const mgr = reg.get(providerId) as
-            | { rotateProxy?: (n: number, r: string) => Promise<void> | void }
-            | undefined;
+            { rotateProxy?: (n: number, r: string) => Promise<void> | void } | undefined;
           if (mgr?.rotateProxy) await mgr.rotateProxy(rotateCount, reason);
         },
         dropCooldown: async (providerId, reason) => {
           const reg = getProviderManagerRegistry();
           const mgr = reg.get(providerId) as
-            | { dropCooldown?: (r: string) => Promise<void> | void }
-            | undefined;
+            { dropCooldown?: (r: string) => Promise<void> | void } | undefined;
           if (mgr?.dropCooldown) await mgr.dropCooldown(reason);
         },
       },
@@ -60,7 +56,6 @@ function getProviderManagerRegistry(): Map<string, unknown> {
     // Lazy import: avoid a hard cycle at module-load time. The registry
     // is supplied by the engine after providers are constructed.
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const mod = require("@/engine/providers") as { providerRegistry?: Map<string, unknown> };
       _providerManagerRegistry = mod.providerRegistry ?? new Map();
     } catch (err) {
@@ -71,7 +66,7 @@ function getProviderManagerRegistry(): Map<string, unknown> {
       // dispatch path will no-op visibly in monitoring.
       log.error(
         { err },
-        "getProviderManagerRegistry: failed to load @/engine/providers — playbook dispatch will no-op",
+        "getProviderManagerRegistry: failed to load @/engine/providers — playbook dispatch will no-op"
       );
       _providerManagerRegistry = new Map();
     }
@@ -89,24 +84,3 @@ export function __resetSelfHealingForTests(): void {
  * Public entrypoint used by the engine. Returns the playbook that was
  * dispatched (or null) for callers that want to log it.
  */
-export async function recordHealthSample(
-  providerId: string,
-  metric: "latency" | "error_rate",
-  value: number,
-  timestampMs: number = Date.now(),
-): Promise<unknown | null> {
-  try {
-    if (!isFeatureFlagEnabled("OMNIROUTE_SELF_HEALING_ENABLED")) return null;
-    const mgr = getSelfHealingManager();
-    return await mgr.recordHealthSample({
-      providerId,
-      metric,
-      value,
-      timestamp: Math.floor(timestampMs / 1000),
-    });
-  } catch (err) {
-    // Telemetry must never break the calling request path.
-    log.warn({ err }, "self-healing: recordHealthSample swallowed error");
-    return null;
-  }
-}

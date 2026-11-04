@@ -6,6 +6,13 @@ const HIGH_RISK_METHOD_RULES = [
   [/^\/api\/auth\/login\/?$/, ["POST"]],
   [/^\/api\/auth\/logout\/?$/, ["POST"]],
   [/^\/api\/keys\/?$/, ["GET", "POST"]],
+  // The key-group collection must match BEFORE the `{id}` rule below: `groups`
+  // is a single segment, so `^/api/keys/[^/]+$` swallowed it and 405'd the real
+  // POST with "POST is not allowed" (dast-smoke ST202/ST103, 2026-10-29).
+  [/^\/api\/keys\/groups\/?$/, ["GET", "POST"]],
+  [/^\/api\/keys\/groups\/[^/]+\/?$/, ["GET", "PUT", "DELETE"]],
+  [/^\/api\/keys\/groups\/[^/]+\/keys\/?$/, ["GET", "POST", "DELETE"]],
+  [/^\/api\/keys\/groups\/[^/]+\/permissions\/?$/, ["GET", "POST", "DELETE"]],
   [/^\/api\/keys\/[^/]+\/?$/, ["GET", "PATCH", "DELETE"]],
   [/^\/api\/keys\/[^/]+\/devices\/?$/, ["GET"]],
 ];

@@ -18,6 +18,12 @@ on:
 
 permissions:
   contents: read
+  # The annotation steps post/update a PR comment through the issues API.
+  # With contents: read only, github-script fails with
+  # "Resource not accessible by integration" (HTTP 403) and the whole
+  # latency gate reports failure even when every budget passes.
+  pull-requests: write
+  issues: write
 
 env:
   BUDGET_FILE: budgets/rest-endpoints.yaml

@@ -12,22 +12,11 @@ const STUB_ERROR =
   "MITM manager stub reached at runtime — build alias applied incorrectly. " +
   "Use --webpack for production builds or verify Turbopack is not aliasing at runtime.";
 
-export const getCachedPassword = () => null;
-export const setCachedPassword = (_pwd: string) => {};
-export const clearCachedPassword = () => {};
-export const getMitmStatus = async () =>
-  ({
-    running: false,
-    pid: null,
-    dnsConfigured: false,
-    certExists: false,
-    orphanedStateDetected: false,
-  }) as const;
-// Repair is a no-op in the bundled (Docker) build: the container has no MITM
 // system state to undo, so "repairing nothing" trivially succeeds rather than
 // throwing (mirrors getMitmStatus's graceful-degradation contract). (Gap 7.)
-export const repairMitm = async (_sudoPassword: string): Promise<{ repaired: string[] }> =>
-  ({ repaired: [] });
+export const repairMitm = async (_sudoPassword: string): Promise<{ repaired: string[] }> => ({
+  repaired: [],
+});
 // Must be exported or the Turbopack build fails ("Export getAllAgentsStatus doesn't
 // exist") — /api/tools/agent-bridge/state imports it statically. Returns the truthful
 // empty agent list in the bundled build rather than throwing (see file header). See #3066.
@@ -37,8 +26,5 @@ export const startMitm = async (
   _sudoPassword: string,
   _options: { port?: number } = {}
 ): Promise<never> => {
-  throw new Error(STUB_ERROR);
-};
-export const stopMitm = async (_sudoPassword: string): Promise<never> => {
   throw new Error(STUB_ERROR);
 };

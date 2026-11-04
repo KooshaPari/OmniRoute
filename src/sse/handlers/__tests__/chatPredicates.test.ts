@@ -88,7 +88,7 @@ describe("chatPredicates.isProviderBreakerFailureStatus", () => {
   it("returns false for boundary codes 0, 999, NaN", () => {
     expect(isProviderBreakerFailureStatus(0)).toBe(false);
     expect(isProviderBreakerFailureStatus(999)).toBe(false);
-    expect(Number.isNaN(isProviderBreakerFailureStatus(NaN))).toBe(true);
+    expect(isProviderBreakerFailureStatus(NaN)).toBe(false);
   });
 
   it("returns equivalent result to PROVIDER_BREAKER_FAILURE_STATUSES.has", () => {
@@ -96,7 +96,7 @@ describe("chatPredicates.isProviderBreakerFailureStatus", () => {
     // Set membership must agree. Catches any future divergence.
     for (let code = -1; code <= 600; code++) {
       expect(isProviderBreakerFailureStatus(code)).toBe(
-        PROVIDER_BREAKER_FAILURE_STATUSES.has(code),
+        PROVIDER_BREAKER_FAILURE_STATUSES.has(code)
       );
     }
   });
@@ -106,15 +106,13 @@ describe("chatPredicates.PROVIDER_BREAKER_FAILURE_STATUSES_SORTED", () => {
   it("is sorted ascending", () => {
     for (let i = 1; i < PROVIDER_BREAKER_FAILURE_STATUSES_SORTED.length; i++) {
       expect(PROVIDER_BREAKER_FAILURE_STATUSES_SORTED[i]).toBeGreaterThan(
-        PROVIDER_BREAKER_FAILURE_STATUSES_SORTED[i - 1],
+        PROVIDER_BREAKER_FAILURE_STATUSES_SORTED[i - 1]
       );
     }
   });
 
   it("equals exactly [408, 500, 502, 503, 504]", () => {
-    expect(PROVIDER_BREAKER_FAILURE_STATUSES_SORTED).toEqual([
-      408, 500, 502, 503, 504,
-    ]);
+    expect(PROVIDER_BREAKER_FAILURE_STATUSES_SORTED).toEqual([408, 500, 502, 503, 504]);
   });
 
   it("is readonly (no mutations)", () => {

@@ -12,11 +12,11 @@ across the Phenotype org (forgecode/Rust · OmniRoute/TypeScript · cliproxy/Go)
 
 ## Schema files (provider-models/)
 
-| Schema | Path in contracts repo |
-|--------|------------------------|
-| `provider-model.schema.json` | `provider-models/provider-model.schema.json` |
+| Schema                             | Path in contracts repo                             |
+| ---------------------------------- | -------------------------------------------------- |
+| `provider-model.schema.json`       | `provider-models/provider-model.schema.json`       |
 | `oauth-refresh-policy.schema.json` | `provider-models/oauth-refresh-policy.schema.json` |
-| `resilience-policy.schema.json` | `provider-models/resilience-policy.schema.json` |
+| `resilience-policy.schema.json`    | `provider-models/resilience-policy.schema.json`    |
 
 ---
 
@@ -24,9 +24,9 @@ across the Phenotype org (forgecode/Rust · OmniRoute/TypeScript · cliproxy/Go)
 
 ### oauth-refresh-policy — `TOKEN_EXPIRY_BUFFER`
 
-| Contract field | Contract value | OmniRoute value | Status |
-|----------------|---------------|-----------------|--------|
-| `default_refresh_lead_seconds` | 300 s | `5 * 60 * 1000` ms = 300 000 ms (≡ 300 s) | **CONFORMS** |
+| Contract field                 | Contract value | OmniRoute value                           | Status       |
+| ------------------------------ | -------------- | ----------------------------------------- | ------------ |
+| `default_refresh_lead_seconds` | 300 s          | `5 * 60 * 1000` ms = 300 000 ms (≡ 300 s) | **CONFORMS** |
 
 Source: `src/lib/tokenHealthCheck.ts` — `const TOKEN_EXPIRY_BUFFER = 5 * 60 * 1000;`
 
@@ -39,8 +39,8 @@ seconds — callers must convert units."
 
 ### resilience-policy — retryable HTTP status set
 
-| Contract field | Contract default | OmniRoute value | Status |
-|----------------|-----------------|-----------------|--------|
+| Contract field                | Contract default                                     | OmniRoute value                                                                               | Status       |
+| ----------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------ |
 | `retryable_http_status_codes` | `[408, 429, 500, 502, 503, 504, 520, 522, 524, 529]` | `[408, 500, 502, 503, 504]` (PROVIDER_BREAKER_FAILURE_STATUSES in `src/sse/handlers/chat.ts`) | **DIVERGES** |
 
 **Documented divergence**: OmniRoute's `PROVIDER_BREAKER_FAILURE_STATUSES` set omits the following
@@ -59,8 +59,8 @@ The conformance test asserts the actual value (not the contract default) and doc
 
 ### resilience-policy — SSE terminal marker `[DONE]`
 
-| Contract ref | Contract value | OmniRoute value | Status |
-|--------------|---------------|-----------------|--------|
+| Contract ref                                                    | Contract value                              | OmniRoute value                                                               | Status       |
+| --------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- | ------------ |
 | `sse_stop_reference.terminal_marker_schema_ref` → `SseStopRule` | `"[DONE]"` literal as SSE stream terminator | Handled in `src/lib/sseTextTransform.ts` line 93: `if (segment === "[DONE]")` | **CONFORMS** |
 
 Additionally, `checkIfStopSignal()` in the same file covers provider-specific stop events
@@ -70,7 +70,7 @@ Additionally, `checkIfStopSignal()` in the same file covers provider-specific st
 
 ## Keeping this document current
 
-1. Run `npm test -- tests/unit/phenotype-contracts-conformance.test.ts` to verify all assertions.
+1. Run `npm test -- tests/unit/vitest/phenotype-contracts-conformance.test.ts` to verify all assertions.
 2. When phenotype-contracts publishes a new schema version, update the **Pinned SHA** above,
    re-run the conformance test, and reconcile any new divergences in this file.
 3. Divergences that are intentional architectural decisions (e.g. the 429 split above) MUST be

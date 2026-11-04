@@ -531,7 +531,7 @@ export async function generateOpencodeConfig(options: GenerateOpencodeOptions): 
  * opencode` command; the async variant above is what callers should use
  * for the full, context-window-aware flow.
  */
-export function generateOpencodeConfigSync(options: {
+function generateOpencodeConfigSync(options: {
   baseUrl: string;
   apiKey: string;
   model?: string;

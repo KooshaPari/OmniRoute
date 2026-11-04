@@ -8,8 +8,35 @@ import { getTrustedLocalRateLimitResponse } from "@omniroute/open-sse/services/r
 
 export const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 
+/**
+ * Ascending view of PROVIDER_BREAKER_FAILURE_STATUSES for introspection payloads
+ * (chatForkState) and CLI/debug output, where a Set is not JSON-serializable.
+ */
+export const PROVIDER_BREAKER_FAILURE_STATUSES_SORTED: readonly number[] = Object.freeze(
+  [...PROVIDER_BREAKER_FAILURE_STATUSES].sort((a, b) => a - b)
+);
+
 export function isProviderBreakerFailureStatus(status: number): boolean {
   return PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(status));
+}
+
+/**
+ * Breaker decision once a dispatch has exhausted every candidate because they
+ * were all rate-limited. Separate from `shouldTripProviderBreakerForResult`
+ * because the trigger is the *aggregate* outcome, not one response body.
+ *
+ * Strict on both inputs on purpose: `allRateLimited` must be exactly `true` (a
+ * truthy string from a decoded payload is not evidence), and `status` must be a
+ * real breaker status — NaN/Infinity/negative codes never match the set.
+ */
+export function shouldTripBreakerForAllRateLimited(
+  forceLiveComboTest: boolean,
+  allRateLimited: boolean | null | undefined,
+  status: number | null | undefined
+): boolean {
+  if (forceLiveComboTest) return false;
+  if (allRateLimited !== true) return false;
+  return Number.isFinite(Number(status)) && PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(status));
 }
 
 // #7907/#7908: single-model breaker trip bypasses the `isFailure` option (only applies
@@ -30,7 +57,12 @@ export function shouldTripProviderBreakerForResult(
   return (
     !forceLiveComboTest &&
     !isCombo &&
-    !isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) &&
+    !isRequestScopedUpstreamFailure({
+      // A plain-string `error` usually carries the code itself
+      // (error: "stream_readiness_timeout"), which is how #8255 surfaces.
+      code: result.errorCode ?? (typeof result.error === "string" ? result.error : null),
+      type: result.errorType,
+    }) &&
     !(result.response && getTrustedLocalRateLimitResponse(result.response)) &&
     !isLocalStreamLifecycleError(result.error) &&
     !isLocalExecutionError(result.error) &&

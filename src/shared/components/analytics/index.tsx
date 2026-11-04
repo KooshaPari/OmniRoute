@@ -9,14 +9,12 @@
  *   - UsageDetail.js, SortIndicator.js
  */
 export {
-  SortIndicator,
   StatCard,
   CompactStatGrid,
   ActivityHeatmap,
   ApiKeyTable,
   MostActiveDay7d,
   WeeklySquares7d,
-  UsageDetail,
   ProviderTable,
   ServiceTierBreakdown,
 } from "./charts";

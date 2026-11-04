@@ -105,24 +105,18 @@ test("responses route passes through Responses-shaped error unchanged", async ()
   const payload = JSON.parse(errorDataLine!.slice("data: ".length));
   assert.equal(payload.type, "error");
   assert.equal(payload.code, "content_policy_violation");
-  assert.equal(
-    payload.message,
-    "Request rejected by content filter."
-  );
+  assert.equal(payload.message, "Request rejected by content filter.");
 });
 
 // ── Responses route wraps empty body in generic Responses error ───────────
 
 test("responses route wraps empty upstream body in generic Responses error", async () => {
-  const handlerResponse = makeNonSseResponse({});
   // Override to return empty body
   const emptyResponse = new Response("", {
     status: 500,
     headers: { "content-type": "application/json" },
   });
-  const delayed = new Promise<Response>((resolve) =>
-    setTimeout(() => resolve(emptyResponse), 10)
-  );
+  const delayed = new Promise<Response>((resolve) => setTimeout(() => resolve(emptyResponse), 10));
 
   const result = await withEarlyStreamKeepalive(delayed, {
     thresholdMs: 5,
@@ -186,10 +180,7 @@ test("chat completions route does NOT re-frame upstream error (existing behavior
   const responsesLine = dataLines.find(
     (l) => l.includes('"type":"error"') && !l.includes('"error":{')
   );
-  assert.ok(
-    !responsesLine,
-    "should NOT contain Responses-style error framing for Chat route"
-  );
+  assert.ok(!responsesLine, "should NOT contain Responses-style error framing for Chat route");
 });
 
 // ── Responses route wraps unparseable body in generic error ───────────────

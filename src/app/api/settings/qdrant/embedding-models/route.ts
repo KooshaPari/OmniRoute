@@ -4,10 +4,7 @@ import { getProviderConnections } from "@/lib/db/providers";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
-import {
-  buildRegistryEmbeddingOptions,
-  mergeEmbeddingOptions,
-} from "./catalog";
+import { buildRegistryEmbeddingOptions, mergeEmbeddingOptions } from "./catalog";
 
 type EmbeddingModelOption = {
   value: string;
@@ -92,8 +89,12 @@ export async function GET(request: NextRequest) {
       // Best effort only: keep endpoint fast and resilient.
     }
 
-    // Ensure the default always exists as a safe fallback.
-    if (!options.some((o) => o.value === "openai/text-embedding-3-small")) {
+    // Ensure the default exists as a safe fallback for users who configured
+    // OpenAI; without that connection the option would be unusable.
+    if (
+      configuredProviders.has("openai") &&
+      !options.some((o) => o.value === "openai/text-embedding-3-small")
+    ) {
       options.unshift({
         value: "openai/text-embedding-3-small",
         label: "openai/text-embedding-3-small - OpenAI Text Embedding 3 Small",
@@ -105,7 +106,10 @@ export async function GET(request: NextRequest) {
     // embedding providers instead of only chat-catalog text matches and
     // OpenRouter live discovery. Registry options dedupe against the above;
     // mergeEmbeddingOptions returns value-sorted options for stable UI order.
-    const withRegistry = mergeEmbeddingOptions(options, buildRegistryEmbeddingOptions());
+    const withRegistry = mergeEmbeddingOptions(
+      options,
+      buildRegistryEmbeddingOptions(configuredProviders)
+    );
 
     return NextResponse.json({ models: withRegistry });
   } catch (error) {

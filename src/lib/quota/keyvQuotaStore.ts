@@ -28,7 +28,7 @@
 import { Keyv } from "keyv";
 import type { DimensionKey } from "./dimensions";
 import { dimensionKeyToString, WINDOW_MS } from "./dimensions";
-import { getPool } from "@/lib/localDb";
+import { getPool } from "@/lib/db/quotaPools";
 import { computeBurnRateFromWindow } from "./burnRate";
 import type { QuotaStore, PoolUsageSnapshot } from "./types";
 
@@ -128,7 +128,7 @@ export class KeyvQuotaStore implements QuotaStore {
 
   async poolUsageWithDimensions(
     poolId: string,
-    planDimensions: Array<{ unit: string; window: string; limit: number }>,
+    planDimensions: Array<{ unit: string; window: string; limit: number }>
   ): Promise<PoolUsageSnapshot> {
     const nowMs = Date.now();
     const pool = getPool(poolId);

@@ -88,8 +88,6 @@ export function getFeaturedProviderRank(providerId: string | null | undefined): 
  * `sortProviderEntriesFeaturedFirst`. Retained for existing importers: the flat
  * set of featured ids, derived from the rank map so the two cannot drift.
  */
-export const FEATURED_PROVIDER_IDS: ReadonlySet<string> = new Set(FEATURED_PROVIDER_RANKS.keys());
-
 export function isFeaturedProviderId(providerId: string | null | undefined): boolean {
   return getFeaturedProviderRank(providerId) !== null;
 }

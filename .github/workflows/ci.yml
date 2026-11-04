@@ -149,7 +149,18 @@ jobs:
       - run: npm run check:provider-asset-provenance
       - run: npm run check:fetch-targets
       - run: npm run check:deps
-      - run: npm run check:file-size
+      # #8522: base-relative on PR events so drift already merged into the base
+      # cannot red an innocent PR (the quality-gate job in quality.yml has used
+      # this mode since #8522). push/workflow_dispatch have no PR base → absolute.
+      - name: File-size ratchet
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -n "${PR_BASE_SHA:-}" ]; then
+            npm run check:file-size -- --base-ref "$PR_BASE_SHA"
+          else
+            npm run check:file-size
+          fi
       - run: npm run check:error-helper
       - run: npm run check:migration-numbering
       - run: npm run check:public-creds
@@ -896,20 +907,8 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: pnpm
       - uses: ./.github/actions/npm-ci-retry
-      - name: Install Bun (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          powershell -c "iwr bun.sh/install.ps1 -useb | iex"
-          echo "$env:USERPROFILE\.bun\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
-      - name: Install Bun (non-Windows)
-        if: runner.os != 'Windows'
-        run: npm install -g bun
-      # .npmrc sets ignore-scripts=true, which skips bun's postinstall binary
-      # download; run it explicitly or bun is a stub without the platform binary.
-      - name: Fetch bun binary (ignore-scripts workaround)
-        if: runner.os != 'Windows'
-        run: node "$(npm root -g)/bun/install.js"
+      # `bun` comes from the repo's own devDependency; the shared install action
+      # materialises its platform binary because pnpm skips postinstall scripts.
       - run: npm run test:bun:db
 
   test-vitest:
@@ -922,7 +921,14 @@ jobs:
     # cache restore saturating the link), while the tests themselves tied, 2m54 vs 2m31. So
     # self-hosted is strictly worse here and there is nothing to configure.
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # 15 minutes was enough only while the run died early: the node:test suite in
+    # tests/unit/autoCombo aborted the MCP step with "No test suite found" after
+    # ~80s. With that fixed the job actually runs `test:vitest` (MCP/autoCombo)
+    # AND `test:vitest:ui`. Measured 2026-10-22: the MCP step passes in seconds,
+    # then the UI suite runs past 27 minutes (30-minute job cancelled at 30m23s),
+    # so it has effectively never completed in CI. 45 minutes matches the
+    # heaviest job in this workflow (Build) and leaves real headroom.
+    timeout-minutes: 45
     # needs: changes (not build) — no artifact consumed; see test-unit note.
     needs: changes
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}

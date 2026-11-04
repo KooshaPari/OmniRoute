@@ -60,7 +60,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm install --global prettier@3.6.2
+          # Must match the repo's devDependency (package.json "prettier": "^3.9.6").
+          # 3.6.2 and 3.9.x disagree on markdown table alignment around wide glyphs,
+          # so a stale CI pin fails files that are correctly formatted for the
+          # version developers run (observed on AGENTS.md, 2026-10-28).
+          npm install --global prettier@3.9.6
           prettier --version
 
       - name: prettier check

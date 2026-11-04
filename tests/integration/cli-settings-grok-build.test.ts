@@ -27,6 +27,24 @@ process.env.JWT_SECRET = "test-jwt-secret-grok-build";
 // tests/unit/cli-tools-apply-container-422.test.ts.
 process.env.OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE = "1";
 
+// GROK_HOME is read straight from the ambient process env by
+// resolveGrokBuildConfigPath, which throws on a non-absolute / traversal value.
+// An inherited or leftover GROK_HOME (CI runners, a prior suite, a dev shell)
+// therefore changes behaviour without any test asking for it: GET would 500
+// instead of 200, and DELETE/POST would 500 instead of exercising their paths.
+// Snapshot the ambient value once, force it absent for every test, and restore
+// it afterwards so this suite neither reads nor leaks ambient state.
+const ORIGINAL_GROK_HOME = process.env.GROK_HOME;
+
+function clearGrokHome(): void {
+  delete process.env.GROK_HOME;
+}
+
+function restoreGrokHome(): void {
+  if (ORIGINAL_GROK_HOME === undefined) delete process.env.GROK_HOME;
+  else process.env.GROK_HOME = ORIGINAL_GROK_HOME;
+}
+
 // Import DB reset helpers (must be before route import)
 const core = await import("../../src/lib/db/core.ts");
 const { updateSettings } = await import("@/lib/db/settings");
@@ -51,6 +69,11 @@ async function enableAuth() {
 
 test.beforeEach(async () => {
   await resetStorage();
+  clearGrokHome();
+});
+
+test.afterEach(() => {
+  restoreGrokHome();
 });
 
 // ── Test 1: GET without auth when auth is required → 401 ────────────────────
@@ -347,6 +370,34 @@ test("grok-build-settings POST: resolves keyId to an unmasked key", async () => 
   }
 });
 
+// ── Environment independence ─────────────────────────────────────────────────
+
+test("grok-build-settings: a malformed ambient GROK_HOME cannot break the suite", async () => {
+  // Reproduce the CI failure mode in-process: a leftover relative GROK_HOME makes
+  // resolveGrokBuildConfigPath throw, which surfaces as a 500 from the route.
+  // The per-test guard must remove it before the handler ever sees it.
+  process.env.GROK_HOME = "relative/path";
+
+  const poisoned = await POST(
+    new Request("http://localhost/api/cli-tools/grok-build-settings", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ baseUrl: "http://localhost:20128", model: "xai/grok-4" }),
+    })
+  );
+  assert.equal(poisoned.status, 500, "A malformed GROK_HOME must be rejected, not silently used");
+
+  clearGrokHome();
+  assert.equal(
+    process.env.GROK_HOME,
+    undefined,
+    "The test guard must leave no GROK_HOME in the environment"
+  );
+
+  const res = await GET(new Request("http://localhost/api/cli-tools/grok-build-settings"));
+  assert.equal(res.status, 200, "GET must succeed once the ambient GROK_HOME is cleared");
+});
+
 // ── Test 6: Error sanitization (Hard Rule #12) ───────────────────────────────
 
 test("grok-build-settings: error responses do not leak stack traces", async () => {
@@ -376,6 +427,7 @@ test("grok-build-settings route.ts: does not call exec() or spawn() directly", (
 });
 
 test.after(async () => {
+  restoreGrokHome();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   delete process.env.DATA_DIR;

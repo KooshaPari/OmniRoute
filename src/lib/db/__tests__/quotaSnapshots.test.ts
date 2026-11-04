@@ -35,7 +35,7 @@ let lastCleanupAt = 0;
 
 function saveQuotaSnapshotForTest(
   db: Database.Database,
-  snapshot: Omit<QuotaSnapshotRow, "id" | "createdAt">
+  snapshot: Omit<QuotaSnapshotRow, "id" | "created_at">
 ): void {
   const now = new Date().toISOString();
 

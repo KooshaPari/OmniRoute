@@ -137,7 +137,7 @@ test("happy path: only prompt provided", async () => {
     globalThis.fetch = makeUpstreamOkFetch("improved prompt content only") as typeof fetch;
 
     const res = await POST(
-      postRequest({ prompt: "What is machine learning?", model: "claude-3-5-sonnet-20241022" })
+      postRequest({ prompt: "What is machine learning?", model: "claude-sonnet-4-6" })
     );
     assert.equal(res.status, 200);
 

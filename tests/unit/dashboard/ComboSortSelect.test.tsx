@@ -1,4 +1,3 @@
-import "../../_setup/jsdomGlobal.ts";
 import { describe, it, expect } from "vitest";
 
 const assert = {

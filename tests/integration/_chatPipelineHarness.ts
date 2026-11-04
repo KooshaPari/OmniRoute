@@ -216,7 +216,7 @@ export async function createChatPipelineHarness(prefix) {
     );
   }
 
-  function buildClaudeResponse(text = "ok", model = "claude-3-5-sonnet-20241022") {
+  function buildClaudeResponse(text = "ok", model = "claude-sonnet-4-6") {
     return new Response(
       JSON.stringify({
         id: "msg_json",

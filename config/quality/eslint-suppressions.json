@@ -1114,16 +1114,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/settings/components/MitmProxyTab.tsx": {
-    "@next/next/no-html-link-for-pages": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/settings/components/ModelAliasesTab.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/(dashboard)/dashboard/settings/components/ModelCapabilityOverridesTab.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1131,16 +1121,6 @@
   },
   "src/app/(dashboard)/dashboard/settings/components/ModelLockoutCard.tsx": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/settings/components/OneproxyTab.tsx": {
-    "react-hooks/set-state-in-effect": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/settings/components/PoliciesPanel.tsx": {
-    "react-hooks/set-state-in-effect": {
       "count": 1
     }
   },
@@ -1160,11 +1140,6 @@
     }
   },
   "src/app/(dashboard)/dashboard/settings/components/SystemStorageTab.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/settings/components/useProxyPoolModal.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -1254,11 +1229,6 @@
       "count": 1
     }
   },
-  "src/app/api/compression/replay/__tests__/route.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/app/api/github-skills/route.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1331,16 +1301,6 @@
   },
   "src/app/api/services/[name]/logs/route.ts": {
     "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "src/app/api/settings/__tests__/memory.test.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
-  "src/app/api/settings/__tests__/settings.test.ts": {
-    "no-restricted-imports": {
       "count": 1
     }
   },
@@ -1647,11 +1607,6 @@
       "count": 1
     }
   },
-  "src/lib/db/probeUtils.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
   "src/lib/db/prompts.ts": {
     "no-restricted-syntax": {
       "count": 1
@@ -1835,16 +1790,6 @@
       "count": 1
     }
   },
-  "src/lib/plugins/pluginWorker.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "src/lib/plugins/signing.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/lib/providers/validation.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1857,11 +1802,6 @@
   },
   "src/lib/providers/validation/webProvidersB.ts": {
     "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/quota/keyvQuotaStore.ts": {
-    "no-restricted-imports": {
       "count": 1
     }
   },
@@ -1895,24 +1835,9 @@
       "count": 1
     }
   },
-  "src/lib/skills/a2a.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
-  "src/lib/skills/builtin/browser.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/lib/skills/githubCollector.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "src/lib/skills/hybrid.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 7
     }
   },
   "src/lib/skills/memoryBuiltins.ts": {
@@ -2084,34 +2009,9 @@
       "count": 2
     }
   },
-  "src/shared/components/analytics/charts.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
   "src/shared/components/analytics/rechartsUsageCharts.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "src/shared/components/docs/CodeBlock.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/shared/components/docs/DocsBreadcrumbs.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/shared/components/docs/DocsSidebar.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/shared/components/docs/DocsThemeProvider.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
     }
   },
   "src/shared/constants/agentSkills.ts": {
@@ -2262,11 +2162,6 @@
   "src/sse/handlers/chat.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 8
-    }
-  },
-  "src/sse/handlers/chatCombosCache.ts": {
-    "no-restricted-imports": {
-      "count": 1
     }
   },
   "src/sse/handlers/chatHelpers.ts": {
@@ -2642,14 +2537,6 @@
       "count": 1
     }
   },
-  "tests/theoldllm-stress.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 10
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/translator/testFromFile.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
@@ -2681,11 +2568,6 @@
     }
   },
   "tests/unit/a2a-agent-dispatch.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/a2a-provider-discovery.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -2955,11 +2837,6 @@
   "tests/unit/bifrost-models-db.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
-    }
-  },
-  "tests/unit/bifrost-span.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "tests/unit/blackbox-web.test.ts": {
@@ -3630,17 +3507,11 @@
   "tests/unit/combos-routes-regression.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 11
-    },
-    "no-restricted-imports": {
-      "count": 1
     }
   },
   "tests/unit/combos-routes.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 11
-    },
-    "no-restricted-imports": {
-      "count": 1
     }
   },
   "tests/unit/comfyui-baseurl-override-6928.test.ts": {
@@ -4297,11 +4168,6 @@
     }
   },
   "tests/unit/gtts-provider.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "tests/unit/guardrails/mcp-tool-injection.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }

@@ -7,7 +7,6 @@ export {
   getReasoningEffortValues,
   getReasoningVariantBaseModelId,
   inferSelectedReasoningEffort,
-  isReasoningCapableModel,
   type VscodeCatalogModel,
   type VscodeModelConfigSchema,
 } from "@/lib/vscode/reasoningMetadata";

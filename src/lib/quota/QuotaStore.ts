@@ -14,9 +14,7 @@
 export type {
   QuotaStore,
   EnforceDecision,
-  ConsumeResult,
   PoolUsageSnapshot,
-  EnforceInput,
   RecordConsumptionInput,
 } from "./types";
 

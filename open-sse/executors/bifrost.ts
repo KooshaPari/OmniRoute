@@ -527,7 +527,11 @@ export async function dispatchBifrostWithFallback(
     const provider = exec.getProvider();
     // Lazy import to avoid circular dependency (index.ts → bifrost.ts → index.ts)
     const { getExecutor } = await import("./index.ts");
-    const legacyExec = getExecutor(provider);
+    // getExecutor() is async: awaiting it is what makes this fallback work at all.
+    // Without the await, `legacyExec` was a Promise and the kill-switch path threw
+    // "legacyExec.execute is not a function" instead of falling back (caught by
+    // tests/unit/vitest/bifrost-backend.test.ts).
+    const legacyExec = await getExecutor(provider);
     return legacyExec.execute(input);
   }
 }

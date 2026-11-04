@@ -25,7 +25,12 @@ export default defineConfig({
       "src/lib/memory/__tests__/**/*.test.ts",
       "src/lib/skills/__tests__/**/*.test.ts",
       "tests/unit/encryption.test.ts",
-      "tests/unit/**/*.test.ts",
+      // `tests/unit/**/*.test.ts` deliberately NOT included. It matches ~5,285
+      // files (the whole node-native unit tree, most of which import
+      // `node:test`), so `test:vitest:ui` could never finish: the job was
+      // cancelled at its 45-minute budget with only a few hundred files done
+      // (2026-10-22). The node runner owns that tree; this config owns the
+      // UI/component surface below plus the .test.tsx glob.
       "tests/unit/**/*.test.tsx",
       "tests/performance/**/*.test.ts",
       "open-sse/**/__tests__/**/*.test.ts",
@@ -55,6 +60,11 @@ export default defineConfig({
       // Live-server E2E — these drive a real running server, so they must never run
       // in this jsdom job. They have their own runners + vitest.e2e-live.config.ts.
       // ── Pre-existing failures tracked by #8618 ───────────────────────────────
+      // node:test file, not a vitest suite: it imports `node:test` and Vitest
+      // reports "No test suite found in file" (its `before`/`after` hooks are
+      // also node:test APIs). Run it with the node runner that owns that file:
+      //   node --import tsx/esm --test tests/unit/autoCombo/arenaEloFreeAlias-migration.test.ts
+      "tests/unit/autoCombo/arenaEloFreeAlias-migration.test.ts",
       "tests/unit/ui/agent-card-risk-modal.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "tests/unit/ui/request-logger-autorefresh-visibility-3972.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed
       "src/app/(dashboard)/dashboard/webhooks/__tests__/webhook-wizard.test.tsx", // #8618 — pre-existing failure; remove this exclusion when fixed

@@ -14,11 +14,17 @@ export type EmbeddingModelOption = {
  * elsewhere (e.g. "mistral/mistral-embed"). Providers without curated
  * models (dynamic-only, like lmstudio) contribute nothing.
  */
-export function buildRegistryEmbeddingOptions(): EmbeddingModelOption[] {
+export function buildRegistryEmbeddingOptions(
+  configuredProviders?: ReadonlySet<string>
+): EmbeddingModelOption[] {
   const options: EmbeddingModelOption[] = [];
   for (const [providerId, config] of Object.entries(EMBEDDING_PROVIDERS) as Array<
     [string, EmbeddingProvider]
   >) {
+    // When the caller knows which providers are configured, only surface models
+    // the user can actually call — the dropdown must never offer a provider with
+    // no active connection (see the qdrant-routes integration guards).
+    if (configuredProviders && !configuredProviders.has(providerId)) continue;
     for (const model of config.models) {
       const value = `${providerId}/${model.id}`;
       const dims = typeof model.dimensions === "number" ? `${model.dimensions}d` : "?";

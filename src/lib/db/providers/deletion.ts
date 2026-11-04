@@ -19,7 +19,6 @@ import {
 import { invalidateDbCache } from "../readCache";
 import { invalidateReasoningRoutingRuleCache } from "../reasoningRoutingRules";
 import { bumpProxyConfigGeneration } from "../settings";
-import { deleteSyncedAvailableModelsForProvider } from "../models";
 import { toRecord } from "./columns";
 
 interface StatementLike<TRow = unknown> {
@@ -192,6 +191,12 @@ export async function deleteProviderConnectionsByProvider(providerId: string) {
   invalidateReasoningRoutingRuleCache();
   bumpProxyConfigGeneration();
   try {
+    // Loaded lazily: `models.ts` imports `providers.ts`, which imports this
+    // module, so a static import here closes a three-file import cycle
+    // (check:cycles reports it as one strongly connected component). This is
+    // the only call site and it is already async, so resolving the module on
+    // first delete keeps the graph acyclic at load time.
+    const { deleteSyncedAvailableModelsForProvider } = await import("../models");
     await deleteSyncedAvailableModelsForProvider(providerId);
   } catch {
     // Rows are already gone. Do not turn a leftover purge into a 500.

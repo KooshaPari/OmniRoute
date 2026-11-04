@@ -46,6 +46,11 @@ export function isBcryptHash(value: unknown): value is string {
 }
 
 export async function hashManagementPassword(password: string) {
+  // An empty/whitespace management password is an auth bypass, and the callers
+  // only guard with truthiness (`if (body.newPassword)`), so "   " slipped through.
+  if (typeof password !== "string" || password.trim() === "") {
+    throw new Error("Management password must not be empty");
+  }
   return bcrypt.hash(password, MANAGEMENT_PASSWORD_SALT_ROUNDS);
 }
 

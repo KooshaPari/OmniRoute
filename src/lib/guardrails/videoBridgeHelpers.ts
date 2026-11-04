@@ -27,7 +27,6 @@ import {
 export type {
   NormalizeVideoTranscriptOptions,
   VideoTranscriptCue,
-  VideoTranscriptSource,
 } from "./videoBridgeTranscriptContract";
 
 export const VIDEO_BRIDGE_MAX_BYTES = 50 * 1024 * 1024;
