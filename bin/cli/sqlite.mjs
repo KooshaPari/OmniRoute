@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import { resolveDataDir, resolveStoragePath } from "./data-dir.mjs";
 import { ensureProviderSchema } from "./provider-store.mjs";
 import { ensureSettingsSchema, hashManagementPassword, updateSettings } from "./settings-store.mjs";
@@ -143,6 +144,15 @@ export async function openOmniRouteDb() {
   const dataDir = resolveDataDir();
   const dbPath = resolveStoragePath(dataDir);
   fs.mkdirSync(dataDir, { recursive: true });
+
+  if (!fs.existsSync(dbPath)) {
+    const sidecars = ["-wal", "-shm", "-journal"].some((suffix) => fs.existsSync(dbPath + suffix));
+    const preservedPrefix = `${path.basename(dbPath)}.probe-failed-`;
+    const preserved = fs.readdirSync(dataDir).some((name) => name.startsWith(preservedPrefix));
+    if (sidecars || preserved) {
+      throw new Error("Manual offline recovery required: database sidecars or preserved probe-failed files exist. Establish exclusive writer ownership before recovery.");
+    }
+  }
 
   const db = await openSqliteDatabase(dbPath);
 
