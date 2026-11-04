@@ -280,7 +280,7 @@ export interface ForkModuleMetadata {
   notableExports: readonly string[];
 }
 
-export const FORK_MODULES: readonly ForkModuleMetadata[] = [
+export const FORK_MODULES: readonly ForkModuleMetadata[] = Object.freeze([
   {
     name: "chatCooldown",
     description:
@@ -332,7 +332,7 @@ export const FORK_MODULES: readonly ForkModuleMetadata[] = [
       "FORK_MODULES",
     ],
   },
-] as const;
+]);
 
 /**
  * Aggregate metadata about every fork-original sibling module loaded.

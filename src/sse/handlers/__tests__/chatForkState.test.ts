@@ -11,15 +11,8 @@
  *   - The snapshot is regenerated each call (timestamps differ)
  */
 import { describe, expect, it } from "vitest";
-import {
-  FORK_CHAT_STATE_VERSION,
-  getForkChatState,
-  getForkChatStateJson,
-} from "../chatForkState";
-import {
-  COMBOS_CACHE_TTL_MS,
-  __resetCombosCacheForTests,
-} from "../chatCombosCache";
+import { FORK_CHAT_STATE_VERSION, getForkChatState, getForkChatStateJson } from "../chatForkState";
+import { COMBOS_CACHE_TTL_MS, __resetCombosCacheForTests } from "../chatCombosCache";
 import { PROVIDER_BREAKER_FAILURE_STATUSES } from "../chatPredicates";
 
 describe("chatForkState.FORK_CHAT_STATE_VERSION", () => {
@@ -111,15 +104,11 @@ describe("chatForkState.getForkChatState.combosCache", () => {
 
 describe("chatForkState.getForkChatState.breakerPredicates", () => {
   it("statusCodes is the sorted array of the breaker set", () => {
-    expect(getForkChatState().breakerPredicates.statusCodes).toEqual([
-      408, 500, 502, 503, 504,
-    ]);
+    expect(getForkChatState().breakerPredicates.statusCodes).toEqual([408, 500, 502, 503, 504]);
   });
 
   it("size matches PROVIDER_BREAKER_FAILURE_STATUSES.size", () => {
-    expect(getForkChatState().breakerPredicates.size).toBe(
-      PROVIDER_BREAKER_FAILURE_STATUSES.size,
-    );
+    expect(getForkChatState().breakerPredicates.size).toBe(PROVIDER_BREAKER_FAILURE_STATUSES.size);
     expect(getForkChatState().breakerPredicates.size).toBe(5);
   });
 
@@ -205,8 +194,8 @@ describe("chatForkState.getForkChatStateJson", () => {
 
   it("uses 2-space indent (the canonical 'pretty' JSON)", () => {
     const json = getForkChatStateJson();
-    // Find a nested object line — it should have 4 spaces of indent.
-    expect(json).toMatch(/\n {4}"version"/);
+    // Top-level keys sit at exactly 2 spaces of indent.
+    expect(json).toMatch(/\n {2}"version"/);
   });
 });
 
@@ -223,15 +212,11 @@ describe("chatForkState stability: shape is stable across calls", () => {
     expect(Object.keys(a).sort()).toEqual(Object.keys(b).sort());
 
     // Nested keys are identical.
-    expect(Object.keys(a.combosCache).sort()).toEqual(
-      Object.keys(b.combosCache).sort(),
-    );
+    expect(Object.keys(a.combosCache).sort()).toEqual(Object.keys(b.combosCache).sort());
     expect(Object.keys(a.breakerPredicates).sort()).toEqual(
-      Object.keys(b.breakerPredicates).sort(),
+      Object.keys(b.breakerPredicates).sort()
     );
-    expect(Object.keys(a.cooldownHelpers).sort()).toEqual(
-      Object.keys(b.cooldownHelpers).sort(),
-    );
+    expect(Object.keys(a.cooldownHelpers).sort()).toEqual(Object.keys(b.cooldownHelpers).sort());
 
     // Static values are identical.
     expect(a.version).toBe(b.version);

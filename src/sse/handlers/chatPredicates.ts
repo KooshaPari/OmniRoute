@@ -12,6 +12,34 @@ export function isProviderBreakerFailureStatus(status: number): boolean {
   return PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(status));
 }
 
+/**
+ * Canonical sorted array form of PROVIDER_BREAKER_FAILURE_STATUSES. Used by tests and
+ * the fork-state snapshot to assert the exact set without depending on Set iteration
+ * order. Not consumed by the production dispatch path.
+ */
+export const PROVIDER_BREAKER_FAILURE_STATUSES_SORTED: readonly number[] = Object.freeze(
+  [...PROVIDER_BREAKER_FAILURE_STATUSES].sort((a, b) => a - b)
+);
+
+/**
+ * Pure predicate for the all-accounts-rate-limited breaker trip: never during a live
+ * combo test, only when every credential is rate limited, and only for a status in
+ * PROVIDER_BREAKER_FAILURE_STATUSES.
+ */
+export function shouldTripBreakerForAllRateLimited(
+  forceLiveComboTest: boolean,
+  allRateLimited: boolean | null | undefined,
+  status: number | null | undefined
+): boolean {
+  return (
+    !forceLiveComboTest &&
+    allRateLimited === true &&
+    typeof status === "number" &&
+    Number.isFinite(status) &&
+    PROVIDER_BREAKER_FAILURE_STATUSES.has(status)
+  );
+}
+
 // #7907/#7908: single-model breaker trip bypasses the `isFailure` option (only applies
 // inside `breaker.execute()`), so it needs its own `isLocalStreamLifecycleError` guard —
 // otherwise a client abort (502 default, error='request_signal_aborted') trips the
