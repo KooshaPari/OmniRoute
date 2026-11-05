@@ -1162,11 +1162,17 @@ export function getMigrationStatus(db: SqliteAdapter): {
   applied: Array<{ version: string; name: string; applied_at: string }>;
   pending: Array<{ version: string; name: string }>;
 } {
-  ensureMigrationsTable(db);
-
-  const appliedRows = db
-    .prepare("SELECT version, name, applied_at FROM _omniroute_migrations ORDER BY version")
-    .all() as Array<{ version: string; name: string; applied_at: string }>;
+  const ledger = db
+    .prepare("SELECT type FROM main.sqlite_master WHERE name = ? COLLATE NOCASE")
+    .get("_omniroute_migrations") as { type: string } | undefined;
+  if (ledger && ledger.type !== "table") {
+    throw new Error("[Migration] Migration ledger name is occupied by a non-table object.");
+  }
+  const appliedRows = ledger
+    ? (db
+        .prepare("SELECT version, name, applied_at FROM main._omniroute_migrations ORDER BY version")
+        .all() as Array<{ version: string; name: string; applied_at: string }>)
+    : [];
 
   const appliedVersions = new Set(appliedRows.map((r) => r.version));
   const allFiles = getMigrationFiles();
