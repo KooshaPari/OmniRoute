@@ -1163,10 +1163,10 @@ export function getMigrationStatus(db: SqliteAdapter): {
   pending: Array<{ version: string; name: string }>;
 } {
   const ledger = db
-    .prepare("SELECT type FROM main.sqlite_master WHERE name = ? COLLATE NOCASE")
+    .prepare("SELECT type FROM main.sqlite_master WHERE name = ? COLLATE NOCASE ORDER BY CASE WHEN type = 'table' THEN 0 ELSE 1 END LIMIT 1")
     .get("_omniroute_migrations") as { type: string } | undefined;
   if (ledger && ledger.type !== "table") {
-    throw new Error("[Migration] Migration ledger name is occupied by a non-table object.");
+    throw new Error(`[Migration] Migration ledger name is occupied by a non-table object: ${ledger.type}.`);
   }
   const appliedRows = ledger
     ? (db
