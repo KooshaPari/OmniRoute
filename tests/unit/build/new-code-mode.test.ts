@@ -110,6 +110,9 @@ test("deadSymbolKeys covers exports, types, namespace members and unused files",
     "src/dead.ts:<file>",
   ]);
   assert.equal(deadSymbolKeys(null).size, 0);
+  for (const file of [null, {}, { name: "" }, { name: 42 }, 42]) {
+    assert.throws(() => deadSymbolKeys({ issues: [{ files: [file] }] }), /Invalid Knip file entry/);
+  }
 });
 
 test("newDeadSymbols reports only symbols that are new on HEAD, in touched files by default", () => {
@@ -126,4 +129,18 @@ test("newDeadSymbols reports only symbols that are new on HEAD, in touched files
     "src/other.ts:orphaned",
   ]);
   assert.deepEqual(newDeadSymbols(base, head, ["src/a.ts"]), []);
+});
+
+test("newDeadSymbols detects Knip file objects and retains string compatibility", () => {
+  const base = { issues: [{ file: "src/old.ts", files: [{ name: "src/old.ts" }] }] };
+  const head = { issues: [
+    ...base.issues,
+    { file: "src/new.ts", files: [{ name: "src/new.ts" }, "src/new.ts"] },
+    { file: "src/other.ts", files: [{ name: "src/other.ts" }] },
+  ] };
+  assert.deepEqual(newDeadSymbols(head, base, ["src/old.ts", "src/new.ts"]), ["src/new.ts:<file>"]);
+  assert.deepEqual(newDeadSymbols(head, base, [], { includeUntouched: true }), [
+    "src/new.ts:<file>",
+    "src/other.ts:<file>",
+  ]);
 });
