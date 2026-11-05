@@ -8,6 +8,7 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { createHash } from "node:crypto";
 import { resolveProviderId } from "@/shared/constants/providers";
 import { protectPayloadForLog } from "../logPayloads";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
@@ -661,6 +662,8 @@ export async function getUsageDb(sinceIso?: string | null, limit?: number, curso
  * `./tokenAccounting` accept both and extract the right fields.
  */
 export interface UsageEntry {
+  /** Stable identity for replay-safe persistence; requires a stable timestamp. */
+  eventId?: string;
   provider?: string | null;
   model?: string | null;
   /** Raw or normalized token usage — see the interface doc above. */
@@ -688,9 +691,16 @@ export interface UsageEntry {
  * Save request usage entry to SQLite.
  */
 export async function saveRequestUsage(entry: UsageEntry) {
-  if (!shouldPersistToDisk) return;
+  if (!shouldPersistToDisk) {
+    if (entry.eventId !== undefined) throw new Error("Identified usage persistence is unavailable");
+    return;
+  }
 
   try {
+    if (entry.eventId !== undefined &&
+        (typeof entry.eventId !== "string" || !entry.eventId.trim() || entry.eventId.length > 128 || !entry.timestamp)) {
+      throw new Error("Identified usage requires a nonempty event id and stable timestamp");
+    }
     const db = getDbInstance();
     const timestamp = entry.timestamp || new Date().toISOString();
     const serviceTier = normalizeServiceTier(entry.serviceTier ?? entry.service_tier);
@@ -718,8 +728,30 @@ export async function saveRequestUsage(entry: UsageEntry) {
   // dedupes `openai/chat` and `openai` as the same provider. `entry.provider`
   // is optional, so guard before resolving — resolveProviderId takes a string.
   const canonicalProvider = entry.provider ? resolveProviderId(entry.provider) : null;
+  const params = [
+    canonicalProvider, entry.model || null, entry.connectionId || null,
+    accountIdentity.accountKey, accountIdentity.accountLabel, accountIdentity.accountLabelPriority,
+    entry.apiKeyId || null, entry.apiKeyName || null, tokensInput, tokensOutput,
+    getPromptCacheReadTokens(entry.tokens), getPromptCacheCreationTokens(entry.tokens),
+    getReasoningTokens(entry.tokens), serviceTier, entry.status || null, entry.success === false ? 0 : 1,
+    Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
+    Number.isFinite(Number(entry.timeToFirstTokenMs)) ? Number(entry.timeToFirstTokenMs) :
+      Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
+    entry.errorCode || null, entry.comboStrategy || entry.combo_strategy || null, entry.endpoint || null, timestamp,
+  ];
+  const payloadHash = entry.eventId === undefined ? null : createHash("sha256").update(JSON.stringify(params)).digest("hex");
 
   db.transaction(() => {
+      if (entry.eventId !== undefined) {
+        const receipt = db.prepare("SELECT payload_sha256, usage_row_id FROM usage_event_receipts WHERE event_id = ?").get(entry.eventId) as { payload_sha256: string; usage_row_id: number } | undefined;
+        if (receipt) {
+          if (receipt.payload_sha256 !== payloadHash) throw new Error("Usage event identity conflicts with an existing payload");
+          if (!db.prepare("SELECT 1 FROM usage_history WHERE id = ?").get(receipt.usage_row_id)) {
+            throw new Error("Usage event receipt references a missing usage row");
+          }
+          return;
+        }
+      } else {
       const existing = db
         .prepare(
           `SELECT id, endpoint FROM usage_history
@@ -752,8 +784,9 @@ export async function saveRequestUsage(entry: UsageEntry) {
         }
         return; // duplicate — do not insert
       }
+      }
 
-      db.prepare(
+      const result = db.prepare(
         `
         INSERT INTO usage_history (provider, model, connection_id, account_key, account_label,
           account_label_priority, api_key_id, api_key_name, tokens_input, tokens_output,
@@ -761,34 +794,12 @@ export async function saveRequestUsage(entry: UsageEntry) {
           latency_ms, ttft_ms, error_code, combo_strategy, endpoint, timestamp)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
-      ).run(
-        canonicalProvider,
-        entry.model || null,
-        entry.connectionId || null,
-        accountIdentity.accountKey,
-        accountIdentity.accountLabel,
-        accountIdentity.accountLabelPriority,
-        entry.apiKeyId || null,
-        entry.apiKeyName || null,
-        tokensInput,
-        tokensOutput,
-        getPromptCacheReadTokens(entry.tokens),
-        getPromptCacheCreationTokens(entry.tokens),
-        getReasoningTokens(entry.tokens),
-        serviceTier,
-        entry.status || null,
-        entry.success === false ? 0 : 1,
-        Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
-        Number.isFinite(Number(entry.timeToFirstTokenMs))
-          ? Number(entry.timeToFirstTokenMs)
-          : Number.isFinite(Number(entry.latencyMs))
-            ? Number(entry.latencyMs)
-            : 0,
-        entry.errorCode || null,
-        entry.comboStrategy || entry.combo_strategy || null,
-        entry.endpoint || null,
-        timestamp
-      );
+      ).run(...params);
+
+      if (entry.eventId !== undefined) {
+        db.prepare("INSERT INTO usage_event_receipts (event_id, payload_sha256, usage_row_id) VALUES (?, ?, ?)")
+          .run(entry.eventId, payloadHash, result.lastInsertRowid);
+      }
 
       inserted = true;
     })();
@@ -800,6 +811,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
       emitUsageRecorded(entry.provider, entry.connectionId);
     }
   } catch (error) {
+    if (entry.eventId !== undefined) throw error;
     console.error("Failed to save usage stats:", error);
   }
 }
