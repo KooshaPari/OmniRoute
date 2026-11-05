@@ -201,7 +201,7 @@ function buildDeletionSet() {
   // git log --diff-filter=D --name-only --pretty=format:'COMMIT:%H %ci%nSUBJECT:%s'
   // produces a parseable stream. We accumulate per-commit deletions.
   // when --historical-scan is set, omit --since entirely to walk ALL of main
-  const logArgs = ["log", "main"];
+  const logArgs = ["log", PR_BASE || "main"];
   if (!SKIP_SINCE) logArgs.push(`--since=${EFFECTIVE_SINCE}`);
   logArgs.push(
     "--diff-filter=D",
