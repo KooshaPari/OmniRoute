@@ -12,7 +12,7 @@ test("migration status reads missing and existing ledgers and refuses collisions
   fs.writeFileSync(path.join(dir, "001_first.sql"), "SELECT 1;");
   fs.writeFileSync(path.join(dir, "002_second.sql"), "SELECT 2;");
   try {
-    const { getMigrationStatus } = await import("../../../src/lib/db/migrationRunner");
+    const { getMigrationStatus, runMigrations } = await import("../../../src/lib/db/migrationRunner");
     for (const state of ["missing", "empty", "existing", "mixedcase", "triggerfirst", "triggeronly", "collision", "indexcollision", "malformed"] as const) {
       const file = path.join(dir, `${state}.sqlite`);
       const setup = new Database(file);
@@ -42,6 +42,24 @@ test("migration status reads missing and existing ledgers and refuses collisions
       } finally { db.close(); }
       expect(fs.readFileSync(file)).toEqual(before);
     }
+    const raw = new Database(":memory:");
+    const db = createBunSqliteAdapter(raw, ":memory:");
+    try {
+      db.exec("CREATE TABLE main._omniroute_migrations (version TEXT PRIMARY KEY, name TEXT, applied_at TEXT DEFAULT 'time'); INSERT INTO main._omniroute_migrations (version, name) VALUES ('001', 'first'); CREATE TEMP TABLE _omniroute_migrations (version TEXT PRIMARY KEY, name TEXT, applied_at TEXT DEFAULT 'time'); INSERT INTO temp._omniroute_migrations (version, name) VALUES ('002', 'shadow')");
+      expect(runMigrations(db, { isNewDb: true })).toBe(1);
+      expect(raw.query("SELECT version FROM main._omniroute_migrations ORDER BY version").all()).toEqual([{ version: "001" }, { version: "002" }]);
+      expect(raw.query("SELECT version, name FROM temp._omniroute_migrations").all()).toEqual([{ version: "002", name: "shadow" }]);
+      expect(getMigrationStatus(db).pending).toEqual([]);
+    } finally { db.close(); }
+    const { reconcileRenumberedMigrations } = await import("../../../src/lib/db/migrationRunner/schemaState");
+    const repairRaw = new Database(":memory:");
+    const repair = createBunSqliteAdapter(repairRaw, ":memory:");
+    try {
+      repair.exec("CREATE TABLE main._omniroute_migrations (version TEXT PRIMARY KEY, name TEXT); INSERT INTO main._omniroute_migrations VALUES ('028', 'compression_settings'); CREATE TEMP TABLE _omniroute_migrations (version TEXT PRIMARY KEY, name TEXT); INSERT INTO temp._omniroute_migrations VALUES ('028', 'shadow')");
+      expect(reconcileRenumberedMigrations(repair, [{ version: "028", name: "other", path: "" }, { version: "034", name: "compression_settings", path: "" }])).toBe(true);
+      expect(repairRaw.query("SELECT version, name FROM main._omniroute_migrations").all()).toEqual([{ version: "034", name: "compression_settings" }]);
+      expect(repairRaw.query("SELECT version, name FROM temp._omniroute_migrations").all()).toEqual([{ version: "028", name: "shadow" }]);
+    } finally { repair.close(); }
   } finally {
     if (previous === undefined) delete process.env.OMNIROUTE_MIGRATIONS_DIR;
     else process.env.OMNIROUTE_MIGRATIONS_DIR = previous;
