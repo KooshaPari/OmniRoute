@@ -60,6 +60,19 @@ test("migration status reads missing and existing ledgers and refuses collisions
       expect(repairRaw.query("SELECT version, name FROM main._omniroute_migrations").all()).toEqual([{ version: "034", name: "compression_settings" }]);
       expect(repairRaw.query("SELECT version, name FROM temp._omniroute_migrations").all()).toEqual([{ version: "028", name: "shadow" }]);
     } finally { repair.close(); }
+    const startupRaw = new Database(":memory:");
+    try {
+      startupRaw.exec("CREATE TEMP TABLE _omniroute_migrations (version TEXT PRIMARY KEY, name TEXT); INSERT INTO temp._omniroute_migrations VALUES ('999', 'shadow')");
+      const core = fs.readFileSync(path.resolve("src/lib/db/core.ts"), "utf8");
+      const seed = core.match(/db\.exec\(`\s*(CREATE TABLE IF NOT EXISTS main\._omniroute_migrations[\s\S]*?)`\);/);
+      expect(seed).not.toBeNull();
+      startupRaw.exec(seed![1]);
+      const settings = fs.readFileSync(path.resolve("src/lib/db/databaseSettings.ts"), "utf8");
+      const versionQuery = settings.match(/\.prepare\("(SELECT MAX\(CAST\(version AS INTEGER\)\) AS version FROM main\._omniroute_migrations)"\)/);
+      expect(versionQuery).not.toBeNull();
+      expect(startupRaw.query(versionQuery![1]).get()).toEqual({ version: 1 });
+      expect(startupRaw.query("SELECT version, name FROM temp._omniroute_migrations").all()).toEqual([{ version: "999", name: "shadow" }]);
+    } finally { startupRaw.close(); }
   } finally {
     if (previous === undefined) delete process.env.OMNIROUTE_MIGRATIONS_DIR;
     else process.env.OMNIROUTE_MIGRATIONS_DIR = previous;
