@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { createManagementSessionHeaders } from "../helpers/managementSession.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-memory-category-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -55,19 +56,24 @@ function insertMemoryRow({
 }
 
 async function getMemories(query = "") {
-  const response = await GET(new Request(`http://localhost/api/memory${query}`));
+  const response = await GET(new Request(`http://localhost/api/memory${query}`, { headers: await createManagementSessionHeaders() }));
   assert.equal(response.status, 200);
   return response.json();
 }
 
 test.beforeEach(async () => {
   await resetStorage();
-  await localDb.updateSettings({ requireLogin: false });
+  await localDb.updateSettings({ requireLogin: true });
 });
 
 test.after(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("unauthenticated memory request is rejected when login is required", async () => {
+  const response = await GET(new Request("http://localhost/api/memory"));
+  assert.equal(response.status, 401);
 });
 
 test("GET /api/memory filters by metadata.category and keeps totals in sync", async () => {
