@@ -29,6 +29,7 @@ import {
 } from "./migrationRunner/constants";
 import { getExtraMigrationFiles } from "./migrationRunner/extraDirs";
 import { migrationConsole as console } from "./migrationRunner/logger";
+import { assertStartupMigrationIdentities } from "./migrationRunner/startupCollisionGuard.mjs";
 import {
   createPreMigrationBackup,
   hashFileSync,
@@ -327,6 +328,11 @@ function getAppliedRecords(db: SqliteAdapter): Array<{ version: string; name: st
     version: string;
     name: string;
   }>;
+}
+
+/** Strict operator-enabled preflight; never changes the database or its ledger. */
+export function assertStartupMigrationPreflight(db: SqliteAdapter): void {
+  assertStartupMigrationIdentities(db, filterSupersededDuplicateMigrations(getMigrationFiles()));
 }
 
 /**
