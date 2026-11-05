@@ -13,16 +13,24 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
 // Mock the localDb module before importing chatCombosCache.
-let mockCombosReturn: unknown[] = [{ id: "default-combo" }];
-let mockGetCombosCalls = 0;
-let mockCacheVersion = 0;
+//
+// The mutable state MUST be created inside `vi.hoisted`: `vi.mock` factories are
+// hoisted above module-level `let` declarations, so a factory closing over those
+// `let`s captures them in the temporal dead zone. The writes then land on an
+// uninitialised binding and the counters silently stay 0 — which is exactly why
+// this file's three "refetch" tests failed with `expected +0 to be 1`.
+const mockState = vi.hoisted(() => ({
+  combos: [{ id: "default-combo" }] as unknown[],
+  calls: 0,
+  version: 0,
+}));
 
 vi.mock("@/lib/localDb", () => ({
   getCombos: vi.fn(async () => {
-    mockGetCombosCalls += 1;
-    return mockCombosReturn;
+    mockState.calls += 1;
+    return mockState.combos;
   }),
-  getCombosCacheVersion: vi.fn(() => mockCacheVersion),
+  getCombosCacheVersion: vi.fn(() => mockState.version),
 }));
 
 import {
@@ -31,6 +39,19 @@ import {
   __resetCombosCacheForTests,
   __getCombosCacheStateForTests,
 } from "../chatCombosCache";
+import { getCombos as __getCombosMock } from "@/lib/localDb";
+
+// Root-level repair: three earlier tests replace getCombos's base implementation
+// with a throwing one via mockImplementation() and never restore it, so every later
+// test that expects a refetch silently got [] and a call count of 0.
+// Re-install the working implementation before each test.
+beforeEach(() => {
+  vi.mocked(__getCombosMock).mockImplementation(async () => {
+    mockState.calls += 1;
+    return mockState.combos;
+  });
+});
+
 
 describe("chatCombosCache.COMBOS_CACHE_TTL_MS", () => {
   it("is exactly 10_000", () => {
@@ -46,21 +67,21 @@ describe("chatCombosCache.COMBOS_CACHE_TTL_MS", () => {
 describe("chatCombosCache.getCombosCachedForChat", () => {
   beforeEach(() => {
     __resetCombosCacheForTests();
-    mockCombosReturn = [{ id: "default-combo" }];
-    mockGetCombosCalls = 0;
-    mockCacheVersion = 0;
+    mockState.combos = [{ id: "default-combo" }];
+    mockState.calls = 0;
+    mockState.version = 0;
   });
 
   it("calls getCombos on first call and caches the result", async () => {
     const out = await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(1);
+    expect(mockState.calls).toBe(1);
     expect(out).toEqual([{ id: "default-combo" }]);
   });
 
   it("returns the same array reference on the second call within TTL", async () => {
     const first = await getCombosCachedForChat();
     const second = await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(1);
+    expect(mockState.calls).toBe(1);
     expect(first).toBe(second); // same reference (cached Promise)
   });
 
@@ -70,37 +91,37 @@ describe("chatCombosCache.getCombosCachedForChat", () => {
       getCombosCachedForChat(),
       getCombosCachedForChat(),
     ]);
-    expect(mockGetCombosCalls).toBe(1); // all 3 callers share one fetch
+    expect(mockState.calls).toBe(1); // all 3 callers share one fetch
     expect(a).toBe(b);
     expect(b).toBe(c);
   });
 
   it("does not refetch when cache-version is unchanged", async () => {
     await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(1);
+    expect(mockState.calls).toBe(1);
 
     // Change the return value but keep the version the same.
     // The cache should still serve the OLD value (the version is the invalidation key).
-    mockCombosReturn = [{ id: "new-combo" }];
+    mockState.combos = [{ id: "new-combo" }];
     const second = await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(1);
+    expect(mockState.calls).toBe(1);
     expect(second).toEqual([{ id: "default-combo" }]); // still the old value
   });
 
   it("refetches when cache-version changes (#3147 invalidation)", async () => {
     await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(1);
+    expect(mockState.calls).toBe(1);
 
-    mockCacheVersion = 1;
-    mockCombosReturn = [{ id: "post-edit-combo" }];
+    mockState.version = 1;
+    mockState.combos = [{ id: "post-edit-combo" }];
     const second = await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(2);
+    expect(mockState.calls).toBe(2);
     expect(second).toEqual([{ id: "post-edit-combo" }]);
   });
 
   it("catches getCombos errors and returns []", async () => {
     // Force getCombos to throw.
-    mockCombosReturn = (() => {
+    mockState.combos = (() => {
       throw new Error("localDb unavailable");
     }) as any;
     // Override the mock to throw instead.
@@ -147,9 +168,9 @@ describe("chatCombosCache.getCombosCachedForChat", () => {
 describe("chatCombosCache.__resetCombosCacheForTests", () => {
   beforeEach(() => {
     __resetCombosCacheForTests();
-    mockGetCombosCalls = 0;
-    mockCacheVersion = 0;
-    mockCombosReturn = [{ id: "default-combo" }];
+    mockState.calls = 0;
+    mockState.version = 0;
+    mockState.combos = [{ id: "default-combo" }];
   });
 
   it("clears the cached Promise", async () => {
@@ -162,11 +183,11 @@ describe("chatCombosCache.__resetCombosCacheForTests", () => {
 
   it("causes the next call to refetch", async () => {
     await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(1);
+    expect(mockState.calls).toBe(1);
 
     __resetCombosCacheForTests();
     await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(2);
+    expect(mockState.calls).toBe(2);
   });
 
   it("resets cachedAtMs to 0", async () => {
@@ -178,7 +199,7 @@ describe("chatCombosCache.__resetCombosCacheForTests", () => {
   });
 
   it("resets cachedVersion to -1", async () => {
-    mockCacheVersion = 5;
+    mockState.version = 5;
     await getCombosCachedForChat();
     expect(__getCombosCacheStateForTests().cachedVersion).toBe(5);
 
@@ -207,7 +228,7 @@ describe("chatCombosCache.__getCombosCacheStateForTests", () => {
   });
 
   it("reflects the cache-version that was snapshotted", async () => {
-    mockCacheVersion = 42;
+    mockState.version = 42;
     await getCombosCachedForChat();
     expect(__getCombosCacheStateForTests().cachedVersion).toBe(42);
   });
@@ -238,47 +259,47 @@ describe("chatCombosCache.__getCombosCacheStateForTests", () => {
 describe("chatCombosCache integration: cache + version + reset", () => {
   beforeEach(() => {
     __resetCombosCacheForTests();
-    mockGetCombosCalls = 0;
-    mockCacheVersion = 0;
-    mockCombosReturn = [{ id: "default-combo" }];
+    mockState.calls = 0;
+    mockState.version = 0;
+    mockState.combos = [{ id: "default-combo" }];
   });
 
   it("simulates a combo edit: TTL has not elapsed but version changed", async () => {
     // Read 1: cache populated
     const v1 = await getCombosCachedForChat();
     expect(v1).toEqual([{ id: "default-combo" }]);
-    expect(mockGetCombosCalls).toBe(1);
+    expect(mockState.calls).toBe(1);
 
     // Operator edits combo; cache-version bumps from 0 → 1
-    mockCacheVersion = 1;
-    mockCombosReturn = [{ id: "default-combo" }, { id: "new-target" }];
+    mockState.version = 1;
+    mockState.combos = [{ id: "default-combo" }, { id: "new-target" }];
 
     // Read 2: cache busted by version, refetch happens
     const v2 = await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(2);
+    expect(mockState.calls).toBe(2);
     expect(v2).toEqual([{ id: "default-combo" }, { id: "new-target" }]);
 
     // Read 3: cache populated again, no refetch
     const v3 = await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(2);
+    expect(mockState.calls).toBe(2);
     expect(v3).toBe(v2);
   });
 
   it("simulates combo edit + reset: both invalidation paths clear cache", async () => {
     await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(1);
+    expect(mockState.calls).toBe(1);
 
     // Reset path
     __resetCombosCacheForTests();
     await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(2);
+    expect(mockState.calls).toBe(2);
 
     // Version path
-    mockCacheVersion = 1;
-    mockCombosReturn = [{ id: "v1-combo" }];
+    mockState.version = 1;
+    mockState.combos = [{ id: "v1-combo" }];
     await getCombosCachedForChat();
-    expect(mockGetCombosCalls).toBe(3);
+    expect(mockState.calls).toBe(3);
     expect(await getCombosCachedForChat()).toEqual([{ id: "v1-combo" }]);
-    expect(mockGetCombosCalls).toBe(3); // still 3 (cached)
+    expect(mockState.calls).toBe(3); // still 3 (cached)
   });
 });
