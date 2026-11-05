@@ -14,6 +14,12 @@ test("Bun pre-migration validation includes WAL and refuses corrupted stage", ()
   const originalOpen = fs.openSync;
   try {
     db.exec("PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0; CREATE TABLE items(value); INSERT INTO items VALUES(42)");
+    expect(db.pragma("journal_mode", { simple: true })).toBe("wal");
+    expect(fs.existsSync(source + "-wal")).toBe(true);
+    expect(fs.statSync(source + "-wal").size).toBeGreaterThan(32);
+    const pageCount = Number(db.pragma("page_count", { simple: true }));
+    const pageSize = Number(db.pragma("page_size", { simple: true }));
+    expect(fs.statSync(source).size).toBeLessThan(pageCount * pageSize);
     const receipt = createPreMigrationBackup(db);
     expect(receipt).not.toBeNull();
     const snapshot = new Database(receipt!.path, { readonly: true });
