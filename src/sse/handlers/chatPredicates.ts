@@ -33,6 +33,7 @@ export function shouldTripProviderBreakerForResult(
     !isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) &&
     !(result.response && getTrustedLocalRateLimitResponse(result.response)) &&
     !isLocalStreamLifecycleError(result.error) &&
+    !isStreamRequestScopedFailure(result) &&
     !isLocalExecutionError(result.error) &&
     // Network-layer errors (ECONNREFUSED, ETIMEDOUT) never reached the provider —
     // the provider may be healthy, only the network path is broken. OmniRoute's own
@@ -43,6 +44,36 @@ export function shouldTripProviderBreakerForResult(
     !isModelCapacityOverloadError(result.error) &&
     !isModelCapacityOverloadError(result.status) &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
+  );
+}
+
+// #8255 / #7907 / #7908: failures that belong to one stream or one client request, not to
+// the provider. A readiness timeout or an early EOF means a slow or glitchy stream (chat.ts
+// already refuses to mark the account unavailable for them), and an aborted request means
+// the client left. None of them says the provider is down, so they must not trip the
+// provider-wide breaker. Matches the error code, the error type and the error itself
+// (string, or an object carrying code/type/message).
+const STREAM_REQUEST_SCOPED_MARKERS = new Set([
+  "stream_readiness_timeout",
+  "stream_early_eof",
+  "request_signal_aborted",
+]);
+
+function isStreamRequestScopedFailure(result: {
+  errorCode?: string | null;
+  errorType?: string | null;
+  error?: unknown;
+}): boolean {
+  const candidates: unknown[] = [result.errorCode, result.errorType];
+  const err = result.error;
+  if (typeof err === "string") {
+    candidates.push(err);
+  } else if (err && typeof err === "object") {
+    const e = err as { code?: unknown; type?: unknown; message?: unknown };
+    candidates.push(e.code, e.type, e.message);
+  }
+  return candidates.some(
+    (value) => typeof value === "string" && STREAM_REQUEST_SCOPED_MARKERS.has(value.toLowerCase())
   );
 }
 
