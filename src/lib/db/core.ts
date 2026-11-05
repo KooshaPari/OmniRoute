@@ -1176,12 +1176,12 @@ export function getDbInstance(): SqliteDatabase {
   // Auto-seed 001 as applied (the inline SCHEMA_SQL already created these tables)
   // then run any new migrations (002+)
   db.exec(`
-    CREATE TABLE IF NOT EXISTS _omniroute_migrations (
+    CREATE TABLE IF NOT EXISTS main._omniroute_migrations (
       version TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       applied_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
-    INSERT OR IGNORE INTO _omniroute_migrations (version, name)
+    INSERT OR IGNORE INTO main._omniroute_migrations (version, name)
     VALUES ('001', 'initial_schema');
   `);
 

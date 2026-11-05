@@ -172,7 +172,7 @@ const fts5SupportCache = new WeakMap<SqliteAdapter, boolean>();
  */
 function ensureMigrationsTable(db: SqliteAdapter): void {
   db.exec(`
-    CREATE TABLE IF NOT EXISTS _omniroute_migrations (
+    CREATE TABLE IF NOT EXISTS main._omniroute_migrations (
       version TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       applied_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -311,7 +311,7 @@ function filterSupersededDuplicateMigrations(
  * Get list of already-applied migration versions.
  */
 function getAppliedVersions(db: SqliteAdapter): Set<string> {
-  const rows = db.prepare("SELECT version FROM _omniroute_migrations").all() as Array<{
+  const rows = db.prepare("SELECT version FROM main._omniroute_migrations").all() as Array<{
     version: string;
   }>;
   return new Set(rows.map((r) => r.version));
@@ -322,7 +322,7 @@ function getAppliedVersions(db: SqliteAdapter): Set<string> {
  */
 function getAppliedRecords(db: SqliteAdapter): Array<{ version: string; name: string }> {
   return db
-    .prepare("SELECT version, name FROM _omniroute_migrations ORDER BY version")
+    .prepare("SELECT version, name FROM main._omniroute_migrations ORDER BY version")
     .all() as Array<{
     version: string;
     name: string;
@@ -359,7 +359,7 @@ function validateRequiredPhysicalMigrationProvenance(
     if (!migrationExists) continue;
 
     const occupied = db
-      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+      .prepare("SELECT version, name FROM main._omniroute_migrations WHERE version = ?")
       .get(required.version) as { version: string; name: string } | undefined;
     if (!occupied || occupied.name === required.name) continue;
 
@@ -407,7 +407,7 @@ function findAtomicPhysicalReplays(
     if (!migrationExists) continue;
 
     const applied = db
-      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ? AND name = ?")
+      .prepare("SELECT version, name FROM main._omniroute_migrations WHERE version = ? AND name = ?")
       .get(required.version, required.name) as { version: string; name: string } | undefined;
     if (!applied) continue;
 
@@ -1052,7 +1052,7 @@ export function runMigrations(
     const applyMigration = db.transaction(() => {
       if (atomicPhysicalReplays.has(migration.version)) {
         const removed = db
-          .prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?")
+          .prepare("DELETE FROM main._omniroute_migrations WHERE version = ? AND name = ?")
           .run(migration.version, migration.name);
         if (removed.changes !== 1) {
           throw new Error(
@@ -1076,7 +1076,7 @@ export function runMigrations(
         const sql = fs.readFileSync(migration.path, "utf-8");
         db.exec(sql);
       }
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+      db.prepare("INSERT INTO main._omniroute_migrations (version, name) VALUES (?, ?)").run(
         migration.version,
         migration.name
       );
@@ -1094,7 +1094,7 @@ export function runMigrations(
       ) {
         const applyMarkerOnly = db.transaction(() => {
           db.prepare(
-            "INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)"
+            "INSERT OR IGNORE INTO main._omniroute_migrations (version, name) VALUES (?, ?)"
           ).run(migration.version, migration.name);
         });
         applyMarkerOnly();
@@ -1162,11 +1162,17 @@ export function getMigrationStatus(db: SqliteAdapter): {
   applied: Array<{ version: string; name: string; applied_at: string }>;
   pending: Array<{ version: string; name: string }>;
 } {
-  ensureMigrationsTable(db);
-
-  const appliedRows = db
-    .prepare("SELECT version, name, applied_at FROM _omniroute_migrations ORDER BY version")
-    .all() as Array<{ version: string; name: string; applied_at: string }>;
+  const ledger = db
+    .prepare("SELECT type FROM main.sqlite_master WHERE name = ? COLLATE NOCASE AND type != 'trigger' LIMIT 1")
+    .get("_omniroute_migrations") as { type: string } | undefined;
+  if (ledger && ledger.type !== "table") {
+    throw new Error(`[Migration] Migration ledger name is occupied by a non-table object: ${ledger.type}.`);
+  }
+  const appliedRows = ledger
+    ? (db
+        .prepare("SELECT version, name, applied_at FROM main._omniroute_migrations ORDER BY version")
+        .all() as Array<{ version: string; name: string; applied_at: string }>)
+    : [];
 
   const appliedVersions = new Set(appliedRows.map((r) => r.version));
   const allFiles = getMigrationFiles();
