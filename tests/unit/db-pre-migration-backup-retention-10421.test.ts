@@ -137,6 +137,40 @@ function withEnv<T>(vars: Record<string, string | undefined>, fn: () => T): T {
   }
 }
 
+test("a corrupt staged snapshot stops migration and preserves existing backups", serial, async () => {
+  const dataDir = makeTempDataDir();
+  const backupDir = path.join(dataDir, "db_backups");
+  const db = createFileDb(path.join(dataDir, "storage.sqlite"));
+  const originalOpen = fs.openSync;
+  let injected = false;
+  try {
+    seedExistingDb(db);
+    const seeded = seedTraditionalBackups(backupDir, 1);
+    const { runMigrations } = await importFresh("src/lib/db/migrationRunner.ts");
+    fs.openSync = ((file, flags, ...rest) => {
+      const fd = originalOpen(file, flags, ...rest);
+      if (!injected && String(file).endsWith("snapshot.sqlite") && flags === "r+") {
+        injected = true;
+        fs.writeSync(fd, Buffer.from("broken"), 0, 6, 0);
+      }
+      return fd;
+    }) as typeof fs.openSync;
+    assert.throws(() => withMockedMigrationFs({
+      "001_initial_schema.sql": "SELECT 1;",
+      "002_pending.sql": "CREATE TABLE must_not_apply (id INTEGER);",
+    }, () => runMigrations(db)), /snapshot creation failed/i);
+    assert.equal(injected, true);
+    assert.equal(db.prepare("SELECT name FROM sqlite_master WHERE name='must_not_apply'").get(), undefined);
+    assert.deepEqual(db.prepare("SELECT version, name FROM _omniroute_migrations").all(), [{ version: "001", name: "initial_schema" }]);
+    assert.deepEqual(listCanonicalBackups(backupDir), seeded);
+    assert.deepEqual(listOwnedTempDirs(backupDir), []);
+  } finally {
+    fs.openSync = originalOpen;
+    db.close();
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  }
+});
+
 test(
   "repeated zero-progress failures reuse one content-addressed snapshot without pruning",
   serial,
