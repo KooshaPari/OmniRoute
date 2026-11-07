@@ -121,6 +121,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [isShuttingDown, setIsShuttingDown] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
+  const [lifecycleError, setLifecycleError] = useState<string | null>(null);
   const [isDisconnected, setIsDisconnected] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
@@ -397,30 +398,30 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
     });
   }, []);
 
-  const handleShutdown = async () => {
-    setIsShuttingDown(true);
+  const handleLifecycle = async (action: "shutdown" | "restart") => {
+    const setLoading = action === "shutdown" ? setIsShuttingDown : setIsRestarting;
+    setLoading(true);
+    setLifecycleError(null);
     try {
-      await fetch("/api/shutdown", { method: "POST" });
-    } catch (e) {
-      // Expected to fail as server shuts down
+      const response = await fetch(`/api/${action}`, { method: "POST" });
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        setLifecycleError(typeof body?.error === "string" ? body.error : `Request failed (HTTP ${response.status})`);
+        return;
+      }
+      setShowShutdownModal(false);
+      setShowRestartModal(false);
+      setIsDisconnected(true);
+      if (action === "restart") setTimeout(() => globalThis.location.reload(), 3000);
+    } catch {
+      setLifecycleError("The request failed; the server state is unknown.");
+    } finally {
+      setLoading(false);
     }
-    setIsShuttingDown(false);
-    setShowShutdownModal(false);
-    setIsDisconnected(true);
   };
 
-  const handleRestart = async () => {
-    setIsRestarting(true);
-    try {
-      await fetch("/api/restart", { method: "POST" });
-    } catch (e) {
-      // Expected to fail as server restarts
-    }
-    setIsRestarting(false);
-    setShowRestartModal(false);
-    setIsDisconnected(true);
-    setTimeout(() => globalThis.location.reload(), 3000);
-  };
+  const handleShutdown = () => handleLifecycle("shutdown");
+  const handleRestart = () => handleLifecycle("restart");
 
   const handleMouseEnter = useCallback(
     (e: React.MouseEvent<HTMLElement>, id: string, label: string) => {
@@ -716,7 +717,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
           )}
         >
           <button
-            onClick={() => setShowRestartModal(true)}
+            onClick={() => { setLifecycleError(null); setShowRestartModal(true); }}
             title={t("restart")}
             className={cn(
               "flex items-center justify-center gap-2 rounded-lg font-medium transition-all",
@@ -728,7 +729,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
             {!collapsed && <span className="truncate">{t("restart")}</span>}
           </button>
           <button
-            onClick={() => setShowShutdownModal(true)}
+            onClick={() => { setLifecycleError(null); setShowShutdownModal(true); }}
             title={t("shutdown")}
             className={cn(
               "flex items-center justify-center gap-2 rounded-lg font-medium transition-all",
@@ -760,7 +761,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
         onClose={() => setShowShutdownModal(false)}
         onConfirm={handleShutdown}
         title={t("shutdown")}
-        message={t("shutdownConfirm")}
+        message={<>{t("shutdownConfirm")}{lifecycleError && <span role="alert" className="block mt-2">{lifecycleError}</span>}</>}
         confirmText={t("shutdown")}
         cancelText={tc("cancel")}
         variant="danger"
@@ -772,7 +773,7 @@ export default function Sidebar({ onClose, collapsed = false, onToggleCollapse }
         onClose={() => setShowRestartModal(false)}
         onConfirm={handleRestart}
         title={t("restart")}
-        message={t("restartConfirm")}
+        message={<>{t("restartConfirm")}{lifecycleError && <span role="alert" className="block mt-2">{lifecycleError}</span>}</>}
         confirmText={t("restart")}
         cancelText={tc("cancel")}
         variant="warning"
