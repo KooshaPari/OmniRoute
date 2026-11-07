@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { getDefaultDataDir, resolveWritableDataDir } from "../../src/lib/dataPaths.ts";
+import { resolveWritableDataDir } from "../../src/lib/dataPaths.ts";
 
 function withDataDirEnv(fn: () => void): void {
   const previousDataDir = process.env.DATA_DIR;
@@ -45,52 +45,17 @@ test("logger dynamically imports without a data-path initialization cycle", asyn
   }
 });
 
-test("permission failures notify the optional callback with typed fallback details", () => {
-  withDataDirEnv(() => {
-    const originalMkdirSync = fs.mkdirSync;
-    const expectedFallback = getDefaultDataDir();
-    let details: { resolved: string; fallback: string; code: "EACCES" | "EPERM" } | undefined;
-    fs.mkdirSync = (() => {
-      const error = Object.assign(new Error("permission denied"), { code: "EACCES" });
-      throw error;
-    }) as typeof fs.mkdirSync;
-
-    try {
-      const resolved = resolveWritableDataDir({
-        onPermissionFallback: (value) => {
-          details = value;
-        },
-      });
-
-      assert.equal(resolved, expectedFallback);
-      assert.deepEqual(details, {
-        resolved: path.resolve(process.env.DATA_DIR!),
-        fallback: expectedFallback,
-        code: "EACCES",
-      });
-    } finally {
-      fs.mkdirSync = originalMkdirSync;
-    }
+for (const code of ["EACCES", "EPERM", "ENOTDIR"]) {
+  test(`explicit data directory propagates ${code} without fallback`, () => {
+    withDataDirEnv(() => {
+      const originalMkdirSync = fs.mkdirSync;
+      const expectedError = Object.assign(new Error("directory unavailable"), { code });
+      fs.mkdirSync = (() => { throw expectedError; }) as typeof fs.mkdirSync;
+      try {
+        assert.throws(() => resolveWritableDataDir(), (error) => error === expectedError);
+      } finally {
+        fs.mkdirSync = originalMkdirSync;
+      }
+    });
   });
-});
-
-test("non-permission data directory failures are rethrown without invoking the callback", () => {
-  withDataDirEnv(() => {
-    const originalMkdirSync = fs.mkdirSync;
-    let callbackCalls = 0;
-    const expectedError = Object.assign(new Error("not a directory"), { code: "ENOTDIR" });
-    fs.mkdirSync = (() => {
-      throw expectedError;
-    }) as typeof fs.mkdirSync;
-
-    try {
-      assert.throws(
-        () => resolveWritableDataDir({ onPermissionFallback: () => callbackCalls++ }),
-        (error) => error === expectedError
-      );
-      assert.equal(callbackCalls, 0);
-    } finally {
-      fs.mkdirSync = originalMkdirSync;
-    }
-  });
-});
+}
