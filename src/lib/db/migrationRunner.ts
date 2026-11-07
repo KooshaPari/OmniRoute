@@ -1158,6 +1158,13 @@ function insertDefaultDatabaseSettings(db: SqliteAdapter) {
 /**
  * Get migration status for diagnostics.
  */
+export class MigrationLedgerCollisionError extends Error {
+  constructor(readonly objectType: string) {
+    super(`[Migration] Migration ledger name is occupied by a non-table object: ${objectType}.`);
+    this.name = "MigrationLedgerCollisionError";
+  }
+}
+
 export function getMigrationStatus(db: SqliteAdapter): {
   applied: Array<{ version: string; name: string; applied_at: string }>;
   pending: Array<{ version: string; name: string }>;
@@ -1166,7 +1173,7 @@ export function getMigrationStatus(db: SqliteAdapter): {
     .prepare("SELECT type FROM main.sqlite_master WHERE name = ? COLLATE NOCASE AND type != 'trigger' LIMIT 1")
     .get("_omniroute_migrations") as { type: string } | undefined;
   if (ledger && ledger.type !== "table") {
-    throw new Error(`[Migration] Migration ledger name is occupied by a non-table object: ${ledger.type}.`);
+    throw new MigrationLedgerCollisionError(ledger.type);
   }
   const appliedRows = ledger
     ? (db

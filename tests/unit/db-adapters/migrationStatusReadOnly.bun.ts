@@ -12,7 +12,7 @@ test("migration status reads missing and existing ledgers and refuses collisions
   fs.writeFileSync(path.join(dir, "001_first.sql"), "SELECT 1;");
   fs.writeFileSync(path.join(dir, "002_second.sql"), "SELECT 2;");
   try {
-    const { getMigrationStatus, runMigrations } = await import("../../../src/lib/db/migrationRunner");
+    const { getMigrationStatus, runMigrations, MigrationLedgerCollisionError } = await import("../../../src/lib/db/migrationRunner");
     for (const state of ["missing", "empty", "existing", "mixedcase", "triggerfirst", "triggeronly", "collision", "indexcollision", "malformed"] as const) {
       const file = path.join(dir, `${state}.sqlite`);
       const setup = new Database(file);
@@ -30,7 +30,13 @@ test("migration status reads missing and existing ledgers and refuses collisions
       try {
         if (state === "existing") db.exec("CREATE TEMP TABLE _omniroute_migrations (version TEXT, name TEXT, applied_at TEXT); INSERT INTO temp._omniroute_migrations VALUES ('002', 'shadow', 'time')");
         if (state === "collision" || state === "indexcollision") {
-          expect(() => getMigrationStatus(db)).toThrow("non-table object");
+          try {
+            getMigrationStatus(db);
+            throw new Error("Expected a ledger collision");
+          } catch (error) {
+            expect(error).toBeInstanceOf(MigrationLedgerCollisionError);
+            expect((error as InstanceType<typeof MigrationLedgerCollisionError>).objectType).toBe(state === "collision" ? "view" : "index");
+          }
         } else if (state === "malformed") {
           expect(() => getMigrationStatus(db)).toThrow();
         } else {
