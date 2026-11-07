@@ -59,26 +59,26 @@ test("resolveWritableDataDir returns the configured DATA_DIR when it is writable
 });
 
 test(
-  "resolveWritableDataDir falls back to the default dir when DATA_DIR is not writable (EACCES/EPERM)",
+  "explicit inaccessible DATA_DIR fails without touching the default directory",
   { skip: IS_ROOT || IS_WINDOWS },
   async () => {
     await withTempEnv(({ root, home }) => {
-      // A read-only parent makes mkdir of the child fail with EACCES/EPERM.
+      process.env.XDG_CONFIG_HOME = home;
+      const fallback = getDefaultDataDir();
+      assert.ok(fallback.startsWith(path.resolve(home)));
+      fs.mkdirSync(fallback, { recursive: true });
+      const sentinel = path.join(fallback, "sentinel");
+      fs.writeFileSync(sentinel, "preserve");
       const lockedParent = path.join(root, "locked");
-      fs.mkdirSync(lockedParent, { recursive: true });
+      fs.mkdirSync(lockedParent);
       fs.chmodSync(lockedParent, 0o555);
-
-      const configured = path.join(lockedParent, "data");
-      process.env.DATA_DIR = configured;
-
-      const resolved = resolveWritableDataDir();
-      const expectedFallback = getDefaultDataDir();
-
-      // It must NOT return the unwritable configured dir...
-      assert.notEqual(resolved, path.resolve(configured));
-      // ...and instead fall back to the default user dir (~/.omniroute under HOME).
-      assert.equal(resolved, expectedFallback);
-      assert.ok(resolved.startsWith(path.resolve(home)));
+      process.env.DATA_DIR = path.join(lockedParent, "data");
+      assert.throws(() => resolveWritableDataDir(), (error) => {
+        const code = (error as NodeJS.ErrnoException).code;
+        return code === "EACCES" || code === "EPERM";
+      });
+      assert.equal(fs.readFileSync(sentinel, "utf8"), "preserve");
+      assert.deepEqual(fs.readdirSync(fallback), ["sentinel"]);
     });
   }
 );

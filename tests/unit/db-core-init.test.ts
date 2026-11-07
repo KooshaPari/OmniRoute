@@ -552,7 +552,7 @@ test(
       // Since #4767, db/core.ts resolves a writable data dir at module load via
       // resolveWritableDataDir() → mkdirSync(recursive). Pointing DATA_DIR at a
       // regular file is a non-permission misconfiguration (EEXIST/ENOTDIR), which
-      // resolveWritableDataDir rethrows by design (only EACCES/EPERM fall back), so
+      // resolveWritableDataDir rethrows directory creation errors, so
       // the failure now surfaces at import time, not lazily from getDbInstance().
       let caught: unknown;
       await withEnv({ DATA_DIR: fileAsDir }, () => importFresh("src/lib/db/core.ts")).then(
@@ -920,3 +920,36 @@ test(
     }
   }
 );
+
+test("core startup refuses inaccessible explicit DATA_DIR without opening default storage", serial, async () => {
+  const sandboxDir = makeTempDir("omniroute-db-denied-path-");
+  const home = path.join(sandboxDir, "home");
+  fs.mkdirSync(home, { recursive: true });
+  const configured = path.join(sandboxDir, "denied");
+  try {
+    await withEnv({ DATA_DIR: configured, HOME: home, USERPROFILE: home, APPDATA: home, XDG_CONFIG_HOME: home }, async () => {
+      const { getDefaultDataDir } = await import("../../src/lib/dataPaths.ts");
+      const fallback = getDefaultDataDir();
+      assert.ok(path.relative(sandboxDir, fallback) && !path.relative(sandboxDir, fallback).startsWith(".."));
+      fs.mkdirSync(fallback, { recursive: true });
+      const sentinel = path.join(fallback, "sentinel");
+      fs.writeFileSync(sentinel, "preserve");
+      const originalMkdir = fs.mkdirSync;
+      const expected = Object.assign(new Error("fixture denied"), { code: "EACCES" });
+      fs.mkdirSync = ((target, options) => {
+        if (path.resolve(String(target)) === path.resolve(configured)) throw expected;
+        return originalMkdir(target, options as never);
+      }) as typeof fs.mkdirSync;
+      try {
+        await assert.rejects(importFresh("src/lib/db/core.ts"), (error) => error === expected);
+      } finally {
+        fs.mkdirSync = originalMkdir;
+      }
+      assert.equal(fs.readFileSync(sentinel, "utf8"), "preserve");
+      assert.deepEqual(fs.readdirSync(fallback), ["sentinel"]);
+    });
+  } finally {
+    cleanupGlobalDb();
+    removePath(sandboxDir);
+  }
+});
