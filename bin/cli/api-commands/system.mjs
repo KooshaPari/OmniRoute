@@ -62,18 +62,20 @@ export function register_system(parent) {
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/restart";
-      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
+      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey, retry: false });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
+      if (!res.ok) process.exitCode = res.exitCode || 1;
     });
   tag.command("post-api-shutdown")
     .description("Shutdown the application")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/shutdown";
-      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
+      const res = await apiFetch(url, { method: "POST", baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey, retry: false });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
+      if (!res.ok) process.exitCode = res.exitCode || 1;
     });
   tag.command("get-api-db-backups")
     .description("List database backups")

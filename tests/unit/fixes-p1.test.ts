@@ -15,6 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import net from "node:net";
+import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 
 const isWindows = process.platform === "win32";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-fixes-"));
@@ -197,9 +198,9 @@ test("shutdown route uses SIGTERM for graceful shutdown", async () => {
   };
 
   try {
-    const response = await shutdownRoute.POST();
-    assert.equal(response.status, 200);
-    assert.deepEqual(calls, [{ pid: process.pid, signal: "SIGTERM" }]);
+    const response = await shutdownRoute.POST(await makeManagementSessionRequest("http://localhost/api/shutdown", { method: "POST" }));
+    assert.equal(response.status, isWindows ? 503 : 200);
+    assert.deepEqual(calls, isWindows ? [] : [{ pid: process.pid, signal: "SIGTERM" }]);
   } finally {
     process.kill = originalKill;
     globalThis.setTimeout = originalSetTimeout;
@@ -221,9 +222,9 @@ test("restart route uses SIGTERM for graceful restart", async () => {
   };
 
   try {
-    const response = await restartRoute.POST();
-    assert.equal(response.status, 200);
-    assert.deepEqual(calls, [{ pid: process.pid, signal: "SIGTERM" }]);
+    const response = await restartRoute.POST(await makeManagementSessionRequest("http://localhost/api/restart", { method: "POST" }));
+    assert.equal(response.status, isWindows ? 503 : 200);
+    assert.deepEqual(calls, isWindows ? [] : [{ pid: process.pid, signal: "SIGTERM" }]);
   } finally {
     process.kill = originalKill;
     globalThis.setTimeout = originalSetTimeout;

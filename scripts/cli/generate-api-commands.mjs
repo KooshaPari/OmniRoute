@@ -164,12 +164,16 @@ for (const [tag, ops] of Object.entries(byTag)) {
       lines.push(`          : JSON.parse(opts.body);`);
       lines.push(`      }`);
     }
-    const bodyArg = hasBody ? ", body" : "";
+    const lifecycle = path === "/api/shutdown" || path === "/api/restart";
+    const retryArg = lifecycle ? ", retry: false" : "";
     lines.push(
-      `      const res = await apiFetch(url, { method: "${method.toUpperCase()}"${hasBody ? ", body" : ""}, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });`
+      `      const res = await apiFetch(url, { method: "${method.toUpperCase()}"${hasBody ? ", body" : ""}, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey${retryArg} });`
     );
     lines.push(`      const data = res.ok ? await res.json() : await res.text();`);
     lines.push(`      emit(data, gOpts);`);
+    if (lifecycle) {
+      lines.push(`      if (!res.ok) process.exitCode = res.exitCode || 1;`);
+    }
     lines.push(`    });`);
   }
 
