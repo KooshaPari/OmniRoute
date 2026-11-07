@@ -43,13 +43,13 @@ test("exact 185 bytes classify an absent column and reject a generated collision
   const vectors = JSON.parse(readFileSync(new URL("../fixtures/guarded-additive/migration-bytes.json", import.meta.url), "utf8"));
   const bytes = Buffer.from(vectors["185_usage_history_cpa_auth_index.sql"], "base64");
   assert.equal(digest(bytes), "b71c5e5f74e9a60b26bc242e336470b3e2ae63430194caaf619d3271512b3c12");
-  for (const mode of ["absent", "generated", "uppercase"]) {
+  for (const mode of ["absent", "generated", "uppercase", "uppercase_table"]) {
     const f = fixture();
     const db = new DatabaseSync(f.snapshotPath);
     db.exec("DELETE FROM _omniroute_migrations WHERE version='185'; INSERT INTO _omniroute_migrations VALUES ('185','provider_param_filters')");
     db.exec(mode === "generated"
       ? "CREATE TABLE usage_history(id INTEGER PRIMARY KEY, cpa_auth_index TEXT GENERATED ALWAYS AS ('hidden') VIRTUAL)"
-      : mode === "uppercase" ? "CREATE TABLE usage_history(id INTEGER PRIMARY KEY, CPA_AUTH_INDEX TEXT)" : "CREATE TABLE usage_history(id INTEGER PRIMARY KEY)");
+      : mode === "uppercase" ? "CREATE TABLE usage_history(id INTEGER PRIMARY KEY, CPA_AUTH_INDEX TEXT)" : mode === "uppercase_table" ? "CREATE TABLE USAGE_HISTORY(id INTEGER PRIMARY KEY, CPA_AUTH_INDEX TEXT)" : "CREATE TABLE usage_history(id INTEGER PRIMARY KEY)");
     db.close();
     writeFileSync(join(f.migrationsDir, "185_new.sql"), bytes);
     const renamed = join(f.migrationsDir, "185_usage_history_cpa_auth_index.sql");
@@ -57,8 +57,9 @@ test("exact 185 bytes classify an absent column and reject a generated collision
     const before = digest(readFileSync(f.snapshotPath));
     const result = auditOfflineSnapshot(f);
     const assessment = result.guardedAdditive.find((item) => item.version === "185");
-    assert.equal(assessment.state, mode === "generated" ? "blocked_column_mismatch" : mode === "uppercase" ? "columns_present_unverified" : "candidate_requires_offline_witness");
-    assert.equal(result.usage185.state, mode === "generated" ? "blocked_column_mismatch" : mode === "uppercase" ? "column_present_unverified" : "missing_column_requires_recovery");
+    const present = mode === "uppercase" || mode === "uppercase_table";
+    assert.equal(assessment.state, mode === "generated" ? "blocked_column_mismatch" : present ? "columns_present_unverified" : "candidate_requires_offline_witness");
+    assert.equal(result.usage185.state, mode === "generated" ? "blocked_column_mismatch" : present ? "column_present_unverified" : "missing_column_requires_recovery");
     assert.equal(assessment.authorized, false);
     assert.equal(digest(readFileSync(f.snapshotPath)), before);
   }

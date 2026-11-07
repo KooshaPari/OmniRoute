@@ -25,7 +25,7 @@ export function auditOfflineSnapshot({ snapshotPath, migrationsDir, offlineSnaps
     const numeric = rows.filter((row) => typeof row.version === "string" && /^\d+$/.test(row.version));
     const report = auditMigrationCollisions(numeric, files, recipes);
     const collision = report.collisions.find((item) => item.version === "185");
-    const tableExists = Boolean(db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='usage_history'").get());
+    const tableExists = Boolean(db.prepare("SELECT 1 FROM main.sqlite_master WHERE type='table' AND name = ? COLLATE NOCASE").get("usage_history"));
     const columns = tableExists ? db.prepare("PRAGMA table_xinfo(usage_history)").all() : [];
     const usage185 = assessUsage185({ ...collision, tableExists, columns });
     const guardedAdditive = guardedAdditiveTargets.map(({ version, tableName }) => {
