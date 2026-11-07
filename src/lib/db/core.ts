@@ -14,7 +14,6 @@ import {
   openDatabaseAsync,
 } from "./adapters/driverFactory";
 import path from "path";
-import { retryProbeIfTransient } from "./probeUtils";
 import fs from "fs";
 import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
 import { isNextBuildPhase } from "../buildPhase";
@@ -55,8 +54,6 @@ import {
   ensureUsageHistoryColumns,
   ensureCallLogsColumns,
   hasTable,
-  quoteIdentifier,
-  getTableColumns,
 } from "./schemaColumns";
 import {
   shouldRunStartupDbHealthCheck,
@@ -72,34 +69,10 @@ import {
 // open-sse/mcp-server/tools/advancedTools.ts (db-health tool) both destructure it from core.
 export { runManagedDbHealthCheck } from "./dbHealthScheduler";
 
-type SqliteDatabase = SqliteAdapter;
-type JsonRecord = Record<string, unknown>;
-type DatabaseOptimizationSettings = DatabaseSettings["optimization"];
-type PreservedTableSnapshot = {
-  table: string;
-  rowCount: number;
-  maxRows: number;
-  columns: string[];
-  rows: JsonRecord[];
-};
-type SkippedTableSnapshot = {
-  table: string;
-  rowCount: number;
-  maxRows: number;
-  reason: string;
-};
-type PreservedCriticalDbState = {
-  captureSucceeded: boolean;
-  captureError: string | null;
-  preservedTables: PreservedTableSnapshot[];
-  skippedTables: SkippedTableSnapshot[];
-};
-type CriticalTableSpec = {
-  table: string;
-  maxRows?: number;
-  readRows?: (db: SqliteDatabase) => JsonRecord[];
-};
+class StartupRecoveryRequiredError extends Error {}
 
+type SqliteDatabase = SqliteAdapter;
+type DatabaseOptimizationSettings = DatabaseSettings["optimization"];
 // ──────────────── Environment Detection ────────────────
 
 export const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
@@ -124,40 +97,6 @@ const LEGACY_DATA_DIR = isCloud ? null : getLegacyDotDataDir();
 export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite");
 const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
 export const DB_BACKUPS_DIR = isCloud ? null : path.join(DATA_DIR, "db_backups");
-const DEFAULT_CRITICAL_TABLE_ROW_LIMIT = 10_000;
-const SKIP_PRESERVE_NAMESPACES = new Set([
-  "syncedAvailableModels",
-  "providerLimitsCache",
-  "lkgp",
-  "gemini_thought_signatures",
-]);
-const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
-  {
-    table: "key_value",
-    maxRows: 10_000,
-    readRows(db) {
-      return (
-        (db.prepare("SELECT namespace, key, value FROM key_value").all() as JsonRecord[]) ?? []
-      ).filter(
-        (row) => typeof row.namespace !== "string" || !SKIP_PRESERVE_NAMESPACES.has(row.namespace)
-      );
-    },
-  },
-  { table: "provider_connections", maxRows: 5_000 },
-  { table: "provider_nodes", maxRows: 5_000 },
-  { table: "combos", maxRows: 5_000 },
-  { table: "api_keys", maxRows: 5_000 },
-  { table: "proxy_registry", maxRows: 5_000 },
-  { table: "proxy_assignments", maxRows: 10_000 },
-  { table: "model_combo_mappings", maxRows: 5_000 },
-  { table: "sync_tokens", maxRows: 5_000 },
-  { table: "registered_keys", maxRows: 10_000 },
-  { table: "provider_key_limits", maxRows: 10_000 },
-  { table: "account_key_limits", maxRows: 10_000 },
-  { table: "upstream_proxy_config", maxRows: 5_000 },
-  { table: "webhooks", maxRows: 5_000 },
-];
-
 export function isNativeSqliteLoadError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   const code = getErrorCode(error);
@@ -571,30 +510,8 @@ const { tables: SCHEMA_TABLES_SQL, indexes: SCHEMA_INDEXES_SQL } =
 // Module-level `let` resets on every webpack recompile, causing connection leaks.
 
 declare global {
-  // Cycle-breaker counter for the probe-failed/restore cascade. Survives
-  // Next.js HMR re-evaluations so concurrent subsystems all see the same
-  // count and we abort with a clear error instead of looping forever.
-  var __omnirouteDbProbeRestoreCount: number | undefined;
-  // Cycle-breaker counter for the OOM-during-probe path (#6835). Unlike the
-  // generic corruption path above, an OOM probe failure never renames the
-  // file away (intentional — the DB may be perfectly fine, just too large
-  // for the current heap), so the restore-count cap above is structurally
-  // unreachable here. Without an independent cap, every background poller
-  // (BATCH, HealthCheck, ProviderLimitsSync, ModelSync) re-throws the same
-  // OOM error forever with no terminal diagnostic.
+  // Tracks repeated out-of-memory probe failures.
   var __omnirouteDbOomFailureCount: number | undefined;
-}
-
-function summarizePreservedTables(tables: PreservedTableSnapshot[]): string {
-  if (tables.length === 0) return "none";
-  return tables.map((table) => `${table.table}(${table.rowCount})`).join(", ");
-}
-
-function summarizeSkippedTables(tables: SkippedTableSnapshot[]): string {
-  if (tables.length === 0) return "none";
-  return tables
-    .map((table) => `${table.table}(${table.rowCount}/${table.maxRows}: ${table.reason})`)
-    .join(", ");
 }
 
 function listProbeFailureBackups(sqliteFile: string): string[] {
@@ -616,119 +533,6 @@ function listProbeFailureBackups(sqliteFile: string): string[] {
       return rightTimestamp - leftTimestamp || right.path.localeCompare(left.path);
     })
     .map((backup) => backup.path);
-}
-
-function captureCriticalDbState(sqliteFile: string): PreservedCriticalDbState {
-  const snapshot: PreservedCriticalDbState = {
-    captureSucceeded: false,
-    captureError: null,
-    preservedTables: [],
-    skippedTables: [],
-  };
-
-  if (!fs.existsSync(sqliteFile)) {
-    snapshot.captureSucceeded = true;
-    return snapshot;
-  }
-
-  let probe: SqliteDatabase | null = null;
-  try {
-    probe = openSqliteDatabase(sqliteFile, { readonly: true });
-
-    for (const tableSpec of CRITICAL_DB_TABLES) {
-      if (!hasTable(probe, tableSpec.table)) continue;
-
-      const maxRows = tableSpec.maxRows ?? DEFAULT_CRITICAL_TABLE_ROW_LIMIT;
-      const rows = (tableSpec.readRows?.(probe) ??
-        (probe
-          .prepare(`SELECT * FROM ${quoteIdentifier(tableSpec.table)}`)
-          .all() as JsonRecord[])) as JsonRecord[];
-      const rowCount = rows.length;
-
-      if (rowCount === 0) continue;
-
-      if (rowCount > maxRows) {
-        snapshot.skippedTables.push({
-          table: tableSpec.table,
-          rowCount,
-          maxRows,
-          reason: "row_limit_exceeded",
-        });
-        continue;
-      }
-
-      snapshot.preservedTables.push({
-        table: tableSpec.table,
-        rowCount,
-        maxRows,
-        columns: getTableColumns(probe, tableSpec.table),
-        rows,
-      });
-    }
-
-    snapshot.captureSucceeded = true;
-    return snapshot;
-  } catch (error: unknown) {
-    snapshot.captureError = error instanceof Error ? error.message : String(error);
-    return snapshot;
-  } finally {
-    try {
-      closeProbeIfSafe(probe);
-    } catch {
-      /* ignore */
-    }
-  }
-}
-
-function restoreCriticalDbState(
-  db: SqliteDatabase,
-  snapshot: PreservedCriticalDbState
-): PreservedTableSnapshot[] {
-  const restoredTables: PreservedTableSnapshot[] = [];
-
-  const restore = db.transaction(() => {
-    for (const table of snapshot.preservedTables) {
-      if (table.rows.length === 0) continue;
-      if (!hasTable(db, table.table)) {
-        throw new Error(`Current schema is missing preserved table "${table.table}"`);
-      }
-
-      const currentColumns = new Set(getTableColumns(db, table.table));
-      const restoreColumns = table.columns.filter((column) => currentColumns.has(column));
-      if (restoreColumns.length === 0) {
-        throw new Error(`No compatible columns remain for preserved table "${table.table}"`);
-      }
-
-      const sql = `INSERT OR REPLACE INTO ${quoteIdentifier(table.table)} (${restoreColumns
-        .map((column) => quoteIdentifier(column))
-        .join(", ")}) VALUES (${restoreColumns.map(() => "?").join(", ")})`;
-      const insert = db.prepare(sql);
-
-      for (const row of table.rows) {
-        insert.run(...restoreColumns.map((column) => row[column] ?? null));
-      }
-
-      restoredTables.push(table);
-    }
-  });
-
-  restore();
-  return restoredTables;
-}
-
-function cleanupRecreatedSqliteFiles(sqliteFile: string) {
-  for (const filePath of [
-    sqliteFile,
-    `${sqliteFile}-wal`,
-    `${sqliteFile}-shm`,
-    `${sqliteFile}-journal`,
-  ]) {
-    try {
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    } catch {
-      /* ignore */
-    }
-  }
 }
 
 function parseLegacyError(value: unknown): unknown {
@@ -938,51 +742,16 @@ export function getDbInstance(): SqliteDatabase {
   }
   const jsonDbFile = JSON_DB_FILE;
   const probeFailureBackups = listProbeFailureBackups(sqliteFile);
-  if (!fs.existsSync(sqliteFile) && probeFailureBackups.length > 0) {
-    // Cycle-breaker: a previous probe failure renamed the DB to
-    // `storage.sqlite.probe-failed-<ts>` and the next caller auto-restored it.
-    // When the same DB continues to fail the probe (typically an OOM on a
-    // large sql.js WASM load), the rename/restore cascade loops forever
-    // because every subsystem (BATCH, HealthCheck, ProviderLimitsSync, ...)
-    // hits the same code path during boot. Track restoration attempts on
-    // globalThis; abort with a clear recovery message after 3 attempts so
-    // the user gets a real error instead of a hung "Starting server...".
-    if (
-      (globalThis.__omnirouteDbProbeRestoreCount =
-        (globalThis.__omnirouteDbProbeRestoreCount || 0) + 1) > 3
-    ) {
-      throw new Error(
-        `[DB] Aborting startup: probe-failed/restore loop detected after 3 attempts. ` +
-          `The preserved database at ${path.dirname(sqliteFile)} is unloadable under this runtime. ` +
-          `Remove the probe-failed backups (storage.sqlite.probe-failed-*) from ${path.dirname(
-            sqliteFile
-          )} and restart, or restore the database from a known-good backup.`
-      );
-    }
-    const latestBackup = probeFailureBackups[0];
-    try {
-      fs.renameSync(latestBackup, sqliteFile);
-      console.log(
-        `[DB] Auto-restored preserved database from previous probe failure: ${path.basename(latestBackup)}`
-      );
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : String(error);
-      throw new Error(
-        `[DB] Manual recovery required before startup. ` +
-          `Failed to auto-restore preserved database ${latestBackup}: ${msg}. ` +
-          `Restore the preserved file or another backup to ${sqliteFile} before restarting.`
-      );
-    }
+  if (
+    !fs.existsSync(sqliteFile) &&
+    (probeFailureBackups.length > 0 ||
+      ["-wal", "-shm", "-journal"].some((suffix) => fs.existsSync(sqliteFile + suffix)))
+  ) {
+    throw new StartupRecoveryRequiredError(
+      "[DB] Manual recovery required: the main database is missing and preserved SQLite artifacts exist. " +
+        "Database and sidecar artifacts were left in place."
+    );
   }
-
-  let preservedCriticalState: PreservedCriticalDbState = {
-    captureSucceeded: true,
-    captureError: null,
-    preservedTables: [],
-    skippedTables: [],
-  };
-  let failedProbePath: string | null = null;
-  let failedProbeMessage: string | null = null;
 
   // Track whether the DB file is brand new (fresh DATA_DIR / Docker volume).
   // This is needed so the migration runner skips the mass-migration safety abort
@@ -993,151 +762,108 @@ export function getDbInstance(): SqliteDatabase {
   const databaseExistedBeforeInitialization = fs.existsSync(sqliteFile);
   let isNewDb = !databaseExistedBeforeInitialization;
 
-  // Detect and handle old schema format — preserve data when possible (#146)
-  // Uses a single probe connection that becomes the real connection when possible.
+  // A failed or incomplete probe, including a transient failure, must not
+  // authorize startup writes or automatic database replacement.
   if (fs.existsSync(sqliteFile)) {
+    let probe: SqliteDatabase | null = null;
+    let probeFailure: unknown;
     try {
-      const probe = openSqliteDatabase(sqliteFile, { readonly: true });
-      // #9934: init asymmetry — bin/cli/sqlite.mjs::openOmniRouteDb (used by
-      // `omniroute setup`) creates storage.sqlite with only the partial inline
-      // schema (key_value + provider_connections) and never runs migrations.
-      // Purely file-existence-based freshness made that file look like an
-      // existing DB, so the first `serve` auto-seeded only the 001 marker and
-      // tripped the mass-migration safety abort on a brand-new install. A
-      // skeleton file has provider_connections but none of the tables the 001
-      // migration creates (combos) — treat it as fresh, not as a wiped DB.
-      const probeHasProviderConnections = !!probe
-        .prepare(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='provider_connections'"
-        )
-        .get();
-      const probeHasCombos = !!probe
-        .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='combos'")
-        .get();
-      if (probeHasProviderConnections && !probeHasCombos) {
-        isNewDb = true;
-      }
-      const hasOldSchema = probe
-        .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'")
-        .get();
-
-      if (hasOldSchema) {
-        let hasData = false;
-        try {
-          const count = probe.prepare("SELECT COUNT(*) as c FROM provider_connections").get() as
-            { c: number } | undefined;
-          hasData = Boolean(count && count.c > 0);
-        } catch {
-          // Table might not exist at all — truly incompatible
+      try {
+        probe = openSqliteDatabase(sqliteFile, { readonly: true });
+        // #9934: init asymmetry — bin/cli/sqlite.mjs::openOmniRouteDb (used by
+        // `omniroute setup`) creates storage.sqlite with only the partial inline
+        // schema (key_value + provider_connections) and never runs migrations.
+        // Purely file-existence-based freshness made that file look like an
+        // existing DB, so the first `serve` auto-seeded only the 001 marker and
+        // tripped the mass-migration safety abort on a brand-new install. A
+        // skeleton file has provider_connections but none of the tables the 001
+        // migration creates (combos) — treat it as fresh, not as a wiped DB.
+        const probeHasProviderConnections = !!probe
+          .prepare(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='provider_connections'"
+          )
+          .get();
+        const probeHasCombos = !!probe
+          .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='combos'")
+          .get();
+        if (probeHasProviderConnections && !probeHasCombos) {
+          isNewDb = true;
         }
-        closeProbeIfSafe(probe);
+        const hasOldSchema = probe
+          .prepare("SELECT name FROM main.sqlite_master WHERE type='table' AND name='schema_migrations' COLLATE NOCASE")
+          .get();
 
-        if (hasData) {
-          console.log(
-            `[DB] Old schema_migrations table found but data exists — preserving data (#146)`
+        if (hasOldSchema) {
+          throw new StartupRecoveryRequiredError(
+            "[DB] Manual recovery required: legacy schema detected. " +
+              "The existing database and sidecars were left in place."
           );
-          const fixDb = openSqliteDatabase(sqliteFile);
-          try {
-            fixDb.exec("DROP TABLE IF EXISTS schema_migrations");
-            fixDb.pragma("wal_checkpoint(TRUNCATE)");
-          } catch (e: unknown) {
-            const message = e instanceof Error ? e.message : String(e);
-            console.warn("[DB] Could not clean up old schema table:", message);
-          } finally {
-            closeProbeIfSafe(fixDb);
-          }
-        } else {
-          const oldPath = sqliteFile + ".old-schema";
-          console.log(
-            `[DB] Old incompatible schema detected (empty) — renaming to ${path.basename(oldPath)}`
-          );
-          fs.renameSync(sqliteFile, oldPath);
-          for (const ext of ["-wal", "-shm"]) {
-            try {
-              if (fs.existsSync(sqliteFile + ext)) fs.unlinkSync(sqliteFile + ext);
-            } catch {
-              /* ok */
-            }
-          }
         }
-      } else {
-        closeProbeIfSafe(probe);
-      }
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      console.warn("[DB] Could not probe existing DB:", message);
 
-      // If the error is a Node module/ABI failure, throw it immediately to avoid renaming the database
-      if (
-        isNativeSqliteLoadError(e) ||
-        isSqliteDriverUnavailableError(e) ||
-        message.includes("could not be found")
-      ) {
-        throw e;
-      }
-      // OOM during probe = the DB is too large to load under the current
-      // V8 heap (sql.js loads the whole file into WASM memory). Throwing
-      // immediately gives the user a clear "increase --max-old-space-size"
-      // signal instead of silently renaming a perfectly good DB.
-      if (
-        /out of memory|allocation failure|Array buffer allocation failed|allocation failed/i.test(
-          message
-        )
-      ) {
-        // Cycle-breaker (#6835): the OOM path never renames the file away,
-        // so it never trips the generic probe-failed/restore cap above. Cap
-        // it independently after 3 consecutive OOM failures (same threshold
-        // as the generic path) so repeated polling doesn't hang forever with
-        // no actionable terminal diagnostic.
+      } catch (e: unknown) {
+        if (e instanceof StartupRecoveryRequiredError) throw e;
+        const message = e instanceof Error ? e.message : String(e);
+        console.warn("[DB] Could not probe existing DB:", message);
+
+        // If the error is a Node module/ABI failure, throw it immediately to avoid renaming the database
         if (
-          (globalThis.__omnirouteDbOomFailureCount =
-            (globalThis.__omnirouteDbOomFailureCount || 0) + 1) > 3
+          isNativeSqliteLoadError(e) ||
+          isSqliteDriverUnavailableError(e) ||
+          message.includes("could not be found")
         ) {
+          throw e;
+        }
+        // OOM during probe = the DB is too large to load under the current
+        // V8 heap (sql.js loads the whole file into WASM memory). Throwing
+        // immediately gives the user a clear "increase --max-old-space-size"
+        // signal instead of silently renaming a perfectly good DB.
+        if (
+          /out of memory|allocation failure|Array buffer allocation failed|allocation failed/i.test(
+            message
+          )
+        ) {
+          // Cycle-breaker (#6835): the OOM path never renames the file away,
+          // so it never trips the generic probe-failed/restore cap above. Cap
+          // it independently after 3 consecutive OOM failures (same threshold
+          // as the generic path) so repeated polling doesn't hang forever with
+          // no actionable terminal diagnostic.
+          if (
+            (globalThis.__omnirouteDbOomFailureCount =
+              (globalThis.__omnirouteDbOomFailureCount || 0) + 1) > 3
+          ) {
+            throw new Error(
+              `[DB] Aborting startup: persistent out-of-memory probing ${sqliteFile} after 3 attempts. ` +
+                `Increase the V8 heap with NODE_OPTIONS=--max-old-space-size=4096 (or higher) — the ` +
+                `current heap is insufficient for this database — and restart, or shrink/restore the ` +
+                `database from a backup. Original error: ${message}`
+            );
+          }
           throw new Error(
-            `[DB] Aborting startup: persistent out-of-memory probing ${sqliteFile} after 3 attempts. ` +
-              `Increase the V8 heap with NODE_OPTIONS=--max-old-space-size=4096 (or higher) — the ` +
-              `current heap is insufficient for this database — and restart, or shrink/restore the ` +
-              `database from a backup. Original error: ${message}`
+            `[DB] Out of memory while probing ${sqliteFile}. ` +
+              `The bundled sql.js driver loads the entire file into WASM memory; ` +
+              `increase the V8 heap with NODE_OPTIONS=--max-old-space-size=4096 (or higher) ` +
+              `and restart, or restore the database from a backup. ` +
+              `Original error: ${message}`
           );
         }
-        throw new Error(
-          `[DB] Out of memory while probing ${sqliteFile}. ` +
-            `The bundled sql.js driver loads the entire file into WASM memory; ` +
-            `increase the V8 heap with NODE_OPTIONS=--max-old-space-size=4096 (or higher) ` +
-            `and restart, or restore the database from a backup. ` +
-            `Original error: ${message}`
+        throw new StartupRecoveryRequiredError(
+          "[DB] Manual recovery required: the existing database probe failed. " +
+            "The database and sidecars were left in place.",
+          { cause: e }
         );
       }
-      if (!retryProbeIfTransient(sqliteFile, e, openSqliteDatabase, closeProbeIfSafe)) {
-        preservedCriticalState = captureCriticalDbState(sqliteFile);
-        // SAFETY: Never delete the database — rename to backup so data can be recovered.
-        // The old code would silently destroy all user data on any probe failure.
-        const failedPath = sqliteFile + `.probe-failed-${Date.now()}`;
-        try {
-          fs.renameSync(sqliteFile, failedPath);
-          console.warn(`[DB] Renamed corrupt DB to ${path.basename(failedPath)}`);
-          failedProbePath = failedPath;
-          failedProbeMessage = message;
-        } catch {
-          /* ok */
+    } catch (error: unknown) {
+      probeFailure = error;
+      throw error;
+    } finally {
+      try {
+        closeProbeIfSafe(probe);
+      } catch (closeError: unknown) {
+        if (probeFailure !== undefined) {
+          throw new AggregateError([probeFailure, closeError], "[DB] Probe and probe close both failed.");
         }
+        throw closeError;
       }
-    }
-  }
-
-  if (failedProbePath) {
-    const hasUnsafeSkippedTables = preservedCriticalState.skippedTables.length > 0;
-    const missingSnapshot = !preservedCriticalState.captureSucceeded;
-    if (hasUnsafeSkippedTables || missingSnapshot) {
-      const details = missingSnapshot
-        ? `snapshot_failed=${preservedCriticalState.captureError || "unknown"}`
-        : `skipped_tables=${summarizeSkippedTables(preservedCriticalState.skippedTables)}`;
-      throw new Error(
-        `[DB] Manual recovery required after probe failure. ` +
-          `Preserved database: ${failedProbePath}. ` +
-          `Automatic recovery was aborted because ${details}. ` +
-          `Original probe error: ${failedProbeMessage || "unknown"}.`
-      );
     }
   }
 
@@ -1210,30 +936,6 @@ export function getDbInstance(): SqliteDatabase {
   // Auto-migrate from db.json if exists
   if (jsonDbFile && fs.existsSync(jsonDbFile)) {
     migrateFromJson(db, jsonDbFile);
-  }
-
-  if (failedProbePath && preservedCriticalState.preservedTables.length > 0) {
-    try {
-      const restoredTables = restoreCriticalDbState(db, preservedCriticalState);
-      console.log(
-        `[DB] Restored preserved critical DB state after probe failure: ${summarizePreservedTables(
-          restoredTables
-        )}`
-      );
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      try {
-        closeProbeIfSafe(db);
-      } catch {
-        /* ignore */
-      }
-      cleanupRecreatedSqliteFiles(sqliteFile);
-      throw new Error(
-        `[DB] Automatic recovery aborted after probe failure. ` +
-          `Preserved database: ${failedProbePath}. ` +
-          `Restore failure: ${message}.`
-      );
-    }
   }
 
   // Store schema version

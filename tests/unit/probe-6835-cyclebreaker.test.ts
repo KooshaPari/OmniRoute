@@ -4,25 +4,20 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-test("getDbInstance() caps the probe-failed/restore cycle at 3 attempts (#6835)", async () => {
+test("repeated startup attempts preserve probe-failed artifacts", async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-6835-"));
-  process.env.DATA_DIR = tmpDir;
+  const previous = process.env.DATA_DIR; process.env.DATA_DIR = tmpDir;
   const sqliteFile = path.join(tmpDir, "storage.sqlite");
-  const backupFile = `${sqliteFile}.probe-failed-1000000000000`;
-  fs.writeFileSync(backupFile, Buffer.from("not a real sqlite file, always fails to open"));
-  const core = await import("../../src/lib/db/core.ts");
-  const errors: string[] = [];
-  for (let i = 0; i < 6; i++) {
-    try {
-      core.getDbInstance();
-      errors.push("(no error)");
-      break;
-    } catch (err: unknown) {
-      errors.push(err instanceof Error ? err.message : String(err));
+  const backupFile = sqliteFile + ".probe-failed-1000000000000";
+  fs.writeFileSync(backupFile, "preserved evidence");
+  try {
+    const core = await import("../../src/lib/db/core.ts");
+    for (let i = 0; i < 6; i++) {
+      assert.throws(() => core.getDbInstance(), /Manual recovery required: the main database is missing/);
+      assert.equal(fs.existsSync(sqliteFile), false);
+      assert.equal(fs.readFileSync(backupFile, "utf8"), "preserved evidence");
     }
+  } finally {
+    if (previous === undefined) delete process.env.DATA_DIR; else process.env.DATA_DIR = previous;
   }
-  const abortIndex = errors.findIndex((e) => e.includes("Aborting startup"));
-  assert.notEqual(abortIndex, -1, "Expected the cap to trip; got: " + errors.join(" | "));
-  assert.ok(abortIndex <= 4, "Expected cap by call #4; took until #" + abortIndex);
-  fs.rmSync(tmpDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
