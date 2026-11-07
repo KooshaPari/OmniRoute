@@ -7,9 +7,9 @@ export function assessUsage185({ appliedName, diskName, sha256, tableExists, col
     return { state: "blocked_identity", authorized: false };
   }
   if (!tableExists) return { state: "blocked_missing_table", authorized: false };
-  const column = columns.find((item) => item.name === "cpa_auth_index");
+  const column = columns.find((item) => typeof item.name === "string" && item.name.replace(/[A-Z]/g, (c) => c.toLowerCase()) === "cpa_auth_index");
   if (!column) return { state: "missing_column_requires_recovery", authorized: false };
-  if (String(column.type).toUpperCase() !== "TEXT" || column.notnull !== 0 ||
+  if ((column.hidden !== undefined && column.hidden !== 0) || String(column.type).toUpperCase() !== "TEXT" || column.notnull !== 0 ||
       column.dflt_value !== null || column.pk !== 0) {
     return { state: "blocked_column_mismatch", authorized: false };
   }
