@@ -848,7 +848,7 @@ async function startMitmServer() {
   server.headersTimeout = MITM_IDLE_TIMEOUT_MS; // time allowed to send headers
   server.keepAliveTimeout = MITM_IDLE_TIMEOUT_MS; // idle keep-alive window
 
-  server.listen(LOCAL_PORT, () => {
+  server.listen(LOCAL_PORT, "127.0.0.1", () => {
     stats.startedAt = new Date().toISOString();
     writeStats();
     console.log(`🚀 MITM ready on :${LOCAL_PORT} → ${ROUTER_URL}`);
