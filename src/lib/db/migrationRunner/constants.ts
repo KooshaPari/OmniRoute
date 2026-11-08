@@ -10,6 +10,12 @@
 
 export const RENAMED_MIGRATION_COMPATIBILITY = [
   {
+    fromVersion: "163",
+    fromName: "model_capabilities",
+    toVersion: "169",
+    toName: "model_capabilities",
+  },
+  {
     fromVersion: "022",
     fromName: "call_logs_summary_storage",
     toVersion: "025",

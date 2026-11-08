@@ -589,6 +589,11 @@ function isSchemaAlreadyApplied(
         db.prepare("SELECT 1 FROM provider_connections WHERE provider = 'freepik' LIMIT 1").get() ==
         null
       );
+    case "163":
+      return (
+        migration.name === "radar_feed_cache_generated_at" &&
+        hasColumn(db, "radar_feed_cache", "generated_at")
+      );
     case "172":
       return (
         hasColumn(db, "provider_nodes", "daily_quota_reset_timezone") &&
@@ -1049,7 +1054,25 @@ export function runMigrations(
   for (const migration of pending) {
     if (isDeferredUnsupportedMigration(db, migration)) continue;
 
-    const applyMigration = db.transaction(() => {
+    let appliedByAnotherRunner = false;
+    const applyMigrationBody = () => {
+      if (
+        (migration.version === "163" && migration.name === "radar_feed_cache_generated_at") ||
+        (migration.version === "169" && migration.name === "model_capabilities")
+      ) {
+        const existing = db
+          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .get(migration.version) as { name: string } | undefined;
+        if (existing) {
+          if (existing.name !== migration.name) {
+            throw new Error(
+              `[Migration] Version ${migration.version} is occupied by an unexpected migration.`
+            );
+          }
+          appliedByAnotherRunner = true;
+          return;
+        }
+      }
       if (atomicPhysicalReplays.has(migration.version)) {
         const removed = db
           .prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?")
@@ -1080,10 +1103,24 @@ export function runMigrations(
         migration.version,
         migration.name
       );
-    });
+    };
+    const applyMigration = migration.version === "169" && migration.name === "model_capabilities"
+      ? () => runImmediateTransaction(db, applyMigrationBody)
+      : db.transaction(applyMigrationBody);
 
     try {
-      applyMigration();
+      try {
+        applyMigration();
+      } catch (err: unknown) {
+        if (
+          !((migration.version === "163" && migration.name === "radar_feed_cache_generated_at") ||
+            (migration.version === "169" && migration.name === "model_capabilities")) ||
+          ((err as { errcode?: number; code?: string })?.errcode !== 517 &&
+            (err as { code?: string })?.code !== "SQLITE_BUSY_SNAPSHOT")
+        ) throw err;
+        applyMigration();
+      }
+      if (appliedByAnotherRunner) continue;
       count += 1;
       console.log(`[Migration] Applied: ${migration.version}_${migration.name}`);
     } catch (err: unknown) {
