@@ -17,6 +17,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { buildRegistryEmbeddingOptions } from "../../src/app/api/settings/qdrant/embedding-models/catalog.ts";
 import {
   makeManagementSessionRequest,
   createManagementSessionHeaders,
@@ -392,14 +393,17 @@ test("GET /api/settings/qdrant/embedding-models — returns models array", async
   assert.strictEqual(res.status, 200);
   const body = await res.json();
   assert.ok(Array.isArray(body.models), "should have models array");
-  assert.strictEqual(body.models.length, 0, "should not list models without a configured provider");
+  assert.deepEqual(
+    body.models.map((model: EmbeddingModelOptionLike) => model.value).sort(),
+    buildRegistryEmbeddingOptions().map((model) => model.value).sort()
+  );
 });
 
-test("GET /api/settings/qdrant/embedding-models — lists only configured providers", async () => {
+test("GET /api/settings/qdrant/embedding-models — includes connection-specific models for configured provider", async () => {
   await localDb.createProviderConnection({
-    provider: "openai",
+    provider: "nvidia",
     authType: "apikey",
-    name: "embedding-test-openai",
+    name: "embedding-test-nvidia",
     apiKey: "sk-test-embedding",
   });
 
@@ -413,10 +417,11 @@ test("GET /api/settings/qdrant/embedding-models — lists only configured provid
   assert.strictEqual(res.status, 200);
   const body = await res.json();
   assert.ok(body.models.length > 0, "should list models for configured provider");
-  assert.ok(body.models.every((model: any) => model.value.startsWith("openai/")));
-  assert.ok(body.models.some((model: any) => model.value === "openai/text-embedding-3-small"));
-  const defaultModel = body.models.find((m: any) => m.value === "openai/text-embedding-3-small");
-  assert.match(defaultModel.label, /1536d/);
+  assert.ok(body.models.some((model: any) => model.value === "nvidia/nv-embedqa-e5-v5"));
+
+  const defaultModel = body.models.find((m: any) => m.value === "nvidia/nv-embedqa-e5-v5");
+  assert.ok(defaultModel);
+  assert.match(defaultModel.label, /1024d/);
 });
 
 test("GET /api/settings/qdrant/embedding-models — includes an active local no-API-key provider (#11949)", async () => {
@@ -447,14 +452,12 @@ test("GET /api/settings/qdrant/embedding-models — includes an active local no-
   );
 });
 
-test("GET /api/settings/qdrant/embedding-models — still excludes a remote provider with no key", async () => {
-  // A remote provider that DOES require a key must stay excluded when the
-  // connection was created/left without one — regression guard for the fix
-  // above so it does not become "drop the filter entirely".
+test("GET /api/settings/qdrant/embedding-models — excludes connection-specific remote models without a key", async () => {
+  // Curated suggestions remain visible; unconfigured discovery adds no models.
   await localDb.createProviderConnection({
-    provider: "openai",
+    provider: "nvidia",
     authType: "apikey",
-    name: "embedding-test-openai-no-key",
+    name: "embedding-test-nvidia-no-key",
   });
 
   const headers = await createManagementSessionHeaders();
@@ -467,8 +470,8 @@ test("GET /api/settings/qdrant/embedding-models — still excludes a remote prov
   assert.strictEqual(res.status, 200);
   const body = await res.json();
   assert.ok(
-    body.models.every((model: EmbeddingModelOptionLike) => !model.value.startsWith("openai/")),
-    "should not list a remote provider's models when its active connection has no API key"
+    body.models.every((model: EmbeddingModelOptionLike) => model.value !== "nvidia/nv-embedqa-e5-v5"),
+    "should not add connection-specific models when the remote connection has no API key"
   );
 });
 
