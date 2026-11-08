@@ -28,9 +28,16 @@ export default defineConfig({
       { text: 'Operations', link: '/operations/' },
       { text: 'Reference', link: '/reference/' },
       { text: 'Demo', link: '/demo/' },
+      { text: 'Compete', link: '/compete/' },
     ],
 
     sidebar: {
+      '/compete/': [
+        {
+          text: 'Compete',
+          items: [{ text: 'Overview', link: '/compete/' }],
+        },
+      ],
       '/getting-started/': [
         {
           text: 'Getting Started',
