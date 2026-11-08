@@ -21,6 +21,17 @@ const MIGRATION_SQL = `
   CREATE INDEX IF NOT EXISTS idx_quota_snapshots_created_at ON quota_snapshots(created_at);
 `;
 
+interface QuotaSnapshotInput {
+  provider: string;
+  connection_id: string;
+  window_key: string;
+  remaining_percentage: number | null;
+  is_exhausted: number;
+  next_reset_at: string | null;
+  window_duration_ms: number | null;
+  raw_data: string | null;
+}
+
 interface StatementLike<TRow = unknown> {
   all: (...params: unknown[]) => TRow[];
   get: (...params: unknown[]) => TRow | undefined;
@@ -33,10 +44,7 @@ interface DbLike {
 
 let lastCleanupAt = 0;
 
-function saveQuotaSnapshotForTest(
-  db: Database.Database,
-  snapshot: Omit<QuotaSnapshotRow, "id" | "createdAt">
-): void {
+function saveQuotaSnapshotForTest(db: Database.Database, snapshot: QuotaSnapshotInput): void {
   const now = new Date().toISOString();
 
   (db as unknown as DbLike)
@@ -225,7 +233,8 @@ describe("quotaSnapshots DB module", () => {
 
       const rows = testDb
         .prepare("SELECT * FROM quota_snapshots ORDER BY id DESC LIMIT 1")
-        .all() as QuotaSnapshotRow[];
+        .all()
+        .map((r) => rowToCamel(r)) as QuotaSnapshotRow[];
 
       expect(rows).toHaveLength(1);
       expect(rows[0].provider).toBe("codex");
@@ -251,7 +260,8 @@ describe("quotaSnapshots DB module", () => {
 
       const rows = testDb
         .prepare("SELECT * FROM quota_snapshots WHERE provider = ?")
-        .all("claude") as QuotaSnapshotRow[];
+        .all("claude")
+        .map((r) => rowToCamel(r)) as QuotaSnapshotRow[];
 
       expect(rows).toHaveLength(1);
       expect(rows[0].remaining_percentage).toBeNull();
@@ -276,7 +286,8 @@ describe("quotaSnapshots DB module", () => {
 
       const rows = testDb
         .prepare("SELECT * FROM quota_snapshots WHERE provider = ?")
-        .all("test-provider") as QuotaSnapshotRow[];
+        .all("test-provider")
+        .map((r) => rowToCamel(r)) as QuotaSnapshotRow[];
 
       expect(rows).toHaveLength(3);
     });
