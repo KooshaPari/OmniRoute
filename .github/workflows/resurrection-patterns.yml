@@ -61,8 +61,8 @@ jobs:
           # tree has to actually contain the files being examined.
           # Checking out main here made every candidate hash miss
           # (statSync ENOENT -> null) and the job could never report a
-          # match. See KI-031. main is still available as the local ref
-          # for buildDeletionSet(), which is what --pr-base diffs against.
+          # match. See KI-031. The checker scans the fetched base ref
+          # for deletions as well as using it for the PR diff.
           # On workflow_dispatch there is no pull_request event; fall back
           # to HEAD so the tree still matches what gets diffed.
           ref: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/merge', github.event.number) || 'HEAD' }}
@@ -92,7 +92,7 @@ jobs:
           set +e
           if [ "${PR_BASE}" = "origin/" ] || [ -z "${PR_BASE#origin/}" ]; then
             echo "::notice::workflow_dispatch (no pull_request context) — diffing HEAD against main."
-            BASE="main"
+            BASE="origin/main"
           else
             BASE="${PR_BASE}"
           fi
