@@ -513,42 +513,23 @@ export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 export { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
 export { extractSessionAffinityKey } from "./sessionAffinityPin";
 // Re-export quota helpers from authQuota.ts (F-01 decomposition).
-// These are also used inside this file (e.g. getProviderCredentials), so they
-// are imported as values, not only re-exported. A bare
-// `export { x } from "./y"` does not introduce a local binding, which left 27
-// TS2304/TS2552/TS18004 errors and a ReferenceError at runtime on the
-// getProviderCredentials path.
-import {
+export {
+  resolveQuotaLimitPolicy,
   evaluateQuotaLimitPolicy,
   isTerminalConnectionStatus,
   isTerminalConnectionStatusForModel,
-  getEarliestFutureDate,
-  getCachedQuotaResetAt,
-  isRetryableModelLockoutReason,
-  compareP2CConnections,
-  asRecord,
-  uniqueWindows,
-  parseFutureDateMs,
-} from "./authQuota.ts";
-export {
-  resolveQuotaLimitPolicy,
   getConnectionQuotaHeadroomPercent,
   getConnectionErrorPenalty,
   getConnectionRecencyPenalty,
   getP2CConnectionScore,
-} from "./authQuota.ts";
-export {
-  evaluateQuotaLimitPolicy,
-  isTerminalConnectionStatus,
-  isTerminalConnectionStatusForModel,
+  compareP2CConnections,
   getEarliestFutureDate,
   getCachedQuotaResetAt,
   isRetryableModelLockoutReason,
-  compareP2CConnections,
   asRecord,
   uniqueWindows,
   parseFutureDateMs,
-};
+} from "./authQuota.ts";
 const PROVIDER_SEARCH_PAIRS: string[][] = [
   ["nvidia", "nvidia_nim"],
   ["kimi-coding", "kimi-coding-apikey"],
@@ -841,20 +822,6 @@ export async function getProviderCredentials(
     ];
     if (providerMaps.some((map) => map[resolvedId]?.noAuth)) {
       if (await isNoAuthProviderBlockedBySettings(resolvedId)) return null;
-      // #13483: Check model-only lockout for the synthetic no-auth connection.
-      // Without this, recordModelLockoutFailure writes a lockout entry that is
-      // never consulted — every subsequent request re-contacts the upstream and
-      // re-records the same lockout, wasting ~2s per request indefinitely.
-      if (requestedModel) {
-        const lockout = getModelLockoutInfo(resolvedId, SYNTHETIC_NOAUTH_CONNECTION_ID, requestedModel);
-        if (lockout && lockout.remainingMs > 0) {
-          log.debug(
-            "AUTH",
-            `Model-only lockout for ${resolvedId}:${requestedModel} — ${lockout.remainingMs}ms remaining, skipping noauth synthetic`
-          );
-          return null;
-        }
-      }
       // #3061: there is only one synthetic "noauth" connection for a no-auth
       // provider. If the caller already tried and excluded it (account-fallback
       // after a persistent upstream error), do NOT hand it back — that would let

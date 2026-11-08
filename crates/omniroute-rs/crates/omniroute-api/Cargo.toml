@@ -36,6 +36,7 @@ chrono = { workspace = true }
 uuid = { workspace = true }
 jsonwebtoken = { workspace = true }
 cookie = { workspace = true }
+oauth2 = { workspace = true }
 url = { workspace = true }
 mime = { workspace = true }
 moka = { workspace = true }

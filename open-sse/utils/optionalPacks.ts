@@ -1,12 +1,11 @@
 /**
- * Optional runtime pack resolution (Stage 7 of the desktop efficiency roadmap,
+ * Optional runtime pack resolution (Stage 7 of the Electron efficiency roadmap,
  * issue #10321).
  *
  * The desktop bundle ships WITHOUT the heavy optional ML/browser dependency
  * closure; users install versioned packs (`omniroute packs install ml-runtime`)
- * into `${DATA_DIR}/packs/<name>/node_modules`. The launcher prepends those
- * directories to the spawned server's NODE_PATH (see
- * `bin/cli/runtime/nativeDeps.mjs`), which is how dynamic
+ * into `${DATA_DIR}/packs/<name>/node_modules`. `electron/main.js` prepends
+ * those directories to the spawned server's NODE_PATH, which is how dynamic
  * imports (`await import("playwright")`, the LLMLingua worker) resolve pack
  * members at runtime.
  *
@@ -53,8 +52,8 @@ export function packNodeModulesDir(name: string, dataDirOverride?: string): stri
 
 /**
  * NODE_PATH entries for every INSTALLED pack (manifest order, deterministic).
- * Consumed by the CLI/standalone launcher — keep the semantics identical
- * (existence check, no throw).
+ * `electron/main.js` consumes this via its own plain-JS mirror — keep the
+ * semantics identical (existence check, no throw).
  */
 export function installedPackNodePaths(dataDirOverride?: string): string[] {
   const entries: string[] = [];

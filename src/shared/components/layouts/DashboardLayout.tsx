@@ -8,6 +8,7 @@ import Breadcrumbs from "../Breadcrumbs";
 import MaintenanceBanner from "../MaintenanceBanner";
 import CommandPalette from "../CommandPalette";
 import NavigationProgress from "../NavigationProgress";
+import { useIsElectron } from "@/shared/hooks/useElectron";
 import {
   installDashboardCsrfFetch,
   prefetchDashboardCsrfToken,
@@ -20,6 +21,7 @@ const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const isElectron = useIsElectron();
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -29,6 +31,21 @@ export default function DashboardLayout({ children }) {
       }
     } catch {}
   }, []);
+
+  const isMacElectron =
+    isElectron &&
+    typeof globalThis.window !== "undefined" &&
+    globalThis.electronAPI?.platform === "darwin";
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    document.body.classList.toggle("electron-macos", isMacElectron);
+
+    return () => {
+      document.body.classList.remove("electron-macos");
+    };
+  }, [isMacElectron]);
 
   useInsertionEffect(() => {
     // basePath rewrite must wrap native fetch first so CSRF's originalFetch
@@ -76,7 +93,11 @@ export default function DashboardLayout({ children }) {
 
       {/* Sidebar - Desktop: keep visibility independent from Tailwind hidden/lg:flex ordering. */}
       <div className="dashboard-sidebar-desktop">
-        <Sidebar collapsed={collapsed} onToggleCollapse={handleToggleCollapse} />
+        <Sidebar
+          collapsed={collapsed}
+          onToggleCollapse={handleToggleCollapse}
+          isMacElectron={isMacElectron}
+        />
       </div>
 
       {/* Sidebar - Mobile: full viewport height with proper scroll containment */}
@@ -85,7 +106,7 @@ export default function DashboardLayout({ children }) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <Sidebar onClose={() => setSidebarOpen(false)} />
+        <Sidebar onClose={() => setSidebarOpen(false)} isMacElectron={isMacElectron} />
       </div>
 
       {/* Main content */}

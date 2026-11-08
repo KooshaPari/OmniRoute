@@ -306,20 +306,7 @@ export function detectTestKind(modelStr: string, customModel: any, nodeApiType?:
     (apiFormat === "responses" ||
       nodeType === "responses" ||
       supportedEndpoints.includes("responses"));
-  // Non-chat generation endpoints (image, music, video) should NOT be dispatched
-  // as chat completions — they incur billable generation costs (#13376).
-  const isNonChatGeneration =
-    !isAudioTranscription &&
-    !isRerank &&
-    !isEmbedding &&
-    !isResponses &&
-    supportedEndpoints.length > 0 &&
-    !supportedEndpoints.includes("chat") &&
-    (supportedEndpoints.includes("images") ||
-      supportedEndpoints.includes("music") ||
-      supportedEndpoints.includes("videos"));
-
-  return { isRerank, isEmbedding, isAudioTranscription, isResponses, isNonChatGeneration };
+  return { isRerank, isEmbedding, isAudioTranscription, isResponses };
 }
 
 /**
@@ -478,21 +465,11 @@ export async function runSingleModelTest(
     findCustomModelMetadata(providerId, fullModelStr),
     findProviderNodeApiType(providerId),
   ]);
-  const { isRerank, isEmbedding, isAudioTranscription, isResponses, isNonChatGeneration } =
-    detectTestKind(fullModelStr, customModel, nodeApiType);
-
-  // #13376: Skip image/music/video generation models — dispatching them as
-  // chat completions incurs real billable generations the operator never asked for.
-  if (isNonChatGeneration) {
-    return {
-      modelId: fullModelStr,
-      status: "error",
-      latencyMs: 0,
-      httpStatus: 400,
-      error:
-        "Skipped: non-chat generation model (images/music/video) — use the corresponding generation endpoint instead",
-    };
-  }
+  const { isRerank, isEmbedding, isAudioTranscription, isResponses } = detectTestKind(
+    fullModelStr,
+    customModel,
+    nodeApiType
+  );
 
   const testBody = isRerank
     ? {

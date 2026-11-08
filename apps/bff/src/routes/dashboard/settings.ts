@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { hostname } from "node:os";
 
 /**
  * Batch 2 BFF routes — Settings ecosystem sub-pages.
@@ -105,7 +104,7 @@ export const settingsRoutes = new Hono()
 
   .get("/system", (c) =>
     c.json({
-      hostname: hostname(),
+      hostname: process.hostname(),
       platform: process.platform,
       memoryUsage: Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100,
       cpuUsage: Math.random().toFixed(2),

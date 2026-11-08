@@ -183,26 +183,6 @@ function resolveCaseModel(evalCase: Record<string, unknown>, target: EvalTargetI
   return caseModel || "gpt-4o";
 }
 
-// #13139 — Eval cases must measure the model, not injected context.
-// Exported so tests can verify the opt-out header contract in isolation
-// (the function is otherwise called only from executeEvalCase, which makes
-// a real HTTP request via postChatCompletion and is not directly testable).
-export function buildEvalCaseHeaders(apiKey: string | null): Headers {
-  const headers = new Headers({
-    "Content-Type": "application/json",
-    // Disable output-style injection (persona system messages) and memory
-    // injection (retrieved context + memory_* tools) so grading is clean.
-    "x-omniroute-compression": "off",
-    "x-omniroute-no-memory": "true",
-  });
-
-  if (apiKey) {
-    headers.set("Authorization", `Bearer ${apiKey}`);
-  }
-
-  return headers;
-}
-
 async function executeEvalCase(
   evalCase: Record<string, unknown>,
   target: EvalTargetInput,
@@ -213,7 +193,13 @@ async function executeEvalCase(
       ? (evalCase.input as Record<string, unknown>)
       : {};
   const model = resolveCaseModel(evalCase, target);
-  const headers = buildEvalCaseHeaders(apiKey);
+  const headers = new Headers({
+    "Content-Type": "application/json",
+  });
+
+  if (apiKey) {
+    headers.set("Authorization", `Bearer ${apiKey}`);
+  }
 
   const request = new Request("http://localhost/api/v1/chat/completions", {
     method: "POST",

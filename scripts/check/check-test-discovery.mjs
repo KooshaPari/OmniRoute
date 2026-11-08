@@ -39,7 +39,7 @@ const BASELINE_PATH = path.resolve(
 const UPDATE = process.argv.includes("--update");
 
 // Raízes varridas em busca de arquivos de teste.
-const WALK_ROOTS = ["tests", "src", "open-sse", "bin"];
+const WALK_ROOTS = ["tests", "src", "open-sse", "electron", "bin"];
 const WALK_EXCLUDE = new Set(["node_modules", ".next", "dist", "coverage", ".git"]);
 const TEST_FILE_RE = /\.(test|spec)\.(ts|tsx|mjs)$/;
 
@@ -57,7 +57,7 @@ export const COLLECTORS = [
   // abaixo). Subdir novo: adicione aqui E nos scripts (o drift-check + o gate de
   // órfãos forçam a manutenção em sincronia).
   {
-    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,fleet,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts",
+    glob: "tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts",
     sources: ["package.json"],
   },
   // Node native runner — tests/unit/dashboard/** roda numa invocação separada com o hook

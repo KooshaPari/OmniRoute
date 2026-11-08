@@ -73,10 +73,7 @@ export function WebSearchExampleCard({ providerId }: Props) {
   const [result, setResult] = useState<{ data: unknown; latencyMs: number } | undefined>();
   const [error, setError] = useState<string | null>(null);
 
-  // #13245 — The /api/v1/search route selects providers from body.provider,
-  // not the x-connection-id header.  Send both: the body field drives the
-  // backend; the header is kept for call-log attribution.
-  const buildBody = () => ({ query, max_results: numResults, provider: providerId });
+  const buildBody = () => ({ query, max_results: numResults });
 
   const curlSnippet = buildCurl({
     endpoint:

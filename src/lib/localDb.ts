@@ -385,6 +385,7 @@ export {
 } from "./db/syncTokens";
 
 export {
+  getUpstreamProxyConfigs,
   getUpstreamProxyConfig,
   upsertUpstreamProxyConfig,
   updateUpstreamProxyConfig,
@@ -431,6 +432,20 @@ export {
 export type { ReasoningCacheEntry, ReasoningCacheStats } from "./db/reasoningCache";
 
 export {
+  // 1proxy Integration (#1788)
+  listOneproxyProxies,
+  getOneproxyStats,
+  upsertOneproxyProxy,
+  getOneproxyProxyById,
+  deleteOneproxyProxy,
+  clearAllOneproxyProxies,
+  getOneproxyProxyForRotation,
+  markOneproxyProxyFailed,
+} from "./db/oneproxy";
+
+export type { OneproxyProxyRecord, OneproxyStats } from "./db/oneproxy";
+
+export {
   getSessionAccountAffinity,
   upsertSessionAccountAffinity,
   touchSessionAccountAffinity,
@@ -438,6 +453,7 @@ export {
   evictSessionAccountAffinityForConnection,
   cleanupStaleSessionAccountAffinities,
   startSessionAccountAffinityCleanup,
+  stopSessionAccountAffinityCleanupForTests,
 } from "./db/sessionAccountAffinity";
 
 export {
@@ -470,6 +486,7 @@ export type {
   UserLevelRow,
   BadgeDefinition,
   UserBadge,
+  XpAuditLogEntry,
   TokenLedgerEntry,
   InviteToken,
   CommunityServer,
@@ -492,12 +509,15 @@ export type { HandoffPayload } from "./db/contextHandoffs";
 export {
   getAllMiddlewareHooks,
   getEnabledMiddlewareHooks,
+  getComboMiddlewareHooks,
   getMiddlewareHook,
   createMiddlewareHook,
   updateMiddlewareHook,
   deleteMiddlewareHook,
   recordHookExecution,
+  insertHookLog,
   getHookLogs,
+  cleanupHookLogs,
 } from "./db/middleware";
 
 export {
@@ -510,6 +530,7 @@ export {
   getGroupPermissions,
   addGroupPermission,
   removeGroupPermission,
+  clearGroupPermissions,
   getGroupMembers,
   getKeyGroupsForApiKey,
   addKeyToGroup,
@@ -597,7 +618,7 @@ export {
   listAllocationsForApiKey,
 } from "./db/quotaPools";
 // Quota per-(key, model) caps — Group B Fase 3 #7
-export { getModelCap, setModelCap } from "./db/quotaModelCaps";
+export { getModelCap, listModelCaps, setModelCap, deleteModelCap } from "./db/quotaModelCaps";
 
 export {
   // Quota Groups (B2)
