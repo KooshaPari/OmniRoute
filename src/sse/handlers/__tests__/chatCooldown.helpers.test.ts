@@ -11,6 +11,7 @@ import {
   createCooldownPropagationState,
   describeCooldownWait,
   formatWaitSeconds,
+  recordAccountCooldown,
 } from "../chatCooldown";
 
 describe("chatCooldown.createCooldownPropagationState", () => {
@@ -115,9 +116,7 @@ describe("chatCooldown.describeCooldownWait", () => {
   });
 
   it('returns "no-retry" even with very long waitMs', () => {
-    expect(
-      describeCooldownWait({ shouldRetry: false, waitMs: 86_400_000 }),
-    ).toBe("no-retry");
+    expect(describeCooldownWait({ shouldRetry: false, waitMs: 86_400_000 })).toBe("no-retry");
   });
 
   it('returns "0s" when shouldRetry=true but waitMs=0', () => {
@@ -139,14 +138,14 @@ describe("chatCooldown.describeCooldownWait", () => {
   it('returns "Ns" for waits under 60s', () => {
     expect(describeCooldownWait({ shouldRetry: true, waitMs: 5_000 })).toBe("5s");
     expect(describeCooldownWait({ shouldRetry: true, waitMs: 30_000 })).toBe("30s");
-    expect(describeCooldownWait({ shouldRetry: true, waitMs: 59_999 })).toBe("60s");
+    expect(describeCooldownWait({ shouldRetry: true, waitMs: 59_999 })).toBe("1m");
   });
 
   it('returns "Nm" for waits in [60s, 3600s)', () => {
     expect(describeCooldownWait({ shouldRetry: true, waitMs: 60_000 })).toBe("1m");
     expect(describeCooldownWait({ shouldRetry: true, waitMs: 90_000 })).toBe("2m");
     expect(describeCooldownWait({ shouldRetry: true, waitMs: 600_000 })).toBe("10m");
-    expect(describeCooldownWait({ shouldRetry: true, waitMs: 3_599_999 })).toBe("60m");
+    expect(describeCooldownWait({ shouldRetry: true, waitMs: 3_599_999 })).toBe("1h");
   });
 
   it('returns "Nh" for exact-hour waits', () => {
@@ -159,7 +158,7 @@ describe("chatCooldown.describeCooldownWait", () => {
     expect(describeCooldownWait({ shouldRetry: true, waitMs: 5_400_000 })).toBe("1h30m");
   });
 
-  it("returns \"1d\" or similar for very long waits (24h+)", () => {
+  it('returns "1d" or similar for very long waits (24h+)', () => {
     expect(describeCooldownWait({ shouldRetry: true, waitMs: 86_400_000 })).toBe("24h");
   });
 
@@ -172,7 +171,7 @@ describe("chatCooldown.describeCooldownWait", () => {
         shouldRetry: true,
         waitMs: 5000,
         retryAfterHuman: "backoff 5s",
-      }),
+      })
     ).toBe("5s");
   });
 
