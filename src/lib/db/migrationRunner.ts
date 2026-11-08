@@ -1055,7 +1055,7 @@ export function runMigrations(
     if (isDeferredUnsupportedMigration(db, migration)) continue;
 
     let appliedByAnotherRunner = false;
-    const applyMigration = db.transaction(() => {
+    const applyMigrationBody = () => {
       if (
         (migration.version === "163" && migration.name === "radar_feed_cache_generated_at") ||
         (migration.version === "169" && migration.name === "model_capabilities")
@@ -1103,7 +1103,10 @@ export function runMigrations(
         migration.version,
         migration.name
       );
-    });
+    };
+    const applyMigration = migration.version === "169" && migration.name === "model_capabilities"
+      ? () => runImmediateTransaction(db, applyMigrationBody)
+      : db.transaction(applyMigrationBody);
 
     try {
       try {
