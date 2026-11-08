@@ -4,7 +4,7 @@
 
 # OmniRoute
 
-A self-hosted AI gateway that routes requests across 358 LLM providers through a single OpenAI-compatible endpoint. Smart fallback, cost optimization, token compression, and a built-in dashboard.
+A self-hosted AI gateway that routes requests across 359 LLM providers through a single OpenAI-compatible endpoint. Smart fallback, cost optimization, token compression, and a built-in dashboard.
 
 **One endpoint. Every provider. Automatic failover.**
 

@@ -67,10 +67,57 @@ jobs:
           persist-credentials: false
       - name: Enable corepack (pnpm via packageManager pin)
         run: corepack enable
+      # This job checks out the resolved release branch, which may still be on npm.
+      # The checked-out tree may be on npm (a release branch that predates the pnpm
+      # migration), so setup-node's cache input must follow the tree instead of
+      # being hardcoded: setup-node aborts with "Dependencies lock file is not
+      # found" when asked to cache a lockfile that is absent.
+      #
+      # The installer is read from the composite action in the working tree
+      # (.github/actions/npm-ci-retry/action.yml) because that file decides which
+      # installer actually runs and which lockfile it hashes for its cache key.
+      # Lockfiles alone are ambiguous — a tree can carry both pnpm-lock.yaml and
+      # package-lock.json — so the action, not the lockfile set, is the signal.
+      #
+      # This is an inline step rather than `uses: ./.github/actions/...` on
+      # purpose: a local action reference resolves against the working tree, which
+      # after `git checkout "$TARGET"` is the release branch, where this file does
+      # not exist.
+      - name: Detect package manager for the checked-out tree
+        id: pm
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTION=".github/actions/npm-ci-retry/action.yml"
+          if [ ! -f "$ACTION" ]; then
+            echo "::error::Cannot detect the package manager: $ACTION is missing from the checked-out tree."
+            exit 1
+          fi
+          if grep -qE 'name: pnpm install with retry' "$ACTION"; then
+            installer="pnpm"
+            lockfile="pnpm-lock.yaml"
+          elif grep -qE 'name: npm ci with retry' "$ACTION"; then
+            installer="npm"
+            lockfile="package-lock.json"
+          else
+            echo "::error::Unrecognised package manager in $ACTION — refusing to guess."
+            exit 1
+          fi
+          if [ ! -f "$lockfile" ]; then
+            echo "::error::$installer is the installer for this tree, but $lockfile is missing from the checkout."
+            echo "::error::setup-node cannot cache a missing lockfile — the job would fail before installing."
+            exit 1
+          fi
+          {
+            echo "installer=$installer"
+            echo "lockfile=$lockfile"
+            echo "cache=$installer"
+          } >> "$GITHUB_OUTPUT"
+          echo "Detected package manager: $installer (lockfile: $lockfile)"
       - uses: actions/setup-node@v7
         with:
           node-version: "26"
-          cache: pnpm
+          cache: ${{ steps.pm.outputs.cache }}
       - uses: ./.github/actions/npm-ci-retry
       # #8090 — this is the ONLY Node 26 build in the whole CI matrix (ci.yml pins
       # CI_NODE_VERSION=24). It failed every nightly with the runner-reclaimed
@@ -109,10 +156,57 @@ jobs:
           persist-credentials: false
       - name: Enable corepack (pnpm via packageManager pin)
         run: corepack enable
+      # This job checks out the resolved release branch, which may still be on npm.
+      # The checked-out tree may be on npm (a release branch that predates the pnpm
+      # migration), so setup-node's cache input must follow the tree instead of
+      # being hardcoded: setup-node aborts with "Dependencies lock file is not
+      # found" when asked to cache a lockfile that is absent.
+      #
+      # The installer is read from the composite action in the working tree
+      # (.github/actions/npm-ci-retry/action.yml) because that file decides which
+      # installer actually runs and which lockfile it hashes for its cache key.
+      # Lockfiles alone are ambiguous — a tree can carry both pnpm-lock.yaml and
+      # package-lock.json — so the action, not the lockfile set, is the signal.
+      #
+      # This is an inline step rather than `uses: ./.github/actions/...` on
+      # purpose: a local action reference resolves against the working tree, which
+      # after `git checkout "$TARGET"` is the release branch, where this file does
+      # not exist.
+      - name: Detect package manager for the checked-out tree
+        id: pm
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTION=".github/actions/npm-ci-retry/action.yml"
+          if [ ! -f "$ACTION" ]; then
+            echo "::error::Cannot detect the package manager: $ACTION is missing from the checked-out tree."
+            exit 1
+          fi
+          if grep -qE 'name: pnpm install with retry' "$ACTION"; then
+            installer="pnpm"
+            lockfile="pnpm-lock.yaml"
+          elif grep -qE 'name: npm ci with retry' "$ACTION"; then
+            installer="npm"
+            lockfile="package-lock.json"
+          else
+            echo "::error::Unrecognised package manager in $ACTION — refusing to guess."
+            exit 1
+          fi
+          if [ ! -f "$lockfile" ]; then
+            echo "::error::$installer is the installer for this tree, but $lockfile is missing from the checkout."
+            echo "::error::setup-node cannot cache a missing lockfile — the job would fail before installing."
+            exit 1
+          fi
+          {
+            echo "installer=$installer"
+            echo "lockfile=$lockfile"
+            echo "cache=$installer"
+          } >> "$GITHUB_OUTPUT"
+          echo "Detected package manager: $installer (lockfile: $lockfile)"
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
-          cache: pnpm
+          cache: ${{ steps.pm.outputs.cache }}
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run test:unit:ci:shard

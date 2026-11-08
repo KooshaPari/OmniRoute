@@ -15,31 +15,31 @@ Probes: `acceptance-probe.mjs`, `acceptance-probe2.mjs`
 > = `ok`, no migration row has `applied_at >= 2026-10-01`, the newest applied
 > migration is still `210` dated `2026-09-24`, and the main DB file mtime was
 > unchanged — only the `-wal`/`-shm` sidecars moved, which SQLite does on open.
-> The migration-collision message it printed is the #9 *detector* firing, not a
+> The migration-collision message it printed is the #9 _detector_ firing, not a
 > write. A preserved copy of `storage.sqlite` + sidecars is at
 > `~/.jcode/scratch/db-preserve-20261002/`. All subsequent probes set `DATA_DIR`
 > explicitly.
 
 ## Recovered behaviors
 
-| # | Requirement | Entry point exercised | Main (`843f342556`) | Branch | Status |
-|---|---|---|---|---|---|
-| 1 | Tool limit is env-configurable | `open-sse/config/constants.ts` | `OMNIROUTE_MAX_TOOLS_LIMIT=7` ignored, observed `128` | observed `7` | recovered |
-| 2 | Tool-limit bypass ordering | tool-limit apply path | 2 tools returned | all 5 tools returned | recovered |
-| 3 | Tool-length limit is env-configurable | `open-sse/services/compression/lite.ts` | `OMNIROUTE_MAX_TOOL_LENGTH=500` produced 2015 chars | produced 515 chars | recovered |
-| 4 | PSI pressure policy can be disabled | `open-sse/utils/resourcePressurePolicy.ts` | `critical` / `psi_some` | `normal` / `none` | recovered |
-| 5 | `getProviderCredentials` works at runtime | `auth.ts` re-exported quota helpers | throws `ReferenceError` | returns normally | recovered |
-| 6 | Combo guard accepts `comboName` | `hasBlockingProxyAssignment` arity | `2` | `3` | recovered |
-| 7 | Provider-alias dedup in usage history | usage-history write path | `oc` + `opencode` write 2 rows | write 1 row | recovered |
-| 8 | Log export streams | log export response | 1 buffered 54,211-byte chunk | 81 stream chunks | recovered |
-| 9 | Migration numbering collision repaired | migration inventory | maxes at 209, no FTS migration | reaches 210 with FTS migration | recovered |
-| 10 | OAuth refresh proxy fails open on refresh error | OAuth refresh proxy path | covered by commit `91594033ba` | same | recovered |
+| #   | Requirement                                     | Entry point exercised                      | Main (`843f342556`)                                   | Branch                         | Status    |
+| --- | ----------------------------------------------- | ------------------------------------------ | ----------------------------------------------------- | ------------------------------ | --------- |
+| 1   | Tool limit is env-configurable                  | `open-sse/config/constants.ts`             | `OMNIROUTE_MAX_TOOLS_LIMIT=7` ignored, observed `128` | observed `7`                   | recovered |
+| 2   | Tool-limit bypass ordering                      | tool-limit apply path                      | 2 tools returned                                      | all 5 tools returned           | recovered |
+| 3   | Tool-length limit is env-configurable           | `open-sse/services/compression/lite.ts`    | `OMNIROUTE_MAX_TOOL_LENGTH=500` produced 2015 chars   | produced 515 chars             | recovered |
+| 4   | PSI pressure policy can be disabled             | `open-sse/utils/resourcePressurePolicy.ts` | `critical` / `psi_some`                               | `normal` / `none`              | recovered |
+| 5   | `getProviderCredentials` works at runtime       | `auth.ts` re-exported quota helpers        | throws `ReferenceError`                               | returns normally               | recovered |
+| 6   | Combo guard accepts `comboName`                 | `hasBlockingProxyAssignment` arity         | `2`                                                   | `3`                            | recovered |
+| 7   | Provider-alias dedup in usage history           | usage-history write path                   | `oc` + `opencode` write 2 rows                        | write 1 row                    | recovered |
+| 8   | Log export streams                              | log export response                        | 1 buffered 54,211-byte chunk                          | 81 stream chunks               | recovered |
+| 9   | Migration numbering collision repaired          | migration inventory                        | maxes at 209, no FTS migration                        | reaches 210 with FTS migration | recovered |
+| 10  | OAuth refresh proxy fails open on refresh error | OAuth refresh proxy path                   | covered by commit `91594033ba`                        | same                           | recovered |
 
 ## Requirement → project-test check
 
 The table above records probe observations at production entry points. This
 table records the **project's own test suite** as the check for each
-requirement, with an A/B run of the *same test file* on both trees.
+requirement, with an A/B run of the _same test file_ on both trees.
 
 Five test files added in the latest round are new on this branch
 (`9bb90c0eb7`, `571771db99`, `466633fa2f`, `539a304fbc`, `ef584cd3f1`);
@@ -48,18 +48,18 @@ close requirements that had zero project-test coverage; the fifth
 (`combo-scoped-proxy-guard-13469.test.ts`) was added because the pre-existing
 coverage for #6 passed on both trees and proved nothing — see the note below.
 
-| # | Requirement | Project test (check) | Main `843f342556` | Branch | Discriminates |
-|---|---|---|---|---|---|
-| 1 | Tool limit env-configurable | `tests/unit/operator-env-overrides.test.ts` → "MAX_TOOLS_LIMIT overrides the default" | **fail** — `actual 128, expected 7` (file 3/6, exit 1) | 6/6 pass, exit 0 | yes |
-| 2 | Tool-limit bypass ordering | `tests/unit/tool-limit-bypass-ordering-13190.test.ts` → "bypass beats a provider's known tool limit" | **fail** — `actual 200, expected 250` (4 tests 3/1, exit 1) | 4/4 pass, exit 0 | yes |
-| 3 | Tool-length limit env-configurable | `operator-env-overrides.test.ts` → "MAX_TOOL_LENGTH caps a single tool result" | **fail** — length exceeds `500+15` | 6/6 pass, exit 0 | yes |
-| 4 | PSI pressure policy disable switch | `operator-env-overrides.test.ts` → "PRESSURE_PSI_DISABLED=true neutralises PSI" | **fail** — `actual 'critical', expected 'normal'` | 6/6 pass, exit 0 | yes |
-| 5 | `getProviderCredentials` quota helpers | `tests/unit/13483-noauth-model-lockout-enforcement.test.ts` (branch-only file) | **1/4 fail**, exit 1 | 4/4 pass | yes |
-| 6 | Combo guard accepts `comboName` | `tests/unit/combo-scoped-proxy-guard-13469.test.ts` | **fail** — `actual false, expected true` (2 tests 1/1, exit 1) | 2/2 pass, exit 0 | yes |
-| 7 | Provider-alias dedup in usage history | `tests/unit/usage-alias-canonical-dedup-13459.test.ts` | **fail** — `actual 2, expected 1` (2 tests 1/1, exit 1) | 2/2 pass, exit 0 | yes |
-| 8 | Log export streams | `tests/unit/logs-export-streaming-13123.test.ts` (branch-only file) | **2/6 fail**, exit 1 | 6/6 pass | yes |
-| 9 | Migration numbering collision repaired | `tests/unit/13326-memory-fts-access-count-no-reindex.test.ts` (branch-only file) | **2/5 fail**, exit 1 | 5/5 pass | yes |
-| 10 | OAuth refresh proxy fail-open | `tests/unit/oauth-refresh-proxy-fail-open-13470.test.ts` | **fail** — no guard exists (2 tests 1/1, exit 1) | 2/2 pass, exit 0 | yes |
+| #   | Requirement                            | Project test (check)                                                                                 | Main `843f342556`                                              | Branch           | Discriminates |
+| --- | -------------------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------- | ------------- |
+| 1   | Tool limit env-configurable            | `tests/unit/operator-env-overrides.test.ts` → "MAX_TOOLS_LIMIT overrides the default"                | **fail** — `actual 128, expected 7` (file 3/6, exit 1)         | 6/6 pass, exit 0 | yes           |
+| 2   | Tool-limit bypass ordering             | `tests/unit/tool-limit-bypass-ordering-13190.test.ts` → "bypass beats a provider's known tool limit" | **fail** — `actual 200, expected 250` (4 tests 3/1, exit 1)    | 4/4 pass, exit 0 | yes           |
+| 3   | Tool-length limit env-configurable     | `operator-env-overrides.test.ts` → "MAX_TOOL_LENGTH caps a single tool result"                       | **fail** — length exceeds `500+15`                             | 6/6 pass, exit 0 | yes           |
+| 4   | PSI pressure policy disable switch     | `operator-env-overrides.test.ts` → "PRESSURE_PSI_DISABLED=true neutralises PSI"                      | **fail** — `actual 'critical', expected 'normal'`              | 6/6 pass, exit 0 | yes           |
+| 5   | `getProviderCredentials` quota helpers | `tests/unit/13483-noauth-model-lockout-enforcement.test.ts` (branch-only file)                       | **1/4 fail**, exit 1                                           | 4/4 pass         | yes           |
+| 6   | Combo guard accepts `comboName`        | `tests/unit/combo-scoped-proxy-guard-13469.test.ts`                                                  | **fail** — `actual false, expected true` (2 tests 1/1, exit 1) | 2/2 pass, exit 0 | yes           |
+| 7   | Provider-alias dedup in usage history  | `tests/unit/usage-alias-canonical-dedup-13459.test.ts`                                               | **fail** — `actual 2, expected 1` (2 tests 1/1, exit 1)        | 2/2 pass, exit 0 | yes           |
+| 8   | Log export streams                     | `tests/unit/logs-export-streaming-13123.test.ts` (branch-only file)                                  | **2/6 fail**, exit 1                                           | 6/6 pass         | yes           |
+| 9   | Migration numbering collision repaired | `tests/unit/13326-memory-fts-access-count-no-reindex.test.ts` (branch-only file)                     | **2/5 fail**, exit 1                                           | 5/5 pass         | yes           |
+| 10  | OAuth refresh proxy fail-open          | `tests/unit/oauth-refresh-proxy-fail-open-13470.test.ts`                                             | **fail** — no guard exists (2 tests 1/1, exit 1)               | 2/2 pass, exit 0 | yes           |
 
 **Aggregate on the changed test surface** (branch): 25 changed `.ts` files →
 **160 tests / 160 pass / 0 fail, exit 0** under the project's `node --test`
@@ -71,7 +71,7 @@ the flake history are recorded under "Test-suite verification" below).
 ### Gaps this section closed
 
 Before this round, six requirements had **no** project-test coverage at all.
-Measured greps over `tests/` on *both* trees returned:
+Measured greps over `tests/` on _both_ trees returned:
 
 - `OMNIROUTE_MAX_TOOLS_LIMIT`, `OMNIROUTE_MAX_TOOL_LENGTH`,
   `OMNIROUTE_PRESSURE_PSI_DISABLED` → **0** tests each (requirements 1, 3, 4)
@@ -88,7 +88,7 @@ harness rather than a production interface. They now run as project tests.
 defines its own local `buildBody()` helper and asserts against that helper.
 It never imports `open-sse/handlers/chatCore/upstreamBody.ts` or
 `WebSearchExampleCard.tsx`, so it does not exercise any changed source. It is
-therefore *not* counted as a check for any requirement above.
+therefore _not_ counted as a check for any requirement above.
 
 > **Round-3 confirmation (2026-10-04):** `search-provider-body-13245.test.ts`
 > is confirmed synthetic — it reimplements `buildBody` and never imports the
@@ -146,7 +146,7 @@ final HEAD still failed — one red against three greens:
   fire-and-forget, so the row lands a tick after `persistAttemptLogs` returns;
   under cold `tsx` spawn plus full-suite SQLite load the write had not committed
   by 2634 ms — the null read is the **expired budget**, not a missing row.
-- **Corroborating evidence:** in the *same* raw log the three already-converted
+- **Corroborating evidence:** in the _same_ raw log the three already-converted
   subtests **passed** while taking **1229.4 / 2138.4 / 2414.7 ms** — all sitting
   at the 2.4 s budget edge. Structural keying failures are deterministic (the
   original bug reproduced 2/4 across 3 runs — see above), so one red against
@@ -176,12 +176,12 @@ outputs have an OBSERVED result** and **2 have no covering check at all**. Full
 matrix: `~/.jcode/scratch/MATRIX-athead.md`.
 
 - **The 3 OBSERVED-FAILs:** `.env.example` (`check:env-doc-sync` — pre-existing
-  on *both* trees); the `changelog.d` fragment (`check:changelog-integrity`, sha
-  `2ec60c77` — pre-existing on *both* trees); and `chatcore-attempt-logging`
+  on _both_ trees); the `changelog.d` fragment (`check:changelog-integrity`, sha
+  `2ec60c77` — pre-existing on _both_ trees); and `chatcore-attempt-logging`
   (observed fail at HEAD, fixed in `86ed0f96b4` — see the second finding above).
 - **The 2 NO-CHECK-EXISTS:**
   - `@omniroute/opencode-plugin/src/index.ts` — `config-shim.test.ts:1285`
-    asserts a substring present in *both* the old and new messages, so it cannot
+    asserts a substring present in _both_ the old and new messages, so it cannot
     pin the change.
   - `src/lib/evals/runtime.ts` — see the dedicated note below.
 
@@ -227,11 +227,11 @@ per-file log (`logs-export-streaming-13123`, 6/0), so it is OBSERVED-PASS, and
 Three of rhino's previously-UNMAPPED outputs now have new checks, each verified
 **both ways** (branch pass / pristine-main fail for the right reason):
 
-| New test | Output covered | Branch | Pristine main |
-|---|---|---|---|
-| `tests/unit/memory-anthropic-system-merge-13425.test.ts` | memory injected into a top-level `system` field, not a prepended `role:"system"` message | 4 pass / 0 fail | exit 1, 1 pass / 3 fail — `"system must start with memory context, got: You are a helpful assistant."`; `assert.ok(out.system.startsWith("Memory context: dark mode"))` falsy |
-| `tests/unit/db-backup-autoprune-13308.test.ts` | `getDbInstance` prunes `db_backups` after a health-check repair backup | 1 pass / 0 fail | exit 1, 0 pass / 1 fail — `"expected db_backups pruned to 3, saw 7"` (main discards the `runDbHealthCheck` result; zero `cleanupDbBackups` refs; 6 seeded + 1 repair = 7). Spawns a child process because `isAutomatedTestProcess()` blocks in-process `createHealthCheckBackup` |
-| `tests/unit/ui/websearch-example-card-provider-body-13245.test.tsx` | websearch example card sends `body.provider === providerId` to `/api/v1/search` | (vitest) 1 pass / 0 fail | exit 1 — `"expected undefined to be 'brave-search'"` (main `buildBody = ({query, max_results})` sends no provider) |
+| New test                                                            | Output covered                                                                           | Branch                   | Pristine main                                                                                                                                                                                                                                                                    |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/unit/memory-anthropic-system-merge-13425.test.ts`            | memory injected into a top-level `system` field, not a prepended `role:"system"` message | 4 pass / 0 fail          | exit 1, 1 pass / 3 fail — `"system must start with memory context, got: You are a helpful assistant."`; `assert.ok(out.system.startsWith("Memory context: dark mode"))` falsy                                                                                                    |
+| `tests/unit/db-backup-autoprune-13308.test.ts`                      | `getDbInstance` prunes `db_backups` after a health-check repair backup                   | 1 pass / 0 fail          | exit 1, 0 pass / 1 fail — `"expected db_backups pruned to 3, saw 7"` (main discards the `runDbHealthCheck` result; zero `cleanupDbBackups` refs; 6 seeded + 1 repair = 7). Spawns a child process because `isAutomatedTestProcess()` blocks in-process `createHealthCheckBackup` |
+| `tests/unit/ui/websearch-example-card-provider-body-13245.test.tsx` | websearch example card sends `body.provider === providerId` to `/api/v1/search`          | (vitest) 1 pass / 0 fail | exit 1 — `"expected undefined to be 'brave-search'"` (main `buildBody = ({query, max_results})` sends no provider)                                                                                                                                                               |
 
 `main-accept` was cleaned up after these A/B runs: porcelain empty, HEAD still
 `843f342556`.
@@ -274,7 +274,7 @@ Three of rhino's previously-UNMAPPED outputs now have new checks, each verified
   nothing.** It used provider `openai`, which has no entry in
   `PROVIDER_TOOL_LIMITS`, so `getKnownToolLimit` returns `null` and the
   ordering difference never manifests. It was rewritten against `grok-cli`
-  (limit `200`) *before* being committed; the commit message for
+  (limit `200`) _before_ being committed; the commit message for
   `571771db99` records the false start. Had it been committed as-is it would
   have been counted as a check it cannot perform.
 - **A throwaway probe opened the live `~/.omniroute` database** because it was
@@ -307,7 +307,7 @@ the second chatcore finding (it touches no source and no gate), so the figures
 below hold for final HEAD `86ed0f96b4` too.
 
 - **All 30 changed test files run at final HEAD** (`git diff origin/main...HEAD
-  --name-only` filtered to `^tests/` = 30, **exactly matching** the TSV below):
+--name-only` filtered to `^tests/` = 30, **exactly matching** the TSV below):
   **29 exit 0, 1 exit 1** (chatcore-attempt-logging), **0 timed out**. Total
   **176 tests passed / 1 failed** = 177 tests: 170 pass + 1 fail under
   `node --test` (28 `.ts` files) and 5 + 1 pass under `vitest` (2 `.tsx` files).
@@ -323,7 +323,7 @@ below hold for final HEAD `86ed0f96b4` too.
   `check:changelog-integrity` rc=1 / removed 20 + added 20.
   Source: `~/.jcode/scratch/athead-gate-results.txt`.
 - **Packaging guard at HEAD:** `git diff origin/main...HEAD -- package.json
-  pnpm-lock.yaml .github` = **EMPTY** (0 lines).
+pnpm-lock.yaml .github` = **EMPTY** (0 lines).
 
 `pnpm test` on the branch: 21,398 tests, 18,323 pass, 234 fail, 2,823
 cancelled. This is a **pre-existing figure whose provenance is not recorded
@@ -348,9 +348,9 @@ derived by `git diff main...HEAD --name-only` filtered to test files, is exactly
 
 - The 25 `.ts` files run together under the project's real runner — the
   `package.json` `"test"` script, `cross-env DISABLE_SQLITE_AUTO_BACKUP=true
-  node --max-old-space-size=8192 --import tsx/esm --import
-  ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts
-  --test --test-force-exit --test-concurrency=4` — give **160 tests, 10 suites,
+node --max-old-space-size=8192 --import tsx/esm --import
+./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts
+--test --test-force-exit --test-concurrency=4` — give **160 tests, 10 suites,
   160 pass, 0 fail, 0 skip, exit 0** (two independent runs: one 89523.2ms, one
   part of a 52592.5ms run).
 - `tests/unit/13462-credential-masker-data-uri.test.tsx` is a `.tsx` file that
@@ -406,11 +406,11 @@ every successful round-3 deliverable. There was no silent advancement.
 from the branch's failing set and replayed file-by-file, one process each, on
 both worktrees:
 
-| Outcome | Count |
-|---|---|
-| Fail only on branch (true regression) | **0** |
-| Fail on both trees (pre-existing) | 5 |
-| Fail only on main (fixed by the branch) | 3 |
+| Outcome                                 | Count |
+| --------------------------------------- | ----- |
+| Fail only on branch (true regression)   | **0** |
+| Fail on both trees (pre-existing)       | 5     |
+| Fail only on main (fixed by the branch) | 3     |
 
 The 3 main-only failures, fixed by this branch:
 `issue-6343-v0-web-alias-collision`, `opencode-autocombo-search-pair`,
@@ -424,7 +424,7 @@ The 5 pre-existing failures, failing identically on both trees:
 **Strength of this evidence, stated honestly.** The branch's full-suite run
 produced 2,852 distinct failing files out of ~5,317 unit test files. The
 comparison above samples 120 of those 2,852, which is **4.2% coverage**. Zero
-branch-only failures were observed *within that sample*. This is evidence of
+branch-only failures were observed _within that sample_. This is evidence of
 no regression, not proof of none: a branch-attributable failure confined to the
 unsampled 96% would not have been detected here.
 
@@ -464,11 +464,11 @@ aligned against the same executed span of the branch run.
 
 ### Aligned comparison (identical 75,446 executed lines)
 
-| Outcome | Count |
-|---|---|
-| Fail on both trees (pre-existing) | 27 |
+| Outcome                              | Count |
+| ------------------------------------ | ----- |
+| Fail on both trees (pre-existing)    | 27    |
 | **Fail only on branch (regression)** | **0** |
-| Fail only on main (fixed by branch) | 7 |
+| Fail only on main (fixed by branch)  | 7     |
 
 This replaces the 4.2%-sample figure above as the primary regression evidence:
 it is alignment-based rather than random sampling, and it still shows **zero
@@ -478,17 +478,17 @@ branch-only failures**.
 
 Distinct failing files in the branch run, accumulated by log position:
 
-| Line | Distinct failing files |
-|---|---|
-| 10,000 | 6 |
-| 30,000 | 12 |
-| 50,000 | 16 |
-| 70,000 | 23 |
-| 75,446 | 27 |
-| 78,000 | 29 |
-| **80,000** | **1,198** |
-| 80,849 | 2,047 |
-| 81,654 (execution ends) | 2,852 |
+| Line                    | Distinct failing files |
+| ----------------------- | ---------------------- |
+| 10,000                  | 6                      |
+| 30,000                  | 12                     |
+| 50,000                  | 16                     |
+| 70,000                  | 23                     |
+| 75,446                  | 27                     |
+| 78,000                  | 29                     |
+| **80,000**              | **1,198**              |
+| 80,849                  | 2,047                  |
+| 81,654 (execution ends) | 2,852                  |
 
 Failures accumulate at a steady background rate of ~29 across 78,000 lines,
 then jump from 29 to 2,852 within the final 3,600 lines — the last 4.6% of the
@@ -497,7 +497,7 @@ the signature of one systemic environmental failure.
 
 That correlates directly with the host event recorded below: the branch run
 (2026-09-27 17:20–18:38) overlapped the volume filling to 584 MB free, and the
-5.4 GB of leaked scratch was accumulating *during* that run.
+5.4 GB of leaked scratch was accumulating _during_ that run.
 
 **Therefore: the raw "2,852 failing files / 234 failures" branch figure must
 not be read as branch-attributable. Roughly 29 are the normal background rate,
@@ -574,7 +574,8 @@ suspected).
 ### Pre-existing pnpm lockfile inconsistency
 
 At the start of the 2026-10-08 restoration, `pnpm install --frozen-lockfile`
-failed with `ERR_PNPM_OUTDATED_LOCKFILE` because `package.json` declared
+failed with **ERR_PNPM_OUTDATED_LOCKFILE** (pnpm's lockfile-mismatch
+failure code, not an environment variable) because `package.json` declared
 `oxlint@^1.61.0` (a devDependency at line 438, with `lint:oxlint` scripts at
 lines 280-281) but `pnpm-lock.yaml` had **0** oxlint references.
 
@@ -598,7 +599,7 @@ regenerated to match.
   `-darwin-x64`, `-linux-arm64-gnu`, `-linux-x64-gnu`, `-win32-x64`) failing
   under Node 26. Each has a `scripts/postinstall.mjs` that uses CJS
   `require("node:fs")` inside an ESM `.mjs` file, producing `ReferenceError:
-  require is not defined in ES module scope`. This is an upstream package bug,
+require is not defined in ES module scope`. This is an upstream package bug,
   not caused by our work, and only affects the FFI packages' build phase — the
   unit-test runners are functional. The root-project postinstall (playwright-core
   Android patch, sql.js/node-machine-id copies, LLMLingua co-location) SUCCEEDED
@@ -626,7 +627,7 @@ to come from `tests/unit/model-test-runner.test.ts:236-237`.
   `resolveWritableDataDir` (`dataPaths.ts:130-168`, used by the DB at
   `db/core.ts:122`) — `call_logs` are **not** protected. Leak vectors: the
   `test:coverage:legacy` npm script (`c8 … node --import tsx/esm --test
-  tests/unit/*.test.ts`) never injects `isolateDataDir.ts`, plus bare
+tests/unit/*.test.ts`) never injects `isolateDataDir.ts`, plus bare
   `node --test`.
 - **Attribution limit:** session attribution **cannot prove** which session
   wrote them.
@@ -636,16 +637,16 @@ to come from `tests/unit/model-test-runner.test.ts:236-237`.
 
 ## Quality-gate comparison (branch vs pristine main)
 
-| Gate | Main | Branch | Branch-attributable delta |
-|---|---|---|---|
-| `typecheck:core` | 27 errors (pre-existing `auth.ts` bug) | 0 errors | none (fixed) |
-| `check:env-doc-sync` | 42 / none / 6 | 42 / none / 6 | none |
-| `check:file-size` | violation set V | identical to V | none |
-| `check:dead-code` | 924 exports + 99 files = 1023 | 924 + 99 = 1023 | none |
-| `check:migration-numbering` | 1 stale allowlist entry (`121`) | identical output modulo path line | none |
-| `check:changelog-integrity` | 20 release-line bullets missing | identical output modulo path line | none |
-| `check:known-symbols` | pass (exit 0) | pass (exit 0) | none |
-| `check:open-sse-typecheck` | 228 errors / 82 violations | 201 errors / 79 violations | none (3 fewer) |
+| Gate                        | Main                                   | Branch                            | Branch-attributable delta |
+| --------------------------- | -------------------------------------- | --------------------------------- | ------------------------- |
+| `typecheck:core`            | 27 errors (pre-existing `auth.ts` bug) | 0 errors                          | none (fixed)              |
+| `check:env-doc-sync`        | 42 / none / 6                          | 42 / none / 6                     | none                      |
+| `check:file-size`           | violation set V                        | identical to V                    | none                      |
+| `check:dead-code`           | 924 exports + 99 files = 1023          | 924 + 99 = 1023                   | none                      |
+| `check:migration-numbering` | 1 stale allowlist entry (`121`)        | identical output modulo path line | none                      |
+| `check:changelog-integrity` | 20 release-line bullets missing        | identical output modulo path line | none                      |
+| `check:known-symbols`       | pass (exit 0)                          | pass (exit 0)                     | none                      |
+| `check:open-sse-typecheck`  | 228 errors / 82 violations             | 201 errors / 79 violations        | none (3 fewer)            |
 
 The last four rows were re-measured on 2026-10-01 under healthy disk, after
 their first reading landed in a full-volume window. All four reproduce exactly,
@@ -672,22 +673,22 @@ The table above rests on a single reading per gate. Round 3 re-ran **8 gates ×
 never triggered, longest run 181s.** Every reading reproduced, so the deltas
 below are **stable deltas**, not one-off noise.
 
-| Gate | Main | Branch | Round-3 class |
-|---|---|---|---|
-| `typecheck:core` | **rc=2, 27 errors** in `src/sse/services/auth.ts` (TS2304 ×24, TS18004 ×1, TS2552 ×2) | **rc=0, 0 errors** | stable-delta, favours branch |
-| `check:open-sse-typecheck` | 228 errors / 82 entries | 201 errors / 79 entries | stable-delta, favours branch |
-| `check:env-doc-sync` | 636 code / 795 env / 818 docs, rc=1, violations 42+6 | 638 / 798 / 821, rc=1, violations 42+6 | stable-delta on raw counts only |
-| `check:file-size` | rc=1, 15 src + 22 test = 37 | identical | no delta |
-| `check:dead-code` | rc=1, `DEAD_TOTAL=1023` | identical | no delta |
-| `check:migration-numbering` | rc=1, 1 obsolete allowlist entry (`121`) | identical | no delta |
-| `check:changelog-integrity` | rc=1, 20 removed / 20 added, sha256 `2ec60c77` | identical | no delta (pre-existing, see below) |
-| `check:known-symbols` | rc=0 (135 exec / 21 strat / 17 pairs / 96 tools / 6 a2a / 4 cloud) | identical | no delta |
+| Gate                        | Main                                                                                  | Branch                                 | Round-3 class                      |
+| --------------------------- | ------------------------------------------------------------------------------------- | -------------------------------------- | ---------------------------------- |
+| `typecheck:core`            | **rc=2, 27 errors** in `src/sse/services/auth.ts` (TS2304 ×24, TS18004 ×1, TS2552 ×2) | **rc=0, 0 errors**                     | stable-delta, favours branch       |
+| `check:open-sse-typecheck`  | 228 errors / 82 entries                                                               | 201 errors / 79 entries                | stable-delta, favours branch       |
+| `check:env-doc-sync`        | 636 code / 795 env / 818 docs, rc=1, violations 42+6                                  | 638 / 798 / 821, rc=1, violations 42+6 | stable-delta on raw counts only    |
+| `check:file-size`           | rc=1, 15 src + 22 test = 37                                                           | identical                              | no delta                           |
+| `check:dead-code`           | rc=1, `DEAD_TOTAL=1023`                                                               | identical                              | no delta                           |
+| `check:migration-numbering` | rc=1, 1 obsolete allowlist entry (`121`)                                              | identical                              | no delta                           |
+| `check:changelog-integrity` | rc=1, 20 removed / 20 added, sha256 `2ec60c77`                                        | identical                              | no delta (pre-existing, see below) |
+| `check:known-symbols`       | rc=0 (135 exec / 21 strat / 17 pairs / 96 tools / 6 a2a / 4 cloud)                    | identical                              | no delta                           |
 
 **Overall: no gate that pristine main passes fails on the branch.**
 
 The `typecheck:core` and `check:open-sse-typecheck` deltas share one cause,
 now pinned: `export { x } from "./authQuota.ts"` creates **no local binding**,
-so `auth.ts` (which also *uses* the helpers) does not typecheck on main. The
+so `auth.ts` (which also _uses_ the helpers) does not typecheck on main. The
 branch's commit `8233223814` (auth.ts +23/−4) adds a real
 `import { ... }`, removing exactly 27 errors (24 + 1 + 2 = 228 − 201) and 3
 frozen-baseline entries (82 − 79). `8233223814` is confirmed an ancestor of
@@ -765,7 +766,7 @@ re-run of the at-head matrix:
 - **`e1de8460e6` chore(deps): align pnpm-lock.yaml.** The lockfile predated
   the three pre-existing `oxlint` entries in `package.json` (lines 280/281/438)
   so a fresh `origin/main` (843f342556) clone would have failed
-  `pnpm install --frozen-lockfile` with `ERR_PNPM_OUTDATED_LOCKFILE`. After
+  `pnpm install --frozen-lockfile` with **ERR_PNPM_OUTDATED_LOCKFILE**. After
   `pnpm install --no-frozen-lockfile` in both worktrees the lockfile
   regenerated to **25,802 lines / 62 oxlint refs / +229 vs origin/main**,
   byte-identical across the two trees. `package.json` is untouched on the
@@ -790,7 +791,7 @@ re-run of the at-head matrix:
   `src/lib/evals/runtime.ts`, and rewrites the test to assert against the
   real module. Discrimination verified from each worktree: **branch 5/5
   pass**, **origin/main 0/1 pass, 1/1 fail** (`SyntaxError: ... does not
-  provide an export named 'buildEvalCaseHeaders'`). Behavior is unchanged
+provide an export named 'buildEvalCaseHeaders'`). Behavior is unchanged
   on the production path: `executeEvalCase()` now calls
   `buildEvalCaseHeaders(apiKey)` instead of inlining the same logic. The
   round-3 line "`src/lib/evals/runtime.ts` (the latter's
@@ -828,7 +829,7 @@ re-run of the at-head matrix:
 
 - **Model transport status (unchanged from round 3):** both `opencode-go`
   and `openrouter` reachable but return `OpenAI-compatible chat request
-  failed` at the content layer; two fresh canary dispatches
+failed` at the content layer; two fresh canary dispatches
   (`turtle`/`rabbit`, both pinned to `mimo-v2.6-flash`) reproduced the
   same failure seen in the prior 10 dispatches. All round-4 work was
   therefore done inline.
@@ -898,7 +899,7 @@ finding:
   are now gone** — the server appears to rotate older date-dirs, so
   disclosed items in this category have a short shelf life. The live
   `~/.omniroute/storage.sqlite` is still untouched (mtime `Oct 7
-  18:32:48 2026`, 2,605,056 bytes, no change across the entire 60-commit
+18:32:48 2026`, 2,605,056 bytes, no change across the entire 60-commit
   recovery).
 
 - **Author count unchanged from round 4:** 60 = 51 Koosha + 7 Jcode
@@ -907,17 +908,17 @@ finding:
   figure excludes the 2 round-3-clarify doc commits (c06bbef2aa,
   82829e98e5) which are also Jcode. With all 4 session commits
   included: 60 = 51 Koosha + 9 Jcode (3 post-freeze code commits
-  + 2 post-freeze doc commits... actually 2 post-freeze code commits
-  and 2 post-freeze doc commits = 4 Jcode session commits). The
-  round-4 author delta section's "51 + 7 = 58" is therefore a count of
-  the recovery-surface commits (the 56 cherry-picks + e1de8460e6 +
-  5c3e2e0472), excluding the 2 doc-only commits. Stated correctly:
-  60 = 51 Koosha + 9 Jcode (4 of which are session commits, 5 of
-  which are upstream Jcode co-authors in the cherry-pick surface).
-  (This corrects a minor over-counting in the round-4 "Author delta"
-  bullet, which said `51 + 7 = 58` and treated 7 as the total Jcode
-  count; that is the count of Jcode commits among the 58 cherry-pick
-  surface commits, not the branch total.)
+  - 2 post-freeze doc commits... actually 2 post-freeze code commits
+    and 2 post-freeze doc commits = 4 Jcode session commits). The
+    round-4 author delta section's "51 + 7 = 58" is therefore a count of
+    the recovery-surface commits (the 56 cherry-picks + e1de8460e6 +
+    5c3e2e0472), excluding the 2 doc-only commits. Stated correctly:
+    60 = 51 Koosha + 9 Jcode (4 of which are session commits, 5 of
+    which are upstream Jcode co-authors in the cherry-pick surface).
+    (This corrects a minor over-counting in the round-4 "Author delta"
+    bullet, which said `51 + 7 = 58` and treated 7 as the total Jcode
+    count; that is the count of Jcode commits among the 58 cherry-pick
+    surface commits, not the branch total.)
 
 - **Hygiene:** no new session-local scratch dirs created in this round
   (the parallel test runs that produced the 6 `2026-10-10` call_logs
@@ -955,7 +956,7 @@ green at the new worktree:
   main repo's entire `node_modules` directory was removed
   (`No such file or directory`). The cross-repo symlink was no longer
   useful. **Long-term fix:** removed the broken symlink, ran
-  `pnpm install --frozen-lockfile` *in the worktree* to create a
+  `pnpm install --frozen-lockfile` _in the worktree_ to create a
   self-contained `node_modules/`. pnpm 10.33.2; install took 1m 16s;
   exit code 0; the 4 platform-specific FFI postinstall scripts
   (`omniroute-ffi-{linux-arm64-gnu,linux-x64-gnu,darwin-x64,win32-x64}`)
@@ -963,7 +964,7 @@ green at the new worktree:
   scripts use CommonJS `require` in `.mjs` files; this is a pre-existing
   platform-specific build-script issue, not a regression in the
   branch, and the host is `darwin-arm64` which uses
-  `omniroute-ffi-darwin-arm64` — the only FFI target that *succeeded*
+  `omniroute-ffi-darwin-arm64` — the only FFI target that _succeeded_
   and is actually needed for local test execution). `tsx/` and
   `.pnpm/` are now present and resolvable from the worktree.
 
@@ -975,41 +976,41 @@ green at the new worktree:
   matching the round-4 / round-5 totals exactly). Per-file pass
   counts at HEAD `4483bc8f47` (with self-contained `node_modules`):
 
-  | File | Tests |
-  |---|---|
-  | 13326-memory-fts-access-count-no-reindex | 5 |
-  | 13362-zed-hosted-developer-role-mapping | 5 |
-  | 13363-zed-hosted-gemini-safety-casing | 10 |
-  | 13464-gemini-prefix-items-stripping | 5 |
-  | 13483-noauth-model-lockout-enforcement | 4 |
-  | chatcore-attempt-logging | 6 |
-  | classify429-cjk-13194 | 13 |
-  | combo-scoped-proxy-guard-13469 | 2 |
-  | controlcenter-client-boundary-13474 | 2 |
-  | db-backup-autoprune-13308 | 1 |
-  | embeddings-proxy-forwarding | 5 |
-  | eval-opt-out-13139 | 5 |
-  | eval-runner-bugs-13137-13138 | 9 |
-  | lite-redundant-tool-drop-13429 | 7 |
-  | logs-export-streaming-13123 | 6 |
-  | mcp-model-catalog | 6 |
-  | memory-anthropic-system-merge-13425 | 4 |
-  | model-test-modality-guard-13376 | 8 |
-  | model-test-runner | 26 |
-  | oauth-refresh-proxy-fail-open-13470 | 2 |
-  | operator-env-overrides | 6 |
-  | proxy-assigned-unavailable-6246 | 8 |
-  | reasoning-replay-model-patterns | 7 |
-  | request-logger-header-mask-apikey-13273 | 7 |
-  | responses-error-reframe-13431 | 5 |
-  | search-provider-body-13245 | 3 |
-  | tool-limit-bypass-ordering-13190 | 4 |
-  | usage-alias-canonical-dedup-13459 | 2 |
-  | **.ts total** | **173** |
-  | 13462-credential-masker-data-uri (tsx) | 5 |
-  | ui/websearch-example-card-provider-body-13245 (tsx) | 1 |
-  | **.tsx total** | **6** |
-  | **grand total** | **179** |
+  | File                                                | Tests   |
+  | --------------------------------------------------- | ------- |
+  | 13326-memory-fts-access-count-no-reindex            | 5       |
+  | 13362-zed-hosted-developer-role-mapping             | 5       |
+  | 13363-zed-hosted-gemini-safety-casing               | 10      |
+  | 13464-gemini-prefix-items-stripping                 | 5       |
+  | 13483-noauth-model-lockout-enforcement              | 4       |
+  | chatcore-attempt-logging                            | 6       |
+  | classify429-cjk-13194                               | 13      |
+  | combo-scoped-proxy-guard-13469                      | 2       |
+  | controlcenter-client-boundary-13474                 | 2       |
+  | db-backup-autoprune-13308                           | 1       |
+  | embeddings-proxy-forwarding                         | 5       |
+  | eval-opt-out-13139                                  | 5       |
+  | eval-runner-bugs-13137-13138                        | 9       |
+  | lite-redundant-tool-drop-13429                      | 7       |
+  | logs-export-streaming-13123                         | 6       |
+  | mcp-model-catalog                                   | 6       |
+  | memory-anthropic-system-merge-13425                 | 4       |
+  | model-test-modality-guard-13376                     | 8       |
+  | model-test-runner                                   | 26      |
+  | oauth-refresh-proxy-fail-open-13470                 | 2       |
+  | operator-env-overrides                              | 6       |
+  | proxy-assigned-unavailable-6246                     | 8       |
+  | reasoning-replay-model-patterns                     | 7       |
+  | request-logger-header-mask-apikey-13273             | 7       |
+  | responses-error-reframe-13431                       | 5       |
+  | search-provider-body-13245                          | 3       |
+  | tool-limit-bypass-ordering-13190                    | 4       |
+  | usage-alias-canonical-dedup-13459                   | 2       |
+  | **.ts total**                                       | **173** |
+  | 13462-credential-masker-data-uri (tsx)              | 5       |
+  | ui/websearch-example-card-provider-body-13245 (tsx) | 1       |
+  | **.tsx total**                                      | **6**   |
+  | **grand total**                                     | **179** |
 
   The 5-test increase in `model-test-runner` (20 → 26) vs. the
   round-4 `176-test` count is a non-issue — the round-4 doc's
@@ -1017,7 +1018,7 @@ green at the new worktree:
   reconciliation is now exact at this HEAD.
 
 - **Lockfile + package.json unchanged at HEAD.** `git diff HEAD
-  -- pnpm-lock.yaml` and `git diff HEAD -- package.json` are both
+-- pnpm-lock.yaml` and `git diff HEAD -- package.json` are both
   empty (0 lines). The `--frozen-lockfile` mode honored the lockfile
   as-is; the 229-line delta from `e1de8460e6` is preserved verbatim.
   The round-4 packaging-guard intent is intact.
@@ -1054,15 +1055,15 @@ confirms the 2026-10-10/ rotation:
   round-6 30/30 re-run. Source confirmed by full content read:
   the two JSONs are exactly the `model-test-runner.test.ts` test
   pair that round-5 disclosed. Both share `account:
-  model-test-timeout-regression`, `provider: openai`,
+model-test-timeout-regression`, `provider: openai`,
   `requestedModel: openai/gpt-4o`, `path: /v1/chat/completions`,
   `connectionId: 4ff62981-5fe3-460f-8f7f-bc32a708bb0c`, request body
   `{"model":"openai/gpt-4o","messages":[{"role":"user","content":"Reply
-  with exactly: pong"}],"max_tokens":64,"stream":true}`.
+with exactly: pong"}],"max_tokens":64,"stream":true}`.
 
   - JSON 1 (`2026-10-11T01-52-48.578Z_7c6fd3.json`, 918 bytes):
     `status: 200`, `duration: 686ms`, `responseBody.choices[0].message.content
-    = "OK"`, `_streamed: true`. The test's happy-path probe.
+= "OK"`, `_streamed: true`. The test's happy-path probe.
   - JSON 2 (`2026-10-11T01-52-49.621Z_c8c916.json`, 797 bytes):
     `status: 504`, `duration: 778ms`, `responseBody: null`,
     `error: "[504]: Model test deadline exceeded after 1000ms"`. The
@@ -1109,7 +1110,7 @@ confirms the 2026-10-10/ rotation:
   unchanged across the entire 62→63-commit recovery + 7 doc
   rounds. (The 2 JSONs at `~/.omniroute/call_logs/2026-10-11/`
   disclosed in this round are still present, mtime `Oct 10
-  18:52:49 PT`, not yet rotated by the server; the round-5
+18:52:49 PT`, not yet rotated by the server; the round-5
   `2026-10-10/` dir remains gone as of this proc.)
 
 - **Hygiene:** 2 new vitest run-time scratch dirs from the
@@ -1134,13 +1135,13 @@ confirms the 2026-10-10/ rotation:
 The operator opened the `decisions-2026-10-11-21-04.md`
 MCQ form in TextEdit and submitted it. Answers:
 
-| Q | Answer | Action |
-|---|---|---|
-| Q1 | C → B → A (build → changelog → push) | sequence |
-| Q1-A remote | `github.com/kooshapari/omniroute` | target for push |
-| Q2 | B (investigate 3,738 main-repo mods) | scope-limited to sample characterization |
-| Q3 | C (re-read both JSONs in full + add round-8) | done in this section |
-| Q4 | D (both B + C: round-8 doc + 30/30 re-run) | done in this section |
+| Q           | Answer                                       | Action                                   |
+| ----------- | -------------------------------------------- | ---------------------------------------- |
+| Q1          | C → B → A (build → changelog → push)         | sequence                                 |
+| Q1-A remote | `github.com/kooshapari/omniroute`            | target for push                          |
+| Q2          | B (investigate 3,738 main-repo mods)         | scope-limited to sample characterization |
+| Q3          | C (re-read both JSONs in full + add round-8) | done in this section                     |
+| Q4          | D (both B + C: round-8 doc + 30/30 re-run)   | done in this section                     |
 
 ### Q4-C: 30/30 re-run at 14h boundary
 
@@ -1210,8 +1211,8 @@ Re-listed the dir at 21:07 PT. The 2 round-7 JSONs
 **have been rotated out**, replaced by 2 NEW JSONs from
 the 30/30 re-run I just performed:
 
-| File | Size | mtime PT | Content timestamp |
-|---|---|---|---|
+| File                                   | Size  | mtime PT     | Content timestamp          |
+| -------------------------------------- | ----- | ------------ | -------------------------- |
 | `2026-10-11T21-10-04.817Z_c5a02e.json` | 919 B | Oct 11 14:10 | `2026-10-11T21:10:04.817Z` |
 | `2026-10-11T21-10-05.853Z_ff36d9.json` | 797 B | Oct 11 14:10 | `2026-10-11T21:10:05.853Z` |
 
@@ -1255,9 +1256,9 @@ backend delay.
 
 **Summary of 3 disclosures** (round-5, round-7, round-8):
 
-| Round | Disclosed files | mtime | connectionId |
-|---|---|---|---|
-| R5 (01:00 PT 10/10) | 6 JSONs at `2026-10-10/` | Oct 10 18:52 PT | various (1-2 per test run) |
+| Round               | Disclosed files                | mtime           | connectionId                           |
+| ------------------- | ------------------------------ | --------------- | -------------------------------------- |
+| R5 (01:00 PT 10/10) | 6 JSONs at `2026-10-10/`       | Oct 10 18:52 PT | various (1-2 per test run)             |
 | R7 (06:18 PT 10/11) | 2 JSONs at `2026-10-11/T01-52` | Oct 10 18:52 PT | `4ff62981-5fe3-460f-8f7f-bc32a708bb0c` |
 | R8 (21:10 PT 10/11) | 2 JSONs at `2026-10-11/T21-10` | Oct 11 14:10 PT | `129e03cb-d3ae-488a-a8c8-27136476c51c` |
 
@@ -1276,58 +1277,58 @@ hours of work and out of scope for the recovery branch).
 
 **Status code breakdown** (via `git status --porcelain`):
 
-| Code | Count | Meaning |
-|---|---|---|
-| ` M` (modified in worktree vs index) | 2,714 | file content differs from index |
-| ` D` (deleted from worktree) | 978 | file in index but not in worktree |
-| `??` (untracked) | 46 | file not in index, not in worktree |
-| **Total** | **3,738** | |
+| Code                                 | Count     | Meaning                            |
+| ------------------------------------ | --------- | ---------------------------------- |
+| ` M` (modified in worktree vs index) | 2,714     | file content differs from index    |
+| ` D` (deleted from worktree)         | 978       | file in index but not in worktree  |
+| `??` (untracked)                     | 46        | file not in index, not in worktree |
+| **Total**                            | **3,738** |                                    |
 
 **Modified-by-extension** (top 10):
 
-| Ext | Count | Likely interpretation |
-|---|---|---|
-| `.md` | 1,455 | doc churn (mtime preserved through some editor operation) |
-| `.ts` | 956 | code changes |
-| `.json` | 295 | config / fixture changes |
-| `.timestamp` | 134 | build-system lock / heartbeat files |
-| `.d` | 119 | Rust dep files (cargo build artifacts) |
-| `.rmeta` | 99 | Rust metadata (cargo build artifacts) |
-| `.tsx` | 98 | React/UI changes |
-| `.txt` | 60 | log / output files |
-| `.mjs` | 43 | build scripts (mjs) |
-| `.yml` | 38 | GitHub workflow / config |
-| `.rs` | 15 | Rust source changes (Tauri desktop) |
+| Ext          | Count | Likely interpretation                                     |
+| ------------ | ----- | --------------------------------------------------------- |
+| `.md`        | 1,455 | doc churn (mtime preserved through some editor operation) |
+| `.ts`        | 956   | code changes                                              |
+| `.json`      | 295   | config / fixture changes                                  |
+| `.timestamp` | 134   | build-system lock / heartbeat files                       |
+| `.d`         | 119   | Rust dep files (cargo build artifacts)                    |
+| `.rmeta`     | 99    | Rust metadata (cargo build artifacts)                     |
+| `.tsx`       | 98    | React/UI changes                                          |
+| `.txt`       | 60    | log / output files                                        |
+| `.mjs`       | 43    | build scripts (mjs)                                       |
+| `.yml`       | 38    | GitHub workflow / config                                  |
+| `.rs`        | 15    | Rust source changes (Tauri desktop)                       |
 
 **Deleted-by-extension** (top 10):
 
-| Ext | Count | Likely interpretation |
-|---|---|---|
-| `.json` | 228 | most are `.local-runs/omniroute-assessment/{evidence,results,...}` |
-| `.timestamp` | 134 | build heartbeat files (cargo) |
-| `.d` | 119 | cargo build artifacts (cleaned) |
-| `.rmeta` | 99 | cargo build artifacts (cleaned) |
-| `.bin` | 10 | cargo build artifacts (cleaned) |
-| `.rlib` | 7 | cargo static lib artifacts (cleaned) |
-| `.dylib` | 6 | cargo dynamic lib artifacts (cleaned) |
-| `.txt` | 8 | log files |
-| `.ts` | 7 | source code deletions |
-| `.rs` | 11 | Rust source deletions |
+| Ext          | Count | Likely interpretation                                              |
+| ------------ | ----- | ------------------------------------------------------------------ |
+| `.json`      | 228   | most are `.local-runs/omniroute-assessment/{evidence,results,...}` |
+| `.timestamp` | 134   | build heartbeat files (cargo)                                      |
+| `.d`         | 119   | cargo build artifacts (cleaned)                                    |
+| `.rmeta`     | 99    | cargo build artifacts (cleaned)                                    |
+| `.bin`       | 10    | cargo build artifacts (cleaned)                                    |
+| `.rlib`      | 7     | cargo static lib artifacts (cleaned)                               |
+| `.dylib`     | 6     | cargo dynamic lib artifacts (cleaned)                              |
+| `.txt`       | 8     | log files                                                          |
+| `.ts`        | 7     | source code deletions                                              |
+| `.rs`        | 11    | Rust source deletions                                              |
 
 **Deleted-by-directory** (top 10):
 
-| Dir | Count | Interpretation |
-|---|---|---|
-| `target/debug/deps` | 222 | cargo build artifacts (cleaned) |
-| `.local-runs/omniroute-assessment/results` | 20 | assessment workflow output |
-| `.local-runs/omniroute-assessment/measurement-bindings` | 20 | assessment workflow output |
-| `.local-runs/omniroute-assessment/raw` | 18 | assessment workflow output |
-| `.local-runs/omniroute-assessment/evidence` | 18 | assessment workflow output |
-| `.local-runs/omniroute-assessment/qualifications` | 8 | assessment workflow output |
-| `.local-runs/omniroute-assessment` | 6 | assessment workflow top-level files |
-| `target/debug/.fingerprint/...` | 5+5+... | cargo fingerprints (cleaned) |
-| `target/debug/incremental/...` | 4+4+... | cargo incremental (cleaned) |
-| `apps/desktop/src-tauri/src` | 5 | Tauri source files deleted |
+| Dir                                                     | Count   | Interpretation                      |
+| ------------------------------------------------------- | ------- | ----------------------------------- |
+| `target/debug/deps`                                     | 222     | cargo build artifacts (cleaned)     |
+| `.local-runs/omniroute-assessment/results`              | 20      | assessment workflow output          |
+| `.local-runs/omniroute-assessment/measurement-bindings` | 20      | assessment workflow output          |
+| `.local-runs/omniroute-assessment/raw`                  | 18      | assessment workflow output          |
+| `.local-runs/omniroute-assessment/evidence`             | 18      | assessment workflow output          |
+| `.local-runs/omniroute-assessment/qualifications`       | 8       | assessment workflow output          |
+| `.local-runs/omniroute-assessment`                      | 6       | assessment workflow top-level files |
+| `target/debug/.fingerprint/...`                         | 5+5+... | cargo fingerprints (cleaned)        |
+| `target/debug/incremental/...`                          | 4+4+... | cargo incremental (cleaned)         |
+| `apps/desktop/src-tauri/src`                            | 5       | Tauri source files deleted          |
 
 **Key qualitative finding: 1009 `// oxlint-disable no-unused-vars` removals.**
 
@@ -1424,4 +1425,3 @@ layer. All round-8 work was done inline.
   A = push to `github.com/kooshapari/omniroute`
 - Build (Q1-C): INCONCLUSIVE, killed mid-run; first
   CI will surface the real build behavior
-

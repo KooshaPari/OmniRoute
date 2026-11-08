@@ -1,13 +1,11 @@
-// oxlint-disable no-explicit-any, no-unused-vars
-// ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc limitation, not a code defect):
-// This test constructs or exercises a real better-sqlite3-backed SQLite database.
-// better-sqlite3 is a native addon; production and CI load it normally, but some
-// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires
-// ("GLIBC_2.29 not found"), so the native module fails to dlopen and any test that
-// reaches better-sqlite3 directly (or asserts stdout that the load-failure warning
-// would pollute) fails HERE while passing in CI. This is a known environment
-// limitation, not a defect in the code under test: the OmniRoute runtime itself
-// cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
+// oxlint-disable no-explicit-any, no-unused-vars ENVIRONMENT NOTE (sandbox better-sqlite3 / glibc
+// limitation, not a code defect): This test constructs or exercises a real better-sqlite3-backed
+// SQLite database. better-sqlite3 is a native addon; production and CI load it normally, but some
+// sandboxes/dev boxes ship a system glibc older than the prebuilt binary requires ("GLIBC_2.29 not
+// found"), so the native module fails to dlopen and any test that reaches better-sqlite3 directly
+// (or asserts stdout that the load-failure warning would pollute) fails HERE while passing in CI.
+// This is a known environment limitation, not a defect in the code under test: the OmniRoute
+// runtime itself cascades to node:sqlite/sql.js when better-sqlite3 is unavailable. See
 // tests/unit/_helpers/betterSqlite3Availability.ts for a guard helper.
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -144,11 +142,11 @@ function withNonTestEnvironment(fn) {
   delete process.env.VITEST;
   delete process.env.DISABLE_SQLITE_AUTO_BACKUP;
   process.argv = process.argv.filter((arg) => !arg.includes("test"));
-  // #7359 made isAutomatedTestProcess() also scan process.execArgv (so `node --test`
-  // is caught even when NODE_ENV/VITEST/argv are clean). This harness runs under
-  // `node --test`, so execArgv always carries `--test` — strip it here too, or the
-  // "non-test" simulation is a no-op and the mass-migration safety checks under
-  // test never actually exercise their real-environment code path.
+  // #7359 made isAutomatedTestProcess() also scan process.execArgv (so `node --test` is caught even
+  // when NODE_ENV/VITEST/argv are clean). This harness runs under `node --test`, so execArgv always
+  // carries `--test` — strip it here too, or the "non-test" simulation is a no-op and the
+  // mass-migration safety checks under test never actually exercise their real-environment code
+  // path.
   process.execArgv = process.execArgv.filter((arg) => !arg.includes("test"));
 
   try {
@@ -183,8 +181,8 @@ test("migration infrastructure avoids cwd-based repo tracing fallbacks", () => {
 
   // dataPaths must never use process.cwd() — it resolves via import.meta.url
   assert.doesNotMatch(dataPathsSource, /process\.cwd\(\)/);
-  // migrationRunner uses import.meta.url as the primary strategy (process.cwd is
-  // only a last-resort fallback for Windows/CI-built bundles with leaked paths)
+  // migrationRunner uses import.meta.url as the primary strategy (process.cwd is only a last-resort
+  // fallback for Windows/CI-built bundles with leaked paths)
   assert.match(runnerSource, /fileURLToPath\(import\.meta\.url\)/);
 });
 
@@ -827,8 +825,8 @@ test(
           .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
           .get("034") as { version: string; name: string } | undefined;
 
-        // After reconciliation, 028 should be free (or have create_files_and_batches)
-        // and 034 should have compression_settings
+        // After reconciliation, 028 should be free (or have create_files_and_batches) and 034 should have
+        // compression_settings
         assert.equal(row034?.name, "compression_settings");
 
         // No CRITICAL renumbering warning for version 028
@@ -1370,16 +1368,15 @@ test(
   }
 );
 
-// ── #3416: OMNIROUTE_MAX_PENDING_MIGRATIONS env override ─────────────────────
-// The mass-migration safety threshold must be overridable at runtime so a user
-// restoring a backup can raise (or lower) the limit without code changes. The
-// resolver reads the env var at CALL TIME inside runMigrations(), so these tests
-// set/delete the env around the call and assert the abort message reflects the
-// resolved threshold.
+// ── #3416: OMNIROUTE_MAX_PENDING_MIGRATIONS env override ───────────────────── The mass-migration
+// safety threshold must be overridable at runtime so a user restoring a backup can raise (or
+// lower) the limit without code changes. The resolver reads the env var at CALL TIME inside
+// runMigrations(), so these tests set/delete the env around the call and assert the abort message
+// reflects the resolved threshold.
 
-// Build an "existing DB" with only the migrations table + one applied row and no
-// physical-schema sentinel tables, so inferPhysicalSchemaBaseline() returns null
-// and the abort decision depends purely on the resolved threshold.
+// Build an "existing DB" with only the migrations table + one applied row and no physical-schema
+// sentinel tables, so inferPhysicalSchemaBaseline() returns null and the abort decision depends
+// purely on the resolved threshold.
 function seedExistingDbWithoutPhysicalBaseline(db) {
   db.exec(`
     CREATE TABLE _omniroute_migrations (
@@ -1436,9 +1433,9 @@ test(
       seedExistingDbWithoutPhysicalBaseline(db);
       process.env.OMNIROUTE_MAX_PENDING_MIGRATIONS = "500";
 
-      // 1 applied (001) + 60 plain pending files at versions 100..159 (chosen to
-      // avoid the special-cased migration versions 032/041/042). All 60 exceed the
-      // default 50 threshold but stay well under the raised 500 limit, so they apply.
+      // 1 applied (001) + 60 plain pending files at versions 100..159 (chosen to avoid the special-cased
+      // migration versions 032/041/042). All 60 exceed the default 50 threshold but stay well under the
+      // raised 500 limit, so they apply.
       const pendingFiles = {};
       for (let v = 100; v < 160; v++) {
         pendingFiles[`${v}_raise_threshold_${v}.sql`] =

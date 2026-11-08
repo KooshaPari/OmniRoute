@@ -65,10 +65,7 @@ test("OpenAI -> Gemini helper converts text, images and files into Gemini parts"
     { type: "file_url", file_url: { url: "not-a-data-url" } },
   ]);
 
-  // Remote http(s) URLs are no longer dropped — they pass through as Gemini
-  // `fileData: { fileUri }` so the model fetches the asset itself (#4373, ported
-  // from upstream PR #344). A non-data, non-http string ("not-a-data-url") is
-  // still dropped (no inlineData/fileData part).
+  // Remote http(s) URLs are no longer dropped — they pass through as Gemini `fileData: { fileUri }` so the model fetches the asset itself (#4373, ported from upstream PR #344). A non-data, non-http string ("not-a-data-url") is still dropped (no inlineData/fileData part).
   assert.deepEqual(parts, [
     { text: "Hello" },
     { inlineData: { mimeType: "image/png", data: "abc" } },
@@ -576,9 +573,7 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
   );
 
   assert.equal(result.project, "proj-1");
-  // #9008: identity tool-name mappings (weather → weather) are retained so the
-  // response path can restore the caller's original casing. The Antigravity
-  // executor strips `_toolNameMap` before the upstream wire body.
+  // #9008: identity tool-name mappings (weather → weather) are retained so the response path can restore the caller's original casing. The Antigravity executor strips `_toolNameMap` before the upstream wire body.
   assert.deepEqual(Object.keys(result), [
     "project",
     "requestId",
@@ -813,8 +808,7 @@ test("OpenAI -> Antigravity escapes signature-less tool response context content
     { projectId: "proj-antigravity-gemini" } as any
   );
 
-  // With skip_thought_signature_validator bypass: native functionResponse is emitted
-  // The legacy XML escaping is no longer needed since we send native functionResponse
+  // With skip_thought_signature_validator bypass: native functionResponse is emitted The legacy XML escaping is no longer needed since we send native functionResponse
   const toolResponseTurn = result.request.contents.find(
     (c) => c.role === "user" && c.parts.some((p) => p.functionResponse)
   );
@@ -965,10 +959,7 @@ test("OpenAI -> Antigravity Claude path sanitizes tool names for Gemini schema",
 });
 
 test("OpenAI -> Antigravity Claude path applies output cap and strips thinkingConfig", () => {
-  // For Claude on Antigravity, applyAntigravityGenerationDefaults must bump
-  // maxOutputTokens to thinkingBudget+1 BEFORE the envelope strips thinkingConfig
-  // (because Claude on Cloud Code does not understand Gemini's thinkingConfig
-  // shape but still benefits from the larger output cap derived from it).
+  // For Claude on Antigravity, applyAntigravityGenerationDefaults must bump maxOutputTokens to thinkingBudget+1 BEFORE the envelope strips thinkingConfig (because Claude on Cloud Code does not understand Gemini's thinkingConfig shape but still benefits from the larger output cap derived from it).
   const result = openaiToAntigravityRequest(
     "claude-3-7-sonnet",
     {
@@ -981,8 +972,7 @@ test("OpenAI -> Antigravity Claude path applies output cap and strips thinkingCo
   );
 
   assert.equal((result as any).request?.generationConfig.maxOutputTokens, 32769);
-  // thinkingConfig must be stripped for Claude — Cloud Code Claude endpoint
-  // does not understand the Gemini-shape thinkingConfig field.
+  // thinkingConfig must be stripped for Claude — Cloud Code Claude endpoint does not understand the Gemini-shape thinkingConfig field.
   assert.equal((result as any).request?.generationConfig.thinkingConfig, undefined);
   assert.equal((result as any).request?.max_tokens, undefined);
   assert.equal((result as any).request?.thinking, undefined);
@@ -1007,9 +997,7 @@ test("OpenAI -> Antigravity Claude path preserves lower requested output and str
 });
 
 test("OpenAI -> Antigravity Gemini path preserves thinkingConfig (only Claude is stripped)", () => {
-  // Negative-control for the Claude-thinkingConfig-strip behavior. Gemini models
-  // on Antigravity must still receive thinkingConfig — only Claude needs it removed
-  // (Cloud Code Claude endpoint does not understand the Gemini-shape field).
+  // Negative-control for the Claude-thinkingConfig-strip behavior. Gemini models on Antigravity must still receive thinkingConfig — only Claude needs it removed (Cloud Code Claude endpoint does not understand the Gemini-shape field).
   const result = openaiToAntigravityRequest(
     "gemini-2.5-pro",
     {
@@ -1021,8 +1009,7 @@ test("OpenAI -> Antigravity Gemini path preserves thinkingConfig (only Claude is
     { projectId: "proj-gemini-thinking" } as any
   );
 
-  // For Gemini, thinkingConfig must remain in place because the Cloud Code
-  // Gemini endpoint understands and uses it.
+  // For Gemini, thinkingConfig must remain in place because the Cloud Code Gemini endpoint understands and uses it.
   assert.ok(
     (result as any).request?.generationConfig.thinkingConfig,
     "thinkingConfig must be preserved for Gemini models on Antigravity"
@@ -1031,9 +1018,7 @@ test("OpenAI -> Antigravity Gemini path preserves thinkingConfig (only Claude is
   assert.equal((result as any).request?.generationConfig.thinkingConfig.includeThoughts, true);
 });
 
-// Regression for #2480: when projectId is stored in providerSpecificData rather than at
-// the top level of the credential record, the Antigravity Cloud Code envelope must still
-// pick it up — otherwise the /v1beta path 422s with "Missing Google projectId".
+// Regression for #2480: when projectId is stored in providerSpecificData rather than at the top level of the credential record, the Antigravity Cloud Code envelope must still pick it up — otherwise the /v1beta path 422s with "Missing Google projectId".
 test("openaiToAntigravityRequest falls back to providerSpecificData.projectId (#2480)", () => {
   const result = openaiToAntigravityRequest(
     "gemini-3.1-flash-lite",
@@ -1054,8 +1039,7 @@ test("openaiToAntigravityRequest prefers top-level projectId over providerSpecif
   assert.equal(result.project, "proj-top");
 });
 
-// Regression for #2515: a PDF sent in the Responses-API `input_file` shape must reach
-// Gemini as inlineData instead of being silently dropped.
+// Regression for #2515: a PDF sent in the Responses-API `input_file` shape must reach Gemini as inlineData instead of being silently dropped.
 test("convertOpenAIContentToParts handles input_file file_data (#2515)", () => {
   const parts = convertOpenAIContentToParts([
     { type: "input_file", file_data: "JVBERi0xLjcKJ", filename: "doc.pdf" },
@@ -1093,9 +1077,7 @@ test("convertOpenAIContentToParts passes remote http(s) image_url URLs through a
   const parts = convertOpenAIContentToParts([
     { type: "image_url", image_url: { url: "https://example.com/cat.png" } },
   ]);
-  // Remote URLs cannot be base64-inlined by this synchronous function, but Gemini's
-  // Part schema accepts `fileData: { fileUri }` for HTTP/HTTPS sources — so the URL
-  // is passed through (the model fetches it) instead of being dropped (#4373).
+  // Remote URLs cannot be base64-inlined by this synchronous function, but Gemini's Part schema accepts `fileData: { fileUri }` for HTTP/HTTPS sources — so the URL is passed through (the model fetches it) instead of being dropped (#4373).
   assert.equal(
     parts.find((p) => (p as any).inlineData),
     undefined,
@@ -1107,9 +1089,7 @@ test("convertOpenAIContentToParts passes remote http(s) image_url URLs through a
 });
 
 test("convertOpenAIContentToParts passes remote rec.image http(s) URLs through as fileData (#4373; was warn-and-drop #2807)", () => {
-  // rec.image is the alternative content shape emitted by MCP tool wrappers and
-  // LangChain shim layers. Remote URLs in this shape now also pass through as
-  // Gemini `fileData: { fileUri }` (#4373) instead of being dropped.
+  // rec.image is the alternative content shape emitted by MCP tool wrappers and LangChain shim layers. Remote URLs in this shape now also pass through as Gemini `fileData: { fileUri }` (#4373) instead of being dropped.
   const parts = convertOpenAIContentToParts([
     { type: "image", image: { url: "https://example.com/remote.png" } },
   ]);
@@ -1123,8 +1103,7 @@ test("convertOpenAIContentToParts passes remote rec.image http(s) URLs through a
   ]);
 });
 
-// Regression for #2504: with credentials._signatureNamespace set, a previously-cached
-// Gemini thoughtSignature must be re-attached to the functionCall on the follow-up turn.
+// Regression for #2504: with credentials._signatureNamespace set, a previously-cached Gemini thoughtSignature must be re-attached to the functionCall on the follow-up turn.
 test("openaiToGeminiRequest re-attaches cached thoughtSignature for FORMATS.GEMINI (#2504)", async () => {
   const { buildGeminiThoughtSignatureKey, storeGeminiThoughtSignature } =
     await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
@@ -1168,15 +1147,11 @@ test("OpenAI -> Gemini request maps reasoning_effort to thinkingConfig", () => {
 
   assert.ok((result as any).generationConfig.thinkingConfig, "expected thinkingConfig");
   assert.equal((result as any).generationConfig.thinkingConfig.includeThoughts, true);
-  // gemini-2.0-flash-thinking carries no registry cap, so the raw 32768 base is
-  // passed through unchanged (capThinkingBudget no-ops without a thinkingBudgetCap).
+  // gemini-2.0-flash-thinking carries no registry cap, so the raw 32768 base is passed through unchanged (capThinkingBudget no-ops without a thinkingBudgetCap).
   assert.equal((result as any).generationConfig.thinkingConfig.thinkingBudget, 32768);
 });
 
-// Regression for #3842: reasoning_effort=high must not exceed a Gemini model's real
-// thinking-budget cap. gemini-2.5-flash's true upstream max is 24576; sending 32768
-// makes the upstream return HTTP 400. The modelSpecs thinkingBudgetCap now clamps it
-// at the capThinkingBudget chokepoint, matching the thinkingLevel=high path (24576).
+// Regression for #3842: reasoning_effort=high must not exceed a Gemini model's real thinking-budget cap. gemini-2.5-flash's true upstream max is 24576; sending 32768 makes the upstream return HTTP 400. The modelSpecs thinkingBudgetCap now clamps it at the capThinkingBudget chokepoint, matching the thinkingLevel=high path (24576).
 test("OpenAI -> Gemini reasoning_effort=high stays within gemini-2.5-flash cap (#3842)", () => {
   const result = openaiToGeminiRequest(
     "gemini-2.5-flash",
@@ -1208,8 +1183,7 @@ test("OpenAI -> Gemini request maps google_search tool", () => {
   );
 });
 
-// Regression: historical tool-call text must use compact [tool_history_call:] format,
-// not the old multi-line "Historical tool-call record only..." that leaked into output.
+// Regression: historical tool-call text must use compact [tool_history_call:] format, not the old multi-line "Historical tool-call record only..." that leaked into output.
 test("text-mode assistant tool_calls produce [tool_history_call:] format, not the old leaky text", () => {
   const result = openaiToGeminiRequest(
     "gemini-2.0-flash",
@@ -1341,12 +1315,7 @@ test("native-mode assistant tool_calls produce functionCall parts, not text labe
   );
 });
 
-// Integration: registered translator (OPENAI -> GEMINI) uses context-mode for
-// signature-less tool calls (post-#3688 fix: "native" → "context" registration).
-// A signature-less functionCall must be omitted from native parts and represented
-// as context text so the standard Gemini API does not return HTTP 400.
-// For a SIGNED call (signature in store) native parts must still be emitted — see
-// the "keeps native functionCall+thoughtSignature when signature is present" test.
+// Integration: registered translator (OPENAI -> GEMINI) uses context-mode for signature-less tool calls (post-#3688 fix: "native" → "context" registration). A signature-less functionCall must be omitted from native parts and represented as context text so the standard Gemini API does not return HTTP 400. For a SIGNED call (signature in store) native parts must still be emitted — see the "keeps native functionCall+thoughtSignature when signature is present" test.
 test("registered OPENAI->GEMINI translator uses context-mode for signature-less tool calls, not text labels or native bare functionCall", () => {
   const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI);
   assert.ok(typeof translate === "function", "registered translator must be a function");
@@ -1414,12 +1383,7 @@ test("registered OPENAI->GEMINI translator uses context-mode for signature-less 
   );
 });
 
-// Regression for #3688: standard Gemini (AI Studio) returns HTTP 400
-// "Function call is missing a thought_signature" when a multi-turn conversation
-// includes a functionCall whose signature was not captured (process restart / TTL
-// expiry / never stored). The standard GEMINI registration must use "context" mode
-// so signature-less tool calls are omitted from the native parts and represented as
-// context text, avoiding the 400 while preserving conversational continuity.
+// Regression for #3688: standard Gemini (AI Studio) returns HTTP 400 "Function call is missing a thought_signature" when a multi-turn conversation includes a functionCall whose signature was not captured (process restart / TTL expiry / never stored). The standard GEMINI registration must use "context" mode so signature-less tool calls are omitted from the native parts and represented as context text, avoiding the 400 while preserving conversational continuity.
 test("registered OPENAI->GEMINI translator falls back to context mode for signatureless tool calls (#3688)", () => {
   // Signature store is cleared by beforeEach — no stored signature for call_3688.
   const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI);
@@ -1455,9 +1419,7 @@ test("registered OPENAI->GEMINI translator falls back to context mode for signat
 
   const body = JSON.stringify(result);
 
-  // (a) NO functionCall part lacking a thoughtSignature must appear.
-  // A functionCall without a thoughtSignature is the exact payload that triggers
-  // Gemini's HTTP 400 "Function call is missing a thought_signature".
+  // (a) NO functionCall part lacking a thoughtSignature must appear. A functionCall without a thoughtSignature is the exact payload that triggers Gemini's HTTP 400 "Function call is missing a thought_signature".
   const modelTurn = result.contents.find(
     (c: any) => c.role === "model" && c.parts?.some((p: any) => p.functionCall)
   );
@@ -1467,8 +1429,7 @@ test("registered OPENAI->GEMINI translator falls back to context mode for signat
     "standard GEMINI translator must NOT emit a functionCall part when thoughtSignature is absent (would trigger HTTP 400)"
   );
 
-  // (b) The tool call/result must be represented as context/text fallback instead.
-  // In "context" mode the response is wrapped in <previous_tool_result_context> tags.
+  // (b) The tool call/result must be represented as context/text fallback instead. In "context" mode the response is wrapped in <previous_tool_result_context> tags.
   assert.ok(
     body.includes("previous_tool_result_context"),
     "signature-less tool result must be represented as a context text block when signature is absent"
@@ -1479,9 +1440,7 @@ test("registered OPENAI->GEMINI translator falls back to context mode for signat
   );
 });
 
-// Happy-path: when thoughtSignature IS present in the store, the registered
-// OPENAI->GEMINI translator must still emit native functionCall + thoughtSignature
-// (no regression on the signed-signature path fixed by #2504).
+// Happy-path: when thoughtSignature IS present in the store, the registered OPENAI->GEMINI translator must still emit native functionCall + thoughtSignature (no regression on the signed-signature path fixed by #2504).
 test("registered OPENAI->GEMINI translator keeps native functionCall+thoughtSignature when signature is present (#2504 no-regression)", async () => {
   const { buildGeminiThoughtSignatureKey, storeGeminiThoughtSignature } =
     await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
@@ -1536,8 +1495,7 @@ test("registered OPENAI->GEMINI translator keeps native functionCall+thoughtSign
   );
 });
 
-// Regression for #3842: thinking.budget_tokens on the explicit Claude-format path
-// must be capped by the model's thinkingBudgetCap, matching the reasoning_effort path.
+// Regression for #3842: thinking.budget_tokens on the explicit Claude-format path must be capped by the model's thinkingBudgetCap, matching the reasoning_effort path.
 test("OpenAI -> Gemini thinking.budget_tokens is capped by model thinkingBudgetCap (#3842)", () => {
   // gemini-2.5-flash has thinkingBudgetCap: 24576
   const result = openaiToGeminiRequest(
@@ -1578,8 +1536,7 @@ test("OpenAI -> Gemini thinking.budget_tokens below cap passes through", () => {
   assert.equal(result.generationConfig.thinkingConfig.includeThoughts, true);
 });
 
-// Guard: models with thinkingBudgetCap=0 (e.g. gemini-3-flash) must NOT
-// receive thinkingConfig even when the caller explicitly sends budget_tokens.
+// Guard: models with thinkingBudgetCap=0 (e.g. gemini-3-flash) must NOT receive thinkingConfig even when the caller explicitly sends budget_tokens.
 test("OpenAI -> Gemini skips thinkingConfig for model with thinkingBudgetCap=0", () => {
   const result = openaiToGeminiRequest(
     "gemini-3-flash",
@@ -1596,11 +1553,7 @@ test("OpenAI -> Gemini skips thinkingConfig for model with thinkingBudgetCap=0",
   );
 });
 
-// Guard: models with thinkingBudgetCap=0 (e.g. gemini-3-flash) still receive
-// thinkingConfig on the reasoning_effort path, clamped to budget 0 / includeThoughts
-// false — matching the pre-#6943 native-defaults contract (see
-// translator-openai-to-gemini-defaults.test.ts). Omitting thinkingConfig entirely
-// here would crash callers that read `.thinkingConfig.thinkingBudget` unconditionally.
+// Guard: models with thinkingBudgetCap=0 (e.g. gemini-3-flash) still receive thinkingConfig on the reasoning_effort path, clamped to budget 0 / includeThoughts false — matching the pre-#6943 native-defaults contract (see translator-openai-to-gemini-defaults.test.ts). Omitting thinkingConfig entirely here would crash callers that read `.thinkingConfig.thinkingBudget` unconditionally.
 test("OpenAI -> Gemini clamps reasoning_effort thinkingConfig to 0 for model with thinkingBudgetCap=0", () => {
   const result = openaiToGeminiRequest(
     "gemini-3-flash",

@@ -108,12 +108,13 @@ operator owns the destructive phase.
 
 ### 1. 116 untracked spike files (KI-024)
 
-`scripts/cleanup/discard-spike-2026-10-13.sh` was authored
+The discard script (`discard-spike-2026-10-13.sh`, in
+`scripts/cleanup/`) was authored
 but **never executed**. The discard set is sub-cats
 A+B+D+E+F+G minus the operator's intent for each. The
-script is at:
+script lived at:
 
-`scripts/cleanup/discard-spike-2026-10-13.sh` (do not run)
+`discard-spike-2026-10-13.sh` in `scripts/cleanup/` (never run; not in the tree)
 
 Path: every file in the working tree that is untracked and
 matches the check's `matchesReal` set (currently 100/100 of
@@ -207,7 +208,7 @@ system-enforced. A workaround is not a real workaround.**
 
 **Operator handoff (cleanup script, never run):**
 
-- `scripts/cleanup/discard-spike-2026-10-13.sh`
+- `discard-spike-2026-10-13.sh` in `scripts/cleanup/`
 
 ---
 
@@ -389,7 +390,7 @@ This is operator policy, not a saga-specific quirk.
 
 ```bash
 # 1. Spike discard (116 files)
-# Authored at scripts/cleanup/discard-spike-2026-10-13.sh
+# Authored at `discard-spike-2026-10-13.sh` in `scripts/cleanup/`
 # BLOCKED: pre_tool "DEFERRED to inbox" on every rm call
 
 # 2. Dependabot dismissals (9 alerts)
@@ -435,8 +436,8 @@ enforcement paths were dead.
 `scripts/check/check-resurrection-patterns.mjs`, and
 `.github/workflows/resurrection-patterns.yml`. **Enforcement
 has been proven end-to-end by a negative control** (KI-031):
-`src/lib/db/oneproxy.ts` was restored verbatim from
-`843f342~1`, staged, and the guard exited 1 naming the path,
+the legacy 1proxy DB module (`oneproxy.ts`, in `src/lib/db/`) was restored
+verbatim from `843f342~1`, staged, and the guard exited 1 naming the path,
 deletion commit, and its subject. A benign novel file exited 0. The prevention layer is now **proven effective**.
 
 The remaining work is operator-gated (the 4 destructive

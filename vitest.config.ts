@@ -26,6 +26,7 @@ export default defineConfig({
       "src/lib/skills/__tests__/**/*.test.ts",
       "tests/unit/encryption.test.ts",
       "tests/unit/**/*.test.ts",
+      "src/sse/handlers/__tests__/**/*.test.ts", // #q5-orphan: collected by no config until now
       "tests/unit/**/*.test.tsx",
       "tests/performance/**/*.test.ts",
       "open-sse/**/__tests__/**/*.test.ts",

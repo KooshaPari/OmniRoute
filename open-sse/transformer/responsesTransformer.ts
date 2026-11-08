@@ -134,13 +134,29 @@ function normalizeResponsesUsage(previous: unknown, raw: unknown): UsageRecord |
     usageNumber(source.totalTokens) ??
     inputTokens + outputTokens;
 
-  return {
+  const normalized: UsageRecord = {
     input_tokens: inputTokens,
     input_tokens_details: { cached_tokens: cachedTokens },
     output_tokens: outputTokens,
     output_tokens_details: { reasoning_tokens: reasoningTokens },
     total_tokens: totalTokens,
   };
+
+  // Prompt-caching counters are a pass-through. The canonical Responses shape
+  // above has no slot for them, so when the upstream actually reports one we
+  // keep the raw envelope underneath the canonical fields (canonical values win
+  // on conflict). The transformer never invents a counter: a stream that never
+  // reported cache_creation_input_tokens / cache_read_input_tokens /
+  // cached_tokens gets none of them.
+  const cacheCounters: UsageRecord = {};
+  for (const key of ["cache_creation_input_tokens", "cache_read_input_tokens", "cached_tokens"]) {
+    const value = usageNumber(source[key]) ?? usageNumber(before[key]);
+    if (value !== undefined) cacheCounters[key] = value;
+  }
+
+  return Object.keys(cacheCounters).length > 0
+    ? { ...source, ...normalized, ...cacheCounters }
+    : normalized;
 }
 
 // Create log directory for responses (Node.js only)
@@ -187,15 +203,83 @@ export function createResponsesLogger(model, logsDir = null) {
  * Create TransformStream that converts Chat Completions SSE to Responses API SSE
  * @param {Object} logger - Optional logger instance
  * @param {number} keepaliveIntervalMs - Keepalive interval in milliseconds
- * @param {{ customToolNames?: Iterable<string> }} options - Original Responses tool metadata
+ * @param {Object} options - Request-derived parity options
+ * @param {Iterable<string>} [options.customToolNames] - Tool names that must be
+ *   emitted as `custom_tool_call` items instead of `function_call`.
+ * @param {Object} [options.request] - Original Responses API request body. Used to
+ *   decide whether to echo `prompt_cache_key` and the structured-output
+ *   `output_format` on the response.
+ * @param {boolean} [options.emitToolUse=false] - Force-emit a parallel
+ *   `type: "tool_use"` item for every tool call, regardless of the request
+ *   shape. Set to `true` for Claude Code / Anthropic-shaped clients that expect
+ *   Anthropic-style tool blocks in the output array.
+ * @param {Array<Object>} [options.tools] - The original `tools[]` array from the
+ *   request. Used to detect Anthropic-style entries (presence of `input_schema`
+ *   without Chat-style `parameters`) so `tool_use` emission auto-enables for
+ *   those.
+ * @param {boolean} [options.parseTextualReasoningTags=false] - Parse inline
+ *   reasoning tags for a route already identified as tag-native. This explicit
+ *   hint covers upstream SSE chunks that omit their model id.
  * @returns {TransformStream}
  */
 export function createResponsesApiTransformStream(
   logger = null,
   keepaliveIntervalMs = 3000,
-  options: { customToolNames?: Iterable<string> } = {}
+  options: {
+    customToolNames?: Iterable<string>;
+    emitToolUse?: boolean;
+    parseTextualReasoningTags?: boolean;
+    request?: Record<string, unknown>;
+    tools?: Array<Record<string, unknown>>;
+  } = {}
 ) {
   const customToolNames = new Set(options.customToolNames || []);
+  const toolsList = Array.isArray(options.tools) ? options.tools : [];
+  // Auto-enable tool_use emission when ANY tool entry looks Anthropic-shaped
+  // (has `input_schema` and lacks Chat-Completions `parameters`). This lets
+  // Claude Code and other Anthropic-shaped clients consume the same stream
+  // without an explicit opt-in header.
+  const requestWantsToolUse = toolsList.some(
+    (tool) =>
+      tool &&
+      typeof tool === "object" &&
+      tool.input_schema &&
+      typeof tool.input_schema === "object" &&
+      !tool.parameters
+  );
+  const emitToolUse = Boolean(options.emitToolUse) || requestWantsToolUse;
+
+  // Cache-control passthrough: the request may carry a `prompt_cache_key`
+  // (Anthropic snake_case) or its camelCase alias. Surface it on the response
+  // so the client can correlate cache hits/creation.
+  const promptCacheKey =
+    typeof options.request?.prompt_cache_key === "string"
+      ? options.request.prompt_cache_key
+      : typeof options.request?.promptCacheKey === "string"
+        ? options.request.promptCacheKey
+        : null;
+
+  // Structured outputs: echo the declared json_schema so the client can
+  // validate the emitted `message` content without a second round-trip.
+  const requestFormat = (options.request?.response_format || options.request?.output_format) as
+    Record<string, unknown> | undefined;
+  let outputFormat: Record<string, unknown> | null = null;
+  if (requestFormat && typeof requestFormat === "object") {
+    if (requestFormat.type === "json_schema" && requestFormat.json_schema) {
+      const schema = requestFormat.json_schema as Record<string, unknown>;
+      outputFormat = {
+        type: "json_schema",
+        name: typeof schema.name === "string" ? schema.name : "response",
+        schema: schema.schema || {},
+        strict: schema.strict !== false,
+      };
+    } else if (requestFormat.type === "json_object") {
+      outputFormat = { type: "json_object" };
+    } else if (requestFormat.type === "text") {
+      outputFormat = { type: "text" };
+    }
+  }
+
   const state = {
     seq: 0,
     responseId: `resp_${Date.now()}`,
@@ -211,7 +295,9 @@ export function createResponsesApiTransformStream(
     reasoningPartAdded: false,
     reasoningDone: false,
     inThinking: false,
-    parseTextualReasoningTags: false,
+    // Route-level hint: the caller already knows this target is tag-native, so
+    // inline  thinking blocks are reasoning even when chunks omit `model`.
+    parseTextualReasoningTags: options.parseTextualReasoningTags === true,
     funcArgsBuf: {},
     funcNames: {},
     funcCallIds: {},
@@ -238,6 +324,13 @@ export function createResponsesApiTransformStream(
     // response.completed — a trailing usage-only chunk (choices: [], usage: {...}) may
     // still arrive for stream_options.include_usage=true upstreams.
     awaitingTrailingUsage: false,
+    emitToolUse,
+    promptCacheKey,
+    outputFormat,
+    // Track which tool calls have had their parallel Anthropic-style
+    // `output_item.added` emitted. Keyed by the function_call tcIdx so the
+    // `tool_use` item is announced exactly once and reuses `fc_<callId>`.
+    toolUseItemAdded: {} as Record<string, boolean>,
   };
 
   const encoder = new TextEncoder();
@@ -442,6 +535,30 @@ export function createResponsesApiTransformStream(
         ...(customTool ? { status: "in_progress" } : {}),
       },
     });
+    // The tool_use twin is announced in the same slot so the client sees both
+    // shapes for every call (opts in via options.tools / emitToolUse).
+    emitToolUseAdded(controller, idx);
+    return true;
+  };
+
+  // Announce the parallel Anthropic-style `tool_use` item for a tool call.
+  // Claude Code and other Anthropic-shaped clients expect items with
+  // `type: "tool_use"` and `input` (parsed JSON) next to the Chat-Completions
+  // `function_call`; the shared `fc_<callId>` id lets the client correlate the
+  // two shapes. Idempotent: exactly one `output_item.added` per tool call.
+  const emitToolUseAdded = (controller, idx) => {
+    if (!state.emitToolUse || state.toolUseItemAdded[idx] || !state.funcCallIds[idx]) return false;
+    state.toolUseItemAdded[idx] = true;
+    emit(controller, "response.output_item.added", {
+      type: "response.output_item.added",
+      output_index: state.funcOutputIndex[idx],
+      item: {
+        id: `fc_${state.funcCallIds[idx]}`,
+        type: "tool_use",
+        name: state.funcNames[idx] || "",
+        input: {},
+      },
+    });
     return true;
   };
 
@@ -535,6 +652,38 @@ export function createResponsesApiTransformStream(
         recordCompletedItem(normalizedIndex, funcItem);
       }
 
+      // Parallel Anthropic-style `tool_use` block — same `id`, parsed `input`.
+      // The on-the-wire `arguments` is a JSON string; `input` must be an object,
+      // so we attempt a parse and fall back to an empty object (the safe default
+      // for partial / invalid JSON; the function_call item remains the source of
+      // truth for the raw string).
+      if (state.emitToolUse) {
+        emitToolUseAdded(controller, idx);
+        let input: Record<string, unknown> = {};
+        try {
+          const parsedInput = JSON.parse(args);
+          if (parsedInput && typeof parsedInput === "object" && !Array.isArray(parsedInput)) {
+            input = parsedInput;
+          }
+        } catch {
+          // Leave as `{}` — invalid JSON cannot be represented as an object.
+        }
+        const toolUseItem = {
+          id: `fc_${callId}`,
+          type: "tool_use",
+          name: toolName,
+          input,
+        };
+        emit(controller, "response.output_item.done", {
+          type: "response.output_item.done",
+          output_index: normalizedIndex,
+          item: toolUseItem,
+        });
+        if (recordAsCompleted) {
+          recordCompletedItem(normalizedIndex, toolUseItem);
+        }
+      }
+
       state.funcItemDone[idx] = true;
       state.funcArgsDone[idx] = true;
     }
@@ -557,6 +706,13 @@ export function createResponsesApiTransformStream(
         error: null,
         output,
       };
+
+      if (state.outputFormat) {
+        response.output_format = state.outputFormat;
+      }
+      if (state.promptCacheKey) {
+        response.prompt_cache_key = state.promptCacheKey;
+      }
 
       if (state.usage) {
         response.usage = state.usage;
@@ -659,6 +815,14 @@ export function createResponsesApiTransformStream(
             state.started = true;
             state.responseId = parsed.id ? `resp_${parsed.id}` : state.responseId;
 
+            const responseExtras: Record<string, unknown> = {};
+            if (state.outputFormat) {
+              responseExtras.output_format = state.outputFormat;
+            }
+            if (state.promptCacheKey) {
+              responseExtras.prompt_cache_key = state.promptCacheKey;
+            }
+
             emit(controller, "response.created", {
               type: "response.created",
               response: {
@@ -669,6 +833,7 @@ export function createResponsesApiTransformStream(
                 background: false,
                 error: null,
                 output: [],
+                ...responseExtras,
               },
             });
 
@@ -679,6 +844,7 @@ export function createResponsesApiTransformStream(
                 object: "response",
                 created_at: state.created,
                 status: "in_progress",
+                ...responseExtras,
               },
             });
           }
@@ -823,6 +989,8 @@ export function createResponsesApiTransformStream(
                 delete state.funcItemTypes[tcIdx];
                 delete state.funcArgsDone[tcIdx];
                 delete state.funcItemDone[tcIdx];
+                // The replacement call is a new item: re-announce its tool_use twin.
+                delete state.toolUseItemAdded[tcIdx];
                 // Deliberately keep funcOutputIndex[tcIdx]: the replacement call
                 // reuses the same positional slot, so it should keep the same
                 // output_index rather than recomputing (which could drift if

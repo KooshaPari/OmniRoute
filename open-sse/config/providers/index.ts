@@ -3,6 +3,7 @@ import { unorouterProvider } from "./registry/unorouter/index.ts";
 
 import { aimlapiProvider } from "./registry/aimlapi/index.ts";
 import { byteplusProvider } from "./registry/byteplus/index.ts";
+import { mimocodeProvider } from "./registry/mimocode/index.ts";
 import { mlxGemmaProvider } from "./registry/mlx/index.ts";
 import { mlxQwenProvider } from "./registry/mlx/index.ts";
 import { ollama_cloudProvider } from "./registry/ollama-cloud/index.ts";
@@ -519,6 +520,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "muse-code": muse_codeProvider,
   "zylo-api": zyloApiProvider,
   unorouter: unorouterProvider,
+  mimocode: mimocodeProvider,
   "naga-ac": naga_acProvider,
   chatanywhere: chatanywhereProvider,
   poolside: poolsideProvider,

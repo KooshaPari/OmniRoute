@@ -256,8 +256,7 @@ test("vscode combos route resolves combo names through Ollama api/show", async (
   assert.equal(body.model, "show-combo");
   assert.equal(body.modelfile, "FROM show-combo");
   assert.equal(body.details.family, "show-combo");
-  // #11179: codex static catalog advertises the usable 872K window (max_context_window),
-  // not the old 272K pricing tier.
+  // #11179: codex static catalog advertises the usable 872K window (max_context_window), not the old 272K pricing tier.
   assert.equal(body.model_info.context_length, 872000);
   assert.deepEqual(body.supportsReasoningEffort, ["none", "low", "medium", "high", "xhigh"]);
   assert.equal(body.model_info.capabilities.reasoning, true);
@@ -1085,8 +1084,7 @@ test("vscode tokenized api/show route exposes explicit reasoning effort metadata
   assert.equal(body.configurationSchema?.properties?.reasoningEffort?.default, "low");
   assert.equal(body.model_info["general.basename"], "Codex GPT 5.6 Sol (Default)");
   assert.equal(body.model_info["general.architecture"], "codex");
-  // #11179: codex static catalog advertises the usable 872K window (max_context_window),
-  // not the old 272K pricing tier.
+  // #11179: codex static catalog advertises the usable 872K window (max_context_window), not the old 272K pricing tier.
   assert.equal(body.model_info["codex.context_length"], 872000);
   assert.deepEqual(body.model_info.supports_reasoning_effort, [
     "low",
@@ -1168,9 +1166,7 @@ test("vscode tokenized /chat/completions route applies the path token and codex 
   );
   const body = (await response.json()) as any;
 
-  // #10797: zero-active-credentials for a single-model (non-combo) request now
-  // remaps to 401 instead of leaking the combo-fallback 404 to a direct client.
-  // The 401 OpenAI error code mapping is "invalid_api_key" (errorConfig.ts:26).
+  // #10797: zero-active-credentials for a single-model (non-combo) request now remaps to 401 instead of leaking the combo-fallback 404 to a direct client. The 401 OpenAI error code mapping is "invalid_api_key" (errorConfig.ts:26).
   assert.equal(response.status, 401);
   assert.equal(body.error?.code, "invalid_api_key");
   assert.equal(body.error?.message, "No active credentials for provider: codex.");

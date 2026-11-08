@@ -202,15 +202,9 @@ export type ExecuteInput = {
   upstreamExtraHeaders?: Record<string, string> | null;
   /** Original client request headers (read-only). Executors may forward select headers upstream. */
   clientHeaders?: Record<string, string> | null;
-  /** Response format the end client expects (e.g. "openai-responses"). Executors
-   * that do their own Claude→OpenAI stream translation (GLM, zed-hosted) use
-   * this to apply client-format-aware policies such as `</think>` close-marker
-   * suppression. */
+  /** Response format the end client expects (e.g. "openai-responses"). Executors that do their own Claude→OpenAI stream translation (GLM, zed-hosted) use this to apply client-format-aware policies such as `</think>` close-marker suppression. */
   clientResponseFormat?: string | null;
-  /** Callback to persist tokens that are proactively refreshed during execution.
-   * Accepts a partial credentials patch (e.g. `{ accessToken, refreshToken }` or
-   * `{ testStatus: "expired", isActive: false }`); the caller merges into the
-   * stored connection row. */
+  /** Callback to persist tokens that are proactively refreshed during execution. Accepts a partial credentials patch (e.g. `{ accessToken, refreshToken }` or `{ testStatus: "expired", isActive: false }`); the caller merges into the stored connection row. */
   onCredentialsRefreshed?: (
     newCredentials: Partial<ProviderCredentials> & Record<string, unknown>
   ) => Promise<void> | void;
@@ -218,9 +212,7 @@ export type ExecuteInput = {
   skipUpstreamRetry?: boolean;
   /** Request-scoped id for log attribution; absent off the chat path, never fabricated. */
   correlationId?: string | null;
-  /** Delegated Context Editing (Claude only): when enabled, attach the
-   * `context_management.clear_tool_uses` strategy so the provider clears stale
-   * tool-use blocks server-side. Honored only on the genuine `claude` path. */
+  /** Delegated Context Editing (Claude only): when enabled, attach the `context_management.clear_tool_uses` strategy so the provider clears stale tool-use blocks server-side. Honored only on the genuine `claude` path. */
   contextEditing?: { enabled: boolean } | null;
 };
 

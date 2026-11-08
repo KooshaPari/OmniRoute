@@ -9,15 +9,13 @@ import { join } from "node:path";
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-images-"));
 
 // Stub DNS for fetchRemoteImage's GHSA-cmhj-wh2f-9cgx DNS-rebinding guard
-// (assertHostnameResolvesPublic in src/shared/network/remoteImageFetch.ts).
-// Several image-handler tests (Fal AI URL->b64 normalization, BFL polling
-// with base64 input images, NanoBanana polling with URL->b64 conversion)
-// mock globalThis.fetch with example.com URLs that don't resolve in CI; the
-// handler invokes fetchRemoteImage without exposing a `lookup` injection
-// point, so we monkey-patch dns.promises.lookup to always return a public IP
-// so the rebinding guard passes and the test exercises the mocked fetch
-// behaviour as intended. Node --test runs each file in its own process, so
-// this rebinding does not leak across files.
+// (assertHostnameResolvesPublic in src/shared/network/remoteImageFetch.ts). Several image-handler
+// tests (Fal AI URL->b64 normalization, BFL polling with base64 input images, NanoBanana polling
+// with URL->b64 conversion) mock globalThis.fetch with example.com URLs that don't resolve in CI;
+// the handler invokes fetchRemoteImage without exposing a `lookup` injection point, so we
+// monkey-patch dns.promises.lookup to always return a public IP so the rebinding guard passes and
+// the test exercises the mocked fetch behaviour as intended. Node --test runs each file in its own
+// process, so this rebinding does not leak across files.
 const originalDnsLookup = dns.promises.lookup;
 (dns.promises as { lookup: unknown }).lookup = (async (
   _hostname: string,
@@ -2078,11 +2076,11 @@ test("handleImageGeneration (codex) skips imported free-plan accounts and marks 
   }
 });
 
-// #8307 — some ChatGPT accounts can run Codex but lack entitlement for the specific
-// requested image model, and the upstream 400 for that exact case is retryable on a
-// sibling account: executeImageWithCredentialFallback (route.ts) already retries on
-// this signal when the handler marks the failure `retryable: true` — mirroring the
-// existing 401 auto-rotate path, no new retry loop needed in the handler itself.
+// #8307 — some ChatGPT accounts can run Codex but lack entitlement for the specific requested
+// image model, and the upstream 400 for that exact case is retryable on a sibling account:
+// executeImageWithCredentialFallback (route.ts) already retries on this signal when the handler
+// marks the failure `retryable: true` — mirroring the existing 401 auto-rotate path, no new retry
+// loop needed in the handler itself.
 test("handleImageGeneration (codex) marks the ChatGPT-account model-access 400 as retryable", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>

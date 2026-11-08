@@ -435,6 +435,16 @@
       "configSource": "maxai",
       "provider": "maxai"
     },
+    "mcode": {
+      "className": "MimocodeExecutor",
+      "configSource": "<custom-config>",
+      "provider": "mimocode"
+    },
+    "mimocode": {
+      "className": "MimocodeExecutor",
+      "configSource": "<custom-config>",
+      "provider": "mimocode"
+    },
     "moonshot": {
       "className": "MoonshotExecutor",
       "configSource": "moonshot",
@@ -676,6 +686,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 135,
+  "keyCount": 137,
   "sharedInstances": []
 }

@@ -2857,9 +2857,7 @@ export function saveImageErrorResult({
   };
 }
 
-/**
- * Fetch a single image endpoint and normalize response
- */
+/** Fetch a single image endpoint and normalize response */
 async function fetchImageEndpoint(url, headers, body, provider, log) {
   try {
     let response;

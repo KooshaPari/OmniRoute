@@ -8,6 +8,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { providerText } from "../providerPageHelpers";
 
 const ACCOUNT_PROVIDER_NAMES: Record<string, string> = {
+  mimocode: "MiMoCode",
   opencode: "OpenCode",
   dahl: "Dahl",
 };

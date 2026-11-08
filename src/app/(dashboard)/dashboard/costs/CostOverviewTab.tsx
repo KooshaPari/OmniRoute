@@ -123,9 +123,7 @@ interface UsageAnalyticsPayload {
   weeklyPattern: Array<{ day: string; avgTokens: number; totalTokens: number }>;
   activityMap: Record<string, number>;
   presetSummaries?: Record<string, { totalCost: number }>;
-  // The API reports whether the returned cost figures include token-price
-  // equivalents for flat-rate subscriptions (route.ts). Billed-cost mode omits
-  // it, so treat anything but an explicit `true` as billed money.
+  // The API reports whether the returned cost figures include token-price equivalents for flat-rate subscriptions (route.ts). Billed-cost mode omits it, so treat anything but an explicit `true` as billed money.
   includesFlatRateEstimates?: boolean;
 }
 

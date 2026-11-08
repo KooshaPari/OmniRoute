@@ -11319,36 +11319,6 @@ paths:
       responses:
         "200":
           description: OK
-  /api/settings/oneproxy:
-    delete:
-      tags:
-        - Settings
-      summary: "DELETE settings › oneproxy"
-      responses:
-        "200":
-          description: OK
-    get:
-      tags:
-        - Settings
-      summary: "GET settings › oneproxy"
-      responses:
-        "200":
-          description: OK
-    post:
-      tags:
-        - Settings
-      summary: "POST settings › oneproxy"
-      responses:
-        "200":
-          description: OK
-  /api/settings/oneproxy/rotate:
-    post:
-      tags:
-        - Settings
-      summary: "POST settings › oneproxy › rotate"
-      responses:
-        "200":
-          description: OK
   /api/settings/proxies:
     delete:
       tags:

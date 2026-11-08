@@ -331,32 +331,10 @@ export async function getRawProviderConnections(
   });
 }
 
-export function getProviderConnectionsCount(filter: JsonRecord = {}): number {
-  const db = getDbInstance() as unknown as DbLike;
-  let sql = "SELECT count(*) as cnt FROM provider_connections";
-  const conditions: string[] = [];
-  const params: Record<string, unknown> = {};
-
-  if (filter.provider) {
-    conditions.push("provider = @provider");
-    params.provider = filter.provider;
-  }
-  if (filter.isActive !== undefined) {
-    conditions.push("is_active = @isActive");
-    params.isActive = filter.isActive ? 1 : 0;
-  }
-  if (filter.authType) {
-    conditions.push("auth_type = @authType");
-    params.authType = filter.authType;
-  }
-
-  if (conditions.length > 0) {
-    sql += " WHERE " + conditions.join(" AND ");
-  }
-
-  const row = db.prepare(sql).get(params) as { cnt: number };
-  return row.cnt;
-}
+// Moved to ./providerCounts to break the models → providers → providers/deletion
+// → models import cycle. Re-exported here so existing callers keep the same
+// import path and public API.
+export { getProviderConnectionsCount } from "./providerCounts";
 
 export async function getProviderConnectionById(id: string) {
   const db = getDbInstance() as unknown as DbLike;
