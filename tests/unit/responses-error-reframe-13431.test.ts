@@ -114,7 +114,6 @@ test("responses route passes through Responses-shaped error unchanged", async ()
 // ── Responses route wraps empty body in generic Responses error ───────────
 
 test("responses route wraps empty upstream body in generic Responses error", async () => {
-  const handlerResponse = makeNonSseResponse({});
   // Override to return empty body
   const emptyResponse = new Response("", {
     status: 500,
