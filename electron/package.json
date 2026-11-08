@@ -15,7 +15,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --no-sandbox",
-    "prepare:bundle": "node ../scripts/build/prepare-electron-standalone.mjs",
+    "prepare:bundle": "node ../scripts/build/prepare-electron-standalone.mjs && node ../scripts/build/build-electron-extraction-config.mjs",
     "build": "npm run prepare:bundle && electron-builder",
     "build:win": "npm run prepare:bundle && electron-builder --win",
     "build:mac": "npm run prepare:bundle && electron-builder --mac",
@@ -72,6 +72,8 @@
       "lib/remoteServerPreferences.js",
       "lib/serverReadiness.js",
       "lib/windowClosePolicy.js",
+      "lib/secretStore.js",
+      "generated/tokenExtractionConfig.cjs",
       "assets/remoteServerPrompt.html",
       "package.json",
       "node_modules/**/*"

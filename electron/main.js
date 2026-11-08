@@ -85,6 +85,10 @@ let isServerStopped = false;
 let remoteServerPromptWindow = null;
 let keepAliveWithoutWindows = false;
 let lastRendererUrl = null;
+// Origin of the renderer loaded into the privileged window. The preload is
+// attached unconditionally, so only this origin may drive the privileged IPC
+// surface (see isTrustedRendererEvent).
+let trustedRendererOrigin = null;
 
 // ── Remote Server Mode ──────────────────────────────────────
 // Lets the desktop shell attach to an already-running OmniRoute server (e.g. a
@@ -104,6 +108,59 @@ let remoteServerUrl = resolveRemoteServerUrl({
 
 const getServerUrl = () => remoteServerUrl || `http://localhost:${serverPort}`;
 const getServerReadinessUrl = () => buildReadinessUrl(getServerUrl());
+
+// ── Trusted renderer boundary ───────────────────────────────
+// The main window always gets the privileged preload. In Remote Server Mode the
+// renderer is an operator-configured http(s) origin, and a page that navigates
+// the window elsewhere — or an injected subframe — would otherwise inherit
+// window.electronAPI and could drive autostart changes, update installation
+// and the login flow. Every privileged IPC handler therefore checks that the
+// event came from the trusted top-level renderer frame.
+function setTrustedRendererOrigin(url) {
+  try {
+    trustedRendererOrigin = new URL(url).origin;
+  } catch {
+    trustedRendererOrigin = null;
+  }
+}
+
+function isTrustedRendererUrl(url) {
+  if (!trustedRendererOrigin) return false;
+  try {
+    return new URL(url).origin === trustedRendererOrigin;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * True when an IPC event came from the trusted top-level renderer frame.
+ * Subframes never qualify: a frame embedded in the dashboard must not be able
+ * to reach the privileged handlers.
+ */
+function isTrustedRendererEvent(event) {
+  try {
+    if (!event || !event.sender) return false;
+    if (!mainWindow || mainWindow.isDestroyed()) return false;
+    if (event.sender !== mainWindow.webContents) return false;
+    const frame = event.senderFrame;
+    if (frame && frame !== event.sender.mainFrame) return false;
+    return isTrustedRendererUrl(frame ? frame.url : event.sender.getURL());
+  } catch {
+    return false;
+  }
+}
+
+/** True when an IPC event came from the remote-server prompt window. */
+function isRemoteServerPromptEvent(event) {
+  try {
+    if (!event || !event.sender) return false;
+    if (!remoteServerPromptWindow || remoteServerPromptWindow.isDestroyed()) return false;
+    return event.sender === remoteServerPromptWindow.webContents;
+  } catch {
+    return false;
+  }
+}
 
 function resolveNodeExecutable(env = process.env) {
   // #1081: Ensure Next.js standalone runs using Electron's Node runtime
@@ -413,7 +470,9 @@ function createWindow({ showWhenReady = true } = {}) {
   mainWindow = window;
 
   // Load the Next.js app
-  window.loadURL(resolveRendererUrl(lastRendererUrl, getServerUrl()));
+  const rendererUrl = resolveRendererUrl(lastRendererUrl, getServerUrl());
+  setTrustedRendererOrigin(rendererUrl);
+  window.loadURL(rendererUrl);
   if (isDev) {
     window.webContents.openDevTools({ mode: "detach" });
   }
@@ -443,6 +502,25 @@ function createWindow({ showWhenReady = true } = {}) {
       console.error("[Electron] Blocked invalid URL:", url);
     }
     return { action: "deny" };
+  });
+
+  // Block off-origin navigation of the privileged window. The preload is
+  // attached unconditionally, so a page that navigated the window to another
+  // origin would inherit window.electronAPI. Off-origin http(s) targets open
+  // in the user's browser instead.
+  window.webContents.on("will-navigate", (event, url) => {
+    if (isTrustedRendererUrl(url)) return;
+    event.preventDefault();
+    try {
+      const parsed = new URL(url);
+      if (["http:", "https:"].includes(parsed.protocol)) {
+        shell.openExternal(url);
+      } else {
+        console.warn("[Electron] Blocked unsafe navigation protocol:", parsed.protocol);
+      }
+    } catch {
+      console.warn("[Electron] Blocked navigation to invalid URL:", url);
+    }
   });
 
   // Keep the server alive while either hiding the renderer for a fast reopen or
@@ -604,6 +682,7 @@ async function changePort(newPort) {
   // Reload window and update tray
   lastRendererUrl = getServerUrl();
   if (mainWindow && !mainWindow.isDestroyed()) {
+    setTrustedRendererOrigin(getServerUrl());
     mainWindow.loadURL(getServerUrl());
   }
   createTray();
@@ -677,6 +756,7 @@ async function setRemoteServerUrl(nextUrl) {
   }
 
   if (mainWindow && !mainWindow.isDestroyed()) {
+    setTrustedRendererOrigin(getServerUrl());
     mainWindow.loadURL(getServerUrl());
   }
   createTray();
@@ -970,6 +1050,31 @@ function isLinuxDesktopAutostartEnabled() {
 
 // ── IPC Handlers ───────────────────────────────────────────
 function setupIpcHandlers() {
+  /**
+   * Register a privileged IPC handler that only runs for the trusted renderer.
+   * An untrusted sender gets `onReject()` instead of the operation.
+   */
+  function guardPrivilegedHandler(channel, handler, onReject) {
+    ipcMain.handle(channel, async (event, ...args) => {
+      if (!isTrustedRendererEvent(event)) {
+        console.warn(`[Electron] Rejected privileged IPC "${channel}" from an untrusted sender`);
+        return onReject ? onReject() : { success: false, error: "Untrusted sender" };
+      }
+      return handler(event, ...args);
+    });
+  }
+
+  /** Same trust boundary for fire-and-forget listeners. */
+  function guardPrivilegedListener(channel, handler) {
+    ipcMain.on(channel, (event, ...args) => {
+      if (!isTrustedRendererEvent(event)) {
+        console.warn(`[Electron] Rejected privileged IPC "${channel}" from an untrusted sender`);
+        return;
+      }
+      handler(event, ...args);
+    });
+  }
+
   ipcMain.handle("get-app-info", () => ({
     name: app.getName(),
     version: app.getVersion(),
@@ -981,32 +1086,50 @@ function setupIpcHandlers() {
 
   // ── Remote Server Mode: prompt window IPC (main-process-only trust
   // boundary — this window never loads remote/untrusted content) ──
-  ipcMain.handle("remote-server-prompt:get-initial-url", () => remoteServerUrl || "");
+  ipcMain.handle("remote-server-prompt:get-initial-url", (event) => {
+    if (!isRemoteServerPromptEvent(event)) {
+      console.warn("[Electron] Rejected remote-server-prompt IPC from an untrusted sender");
+      return "";
+    }
+    return remoteServerUrl || "";
+  });
 
-  ipcMain.on("remote-server-prompt:submit", (_event, url) => {
+  ipcMain.on("remote-server-prompt:submit", (event, url) => {
+    if (!isRemoteServerPromptEvent(event)) {
+      console.warn("[Electron] Rejected remote-server-prompt IPC from an untrusted sender");
+      return;
+    }
     remoteServerPromptWindow?.close();
     void setRemoteServerUrl(url);
   });
 
-  ipcMain.on("remote-server-prompt:cancel", () => {
+  ipcMain.on("remote-server-prompt:cancel", (event) => {
+    if (!isRemoteServerPromptEvent(event)) {
+      console.warn("[Electron] Rejected remote-server-prompt IPC from an untrusted sender");
+      return;
+    }
     remoteServerPromptWindow?.close();
   });
 
-  ipcMain.handle("open-external", (_event, url) => {
-    try {
-      const parsedUrl = new URL(url);
-      if (["http:", "https:"].includes(parsedUrl.protocol)) {
-        shell.openExternal(url);
+  guardPrivilegedHandler(
+    "open-external",
+    (_event, url) => {
+      try {
+        const parsedUrl = new URL(url);
+        if (["http:", "https:"].includes(parsedUrl.protocol)) {
+          shell.openExternal(url);
+        }
+      } catch {
+        console.error("[Electron] Blocked invalid URL:", url);
       }
-    } catch {
-      console.error("[Electron] Blocked invalid URL:", url);
-    }
-  });
+    },
+    () => undefined
+  );
 
   ipcMain.handle("get-data-dir", () => app.getPath("userData"));
 
   // Fix #2: Add timeout to restart
-  ipcMain.handle("restart-server", async () => {
+  guardPrivilegedHandler("restart-server", async () => {
     const serverToStop = nextServer;
     stopNextServer();
     await waitForServerExit(serverToStop);
@@ -1016,18 +1139,18 @@ function setupIpcHandlers() {
   });
 
   // Window controls
-  ipcMain.on("window-minimize", () => mainWindow?.minimize());
+  guardPrivilegedListener("window-minimize", () => mainWindow?.minimize());
 
-  ipcMain.on("window-maximize", () => {
+  guardPrivilegedListener("window-maximize", () => {
     if (mainWindow) {
       mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
     }
   });
 
-  ipcMain.on("window-close", () => mainWindow?.close());
+  guardPrivilegedListener("window-close", () => mainWindow?.close());
 
   // Auto-update IPC handlers
-  ipcMain.handle("check-for-updates", async () => {
+  guardPrivilegedHandler("check-for-updates", async () => {
     try {
       await checkForUpdates(false);
       return { success: true };
@@ -1038,7 +1161,7 @@ function setupIpcHandlers() {
     }
   });
 
-  ipcMain.handle("download-update", async () => {
+  guardPrivilegedHandler("download-update", async () => {
     try {
       await downloadUpdate();
       return { success: true };
@@ -1049,7 +1172,7 @@ function setupIpcHandlers() {
     }
   });
 
-  ipcMain.handle("install-update", () => {
+  guardPrivilegedHandler("install-update", () => {
     installUpdate();
     // No return value — app will quit and restart
   });
@@ -1064,17 +1187,20 @@ function setupIpcHandlers() {
     sendToRenderer("login:status", status);
   });
 
-  ipcMain.handle("login:start", async (_event, providerId, options) => {
+  guardPrivilegedHandler("login:start", async (_event, providerId, options) => {
     const result = await loginManager.startLogin(providerId, options);
 
     // Persist extracted credentials
     if (result.success && result.credentials) {
       try {
-        // Store as JSON blob under the provider ID
-        const { persistSecret: ps } = require("../src/lib/db/secrets");
-        if (typeof ps === "function") {
-          ps(providerId, JSON.stringify(result.credentials));
-        }
+        // Store as JSON blob under the provider ID. The server's TypeScript
+        // secrets module is not part of the packaged app (it lives in the
+        // Next.js source tree, outside app.asar), so the Electron shell writes
+        // the same row through its own packaged-safe store.
+        const { persistSecret } = require("./lib/secretStore");
+        persistSecret(providerId, JSON.stringify(result.credentials), {
+          dataDir: resolveDataDir(null, process.env),
+        });
         sendToRenderer("login:status", {
           providerId,
           status: "persisted",
@@ -1089,7 +1215,7 @@ function setupIpcHandlers() {
     return result;
   });
 
-  ipcMain.handle("login:cancel", async () => {
+  guardPrivilegedHandler("login:cancel", async () => {
     loginManager.cancel();
     return { success: true };
   });
@@ -1106,36 +1232,44 @@ function setupIpcHandlers() {
     return app.getLoginItemSettings().openAtLogin;
   });
 
-  ipcMain.handle("enable-autostart", () => {
-    if (process.platform === "linux") {
-      return enableLinuxDesktopAutostart();
-    }
-    try {
-      app.setLoginItemSettings({
-        openAtLogin: true,
-        args: ["--hidden"],
-      });
-      return true;
-    } catch (err) {
-      console.error("[Electron] Enable autostart failed:", err);
-      return false;
-    }
-  });
+  guardPrivilegedHandler(
+    "enable-autostart",
+    () => {
+      if (process.platform === "linux") {
+        return enableLinuxDesktopAutostart();
+      }
+      try {
+        app.setLoginItemSettings({
+          openAtLogin: true,
+          args: ["--hidden"],
+        });
+        return true;
+      } catch (err) {
+        console.error("[Electron] Enable autostart failed:", err);
+        return false;
+      }
+    },
+    () => false
+  );
 
-  ipcMain.handle("disable-autostart", () => {
-    if (process.platform === "linux") {
-      return disableLinuxDesktopAutostart();
-    }
-    try {
-      app.setLoginItemSettings({
-        openAtLogin: false,
-      });
-      return true;
-    } catch (err) {
-      console.error("[Electron] Disable autostart failed:", err);
-      return false;
-    }
-  });
+  guardPrivilegedHandler(
+    "disable-autostart",
+    () => {
+      if (process.platform === "linux") {
+        return disableLinuxDesktopAutostart();
+      }
+      try {
+        app.setLoginItemSettings({
+          openAtLogin: false,
+        });
+        return true;
+      } catch (err) {
+        console.error("[Electron] Disable autostart failed:", err);
+        return false;
+      }
+    },
+    () => false
+  );
 }
 
 // ── App Lifecycle ──────────────────────────────────────────
@@ -1183,6 +1317,7 @@ app.whenReady().then(async () => {
   if (!isDev && !serverReady && !isHeadless && !startHidden) {
     void waitForServer(getServerReadinessUrl(), 300000).then((ready) => {
       if (ready && mainWindow && !mainWindow.isDestroyed()) {
+        setTrustedRendererOrigin(getServerUrl());
         mainWindow.loadURL(getServerUrl());
       }
     });

@@ -14,22 +14,45 @@ const { EventEmitter } = require("events");
 const path = require("path");
 const { captureConfiguredHeaders } = require("./lib/loginHeaderCapture");
 
-// In production, the tokenExtractionConfig is bundled under open-sse/services/.
-// We resolve relative to the Electron resources path.
+// In production, the tokenExtractionConfig is compiled into the Electron app by
+// scripts/build/build-electron-extraction-config.mjs. A packaged app only ships
+// the files listed in electron/package.json's build.files, so the source-tree
+// paths below only resolve in a development checkout.
 let TOKEN_EXTRACTION_CONFIGS = null;
+
+function extractionConfigCandidates() {
+  const candidates = [
+    // Packaged build: compiled into the Electron app by prepare:bundle.
+    path.join(__dirname, "generated", "tokenExtractionConfig.cjs"),
+    // Development checkout: the compiled sibling of the TypeScript source.
+    path.join(__dirname, "..", "open-sse", "services", "tokenExtractionConfig"),
+    path.join(__dirname, "open-sse", "services", "tokenExtractionConfig"),
+  ];
+  // Packaged build: the standalone server copy under resources/app.
+  if (process.resourcesPath) {
+    candidates.push(
+      path.join(process.resourcesPath, "app", "open-sse", "services", "tokenExtractionConfig")
+    );
+  }
+  return candidates;
+}
+
 function getConfigs() {
   if (TOKEN_EXTRACTION_CONFIGS) return TOKEN_EXTRACTION_CONFIGS;
-  try {
-    const mod = require("../open-sse/services/tokenExtractionConfig");
-    TOKEN_EXTRACTION_CONFIGS = mod.TOKEN_EXTRACTION_CONFIGS;
-  } catch {
-    // Fallback: try from app resources
+  for (const candidate of extractionConfigCandidates()) {
     try {
-      const mod = require("./open-sse/services/tokenExtractionConfig");
-      TOKEN_EXTRACTION_CONFIGS = mod.TOKEN_EXTRACTION_CONFIGS;
-    } catch {}
+      const mod = require(candidate);
+      const configs = mod?.TOKEN_EXTRACTION_CONFIGS;
+      if (configs) {
+        TOKEN_EXTRACTION_CONFIGS = configs;
+        return TOKEN_EXTRACTION_CONFIGS;
+      }
+    } catch {
+      // Try the next candidate.
+    }
   }
-  return TOKEN_EXTRACTION_CONFIGS;
+  console.warn("[Electron] tokenExtractionConfig module not found; desktop login is unavailable");
+  return null;
 }
 
 class LoginManager extends EventEmitter {

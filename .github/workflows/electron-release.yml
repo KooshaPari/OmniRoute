@@ -88,15 +88,16 @@ jobs:
           # workflow_dispatch: build the tag being (re)built, not the dispatching branch. On a
           # tag push this resolves to the same commit.
           ref: ${{ needs.validate.outputs.version }}
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
           node-version: 24
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
-        env:
-          NPM_CONFIG_LEGACY_PEER_DEPS: true
+        uses: ./.github/actions/npm-ci-retry
 
       - name: Build Next.js standalone
         # webpack, not Turbopack, for the same hosted-runner RAM reason as the
@@ -176,28 +177,41 @@ jobs:
           # workflow_dispatch: build the tag being (re)built, not the dispatching branch. On a
           # tag push this resolves to the same commit.
           ref: ${{ needs.validate.outputs.version }}
+      - name: Enable corepack (pnpm via packageManager pin)
+        run: corepack enable
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
-        env:
-          NPM_CONFIG_LEGACY_PEER_DEPS: true
+        uses: ./.github/actions/npm-ci-retry
 
-      # The Linux leg produces x64 + arm64 installers from one x64 runner. npm
-      # deliberately installs only host-compatible optional dependencies, so
+      # The Linux leg produces x64 + arm64 installers from one x64 runner. The
+      # package manager installs only host-compatible optional dependencies, so
       # hydrateNativeDeps cannot source the arm64 fork unless we fetch the exact
-      # package pinned in package-lock before either build path runs.
+      # package pinned in the lockfile before either build path runs.
       - name: Install Linux arm64 wreq binding for cross-package
         if: matrix.platform == 'linux'
         shell: bash
+        # The root tree is installed by pnpm — pnpm-lock.yaml is the lockfile of
+        # record and there is no root package-lock.json (it is gitignored), so
+        # `npm ci` cannot run here. Installing the optional arm64 binding with
+        # npm inside a pnpm-managed node_modules would let npm rewrite that
+        # tree, so the binding is fetched as a tarball and copied into place.
+        # The manifests must not change.
         run: |
-          npm install --no-save --ignore-scripts --force --legacy-peer-deps \
-            @wreq-js/binding-linux-arm64-gnu@3.2.0
-          git diff --exit-code -- package.json package-lock.json
+          set -euo pipefail
+          binding_tmp="$(mktemp -d)"
+          cd "$binding_tmp"
+          npm pack "@wreq-js/binding-linux-arm64-gnu@3.2.0" >/dev/null
+          tar -xzf "wreq-js-binding-linux-arm64-gnu-3.2.0.tgz"
+          cd "$GITHUB_WORKSPACE"
+          mkdir -p node_modules/@wreq-js
+          rm -rf node_modules/@wreq-js/binding-linux-arm64-gnu
+          cp -R package node_modules/@wreq-js/binding-linux-arm64-gnu
+          git diff --exit-code -- package.json pnpm-lock.yaml
           mkdir -p "$RUNNER_TEMP/omniroute-wreq-verify"
           DATA_DIR="$RUNNER_TEMP/omniroute-wreq-verify" node --import tsx/esm --test \
             --test-name-pattern='wreq-js 3.2 manifest pins all nine' \
@@ -252,7 +266,7 @@ jobs:
         # hydrate: the bundle was built on ubuntu, so install-machine-forked native
         #          optionals (@img/sharp-*, @img/sharp-libvips-*, @ngrok/ngrok-*,
         #          @wreq-js/binding-*, fsevents) carry linux forks. Replace them with the forks this
-        #          leg's own `npm ci` resolved, then assert every bundled native
+        #          leg's own install resolved, then assert every bundled native
         #          (better-sqlite3 prebuilds, wreq-js, onnxruntime)
         #          can service this leg's platform/arch before packaging starts.
         run: |
