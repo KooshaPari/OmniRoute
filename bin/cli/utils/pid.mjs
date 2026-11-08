@@ -103,7 +103,7 @@ export async function waitForServer(port, timeout = 60000) {
 // #11766: probe both IPv4 and IPv6 loopback to handle servers listening on
 // either family (or both).
 async function pollHealthOnce(port) {
-  const hosts = ["127.0.0.1", "::1"];
+  const hosts = ["127.0.0.1", "[::1]"];
   const outcomes = [];
 
   // Probe both loopback families concurrently
