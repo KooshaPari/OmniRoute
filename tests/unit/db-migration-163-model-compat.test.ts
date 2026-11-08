@@ -11,7 +11,6 @@ for (const name of ["163_radar_feed_cache_generated_at.sql", "169_model_capabili
   fs.copyFileSync(path.join(process.cwd(), "src/lib/db/migrations", name), path.join(dir, name));
 }
 const originalDir = process.env.OMNIROUTE_MIGRATIONS_DIR;
-await import("../../src/lib/db/migrationRunner.ts");
 process.env.OMNIROUTE_MIGRATIONS_DIR = dir;
 const runnerPath = `../../src/lib/db/migrationRunner.ts?test163=${Date.now()}`;
 const { runMigrations } = await import(runnerPath);
