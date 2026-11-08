@@ -21,6 +21,7 @@ import {
   buildLockfileLintArgs,
   getWorkspaceDependencyCheckCommand,
   runWorkspaceDependencyCheck,
+  validatePnpmLockfile,
 } from "../../../scripts/check/check-lockfile.mjs";
 
 // ---------------------------------------------------------------------------
@@ -312,4 +313,38 @@ test("workspace check validates lock entries independently of node_modules", (t)
       stdio: ["ignore", "pipe", "pipe"],
     })
   );
+});
+
+// ---------------------------------------------------------------------------
+// validatePnpmLockfile
+// ---------------------------------------------------------------------------
+
+const fakeYaml = { parse: (s: string) => JSON.parse(s) };
+const lock = (packages: Record<string, unknown>) => JSON.stringify({ packages });
+
+test("validatePnpmLockfile: accepts sha512 registry entries and workspace links", () => {
+  const text = lock({
+    "a@1.0.0": { resolution: { integrity: "sha512-abc" } },
+    "b@file:packages/b": { resolution: { directory: "packages/b", type: "directory" } },
+  });
+  assert.deepEqual(validatePnpmLockfile(text, fakeYaml), []);
+});
+
+test("validatePnpmLockfile: flags missing or non-sha512 integrity", () => {
+  const text = lock({
+    "a@1.0.0": { resolution: { integrity: "sha1-abc" } },
+    "b@1.0.0": { resolution: {} },
+  });
+  assert.equal(validatePnpmLockfile(text, fakeYaml).length, 2);
+});
+
+test("validatePnpmLockfile: flags http tarballs, foreign hosts and git sources", () => {
+  const text = lock({
+    "a@1.0.0": {
+      resolution: { integrity: "sha512-x", tarball: "http://registry.npmjs.org/a.tgz" },
+    },
+    "b@1.0.0": { resolution: { integrity: "sha512-x", tarball: "https://evil.example/b.tgz" } },
+    "c@git": { resolution: { type: "git", repo: "https://github.com/x/c.git", commit: "1" } },
+  });
+  assert.equal(validatePnpmLockfile(text, fakeYaml).length, 3);
 });
