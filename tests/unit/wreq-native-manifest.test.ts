@@ -344,7 +344,9 @@ test("Electron installs the Linux arm64 binding inside the platform matrix job",
     )
   );
   assert.doesNotMatch(matrixBuildJob, /--package-lock=false/);
-  assert.match(matrixBuildJob, /git diff --exit-code -- package\.json package-lock\.json/);
+  // The root tree is installed by pnpm, so the manifests that must not change
+  // are package.json and pnpm-lock.yaml (there is no root package-lock.json).
+  assert.match(matrixBuildJob, /git diff --exit-code -- package\.json pnpm-lock\.yaml/);
   assert.match(
     matrixBuildJob,
     /tests\/unit\/wreq-native-manifest\.test\.ts/,
