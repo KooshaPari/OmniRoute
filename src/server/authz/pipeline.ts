@@ -364,7 +364,7 @@ export async function runAuthzPipeline(
     return preflight;
   }
 
-  if (!options.enforce) {
+  if (options.enforce === false) {
     const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
     response.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
