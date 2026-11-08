@@ -64,6 +64,10 @@ ulid = { version = "1.1", features = ["serde"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "registry", "fmt"] }
 tracing-appender = "0.2"
+opentelemetry = { version = "0.27", features = ["trace", "metrics"] }
+opentelemetry_sdk = { version = "0.27", features = ["trace", "metrics", "rt-tokio"] }
+opentelemetry-otlp = { version = "0.27", features = ["trace", "metrics", "grpc-tonic"] }
+tracing-opentelemetry = "0.28"
 
 config = { version = "0.14", default-features = false, features = ["toml", "yaml"] }
 dotenvy = "0.15"
@@ -98,6 +102,7 @@ flate2 = "1.0"
 brotli = "6.0"
 
 jsonwebtoken = "10.3"
+oauth2 = "4.4"
 cookie = "0.18"
 url = { version = "2.5", features = ["serde"] }
 percent-encoding = "2.3"

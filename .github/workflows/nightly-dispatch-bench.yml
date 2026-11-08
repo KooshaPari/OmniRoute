@@ -21,12 +21,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: "22"
-      - run: pnpm install --frozen-lockfile --ignore-scripts --legacy-peer-deps
+      - run: npm ci --ignore-scripts --legacy-peer-deps
       - name: Run dispatch benchmarks
         run: node scripts/check/tier-matrix-verify.mjs --strict
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -39,8 +37,6 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --release --manifest-path crates/omniroute-ffi/Cargo.toml
       - run: cargo test --manifest-path crates/omniroute-ffi/Cargo.toml

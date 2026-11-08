@@ -26,8 +26,6 @@
 
 import { existsSync } from "node:fs";
 import { connect, type Socket } from "node:net";
-import { homedir } from "node:os";
-import { join } from "node:path";
 import type { UdsEdgeContract, InvokeOptions } from "./dispatchEdges.ts";
 import { DispatchEdgeError } from "./errors.ts";
 
@@ -38,8 +36,7 @@ interface PendingRequest {
 }
 
 const UDS_DEFAULT = () =>
-  process.env.OMNIROUTE_UDS_SOCKET ??
-  `${process.env.DATA_DIR ?? join(homedir(), ".omniroute")}/dispatch.sock`;
+  process.env.OMNIROUTE_UDS_SOCKET ?? `${process.env.DATA_DIR ?? "~/.omniroute"}/dispatch.sock`;
 
 interface UdsClientState {
   socket: Socket | null;
@@ -48,8 +45,6 @@ interface UdsClientState {
   nextId: number;
   reconnectAttempts: number;
   destroyed: boolean;
-  authenticated: boolean;
-  authPromise: Promise<void> | null;
 }
 
 const clientsBySocket = new Map<string, UdsClientState>();
@@ -65,8 +60,6 @@ function getOrCreateClient(socketPath: string): UdsClientState {
     nextId: 1,
     reconnectAttempts: 0,
     destroyed: false,
-    authenticated: false,
-    authPromise: null,
   };
   clientsBySocket.set(socketPath, state);
   scheduleConnect(state, socketPath);
@@ -97,45 +90,6 @@ function scheduleConnect(state: UdsClientState, socketPath: string): void {
   socket.on("data", (chunk) => handleSocketData(state, socketPath, chunk.toString("utf-8")));
   socket.on("close", () => handleSocketClose(state, socketPath));
   socket.on("error", (error) => handleSocketError(state, socketPath, error));
-
-  if (process.env.OMNIROUTE_UDS_REQUIRE_AUTH === "1") {
-    const secret = process.env.OMNIROUTE_UDS_SHARED_SECRET;
-    if (!secret) {
-      state.authPromise = Promise.reject(
-        new DispatchEdgeError(
-          "OMNIROUTE_UDS_SHARED_SECRET is unset while OMNIROUTE_UDS_REQUIRE_AUTH=1",
-          "UDS_AUTH_MISCONFIGURED"
-        )
-      );
-      state.authPromise.catch(() => {}); // Handled by invokeUdsEdge awaiters.
-    } else {
-      state.authPromise = new Promise<void>((resolve, reject) => {
-        const id = state.nextId++;
-        const timer = setTimeout(() => {
-          state.pending.delete(id);
-          reject(new DispatchEdgeError("UDS auth handshake timed out", "UDS_AUTH_TIMEOUT"));
-        }, 5000);
-        state.pending.set(id, {
-          resolve: () => {
-            clearTimeout(timer);
-            state.authenticated = true;
-            resolve();
-          },
-          reject: (err) => {
-            clearTimeout(timer);
-            reject(err);
-          },
-          timer,
-        });
-        socket.write(
-          `${JSON.stringify({ jsonrpc: "2.0", id, method: "handshake", params: { handshake: secret } })}\n`,
-          "utf-8"
-        );
-      });
-    }
-  } else {
-    state.authenticated = true;
-  }
 }
 
 function handleSocketData(state: UdsClientState, socketPath: string, chunk: string): void {
@@ -175,8 +129,6 @@ function handleSocketClose(state: UdsClientState, socketPath: string): void {
     state.pending.delete(id);
   }
   state.socket = null;
-  state.authenticated = false;
-  state.authPromise = null;
   if (!state.destroyed) {
     state.reconnectAttempts++;
     scheduleConnect(state, socketPath);
@@ -202,13 +154,6 @@ export async function invokeUdsEdge<TIn, TOut>(
 
   if (!state.socket) {
     throw createUdsTransportError("UDS socket not connected", socketPath);
-  }
-
-  if (!state.authenticated) {
-    if (!state.authPromise) {
-      throw createUdsTransportError("UDS socket not connected", socketPath);
-    }
-    await state.authPromise;
   }
 
   const id = state.nextId++;

@@ -7,9 +7,9 @@ on:
     branches: [main]
     paths:
       - package.json
-      - pnpm-lock.yaml
+      - package-lock.json
   schedule:
-    - cron: "0 8 * * 1" # Every Monday at 08:00 UTC
+    - cron: "0 8 * * 1"  # Every Monday at 08:00 UTC
   workflow_dispatch:
 
 permissions:
@@ -38,14 +38,10 @@ jobs:
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      # PR #756 switched this step to pnpm without enabling pnpm on the runner.
-      - name: Enable corepack (pnpm)
-        run: corepack enable
+          cache: npm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Generate CycloneDX SBOM
         run: npm sbom --sbom-format cyclonedx --sbom-type application > omniroute-sbom.cdx.json

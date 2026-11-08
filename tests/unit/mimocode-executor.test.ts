@@ -165,13 +165,13 @@ describe("MimocodeExecutor", () => {
 
   it("is registered in executor index", async () => {
     const { getExecutor } = await import("../../open-sse/executors/index.ts");
-    const exec = await getExecutor("mimocode");
+    const exec = getExecutor("mimocode");
     assert.ok(exec instanceof MimocodeExecutor);
   });
 
   it("mcode alias works", async () => {
     const { getExecutor } = await import("../../open-sse/executors/index.ts");
-    const exec = await getExecutor("mcode");
+    const exec = getExecutor("mcode");
     assert.ok(exec instanceof MimocodeExecutor);
   });
 });
@@ -254,6 +254,8 @@ describe("mimocode providerRegistry entry", () => {
 });
 
 describe("mimocode per-account proxy", () => {
+  const exec = new MimocodeExecutor();
+
   it("AccountProxyConfig type has required fields", () => {
     const config: AccountProxyConfig = {
       fingerprint: "abc123",

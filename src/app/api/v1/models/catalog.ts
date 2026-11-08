@@ -16,7 +16,6 @@ import { getCachedRawProviderConnections, getCachedProviderNodes } from "@/lib/d
 import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { getOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
-import type { CatalogConnection } from "./catalogBuildTypes";
 import {
   INTERNAL_PROXY_ERROR,
   getCatalogDiagnosticsHeaders,
@@ -37,10 +36,8 @@ import {
   normalizeBlockedProviderSet,
 } from "@/shared/utils/noAuthProviders";
 import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
-import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 import { extractApiKey } from "@/sse/services/auth";
-import type { ComboCatalogTarget, ConnectionScopedReasoningCatalog } from "./catalogHelpers";
-import { isUnifiedChatSourceModelSelectable } from "./catalogModelPolicy";
+import type { ComboCatalogTarget } from "./catalogHelpers";
 import {
   qualifyOpenRouterModelId,
   normalizeOpenRouterModalities,
@@ -53,8 +50,6 @@ import { getCustomVisionCapabilityFields } from "./catalogVision";
 import {
   buildAliasMaps,
   resolveCanonicalProviderId as resolveCanonicalProviderIdFromMaps,
-  getProviderPrefixes,
-  getComboTargetModelId as getComboTargetModelIdFromMaps,
 } from "./catalogProviderMaps";
 import { getModelCatalogAuthRejection, isCcDiscoveryModelCatalogClient } from "./catalogRequest";
 import { incrementCcDiscoveryHitCount } from "@/lib/db/ccDiscoveryMetrics";
@@ -303,7 +298,7 @@ async function buildUnifiedModelsResponseCore(
       !isModelExposureAllowed(aliasToProviderId[providerKey] || providerKey, modelId, settings);
 
     // Get active provider connections
-    let connections: CatalogConnection[] = [];
+    let connections = [];
     let _totalConnectionCount = 0; // Track if DB has ANY connections (even disabled)
     try {
       connections = (await getCachedRawProviderConnections()).map(createLazyConnectionView);
@@ -401,7 +396,7 @@ async function buildUnifiedModelsResponseCore(
     }
 
     // Build set of active provider aliases
-    const activeAliases = new Set<string>();
+    const activeAliases = new Set();
     const connectionsByProvider = new Map<string, typeof connections>();
     const registerConnectionKey = (
       key: string | null | undefined,
@@ -489,7 +484,7 @@ async function buildUnifiedModelsResponseCore(
     // map dependency — pure parseModel() probe), used both here and at the two
     // includeCanonical prefix-collision checks below.
     const _getProviderPrefixes = (providerId: string, rawProvider: string) =>
-      getProviderPrefixes(aliasMaps, providerId, rawProvider);
+      getProviderPrefixesFromMaps(aliasMaps, providerId, rawProvider);
 
     const getComboTargetModelId = (target: ComboCatalogTarget) => {
       const resolved = getComboTargetModelIdFromMaps(aliasMaps, target);
@@ -528,10 +523,10 @@ async function buildUnifiedModelsResponseCore(
     );
 
     // Context for the extracted combo-metadata module.
-    // NB: `aliasToProviderId` is intentionally omitted — neither helper reads it.
     const comboMetadataCtx: ComboMetadataPick = {
       capabilityResolutionSnapshot,
       providerIdToAlias,
+      aliasToProviderId,
       getComboTargetModelId,
       getConnectionsForProvider,
       getRegistryModel,
@@ -587,6 +582,7 @@ async function buildUnifiedModelsResponseCore(
         listedIds,
         capabilityResolutionSnapshot,
         providerIdToAlias,
+        aliasToProviderId,
         getComboTargetModelId,
         getConnectionsForProvider,
         getRegistryModel,

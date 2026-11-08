@@ -31,7 +31,6 @@ import {
 } from "../accountFallback.ts";
 import { PRE_SCREEN_CONCURRENCY } from "../comboConfig.ts";
 import { getQuotaFetcher } from "../quotaPreflight.ts";
-import { resolveProviderId } from "../../../src/shared/constants/providers.ts";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
 import { getCachedProviderConnections } from "../../../src/lib/db/readCache";
 import { MAX_RR_COUNTERS, rrCounters } from "./rrState.ts";
@@ -77,58 +76,35 @@ const resetAwareQuotaCache = new Map<
   { fetchedAt: number; quota: unknown; refreshPromise: Promise<unknown> | null }
 >();
 
-/**
- * Per-provider view of the DB connection rows used to expand quota-aware
- * targets.
- *
- * `connections` holds the ROUTABLE rows only (active, not banned, and — for
- * Antigravity — carrying a stored projectId). `providerRowsExist` records
- * whether the provider has ANY row in the DB, including disabled/banned ones,
- * because that decides whether the DB is authoritative about which connection
- * ids exist at all (see the eligibility gate in
- * expandTargetsByQuotaAwareConnections).
- */
-type QuotaAwareConnectionSet = {
-  connections: Array<Record<string, unknown>>;
-  providerRowsExist: boolean;
-};
-
-const EMPTY_CONNECTION_SET: QuotaAwareConnectionSet = {
-  connections: [],
-  providerRowsExist: false,
-};
-
 async function getQuotaAwareConnectionsForTarget(
   target: ResolvedComboTarget,
-  connectionCache: Map<string, QuotaAwareConnectionSet>,
-  connectionLoadPromises: Map<string, Promise<QuotaAwareConnectionSet>>,
+  connectionCache: Map<string, Array<Record<string, unknown>>>,
+  connectionLoadPromises: Map<string, Promise<Array<Record<string, unknown>>>>,
   comboName: string,
   log: { warn?: (...args: unknown[]) => void }
-): Promise<QuotaAwareConnectionSet> {
+) {
   const provider = getResetAwareProvider(target);
-  if (!provider || !getQuotaFetcher(provider)) return EMPTY_CONNECTION_SET;
+  if (!provider || !getQuotaFetcher(provider)) return [];
   if (!connectionCache.has(provider)) {
     if (!connectionLoadPromises.has(provider)) {
       connectionLoadPromises.set(
         provider,
         (async () => {
           try {
-            // Deliberately unfiltered by isActive: a disabled/banned row must still
-            // count as "this connection id exists but is not routable", otherwise a
-            // stale pin would be indistinguishable from an unregistered one.
-            const rows = await getCachedProviderConnections({ provider });
-            const allRows = Array.isArray(rows) ? (rows as Array<Record<string, unknown>>) : [];
-            let activeConnections = allRows.filter(
-              (connection) =>
-                connection.isActive !== false &&
-                String(connection.testStatus || "")
-                  .trim()
-                  .toLowerCase() !== "banned"
-            );
+            const connections = await getCachedProviderConnections({ provider, isActive: true });
+            let activeConnections = Array.isArray(connections)
+              ? (connections as Array<Record<string, unknown>>).filter(
+                  (connection) =>
+                    connection.isActive !== false &&
+                    String(connection.testStatus || "")
+                      .trim()
+                      .toLowerCase() !== "banned"
+                )
+              : [];
             if (provider === "antigravity" || provider === "agy") {
               activeConnections = preferAntigravityConnectionsWithStoredProject(activeConnections);
             }
-            return { connections: activeConnections, providerRowsExist: allRows.length > 0 };
+            return activeConnections;
           } catch (error) {
             log.warn?.("COMBO", "Reset-aware failed to load quota-aware connections.", {
               comboName,
@@ -136,16 +112,16 @@ async function getQuotaAwareConnectionsForTarget(
               operation: "getProviderConnections",
               provider,
             });
-            return EMPTY_CONNECTION_SET;
+            return [];
           }
         })()
       );
     }
 
-    const connectionSet = await connectionLoadPromises.get(provider)!;
-    connectionCache.set(provider, connectionSet);
+    const connections = await connectionLoadPromises.get(provider)!;
+    connectionCache.set(provider, connections);
   }
-  return connectionCache.get(provider) || EMPTY_CONNECTION_SET;
+  return connectionCache.get(provider) || [];
 }
 
 function normalizeConnectionIds(value: unknown): string[] | null {
@@ -165,24 +141,6 @@ function filterAllowedConnectionIds(
   if (!allowedIds) return connectionIds;
   const allowedSet = new Set(allowedIds);
   return connectionIds.filter((connectionId) => allowedSet.has(connectionId));
-}
-
-/**
- * True only when the loaded connection row is known to belong to a provider
- * other than `provider`. An unresolved row (not in the provider list) is NOT
- * evidence of a mismatch: pinned connection ids can legitimately be absent from
- * the list (in-memory registered Codex sessions, DB read lag after a write).
- * Aliases are canonicalized first so "agy" does not read as foreign to
- * "antigravity".
- */
-function isForeignProviderConnection(
-  provider: string,
-  connection: Record<string, unknown> | undefined
-): boolean {
-  const rawProvider =
-    typeof connection?.provider === "string" ? connection.provider.trim().toLowerCase() : "";
-  if (!rawProvider) return false;
-  return resolveProviderId(rawProvider) !== provider;
 }
 
 function getTargetConnectionIds(
@@ -223,14 +181,14 @@ export async function expandTargetsByQuotaAwareConnections(
   connectionById: Map<string, Record<string, unknown>>;
   expandedTargets: ResolvedComboTarget[];
 }> {
-  const connectionCache = new Map<string, QuotaAwareConnectionSet>();
-  const connectionLoadPromises = new Map<string, Promise<QuotaAwareConnectionSet>>();
+  const connectionCache = new Map<string, Array<Record<string, unknown>>>();
+  const connectionLoadPromises = new Map<string, Promise<Array<Record<string, unknown>>>>();
   const connectionById = new Map<string, Record<string, unknown>>();
   const expandedTargets: ResolvedComboTarget[] = [];
 
   const targetsWithConnections = await Promise.all(
     targets.map(async (target) => ({
-      connectionSet: await getQuotaAwareConnectionsForTarget(
+      connections: await getQuotaAwareConnectionsForTarget(
         target,
         connectionCache,
         connectionLoadPromises,
@@ -241,8 +199,7 @@ export async function expandTargetsByQuotaAwareConnections(
     }))
   );
 
-  for (const { target, connectionSet } of targetsWithConnections) {
-    const { connections, providerRowsExist } = connectionSet;
+  for (const { target, connections } of targetsWithConnections) {
     for (const connection of connections) {
       if (typeof connection.id === "string") connectionById.set(connection.id, connection);
     }
@@ -268,24 +225,7 @@ export async function expandTargetsByQuotaAwareConnections(
     for (const connectionId of connectionIds) {
       const provider = getResetAwareProvider(target);
       const connection = connectionById.get(connectionId);
-      // The provider HAS DB rows, so the DB is authoritative about which
-      // connection ids exist: an id resolving to no routable row is disabled,
-      // banned, or deleted since the combo step was saved, and must not consume
-      // a quota worker. When the provider has NO DB rows at all (registry-backed
-      // providers: in-memory Codex sessions, fetcher-registered providers) there
-      // is nothing to validate against, so pinned ids stay routable — dropping
-      // them emptied the pool and surfaced a 404 instead of routing.
-      if (provider && getQuotaFetcher(provider) && providerRowsExist && !connection) {
-        continue;
-      }
-      // A resolved row that belongs to a DIFFERENT provider is a stale pin.
-      if (
-        provider &&
-        getQuotaFetcher(provider) &&
-        isForeignProviderConnection(provider, connection)
-      ) {
-        continue;
-      }
+      if (provider && getQuotaFetcher(provider) && connection?.provider !== provider) continue;
       if (
         connection &&
         typeof connection.rateLimitedUntil === "string" &&

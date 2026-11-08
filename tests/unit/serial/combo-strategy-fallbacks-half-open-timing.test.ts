@@ -100,15 +100,12 @@ test.after(async () => {
 });
 
 test("combo skips a provider while its breaker is OPEN and attempts it again after the reset timeout (HALF_OPEN)", async () => {
-  // Phase 1 must observe the breaker while it is still OPEN. A long reset
-  // timeout makes that a property of the code rather than of scheduler luck:
-  // previously a 300ms window had to survive the dispatch, and under CPU
-  // contention it did not, so the provider was legitimately probed early and
-  // the assertion below failed intermittently.
-  const breaker = getCircuitBreaker("openai", {
-    failureThreshold: 1,
-    resetTimeout: 60_000,
-  });
+  // Widened from the original 40ms/80ms margin (#6803): under contended
+  // CI-runner load even --test-concurrency=1 doesn't guarantee the "while
+  // OPEN" dispatch completes before a 40ms window elapses. A larger absolute
+  // margin (same ~2x wait:resetTimeout ratio) tolerates real scheduling
+  // jitter while still proving the lazy-recovery contract.
+  const breaker = getCircuitBreaker("openai", { failureThreshold: 1, resetTimeout: 300 });
   try {
     await breaker.execute(async () => {
       throw new Error("simulated provider failure");
@@ -144,10 +141,7 @@ test("combo skips a provider while its breaker is OPEN and attempts it again aft
 
   // After the reset timeout the breaker reads HALF_OPEN — the combo must probe
   // the provider again instead of excluding it forever (lazy recovery contract).
-  // Expire the window deterministically instead of sleeping: getCircuitBreaker
-  // re-applies resetTimeout on the cached instance, so 0 makes
-  // _shouldAttemptReset() true on the very next read.
-  getCircuitBreaker("openai", { resetTimeout: 0 });
+  await new Promise((resolve) => setTimeout(resolve, 600));
   assert.equal(breaker.getStatus().state, "HALF_OPEN");
 
   const callsAfterExpiry: string[] = [];

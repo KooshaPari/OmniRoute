@@ -888,6 +888,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
 
     return (
       <div className="flex flex-col gap-4">
+        {/* Header Bar */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Recording Toggle */}
           <button

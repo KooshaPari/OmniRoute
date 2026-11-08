@@ -146,7 +146,7 @@ const IGNORE_FROM_CODE = new Set([
   "HOMOLOG_EXPECT_VERSION",
   // update-notifier opt-out for the CLI binary.
   "OMNIROUTE_NO_UPDATE_NOTIFIER",
-  // Headless CLI execution flag (background server daemon mode).
+  // Headless CLI execution flag for Electron.
   "OMNIROUTE_HEADLESS",
   // Platform / OS detection vars read by CLI environment helper (bin/cli/utils/environment.mjs).
   // These are external signals set by the host OS or cloud provider — not OmniRoute config.
@@ -223,30 +223,6 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only override: points setup-open-code.mjs at a fixture plugin dir without
   // requiring the real bundled plugin to be built.
   "OMNIROUTE_OPENCODE_PLUGIN_DIR",
-  // ── CI-check / test-harness internals (verified by scoped search 2026-10-17) ──
-  // Read by scripts/check/check-job-results.mjs to decide whether a skipped CI
-  // job is acceptable. A CI-harness knob, not OmniRoute runtime config.
-  "ALLOW_SKIPPED",
-  "NEEDS_JSON",
-  // Deliberately bogus placeholder used as a fixture in
-  // open-sse/executors/__tests__/claudeIdentity.test.ts. The "FOO" is intentional.
-  "OPENAI_COMPATIBLE_FOO_USER_AGENT",
-  // Packaged-desktop smoke harness knobs. These are read only by
-  // scripts/dev/smoke-electron-packaged.mjs, the Electron smoke script that was
-  // REMOVED in bedb7d1db6 per the ZERO-electron decision (2026-09-17; the tracked
-  // desktop is Tauri — see docs/guides/DESKTOP_GUIDE.md). They are allowlisted
-  // rather than documented because .env.example must not advertise configuration
-  // for a stack the repo no longer ships. If Electron ever returns as a tracked
-  // feature, delete these entries and document the vars in .env.example +
-  // docs/reference/ENVIRONMENT.md instead.
-  "ELECTRON_SMOKE_APP_EXECUTABLE",
-  "ELECTRON_SMOKE_COLD_RESTART",
-  "ELECTRON_SMOKE_DATA_DIR",
-  "ELECTRON_SMOKE_KEEP_DATA",
-  "ELECTRON_SMOKE_SETTLE_MS",
-  "ELECTRON_SMOKE_STREAM_LOGS",
-  "ELECTRON_SMOKE_TIMEOUT_MS",
-  "ELECTRON_SMOKE_URL",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
@@ -346,7 +322,7 @@ function scanCodeVars({ cwd } = {}) {
   const repoRoot = cwd ?? REPO_ROOT;
   const stdout = execSync(
     "grep -rhoE 'process\\.env\\.[A-Z][A-Z0-9_]+' " +
-      "src/ open-sse/ bin/ scripts/ 2>/dev/null || true",
+      "src/ open-sse/ bin/ scripts/ electron/main.js electron/preload.js 2>/dev/null || true",
     { cwd: repoRoot, encoding: "utf8", maxBuffer: 20 * 1024 * 1024 }
   );
   const vars = new Set();

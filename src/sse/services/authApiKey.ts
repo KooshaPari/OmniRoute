@@ -3,7 +3,6 @@
  *
  * Extracted from auth.ts for modularity. Handles Bearer tokens, x-api-key
  * (Anthropic contract), x-goog-api-key, and path-scoped VS Code tokens.
- * The barrel re-exports from auth.ts preserve all existing import paths.
  *
  * @module authApiKey
  */
