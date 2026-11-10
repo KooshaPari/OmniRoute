@@ -1,3 +1,7 @@
+---
+title: "Supply-Chain Gates (Fase 8 · Bloco A)"
+---
+
 # Supply-Chain Gates (Fase 8 · Bloco A)
 
 OmniRoute publica artefatos npm + Docker. Estes gates dão proveniência,

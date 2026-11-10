@@ -9,6 +9,7 @@
  * "keys:write" scope check is enforced in the A2A skill and at the
  * BFF/proxy edge, not here — this is an admin-only management surface).
  */
+import { z } from "zod";
 import { NextResponse } from "next/server";
 import {
   mintVirtualKey,
@@ -18,26 +19,15 @@ import {
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import * as log from "@/sse/utils/logger";
 
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.length > 0 ? value : null;
-}
-
-function asStringArrayOrUndefined(value: unknown): string[] | undefined {
-  if (value === undefined || value === null) return undefined;
-  if (!Array.isArray(value)) return undefined;
-  const filtered = value.filter((v): v is string => typeof v === "string");
-  return filtered.length > 0 ? filtered : undefined;
-}
-
-function asNumberOrNull(value: unknown): number | null {
-  if (value === null) return null;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return undefined as unknown as null;
-}
+/** Zod schema for POST /api/virtual-keys body. */
+const MintVirtualKeySchema = z.object({
+  tenantId: z.string().min(1, "tenantId is required"),
+  label: z.string().optional(),
+  allowedModels: z.array(z.string()).optional(),
+  maxCostUsd: z.number().nonnegative().finite().nullable().optional(),
+  maxRpd: z.number().int().nonnegative().nullable().optional(),
+  expiresAt: z.string().datetime({ offset: true }).nullable().optional(),
+});
 
 // GET /api/virtual-keys?tenantId=X
 export async function GET(request: Request) {
@@ -88,72 +78,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  if (!rawBody || typeof rawBody !== "object") {
-    return NextResponse.json({ error: "Body must be a JSON object" }, { status: 400 });
-  }
-  const body = rawBody as Record<string, unknown>;
-
-  const tenantId = asString(body["tenantId"] ?? body["tenant_id"]);
-  if (!tenantId) {
+  const parsed = MintVirtualKeySchema.safeParse(rawBody);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "tenantId is required" },
+      { error: "Validation failed", details: parsed.error.flatten().fieldErrors },
       { status: 400 },
     );
   }
 
-  // Validate expiresAt if provided
-  const expiresAtRaw = asString(body["expiresAt"] ?? body["expires_at"]);
-  let expiresAt: string | null = null;
-  if (expiresAtRaw) {
-    const parsed = new Date(expiresAtRaw);
-    if (Number.isNaN(parsed.getTime())) {
-      return NextResponse.json(
-        { error: "expiresAt must be a valid ISO 8601 timestamp" },
-        { status: 400 },
-      );
-    }
-    expiresAt = parsed.toISOString();
-  }
-
-  // Validate numeric caps
-  const maxCostUsdRaw = body["maxCostUsd"] ?? body["max_cost_usd"];
-  let maxCostUsd: number | null = null;
-  if (maxCostUsdRaw !== undefined && maxCostUsdRaw !== null) {
-    if (typeof maxCostUsdRaw !== "number" || !Number.isFinite(maxCostUsdRaw) || maxCostUsdRaw < 0) {
-      return NextResponse.json(
-        { error: "maxCostUsd must be a non-negative number" },
-        { status: 400 },
-      );
-    }
-    maxCostUsd = maxCostUsdRaw;
-  }
-
-  const maxRpdRaw = body["maxRpd"] ?? body["max_rpd"];
-  let maxRpd: number | null = null;
-  if (maxRpdRaw !== undefined && maxRpdRaw !== null) {
-    if (
-      typeof maxRpdRaw !== "number" ||
-      !Number.isInteger(maxRpdRaw) ||
-      maxRpdRaw < 0
-    ) {
-      return NextResponse.json(
-        { error: "maxRpd must be a non-negative integer" },
-        { status: 400 },
-      );
-    }
-    maxRpd = maxRpdRaw;
-  }
-
-  const allowedModels = asStringArrayOrUndefined(body["allowedModels"] ?? body["allowed_models"]);
-  const label = asString(body["label"]) ?? "";
+  const { tenantId, label, allowedModels, maxCostUsd, maxRpd, expiresAt } = parsed.data;
 
   try {
     const minted = mintVirtualKey(tenantId, {
-      label,
+      label: label ?? "",
       allowedModels: allowedModels ?? null,
-      maxCostUsd,
-      maxRpd,
-      expiresAt,
+      maxCostUsd: maxCostUsd ?? null,
+      maxRpd: maxRpd ?? null,
+      expiresAt: expiresAt ?? null,
     });
 
     // Surface the rawKey once. The caller MUST display this to the user —
