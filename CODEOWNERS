@@ -1,0 +1,21 @@
+# CODEOWNERS — OmniRoute
+# Default reviewers for changes in this repository.
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Core application areas
+/src/providers/*     @<REDACTED>
+/src/api/*            @<REDACTED>
+/src/combo/*          @<REDACTED>
+/src/resilience/*     @<REDACTED>
+/src/security/*       @<REDACTED>
+
+# Workspace / sub-packages
+/open-sse/*           @<REDACTED>
+/electron/*           @<REDACTED>
+/desktop-electrobun/* @<REDACTED>
+
+# CI/CD and repository automation
+/.github/*            @<REDACTED>
+
+# Fallback reviewer for everything else
+*                     @<REDACTED> @phenotype-core
