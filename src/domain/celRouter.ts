@@ -127,7 +127,11 @@ function tokenize(text: string): Token[] {
       const match = /^-?[0-9]+(?:\.[0-9]+)?/.exec(rest);
       if (!match) fail(`Invalid number at position ${i}`);
       const raw = match[0];
-      tokens.push({ kind: "number", value: Number(raw), pos: i });
+      const value = Number(raw);
+      if (!raw.includes(".") && !Number.isSafeInteger(value)) {
+        fail(`Integer literal exceeds the safe range at position ${i}`);
+      }
+      tokens.push({ kind: "number", value, pos: i });
       i += raw.length;
       continue;
     }
@@ -242,7 +246,7 @@ class Parser {
     const cond = this.parseOr();
     if (this.peek().kind === "op" && this.peek().value === "?") {
       this.consume();
-      const thenExpr = this.parseOr();
+      const thenExpr = this.parseTernary();
       this.expect("op", ":");
       const elseExpr = this.parseTernary();
       return { kind: "ternary", cond, then: thenExpr, else: elseExpr };

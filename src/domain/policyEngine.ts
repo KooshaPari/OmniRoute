@@ -117,7 +117,7 @@ function globMatch(pattern: string, value: string): boolean {
 export class PolicyEngine {
   _policies: Policy[];
   private _celEnabled: boolean;
-  private _celCompiled: Map<string, CelNode>;
+  private _celCompiled: Map<string, { expression: string; node: CelNode }>;
   private _celErrors: Map<string, string>;
 
   constructor(options: PolicyEngineOptions = {}) {
@@ -160,7 +160,10 @@ export class PolicyEngine {
       return;
     }
     try {
-      this._celCompiled.set(policy.id, compileExpression(expression));
+      this._celCompiled.set(policy.id, {
+        expression,
+        node: compileExpression(expression),
+      });
       this._celErrors.delete(policy.id);
     } catch (error) {
       this._celCompiled.delete(policy.id);
@@ -236,7 +239,12 @@ export class PolicyEngine {
 
         case "cel": {
           if (!this._celEnabled) break;
-          const compiled = this._celCompiled.get(policy.id);
+          const cached = this._celCompiled.get(policy.id);
+          if (!cached || cached.expression !== policy.conditions?.expression) {
+            this._compileCel(policy);
+            if (this._celErrors.has(policy.id)) break;
+          }
+          const compiled = this._celCompiled.get(policy.id)?.node;
           if (!compiled) break;
 
           let matched = false;

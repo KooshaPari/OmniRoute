@@ -228,8 +228,20 @@ test("over-long expressions are rejected", () => {
   assert.throws(() => compileExpression("a".repeat(2049)));
 });
 
+test("unsafe integer literals are rejected", () => {
+  assert.throws(() => compileExpression("9007199254740993 == 9007199254740992"));
+  assert.doesNotThrow(() => compileExpression("9007199254740991"));
+});
+
 test("deep nesting is rejected", () => {
   assert.throws(() => compileExpression("!".repeat(40) + "true"));
+});
+
+test("nested ternary in the true branch", () => {
+  const expression = 'context.a ? context.b ? "x" : "y" : "z"';
+  assert.equal(run(expression, ctx({ a: true, b: true })).target, "x");
+  assert.equal(run(expression, ctx({ a: true, b: false })).target, "y");
+  assert.equal(run(expression, ctx({ a: false, b: true })).target, "z");
 });
 
 test("dropped comparison with a non-boolean value is truthy", () => {

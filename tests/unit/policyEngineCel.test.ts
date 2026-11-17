@@ -144,3 +144,23 @@ test("cel policies honor model_pattern before evaluating the expression", () => 
   assert.deepEqual(engine.evaluate({ model: "gpt-4o" }).preferredProviders, ["openai"]);
   assert.deepEqual(engine.evaluate({ model: "claude-3-opus" }).preferredProviders, []);
 });
+
+test("a mutated cel expression is recompiled before evaluation", () => {
+  const engine = new PolicyEngine({ celEnabled: true });
+  const policy = celPolicy({ actions: { prefer_provider: ["anthropic"] } });
+  engine.addPolicy(policy);
+
+  assert.deepEqual(engine.evaluate({ model: "gpt-4o" }).preferredProviders, ["anthropic"]);
+
+  policy.conditions = { expression: 'context.model == "claude"' };
+  assert.deepEqual(engine.evaluate({ model: "gpt-4o" }).preferredProviders, []);
+  assert.deepEqual(engine.evaluate({ model: "claude" }).preferredProviders, ["anthropic"]);
+
+  policy.conditions = { expression: "@@invalid@@" };
+  assert.deepEqual(engine.evaluate({ model: "claude" }).preferredProviders, []);
+  assert.notEqual(engine.getCelErrors()["cel-1"], undefined);
+
+  policy.conditions = { expression: 'context.model == "claude"' };
+  assert.deepEqual(engine.evaluate({ model: "claude" }).preferredProviders, ["anthropic"]);
+  assert.equal(engine.getCelErrors()["cel-1"], undefined);
+});
