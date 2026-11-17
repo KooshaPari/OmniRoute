@@ -1,0 +1,1 @@
+- **feat(routing):** add nested `$and`/`$or` conditional policies (`$eq`, `$ne`, `$in`, `$nin`, `$regex`, `$exists`) to `PolicyEngine`, with diagnostics via `getConditionalErrors()`.
