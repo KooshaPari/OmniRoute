@@ -675,13 +675,12 @@ async function handleChatImplementation(
     resolvedModelStr,
     body as Record<string, unknown>
   );
+  let suffixAutoMode: "fast" | "cheap" | undefined;
   if (suffixResolution.parsed.hasSuffix) {
     const suffixParsed = suffixResolution.parsed;
     resolvedModelStr = suffixResolution.model;
     body = suffixResolution.body as typeof body;
-    if (suffixParsed.isPerformanceTier || suffixParsed.isEconomyTier || suffixParsed.isFreeTier) {
-      log.debug("ROUTING", `Model tier suffix accepted without a tier override: ${suffixParsed.raw}`);
-    }
+    suffixAutoMode = suffixResolution.autoMode;
     if (suffixParsed.needsWebSearch || suffixParsed.needsExtendedContext) {
       log.debug("ROUTING", `Model suffix accepted without provider behavior: ${suffixParsed.raw}`);
     }
@@ -911,6 +910,7 @@ async function handleChatImplementation(
       sessionId,
       ...(combo.strategy === "context-relay" ? { config: relayConfig } : {}),
       ...(bypassProviderQuotaPolicy ? { bypassProviderQuotaPolicy: true } : {}),
+      ...(suffixAutoMode ? { mode: suffixAutoMode } : {}),
       ...perRequestAutoControls,
     };
     telemetry.endPhase();

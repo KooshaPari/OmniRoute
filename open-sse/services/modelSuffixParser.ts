@@ -131,6 +131,8 @@ export interface ResolvedModelSuffixRequest {
   model: string;
   body: Record<string, unknown>;
   parsed: ParsedModel;
+  autoMode?: "fast" | "cheap";
+  autoFree: boolean;
 }
 
 /**
@@ -146,9 +148,19 @@ export function resolveModelSuffixRequest(
   body: Record<string, unknown>
 ): ResolvedModelSuffixRequest {
   const parsed = parseModelSuffixes(model);
-  if (!parsed.hasSuffix) return { model, body, parsed };
+  if (!parsed.hasSuffix) {
+    return { model, body, parsed, autoMode: undefined, autoFree: false };
+  }
 
-  const nextBody: Record<string, unknown> = { ...body, model: parsed.baseModel };
+  const autoFree = parsed.isFreeTier && parsed.baseModel === "auto";
+  const nextModel = autoFree ? "auto/best-free" : parsed.baseModel;
+  const autoMode = parsed.isPerformanceTier
+    ? "fast"
+    : parsed.isEconomyTier
+      ? "cheap"
+      : undefined;
+
+  const nextBody: Record<string, unknown> = { ...body, model: nextModel };
   if (
     parsed.isThinking &&
     nextBody.reasoning === undefined &&
@@ -156,7 +168,7 @@ export function resolveModelSuffixRequest(
   ) {
     nextBody.reasoning = { effort: "high" };
   }
-  return { model: parsed.baseModel, body: nextBody, parsed };
+  return { model: nextModel, body: nextBody, parsed, autoMode, autoFree };
 }
 
 /**

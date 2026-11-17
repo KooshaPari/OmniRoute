@@ -209,4 +209,24 @@ test("resolveModelSuffixRequest does not inject tier fields", () => {
   assert.equal(resolved.model, "gpt-4o");
   assert.equal(resolved.body.tg_tier, undefined);
   assert.equal(resolved.parsed.isPerformanceTier, true);
+  assert.equal(resolved.autoMode, "fast");
+});
+
+test("tier suffixes map to auto mode packs", () => {
+  assert.equal(resolveModelSuffixRequest("auto:nitro", {}).autoMode, "fast");
+  assert.equal(resolveModelSuffixRequest("auto:floor", {}).autoMode, "cheap");
+  assert.equal(resolveModelSuffixRequest("auto", {}).autoMode, undefined);
+});
+
+test("auto:free rewrites to the built-in free combo", () => {
+  const resolved = resolveModelSuffixRequest("auto:free", { model: "auto:free" });
+  assert.equal(resolved.model, "auto/best-free");
+  assert.equal(resolved.body.model, "auto/best-free");
+  assert.equal(resolved.autoFree, true);
+});
+
+test("free on a specific auto category does not rewrite the model", () => {
+  const resolved = resolveModelSuffixRequest("auto/coding:free", { model: "auto/coding:free" });
+  assert.equal(resolved.model, "auto/coding");
+  assert.equal(resolved.autoFree, false);
 });
