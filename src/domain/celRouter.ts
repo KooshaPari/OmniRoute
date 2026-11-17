@@ -453,15 +453,31 @@ function truthy(value: unknown): boolean {
   return true;
 }
 
-function equals(left: unknown, right: unknown): boolean {
+function equals(left: unknown, right: unknown, depth = 0): boolean {
   const a = normalize(left);
   const b = normalize(right);
   if (a === null || b === null) return a === b;
+  if (
+    (typeof a === "boolean" || typeof a === "number") &&
+    (typeof b === "boolean" || typeof b === "number")
+  ) {
+    return Number(a) === Number(b);
+  }
   if (typeof a !== typeof b) return false;
   if (Array.isArray(a) && Array.isArray(b)) {
-    return a.length === b.length && a.every((entry, index) => equals(entry, b[index]));
+    return a.length === b.length && a.every((entry, index) => equals(entry, b[index], depth + 1));
   }
-  if (typeof a === "object") return a === b;
+  if (depth > 32) return a === b;
+  if (typeof a === "object" && typeof b === "object") {
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length) return false;
+    return aKeys.every(
+      (key) =>
+        Object.prototype.hasOwnProperty.call(b, key) &&
+        equals((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], depth + 1)
+    );
+  }
   return a === b;
 }
 
@@ -469,11 +485,13 @@ function ordered(op: "lt" | "lte" | "gt" | "gte", left: unknown, right: unknown)
   const a = normalize(left);
   const b = normalize(right);
   if (a === null || b === null) return false;
-  if (typeof a === "number" && typeof b === "number") {
-    if (op === "lt") return a < b;
-    if (op === "lte") return a <= b;
-    if (op === "gt") return a > b;
-    return a >= b;
+  const numericA = typeof a === "number" ? a : typeof a === "boolean" ? Number(a) : null;
+  const numericB = typeof b === "number" ? b : typeof b === "boolean" ? Number(b) : null;
+  if (numericA !== null && numericB !== null) {
+    if (op === "lt") return numericA < numericB;
+    if (op === "lte") return numericA <= numericB;
+    if (op === "gt") return numericA > numericB;
+    return numericA >= numericB;
   }
   if (typeof a === "string" && typeof b === "string") {
     if (op === "lt") return a < b;

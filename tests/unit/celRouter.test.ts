@@ -112,6 +112,27 @@ test("structural list equality", () => {
   assert.equal(run('context.tags == ["a", "b"]', ctx({ tags: ["a"] })).matched, false);
 });
 
+test("boolean and numeric equality", () => {
+  assert.equal(run("context.enabled == 1", ctx({ enabled: true })).matched, true);
+  assert.equal(run("context.enabled == 0", ctx({ enabled: false })).matched, true);
+  assert.equal(run("context.enabled < 2", ctx({ enabled: true })).matched, true);
+  assert.equal(run("context.enabled > 2", ctx({ enabled: true })).matched, false);
+});
+
+test("structural object equality", () => {
+  const equal = ctx({
+    metadata: { tier: "premium", count: 1 },
+    expected: { tier: "premium", count: 1 },
+  });
+  assert.equal(run("context.metadata == context.expected", equal).matched, true);
+
+  const different = ctx({
+    metadata: { tier: "premium" },
+    expected: { tier: "free" },
+  });
+  assert.equal(run("context.metadata == context.expected", different).matched, false);
+});
+
 test("ternary expression", () => {
   const expr = "context.priority > 5 ? true : false";
   assert.equal(run(expr, ctx({ priority: 10 })).matched, true);

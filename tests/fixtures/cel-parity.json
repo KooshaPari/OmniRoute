@@ -1,0 +1,1183 @@
+{
+  "source": "host-ops/tools/thegent-routing/src/routing_impl/cel_router.py",
+  "generatedAt": "2026-11-17",
+  "routeCases": [
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model == \"gpt-4o\"",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model != \"gpt-4o\"",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "claude-3-5-sonnet"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model != \"gpt-4o\"",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.priority > 5",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "priority": 10
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.priority > 5",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "priority": 3
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.priority <= 5",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "priority": 5
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.priority <= 5",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "priority": 6
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model == \"gpt-4o\" && context.priority > 5",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o",
+          "priority": 10
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model == \"gpt-4o\" && context.priority > 5",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o",
+          "priority": 3
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model == \"gpt-4o\" || context.model == \"claude-3-opus\"",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "claude-3-opus"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model == \"gpt-4o\" || context.model == \"claude-3-opus\"",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gemini"
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "!(context.model == \"gpt-4o\")",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "claude"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "!(context.model == \"gpt-4o\")",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.metadata.tier == \"premium\"",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "metadata": {
+            "tier": "premium"
+          }
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.metadata.tier == \"premium\"",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "metadata": {
+            "tier": "free"
+          }
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.priority > 5",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model.contains(\"gpt\")",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model.contains(\"gpt\")",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "claude-3"
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model.startsWith(\"claude\")",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "claude-3-sonnet"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model.startsWith(\"claude\")",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model.endsWith(\"turbo\")",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-3.5-turbo"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model.endsWith(\"turbo\")",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model in [\"gpt-4o\", \"gpt-4-turbo\"]",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model in [\"gpt-4o\", \"gpt-4-turbo\"]",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "claude-3"
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.priority > 5 ? true : false",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "priority": 10
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.priority > 5 ? true : false",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "priority": 2
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.tags == [\"a\", \"b\"]",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "tags": [
+            "a",
+            "b"
+          ]
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.tags == [\"a\", \"b\"]",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "tags": [
+            "a"
+          ]
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.metadata == context.expected",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "metadata": {
+            "tier": "premium",
+            "count": 1
+          },
+          "expected": {
+            "tier": "premium",
+            "count": 1
+          }
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.metadata == context.expected",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "metadata": {
+            "tier": "premium"
+          },
+          "expected": {
+            "tier": "free"
+          }
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.enabled == 1",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "enabled": true
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.enabled == 0",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "enabled": false
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.enabled < 2",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "enabled": true
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.temperature > -0.5",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "temperature": -0.25
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model == \"gpt\\n4o\"",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt\n4o"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.missing == null",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {}
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model == null",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model in []",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.model in \"gpt-4o\"",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "!context.model.contains(\"gpt\") && context.priority > 5",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "claude",
+          "priority": 10
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.priority.contains(1)",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "priority": 10
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "target-model",
+        "routeName": "test",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.missing.contains(\"x\")",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {}
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "test",
+      "routes": [
+        {
+          "expression": "context.flag == null",
+          "target": "target-model",
+          "name": "test"
+        }
+      ],
+      "context": {
+        "context": {
+          "flag": false
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "multiple routes, first match wins",
+      "routes": [
+        {
+          "expression": "context.model == \"gpt-4o\"",
+          "target": "route-a",
+          "name": "A"
+        },
+        {
+          "expression": "context.model == \"gpt-4o\"",
+          "target": "route-b",
+          "name": "B"
+        },
+        {
+          "expression": "context.model == \"claude\"",
+          "target": "route-c",
+          "name": "C"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "route-a",
+        "routeName": "A",
+        "error": false
+      }
+    },
+    {
+      "name": "multiple routes, second match wins",
+      "routes": [
+        {
+          "expression": "context.model == \"gpt-4o\"",
+          "target": "route-a",
+          "name": "A"
+        },
+        {
+          "expression": "context.model == \"gpt-4o\"",
+          "target": "route-b",
+          "name": "B"
+        },
+        {
+          "expression": "context.model == \"claude\"",
+          "target": "route-c",
+          "name": "C"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "claude"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "route-c",
+        "routeName": "C",
+        "error": false
+      }
+    },
+    {
+      "name": "multiple routes, no match",
+      "routes": [
+        {
+          "expression": "context.model == \"gpt-4o\"",
+          "target": "route-a",
+          "name": "A"
+        },
+        {
+          "expression": "context.model == \"gpt-4o\"",
+          "target": "route-b",
+          "name": "B"
+        },
+        {
+          "expression": "context.model == \"claude\"",
+          "target": "route-c",
+          "name": "C"
+        }
+      ],
+      "context": {
+        "context": {
+          "model": "gemini"
+        }
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "",
+        "error": false
+      }
+    },
+    {
+      "name": "bad",
+      "routes": [
+        {
+          "expression": "@@invalid@@",
+          "target": "target-model",
+          "name": "bad"
+        }
+      ],
+      "context": {
+        "context": {}
+      },
+      "expected": {
+        "matched": false,
+        "target": "",
+        "routeName": "bad",
+        "error": true
+      }
+    },
+    {
+      "name": "ternary-target",
+      "routes": [
+        {
+          "expression": "context.tier == \"premium\" ? \"premium-model\" : \"free-model\"",
+          "target": "ignored-target",
+          "name": "ternary-target"
+        }
+      ],
+      "context": {
+        "context": {
+          "tier": "premium"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "premium-model",
+        "routeName": "ternary-target",
+        "error": false
+      }
+    },
+    {
+      "name": "ternary-target",
+      "routes": [
+        {
+          "expression": "context.tier == \"premium\" ? \"premium-model\" : \"free-model\"",
+          "target": "ignored-target",
+          "name": "ternary-target"
+        }
+      ],
+      "context": {
+        "context": {
+          "tier": "free"
+        }
+      },
+      "expected": {
+        "matched": true,
+        "target": "free-model",
+        "routeName": "ternary-target",
+        "error": false
+      }
+    }
+  ],
+  "expressionCases": [
+    {
+      "name": "expression case 1",
+      "expression": "context.model == \"gpt-4o\"",
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": true
+    },
+    {
+      "name": "expression case 2",
+      "expression": "context.priority > 5",
+      "context": {
+        "context": {
+          "priority": 3
+        }
+      },
+      "expected": false
+    },
+    {
+      "name": "expression case 3",
+      "expression": "context.metadata.tier == \"premium\"",
+      "context": {
+        "context": {
+          "metadata": {
+            "tier": "premium"
+          }
+        }
+      },
+      "expected": true
+    },
+    {
+      "name": "expression case 4",
+      "expression": "context.model.contains(\"gpt\")",
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": true
+    },
+    {
+      "name": "expression case 5",
+      "expression": "context.model in [\"gpt-4o\"]",
+      "context": {
+        "context": {
+          "model": "gpt-4o"
+        }
+      },
+      "expected": true
+    },
+    {
+      "name": "expression case 6",
+      "expression": "context.enabled == 1",
+      "context": {
+        "context": {
+          "enabled": true
+        }
+      },
+      "expected": true
+    },
+    {
+      "name": "expression case 7",
+      "expression": "context.missing == null",
+      "context": {
+        "context": {}
+      },
+      "expected": true
+    },
+    {
+      "name": "expression case 8",
+      "expression": "context.tags == [\"a\", \"b\"]",
+      "context": {
+        "context": {
+          "tags": [
+            "a",
+            "b"
+          ]
+        }
+      },
+      "expected": true
+    },
+    {
+      "name": "expression case 9",
+      "expression": "context.metadata == context.expected",
+      "context": {
+        "context": {
+          "metadata": {
+            "tier": "premium"
+          },
+          "expected": {
+            "tier": "premium"
+          }
+        }
+      },
+      "expected": true
+    }
+  ]
+}
