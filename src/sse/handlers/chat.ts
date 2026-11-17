@@ -39,6 +39,7 @@ import type { ComboLike, SingleModelTarget } from "@omniroute/open-sse/services/
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { mergeAbortSignals } from "@omniroute/open-sse/executors/base.ts";
 import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
+import { resolveModelSuffixRequest } from "@omniroute/open-sse/services/modelSuffixParser.ts";
 import { isVerifiedNativeCodexRequest } from "@omniroute/open-sse/config/codexIdentity.ts";
 import { resolveCompressionSettings } from "@omniroute/open-sse/handlers/chatCore/compressionSettings.ts";
 import type { CompressionExclusions } from "@omniroute/open-sse/services/compression/exclusions.ts";
@@ -662,6 +663,26 @@ async function handleChatImplementation(
   // T05 — Task-Aware Smart Routing
   // Detect the semantic task type and optionally route to the optimal model
   let resolvedModelStr = modelStr;
+
+  // OpenRouter-style model suffixes. Strip them before task and combo
+  // resolution so a suffixed id never reaches a provider as-is. `thinking` is
+  // applied here; tier/online/extended hints remain available to later layers.
+  const suffixResolution = resolveModelSuffixRequest(
+    resolvedModelStr,
+    body as Record<string, unknown>
+  );
+  if (suffixResolution.parsed.hasSuffix) {
+    const suffixParsed = suffixResolution.parsed;
+    resolvedModelStr = suffixResolution.model;
+    body = suffixResolution.body as typeof body;
+    if (suffixParsed.isPerformanceTier || suffixParsed.isEconomyTier || suffixParsed.isFreeTier) {
+      log.debug("ROUTING", `Model tier suffix accepted without a tier override: ${suffixParsed.raw}`);
+    }
+    if (suffixParsed.needsWebSearch || suffixParsed.needsExtendedContext) {
+      log.debug("ROUTING", `Model suffix accepted without provider behavior: ${suffixParsed.raw}`);
+    }
+  }
+
   let taskRouteInfo: { taskType: string; wasRouted: boolean } | null = null;
   if (getTaskRoutingConfig().enabled) {
     telemetry.startPhase("task-route");

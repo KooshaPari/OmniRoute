@@ -1,0 +1,1 @@
+- **feat(routing):** accept OpenRouter-style model suffixes (`:nitro`, `:floor`, `:free`, `:thinking`, `:online`, `:extended`), strip them before provider resolution, and apply `:thinking`; tier, web-search, and extended-context hints are parsed and exposed for later routing layers.
