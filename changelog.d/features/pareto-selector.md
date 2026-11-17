@@ -1,0 +1,1 @@
+- **feat(routing):** add a live Pareto frontier selector to the management route-preview API, with `balanced`, `quality`, `cost`, and `latency` preferences alongside the existing weighted ranking.

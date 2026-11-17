@@ -6,7 +6,11 @@ import {
   filterCandidatesByPreferences,
   toOpenRouterProviderBody,
 } from "@omniroute/open-sse/services/providerPreferences.ts";
-import { rankCandidates } from "@/lib/routing/adaptiveRouting";
+import {
+  rankCandidates,
+  rankCandidatesPareto,
+  type ParetoPreference,
+} from "@/lib/routing/adaptiveRouting";
 
 const candidateSchema = z.object({
   providerId: z.string().min(1),
@@ -43,6 +47,8 @@ const providerSchema = z
 const requestSchema = z.object({
   candidates: z.array(candidateSchema).min(1).max(100),
   provider: providerSchema.optional(),
+  strategy: z.enum(["weighted", "pareto"]).optional(),
+  paretoPreference: z.enum(["balanced", "quality", "cost", "latency"]).optional(),
 });
 
 /** Deterministic routing preview. It never calls an upstream provider. */
@@ -73,9 +79,13 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const result = rankCandidates({ candidates });
+  const strategy = parsed.data.strategy ?? "weighted";
+  const result =
+    strategy === "pareto"
+      ? rankCandidatesPareto(candidates, parsed.data.paretoPreference as ParetoPreference | undefined)
+      : rankCandidates({ candidates });
   return NextResponse.json({
-    request: { candidateCount: parsed.data.candidates.length },
+    request: { candidateCount: parsed.data.candidates.length, strategy },
     filteredCandidateCount: candidates.length,
     ...(preferences ? { providerPreferences: toOpenRouterProviderBody(preferences) } : {}),
     ...result,
