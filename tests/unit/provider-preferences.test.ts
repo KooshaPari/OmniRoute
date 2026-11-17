@@ -5,6 +5,7 @@ import {
   extractProviderOptions,
   extractProviderPreferences,
   filterCandidatesByPreferences,
+  filterComboModelsByPreferences,
   filterModelsByPreferences,
   providerOf,
   toOpenRouterProviderBody,
@@ -169,6 +170,48 @@ test("filterCandidatesByPreferences works on provider/model objects", () => {
   assert.deepEqual(
     filterCandidatesByPreferences(candidates, prefs({ quantizations: ["fp16"] })),
     [{ provider: "c", model: "m1-fp16" }]
+  );
+});
+
+test("filterComboModelsByPreferences handles string targets", () => {
+  const models = ["b/m1", "a/m1", "c/m1"];
+  assert.deepEqual(
+    filterComboModelsByPreferences(models, prefs({ only: ["a", "c"], order: ["c", "a"] })),
+    ["c/m1", "a/m1"]
+  );
+});
+
+test("filterComboModelsByPreferences preserves object target shape", () => {
+  const models = [
+    { model: "m1", providerId: "p1", weight: 1 },
+    { model: "m2", provider: "p2", weight: 2 },
+    { model: "p3/m3", weight: 3 },
+  ];
+  assert.deepEqual(
+    filterComboModelsByPreferences(models, prefs({ only: ["p1", "p2"], order: ["p2", "p1"] })),
+    [
+      { model: "m2", provider: "p2", weight: 2 },
+      { model: "m1", providerId: "p1", weight: 1 },
+    ]
+  );
+});
+
+test("filterComboModelsByPreferences applies quantization to object models", () => {
+  const models = [
+    { model: "m1-fp16", providerId: "p1" },
+    { model: "m2-q4", providerId: "p1" },
+  ];
+  assert.deepEqual(
+    filterComboModelsByPreferences(models, prefs({ quantizations: ["fp16"] })),
+    [{ model: "m1-fp16", providerId: "p1" }]
+  );
+});
+
+test("filterComboModelsByPreferences drops fallbacks when disabled", () => {
+  const models = ["b/m1", "a/m1", "c/m1"];
+  assert.deepEqual(
+    filterComboModelsByPreferences(models, prefs({ order: ["a"], allowFallbacks: false })),
+    ["a/m1"]
   );
 });
 

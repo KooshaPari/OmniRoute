@@ -40,6 +40,10 @@ import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts"
 import { mergeAbortSignals } from "@omniroute/open-sse/executors/base.ts";
 import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
 import { resolveModelSuffixRequest } from "@omniroute/open-sse/services/modelSuffixParser.ts";
+import {
+  extractProviderPreferences,
+  filterComboModelsByPreferences,
+} from "@omniroute/open-sse/services/providerPreferences.ts";
 import { isVerifiedNativeCodexRequest } from "@omniroute/open-sse/config/codexIdentity.ts";
 import { resolveCompressionSettings } from "@omniroute/open-sse/handlers/chatCore/compressionSettings.ts";
 import type { CompressionExclusions } from "@omniroute/open-sse/services/compression/exclusions.ts";
@@ -683,6 +687,8 @@ async function handleChatImplementation(
     }
   }
 
+  const providerPreferences = extractProviderPreferences(body as Record<string, unknown>);
+
   let taskRouteInfo: { taskType: string; wasRouted: boolean } | null = null;
   if (getTaskRoutingConfig().enabled) {
     telemetry.startPhase("task-route");
@@ -766,6 +772,23 @@ async function handleChatImplementation(
       const filtered = filterReasoningCombo(combo, reasoningDecision);
       if (filtered instanceof Response) return filtered;
       combo = filtered;
+    }
+    if (providerPreferences && Array.isArray(combo.models) && combo.models.length > 0) {
+      const models = combo.models;
+      const filteredModels = filterComboModelsByPreferences(models, providerPreferences);
+      if (filteredModels.length === 0) {
+        return errorResponse(
+          HTTP_STATUS.BAD_REQUEST,
+          "No combo targets match the provider preferences"
+        );
+      }
+      if (filteredModels.length !== models.length) {
+        combo = { ...combo, models: filteredModels };
+        log.info(
+          "ROUTING",
+          `Provider preferences kept ${filteredModels.length}/${models.length} combo targets`
+        );
+      }
     }
     const [settings, allCombos] = await Promise.all([
       getCachedSettings().catch(() => ({})),

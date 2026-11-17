@@ -177,6 +177,53 @@ export function filterCandidatesByPreferences<T extends ProviderCandidate>(
   return result;
 }
 
+function comboEntryProvider(entry: unknown): string {
+  if (typeof entry === "string") return providerOf(entry);
+  if (isPlainObject(entry)) {
+    if (typeof entry.providerId === "string") return entry.providerId;
+    if (typeof entry.provider === "string") return entry.provider;
+    if (typeof entry.model === "string") return providerOf(entry.model);
+  }
+  return "";
+}
+
+function comboEntryModel(entry: unknown): string {
+  if (typeof entry === "string") return entry;
+  if (isPlainObject(entry) && typeof entry.model === "string") return entry.model;
+  return "";
+}
+
+/**
+ * Native variant for persisted and virtual combo targets.
+ *
+ * Combo entries may be `"provider/model"` strings or objects with `model` plus
+ * `provider`/`providerId`. The original entry shape is preserved.
+ */
+export function filterComboModelsByPreferences<T>(
+  models: readonly T[],
+  prefs: ProviderPreferences
+): T[] {
+  let result = [...models];
+
+  if (prefs.only.length > 0) {
+    const only = new Set(prefs.only);
+    result = result.filter((entry) => only.has(comboEntryProvider(entry)));
+  }
+  if (prefs.ignore.length > 0) {
+    const ignore = new Set(prefs.ignore);
+    result = result.filter((entry) => !ignore.has(comboEntryProvider(entry)));
+  }
+  if (prefs.quantizations.length > 0) {
+    result = result.filter((entry) =>
+      matchesQuantization(comboEntryModel(entry), prefs.quantizations)
+    );
+  }
+  if (prefs.order.length > 0) {
+    result = orderedByProvider(result, comboEntryProvider, prefs.order, prefs.allowFallbacks);
+  }
+  return result;
+}
+
 /** Serialize to the OpenRouter `provider` wire object. */
 export function toOpenRouterProviderBody(prefs: ProviderPreferences): Record<string, unknown> {
   const body: Record<string, unknown> = {
