@@ -133,6 +133,16 @@ test("structural object equality", () => {
   assert.equal(run("context.metadata == context.expected", different).matched, false);
 });
 
+test("cyclic structures stop at the depth guard", () => {
+  const first: Record<string, unknown> = {};
+  first.self = first;
+  const second: Record<string, unknown> = {};
+  second.self = second;
+
+  assert.doesNotThrow(() => run("context.first == context.second", ctx({ first, second })));
+  assert.equal(run("context.first == context.second", ctx({ first, second })).matched, false);
+});
+
 test("ternary expression", () => {
   const expr = "context.priority > 5 ? true : false";
   assert.equal(run(expr, ctx({ priority: 10 })).matched, true);

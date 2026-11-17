@@ -464,10 +464,10 @@ function equals(left: unknown, right: unknown, depth = 0): boolean {
     return Number(a) === Number(b);
   }
   if (typeof a !== typeof b) return false;
+  if (depth > 32) return a === b;
   if (Array.isArray(a) && Array.isArray(b)) {
     return a.length === b.length && a.every((entry, index) => equals(entry, b[index], depth + 1));
   }
-  if (depth > 32) return a === b;
   if (typeof a === "object" && typeof b === "object") {
     const aKeys = Object.keys(a);
     const bKeys = Object.keys(b);
