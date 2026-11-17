@@ -11,6 +11,7 @@
 import { checkLockout } from "./lockoutPolicy";
 import { checkBudget } from "./costRules";
 import { resolveFallbackChain } from "./fallbackPolicy";
+import { compileExpression, evalExpression, type CelNode } from "./celRouter";
 
 interface PolicyRequest {
   model: string;
@@ -26,7 +27,7 @@ interface PolicyVerdict {
   policyPhase: string;
 }
 
-interface Policy {
+export interface Policy {
   id: string;
   name: string;
   type: string;
@@ -34,6 +35,7 @@ interface Policy {
   priority: number;
   conditions?: {
     model_pattern?: string;
+    expression?: string;
     [key: string]: unknown;
   };
   actions?: {
@@ -42,6 +44,11 @@ interface Policy {
     max_tokens?: number;
     [key: string]: unknown;
   };
+}
+
+export interface PolicyEngineOptions {
+  /** Enables the "cel" policy type. Defaults to false. */
+  celEnabled?: boolean;
 }
 
 export function evaluateRequest(request: PolicyRequest): PolicyVerdict {
@@ -109,28 +116,67 @@ function globMatch(pattern: string, value: string): boolean {
 
 export class PolicyEngine {
   _policies: Policy[];
+  private _celEnabled: boolean;
+  private _celCompiled: Map<string, CelNode>;
+  private _celErrors: Map<string, string>;
 
-  constructor() {
+  constructor(options: PolicyEngineOptions = {}) {
     this._policies = [];
+    this._celEnabled = options.celEnabled === true;
+    this._celCompiled = new Map();
+    this._celErrors = new Map();
   }
 
   loadPolicies(policies: Policy[]) {
     this._policies = [...policies];
+    this._recompileCel();
   }
 
   addPolicy(policy: Policy) {
     this._policies.push(policy);
+    this._compileCel(policy);
   }
 
   removePolicy(id: string) {
     this._policies = this._policies.filter((p) => p.id !== id);
+    this._celCompiled.delete(id);
+    this._celErrors.delete(id);
   }
 
   getPolicies(): Policy[] {
     return [...this._policies];
   }
 
-  evaluate(context: { model: string }) {
+  getCelErrors(): Record<string, string> {
+    return Object.fromEntries(this._celErrors);
+  }
+
+  private _compileCel(policy: Policy): void {
+    if (policy.type !== "cel") return;
+    const expression = policy.conditions?.expression;
+    if (typeof expression !== "string" || expression.trim() === "") {
+      this._celCompiled.delete(policy.id);
+      this._celErrors.set(policy.id, "missing expression");
+      return;
+    }
+    try {
+      this._celCompiled.set(policy.id, compileExpression(expression));
+      this._celErrors.delete(policy.id);
+    } catch (error) {
+      this._celCompiled.delete(policy.id);
+      this._celErrors.set(policy.id, error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  private _recompileCel(): void {
+    this._celCompiled.clear();
+    this._celErrors.clear();
+    for (const policy of this._policies) {
+      this._compileCel(policy);
+    }
+  }
+
+  evaluate(context: { model: string; [key: string]: unknown }) {
     const result: {
       allowed: boolean;
       reason: string | undefined;
@@ -187,6 +233,40 @@ export class PolicyEngine {
           }
           result.appliedPolicies.push(policy.name);
           break;
+
+        case "cel": {
+          if (!this._celEnabled) break;
+          const compiled = this._celCompiled.get(policy.id);
+          if (!compiled) break;
+
+          let matched = false;
+          try {
+            matched = evalExpression(compiled, { context });
+          } catch {
+            matched = false;
+          }
+          if (!matched) break;
+
+          if (policy.actions?.prefer_provider) {
+            result.preferredProviders.push(...policy.actions.prefer_provider);
+          }
+          if (policy.actions?.max_tokens != null) {
+            result.maxTokens = policy.actions.max_tokens;
+          }
+          if (policy.actions?.block_model) {
+            const blocked = policy.actions.block_model.some((pattern) =>
+              globMatch(pattern, context.model)
+            );
+            if (blocked) {
+              result.allowed = false;
+              result.reason = `Model "${context.model}" blocked by policy "${policy.name}"`;
+              result.appliedPolicies.push(policy.name);
+              return result;
+            }
+          }
+          result.appliedPolicies.push(policy.name);
+          break;
+        }
       }
     }
 
