@@ -1,0 +1,1 @@
+- **feat(cache):** add pure embedding-similarity primitives (`cosineSimilarity`, `normalizeVector`, `findBestMatch`, quantized vector keys) for a future embedding-based semantic cache.
