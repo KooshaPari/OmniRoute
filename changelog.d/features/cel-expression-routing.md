@@ -1,0 +1,1 @@
+- **feat(routing):** add a dependency-free CEL expression router and wire `cel` policies into `PolicyEngine` behind the opt-in `celEnabled` option.

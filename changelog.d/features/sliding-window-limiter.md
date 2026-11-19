@@ -1,0 +1,1 @@
+- **feat(routing):** add a dependency-free sliding-window rate limiter and use it to cap `POST /api/omniroute/policies/evaluate` at 120 requests per minute per client.

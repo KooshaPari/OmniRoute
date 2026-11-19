@@ -1,0 +1,1 @@
+- **feat(routing):** expose file-backed CEL and conditional policies through `GET /api/omniroute/policies` and `POST /api/omniroute/policies/evaluate`, including validation errors and dry-run evaluation without upstream requests.

@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { rankCandidates } from "@/lib/routing/adaptiveRouting";
+import {
+  extractProviderPreferences,
+  filterCandidatesByPreferences,
+  toOpenRouterProviderBody,
+} from "@omniroute/open-sse/services/providerPreferences.ts";
+import {
+  rankCandidates,
+  rankCandidatesPareto,
+  type ParetoPreference,
+} from "@/lib/routing/adaptiveRouting";
 
 const candidateSchema = z.object({
   providerId: z.string().min(1),
@@ -17,7 +26,30 @@ const candidateSchema = z.object({
   costPreference: z.number().min(0).max(1).optional(),
 });
 
-const requestSchema = z.object({ candidates: z.array(candidateSchema).min(1).max(100) });
+const providerSchema = z
+  .object({
+    order: z.array(z.string()).optional(),
+    only: z.array(z.string()).optional(),
+    ignore: z.array(z.string()).optional(),
+    allow_fallbacks: z.boolean().optional(),
+    data_collection: z.enum(["allow", "deny"]).optional(),
+    quantizations: z.array(z.string()).optional(),
+    sort: z.enum(["price", "throughput", "latency"]).optional(),
+    max_price: z
+      .object({
+        prompt: z.number().nonnegative().optional(),
+        completion: z.number().nonnegative().optional(),
+      })
+      .optional(),
+  })
+  .passthrough();
+
+const requestSchema = z.object({
+  candidates: z.array(candidateSchema).min(1).max(100),
+  provider: providerSchema.optional(),
+  strategy: z.enum(["weighted", "pareto"]).optional(),
+  paretoPreference: z.enum(["balanced", "quality", "cost", "latency"]).optional(),
+});
 
 /** Deterministic routing preview. It never calls an upstream provider. */
 export async function POST(request: Request): Promise<Response> {
@@ -26,9 +58,36 @@ export async function POST(request: Request): Promise<Response> {
   const parsed = requestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
-  const result = rankCandidates(parsed.data);
+  const preferences = parsed.data.provider
+    ? extractProviderPreferences({ provider: parsed.data.provider })
+    : null;
+  const candidates = preferences
+    ? filterCandidatesByPreferences(
+        parsed.data.candidates.map((candidate) => ({
+          provider: candidate.providerId,
+          model: candidate.modelId,
+          candidate,
+        })),
+        preferences
+      ).map((entry) => entry.candidate)
+    : parsed.data.candidates;
+
+  if (candidates.length === 0) {
+    return NextResponse.json(
+      { error: "No candidates match the provider preferences" },
+      { status: 400 }
+    );
+  }
+
+  const strategy = parsed.data.strategy ?? "weighted";
+  const result =
+    strategy === "pareto"
+      ? rankCandidatesPareto(candidates, parsed.data.paretoPreference as ParetoPreference | undefined)
+      : rankCandidates({ candidates });
   return NextResponse.json({
-    request: { candidateCount: parsed.data.candidates.length },
+    request: { candidateCount: parsed.data.candidates.length, strategy },
+    filteredCandidateCount: candidates.length,
+    ...(preferences ? { providerPreferences: toOpenRouterProviderBody(preferences) } : {}),
     ...result,
     selected: result.selected?.providerId ?? null,
     liveRequestExecuted: false,

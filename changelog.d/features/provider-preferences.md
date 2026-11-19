@@ -1,0 +1,1 @@
+- **feat(routing):** parse OpenRouter `provider` preferences and `providerOptions`, and apply `only`, `ignore`, `quantizations`, and `order` to the management route-preview API and chat combo targets.

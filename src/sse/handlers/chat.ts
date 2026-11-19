@@ -39,6 +39,14 @@ import type { ComboLike, SingleModelTarget } from "@omniroute/open-sse/services/
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { mergeAbortSignals } from "@omniroute/open-sse/executors/base.ts";
 import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
+import {
+  addWebSearchTool,
+  resolveModelSuffixRequest,
+} from "@omniroute/open-sse/services/modelSuffixParser.ts";
+import {
+  extractProviderPreferences,
+  filterComboModelsByPreferences,
+} from "@omniroute/open-sse/services/providerPreferences.ts";
 import { isVerifiedNativeCodexRequest } from "@omniroute/open-sse/config/codexIdentity.ts";
 import { resolveCompressionSettings } from "@omniroute/open-sse/handlers/chatCore/compressionSettings.ts";
 import type { CompressionExclusions } from "@omniroute/open-sse/services/compression/exclusions.ts";
@@ -662,6 +670,36 @@ async function handleChatImplementation(
   // T05 — Task-Aware Smart Routing
   // Detect the semantic task type and optionally route to the optimal model
   let resolvedModelStr = modelStr;
+
+  // OpenRouter-style model suffixes. Strip them before task and combo
+  // resolution so a suffixed id never reaches a provider as-is. `thinking` is
+  // applied here; tier/online/extended hints remain available to later layers.
+  const suffixResolution = resolveModelSuffixRequest(
+    resolvedModelStr,
+    body as Record<string, unknown>
+  );
+  let suffixAutoMode: "fast" | "cheap" | undefined;
+  if (suffixResolution.parsed.hasSuffix) {
+    const suffixParsed = suffixResolution.parsed;
+    resolvedModelStr = suffixResolution.model;
+    body = suffixResolution.body as typeof body;
+    suffixAutoMode = suffixResolution.autoMode;
+    if (suffixParsed.needsWebSearch) {
+      body = addWebSearchTool(body as Record<string, unknown>, sourceFormat) as typeof body;
+    }
+    if (suffixParsed.needsExtendedContext) {
+      // :extended is a parsed hint only. open-sse/services/model.ts handles
+      // bracket [1m] context-window routing for Claude 1M beta, but there is no
+      // safe generic provider override for a colon :extended suffix.
+      log.debug(
+        "ROUTING",
+        `Model suffix accepted as parsed hint without provider override: ${suffixParsed.raw}`
+      );
+    }
+  }
+
+  const providerPreferences = extractProviderPreferences(body as Record<string, unknown>);
+
   let taskRouteInfo: { taskType: string; wasRouted: boolean } | null = null;
   if (getTaskRoutingConfig().enabled) {
     telemetry.startPhase("task-route");
@@ -745,6 +783,23 @@ async function handleChatImplementation(
       const filtered = filterReasoningCombo(combo, reasoningDecision);
       if (filtered instanceof Response) return filtered;
       combo = filtered;
+    }
+    if (providerPreferences && Array.isArray(combo.models) && combo.models.length > 0) {
+      const models = combo.models;
+      const filteredModels = filterComboModelsByPreferences(models, providerPreferences);
+      if (filteredModels.length === 0) {
+        return errorResponse(
+          HTTP_STATUS.BAD_REQUEST,
+          "No combo targets match the provider preferences"
+        );
+      }
+      if (filteredModels.length !== models.length) {
+        combo = { ...combo, models: filteredModels };
+        log.info(
+          "ROUTING",
+          `Provider preferences kept ${filteredModels.length}/${models.length} combo targets`
+        );
+      }
     }
     const [settings, allCombos] = await Promise.all([
       getCachedSettings().catch(() => ({})),
@@ -867,6 +922,7 @@ async function handleChatImplementation(
       sessionId,
       ...(combo.strategy === "context-relay" ? { config: relayConfig } : {}),
       ...(bypassProviderQuotaPolicy ? { bypassProviderQuotaPolicy: true } : {}),
+      ...(suffixAutoMode ? { mode: suffixAutoMode } : {}),
       ...perRequestAutoControls,
     };
     telemetry.endPhase();

@@ -32,8 +32,10 @@ export interface RankedRoutingResult {
   candidates: RoutingExplanation[];
 }
 
-function clamp(value: number, fallback = 0): number {
-  return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : fallback;
+function clamp(value: number | undefined, fallback = 0): number {
+  return value !== undefined && Number.isFinite(value)
+    ? Math.max(0, Math.min(1, value))
+    : fallback;
 }
 
 function quotaFactor(quota: ProviderQuotaStatus): number {
@@ -126,6 +128,108 @@ export function scoreCandidate(candidate: RoutingCandidate): RoutingExplanation 
 export function rankCandidates(candidates: RoutingCandidate[]): RankedRoutingResult {
   const ranked = candidates.map(scoreCandidate).sort((a, b) => b.score - a.score);
   return { selected: ranked.find((candidate) => candidate.eligible) ?? null, candidates: ranked };
+}
+
+export type ParetoPreference = "balanced" | "quality" | "cost" | "latency";
+
+export interface ParetoRankedResult extends RankedRoutingResult {
+  frontier: RoutingExplanation[];
+}
+
+interface ParetoEntry {
+  explanation: RoutingExplanation;
+  quality: number;
+  cost: number;
+  latency: number;
+}
+
+function toParetoEntry(candidate: RoutingCandidate): ParetoEntry {
+  const explanation = scoreCandidate(candidate);
+  const factors = explanation.factors as Record<string, number>;
+  return {
+    explanation,
+    quality: factors.capability * factors.health * factors.reliability * factors.preference,
+    cost: 1 - factors.cost,
+    latency: 1 - factors.latency,
+  };
+}
+
+function dominates(left: ParetoEntry, right: ParetoEntry): boolean {
+  const noWorse =
+    left.quality >= right.quality && left.cost <= right.cost && left.latency <= right.latency;
+  const strictlyBetter =
+    left.quality > right.quality || left.cost < right.cost || left.latency < right.latency;
+  return noWorse && strictlyBetter;
+}
+
+function paretoEntries(candidates: RoutingCandidate[]): ParetoEntry[] {
+  const eligible = candidates.map(toParetoEntry).filter((entry) => entry.explanation.eligible);
+  return eligible
+    .filter((entry) => !eligible.some((other) => other !== entry && dominates(other, entry)))
+    .sort((a, b) => b.quality - a.quality || a.cost - b.cost);
+}
+
+export function paretoFrontier(candidates: RoutingCandidate[]): RoutingExplanation[] {
+  return paretoEntries(candidates).map((entry) => entry.explanation);
+}
+
+function normalize(value: number, min: number, max: number, invert = false): number {
+  if (max <= min) return 1;
+  const ratio = (value - min) / (max - min);
+  return invert ? 1 - ratio : ratio;
+}
+
+export function rankCandidatesPareto(
+  candidates: RoutingCandidate[],
+  preference: ParetoPreference = "balanced"
+): ParetoRankedResult {
+  const ranked = candidates.map(scoreCandidate).sort((a, b) => b.score - a.score);
+  const frontier = paretoEntries(candidates);
+
+  if (frontier.length === 0) {
+    return { selected: null, candidates: ranked, frontier: [] };
+  }
+
+  let selected: ParetoEntry;
+  if (preference === "quality") {
+    selected = [...frontier].sort(
+      (a, b) => b.quality - a.quality || b.explanation.score - a.explanation.score
+    )[0];
+  } else if (preference === "cost") {
+    selected = [...frontier].sort(
+      (a, b) =>
+        a.cost - b.cost || b.quality - a.quality || b.explanation.score - a.explanation.score
+    )[0];
+  } else if (preference === "latency") {
+    selected = [...frontier].sort(
+      (a, b) =>
+        a.latency - b.latency || b.quality - a.quality || b.explanation.score - a.explanation.score
+    )[0];
+  } else {
+    const qualities = frontier.map((entry) => entry.quality);
+    const costs = frontier.map((entry) => entry.cost);
+    const latencies = frontier.map((entry) => entry.latency);
+    const [minQ, maxQ] = [Math.min(...qualities), Math.max(...qualities)];
+    const [minC, maxC] = [Math.min(...costs), Math.max(...costs)];
+    const [minL, maxL] = [Math.min(...latencies), Math.max(...latencies)];
+    selected = [...frontier].sort((a, b) => {
+      const scoreA =
+        0.5 * normalize(a.quality, minQ, maxQ) +
+        0.25 * normalize(a.cost, minC, maxC, true) +
+        0.25 * normalize(a.latency, minL, maxL, true);
+      const scoreB =
+        0.5 * normalize(b.quality, minQ, maxQ) +
+        0.25 * normalize(b.cost, minC, maxC, true) +
+        0.25 * normalize(b.latency, minL, maxL, true);
+      return scoreB - scoreA || b.explanation.score - a.explanation.score;
+    })[0];
+  }
+
+  return {
+    selected: selected.explanation,
+    candidates: ranked,
+    frontier: frontier.map((entry) => entry.explanation),
+  };
 }
 
 export interface FailoverPolicy {
