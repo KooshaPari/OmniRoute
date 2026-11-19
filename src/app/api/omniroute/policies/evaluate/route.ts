@@ -4,8 +4,20 @@ import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { PolicyEngine } from "@/domain/policyEngine";
 import { loadRoutingPolicies, validatePolicies } from "@/lib/routing/policyStore";
+import { SlidingWindowRateLimiter } from "@/shared/utils/slidingWindowRateLimiter";
 
 export const dynamic = "force-dynamic";
+
+const evaluationLimiter = new SlidingWindowRateLimiter({
+  limit: 120,
+  windowMs: 60_000,
+});
+
+function clientKey(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0]!.trim();
+  return request.headers.get("x-real-ip")?.trim() || "unknown";
+}
 
 const requestSchema = z
   .object({
@@ -25,6 +37,17 @@ const requestSchema = z
 export async function POST(request: Request): Promise<Response> {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
+
+  const rate = evaluationLimiter.consume(clientKey(request));
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded", retryAfterMs: rate.retryAfterMs },
+      {
+        status: 429,
+        headers: { "Retry-After": String(Math.ceil(rate.retryAfterMs / 1000)) },
+      }
+    );
+  }
 
   const parsed = requestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
