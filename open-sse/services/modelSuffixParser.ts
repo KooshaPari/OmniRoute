@@ -231,3 +231,44 @@ export function applySuffixToRequest(
 
   return result;
 }
+
+function isNativeWebSearchTool(tool: unknown): boolean {
+  if (!tool || typeof tool !== "object") return false;
+  const record = tool as { type?: unknown; function?: unknown };
+  return (
+    typeof record.type === "string" &&
+    record.type.startsWith("web_search") &&
+    record.function == null
+  );
+}
+
+/**
+ * Add a native web-search tool for `:online`, returning a shallow-cloned body.
+ * Does not duplicate an existing native web-search tool (type starts with
+ * `web_search` and no `function` field).
+ */
+export function addWebSearchTool(
+  body: Record<string, unknown>,
+  sourceFormat: string
+): Record<string, unknown> {
+  const existingTools = Array.isArray(body.tools)
+    ? (body.tools as Array<Record<string, unknown>>)
+    : [];
+  if (existingTools.some(isNativeWebSearchTool)) {
+    return { ...body };
+  }
+
+  let tool: Record<string, unknown>;
+  if (sourceFormat === "claude") {
+    tool = { type: "web_search_20250305", name: "web_search", max_uses: 5 };
+  } else if (sourceFormat === "openai-responses") {
+    tool = { type: "web_search_preview" };
+  } else {
+    tool = { type: "web_search" };
+  }
+
+  return {
+    ...body,
+    tools: [...existingTools, tool],
+  };
+}

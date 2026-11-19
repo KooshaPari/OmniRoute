@@ -39,7 +39,10 @@ import type { ComboLike, SingleModelTarget } from "@omniroute/open-sse/services/
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { mergeAbortSignals } from "@omniroute/open-sse/executors/base.ts";
 import { resolveRequestAutoControls } from "@omniroute/open-sse/services/autoCombo/requestControls.ts";
-import { resolveModelSuffixRequest } from "@omniroute/open-sse/services/modelSuffixParser.ts";
+import {
+  addWebSearchTool,
+  resolveModelSuffixRequest,
+} from "@omniroute/open-sse/services/modelSuffixParser.ts";
 import {
   extractProviderPreferences,
   filterComboModelsByPreferences,
@@ -681,8 +684,17 @@ async function handleChatImplementation(
     resolvedModelStr = suffixResolution.model;
     body = suffixResolution.body as typeof body;
     suffixAutoMode = suffixResolution.autoMode;
-    if (suffixParsed.needsWebSearch || suffixParsed.needsExtendedContext) {
-      log.debug("ROUTING", `Model suffix accepted without provider behavior: ${suffixParsed.raw}`);
+    if (suffixParsed.needsWebSearch) {
+      body = addWebSearchTool(body as Record<string, unknown>, sourceFormat) as typeof body;
+    }
+    if (suffixParsed.needsExtendedContext) {
+      // :extended is a parsed hint only. open-sse/services/model.ts handles
+      // bracket [1m] context-window routing for Claude 1M beta, but there is no
+      // safe generic provider override for a colon :extended suffix.
+      log.debug(
+        "ROUTING",
+        `Model suffix accepted as parsed hint without provider override: ${suffixParsed.raw}`
+      );
     }
   }
 

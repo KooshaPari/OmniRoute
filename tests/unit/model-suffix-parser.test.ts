@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   SUFFIX_ROUTING_HINTS,
+  addWebSearchTool,
   applySuffixToRequest,
   getRoutingHints,
   parseModelSuffix,
@@ -229,4 +230,71 @@ test("free on a specific auto category does not rewrite the model", () => {
   const resolved = resolveModelSuffixRequest("auto/coding:free", { model: "auto/coding:free" });
   assert.equal(resolved.model, "auto/coding");
   assert.equal(resolved.autoFree, false);
+});
+
+test("addWebSearchTool adds Claude native web search tool shape", () => {
+  const body = { model: "claude-sonnet-4-5", messages: [] };
+  const result = addWebSearchTool(body, "claude");
+  assert.deepEqual(result.tools, [
+    { type: "web_search_20250305", name: "web_search", max_uses: 5 },
+  ]);
+});
+
+test("addWebSearchTool adds OpenAI Responses web search preview tool shape", () => {
+  const body = { model: "gpt-5", input: [] };
+  const result = addWebSearchTool(body, "openai-responses");
+  assert.deepEqual(result.tools, [{ type: "web_search_preview" }]);
+});
+
+test("addWebSearchTool adds generic web search tool for other formats", () => {
+  const body = { model: "gpt-4o", messages: [] };
+  const result = addWebSearchTool(body, "openai");
+  assert.deepEqual(result.tools, [{ type: "web_search" }]);
+});
+
+test("addWebSearchTool preserves existing tools when adding", () => {
+  const body = {
+    tools: [{ type: "function", function: { name: "lookup" } }],
+  };
+  const result = addWebSearchTool(body, "openai");
+  assert.deepEqual(result.tools, [
+    { type: "function", function: { name: "lookup" } },
+    { type: "web_search" },
+  ]);
+});
+
+test("addWebSearchTool does not duplicate existing native web search tools", () => {
+  const claude = {
+    tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
+  };
+  assert.deepEqual(addWebSearchTool(claude, "claude"), claude);
+  assert.notEqual(addWebSearchTool(claude, "claude"), claude);
+
+  const responses = { tools: [{ type: "web_search_preview" }] };
+  assert.deepEqual(addWebSearchTool(responses, "openai-responses"), responses);
+
+  const generic = { tools: [{ type: "web_search" }] };
+  assert.deepEqual(addWebSearchTool(generic, "openai"), generic);
+});
+
+test("addWebSearchTool does not treat custom function web_search tool as native duplicate", () => {
+  const body = {
+    tools: [{ type: "web_search", function: { name: "web_search", parameters: {} } }],
+  };
+  const result = addWebSearchTool(body, "openai");
+  assert.deepEqual(result.tools, [
+    { type: "web_search", function: { name: "web_search", parameters: {} } },
+    { type: "web_search" },
+  ]);
+});
+
+test("addWebSearchTool does not mutate the original body or tools array", () => {
+  const originalTools = [{ type: "function", function: { name: "lookup" } }];
+  const original = { model: "gpt-4o", tools: originalTools };
+  const copy = { ...original, tools: [...originalTools] };
+  const result = addWebSearchTool(original, "claude");
+  assert.deepEqual(original, copy);
+  assert.equal(original.tools, originalTools);
+  assert.notEqual(result, original);
+  assert.notEqual(result.tools, originalTools);
 });
