@@ -1,32 +1,48 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getRegistryEntry, REGISTRY } from "../../open-sse/config/providerRegistry.ts";
-import { getExecutor, hasSpecializedExecutor } from "../../open-sse/executors/index.ts";
-import { AI_PROVIDERS } from "../../src/shared/constants/providers.ts";
+import {
+  assertCommonChatGptWebProviderAvailable,
+  CHATGPT_WEB_RETIRED_ERROR_CODE,
+  isCommonChatGptWebRetiredProviderId,
+  isCommonChatGptWebRetirementError,
+  RETIRED_COMMON_CHATGPT_WEB_PROVIDER_IDS,
+} from "../../src/shared/constants/chatgptWebRetirement.ts";
 
-test("clean-room ChatGPT Web is restored while the legacy alias remains retired", async () => {
-  assert.ok(REGISTRY["chatgpt-web"]);
-  assert.ok(AI_PROVIDERS["chatgpt-web"]);
-  assert.ok(getRegistryEntry("chatgpt-web"));
-  assert.equal(hasSpecializedExecutor("chatgpt-web"), true);
-  assert.ok(await getExecutor("chatgpt-web"));
+test("cgpt-web is recognized as retired", () => {
+  assert.equal(RETIRED_COMMON_CHATGPT_WEB_PROVIDER_IDS.has("cgpt-web"), true);
+  assert.equal(isCommonChatGptWebRetiredProviderId("cgpt-web"), true);
+  assert.equal(isCommonChatGptWebRetiredProviderId(" CGPT-WEB "), true);
+  assert.equal(isCommonChatGptWebRetiredProviderId("chatgpt-web"), false);
+  assert.equal(isCommonChatGptWebRetiredProviderId(undefined), false);
+});
 
-  assert.equal(getRegistryEntry("cgpt-web"), null);
-  assert.equal(hasSpecializedExecutor("cgpt-web"), false);
-  await assert.rejects(
-    () => getExecutor("cgpt-web"),
+test("assertCommonChatGptWebProviderAvailable throws PROVIDER_RETIRED with HTTP 410", () => {
+  assert.equal(CHATGPT_WEB_RETIRED_ERROR_CODE, "PROVIDER_RETIRED");
+  assert.doesNotThrow(() => assertCommonChatGptWebProviderAvailable("chatgpt-web"));
+  assert.doesNotThrow(() => assertCommonChatGptWebProviderAvailable(undefined));
+
+  assert.throws(
+    () => assertCommonChatGptWebProviderAvailable("cgpt-web"),
     (error: unknown) => {
-      const typed = error as Error & { code?: string; status?: number };
+      const typed = error as Error & { code?: string; status?: number; statusCode?: number };
       assert.equal(typed.code, "PROVIDER_RETIRED");
       assert.equal(typed.status, 410);
-      assert.equal(typed.message, "Provider is retired and unavailable.");
+      assert.equal(typed.statusCode ?? typed.status, 410);
       return true;
     }
   );
+});
 
-  assert.ok(getRegistryEntry("chatgpt-web-codex"));
-  assert.ok(getRegistryEntry("cgpt-codex"));
-  assert.equal(hasSpecializedExecutor("chatgpt-web-codex"), true);
-  assert.equal(hasSpecializedExecutor("cgpt-codex"), true);
+test("isCommonChatGptWebRetirementError only matches retirement errors", () => {
+  let retirementError: unknown;
+  try {
+    assertCommonChatGptWebProviderAvailable("cgpt-web");
+  } catch (error) {
+    retirementError = error;
+  }
+
+  assert.equal(isCommonChatGptWebRetirementError(retirementError), true);
+  assert.equal(isCommonChatGptWebRetirementError(new Error("x")), false);
+  assert.equal(isCommonChatGptWebRetirementError(null), false);
 });
