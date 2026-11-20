@@ -189,6 +189,12 @@ const EMBEDDED_DEFAULTS = {
   // Firefly credits balance endpoint public x-api-key (`SunbreakWebUI1`) from
   // GET firefly.adobe.io/v1/credits/balance browser traffic.
   adobe_firefly_balance_api_key: [60, 24, 0, 11, 0, 10, 20, 31, 50, 72, 18, 32, 43, 93],
+  // Device-code (RFC 8628) public client ids used by open-sse/lib/deviceCodeProviders.ts.
+  qwen_cli_id: [30, 26, 11, 7, 95, 12, 25, 29],
+  kiro_cli_id: [4, 4, 28, 6, 95, 12, 25, 29],
+  kimi_coding_cli_id: [4, 4, 3, 0, 95, 12, 26, 16, 12, 67, 23, 88, 1, 0, 0],
+  kilocode_cli_id: [4, 4, 2, 6, 17, 0, 17, 17, 72, 78, 28, 28],
+  codebuddy_cn_cli_id: [12, 2, 10, 12, 16, 26, 17, 16, 28, 0, 19, 27, 79, 15, 5, 10],
 } as const;
 
 export type EmbeddedDefaultKey = keyof typeof EMBEDDED_DEFAULTS;

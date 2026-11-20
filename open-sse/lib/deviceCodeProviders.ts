@@ -4,39 +4,44 @@
  * When a provider is listed here, `InAppLoginService` will use device-code
  * flow (no browser) instead of Playwright-based browser automation.
  */
-export const DEVICE_CODE_PROVIDERS: Record<string, {
-  deviceAuthorizationEndpoint: string;
-  clientId: string;
-  scopes: string[];
-}> = {
-  "qwen": {
+import { resolvePublicCred } from "../utils/publicCreds";
+
+export const DEVICE_CODE_PROVIDERS: Record<
+  string,
+  {
+    deviceAuthorizationEndpoint: string;
+    clientId: string;
+    scopes: string[];
+  }
+> = {
+  qwen: {
     deviceAuthorizationEndpoint: "https://chat.qwen.ai/oauth/device/code",
-    clientId: "qwen-cli",
+    clientId: resolvePublicCred("qwen_cli_id"),
     scopes: ["openid", "profile"],
   },
-  "kiro": {
+  kiro: {
     deviceAuthorizationEndpoint: "https://api.kiro.dev/oauth/device/code",
-    clientId: "kiro-cli",
+    clientId: resolvePublicCred("kiro_cli_id"),
     scopes: ["openid", "profile"],
   },
-  "github": {
+  github: {
     deviceAuthorizationEndpoint: "https://github.com/login/device/code",
-    clientId: "Iv1.b507a08c87ecfe98",
+    clientId: resolvePublicCred("github_copilot_id"),
     scopes: ["repo"],
   },
   "kimi-coding": {
     deviceAuthorizationEndpoint: "https://kimi.moonshot.cn/oauth/device/code",
-    clientId: "kimi-coding-cli",
+    clientId: resolvePublicCred("kimi_coding_cli_id"),
     scopes: ["openid"],
   },
-  "kilocode": {
+  kilocode: {
     deviceAuthorizationEndpoint: "https://kilocode.ai/oauth/device/code",
-    clientId: "kilocode-cli",
+    clientId: resolvePublicCred("kilocode_cli_id"),
     scopes: ["openid", "profile"],
   },
   "codebuddy-cn": {
     deviceAuthorizationEndpoint: "https://api.codebuddy.cn/oauth/device/code",
-    clientId: "codebuddy-cn-cli",
+    clientId: resolvePublicCred("codebuddy_cn_cli_id"),
     scopes: ["openid"],
   },
 };
