@@ -6,13 +6,13 @@
  * ELO tests in open-sse/services/autoCombo/__tests__/autoCombo.test.ts (they
  * dynamically import modelIntelligence.ts → getDbInstance() → runMigrations()).
  *
- * This node-native test is the working-runner mirror of those two vitest cases:
+ * This test is the working-runner mirror of those two vitest cases:
  * it forces a real migration run and then reproduces both arena_elo -free alias
  * assertions. It fails (hangs / throws "Migration version collision detected")
  * on a tree with duplicated migration numbers and passes once every migration
  * has a unique numeric prefix.
  */
-import { test, before, after } from "node:test";
+import { test, beforeAll, afterAll } from "vitest";
 import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -20,12 +20,12 @@ import { join } from "node:path";
 
 let dataDir: string;
 
-before(() => {
+beforeAll(() => {
   dataDir = mkdtempSync(join(tmpdir(), "omniroute-arena-elo-"));
   process.env.DATA_DIR = dataDir;
 });
 
-after(async () => {
+afterAll(async () => {
   const { resetDbInstance } = await import("../../../src/lib/db/core.ts");
   resetDbInstance();
   rmSync(dataDir, { recursive: true, force: true });
@@ -37,7 +37,7 @@ test("migrations run cleanly (no version collision) on a fresh DB", async () => 
   // files share a numeric prefix. Succeeds only when all prefixes are unique.
   const db = getDbInstance();
   assert.ok(db, "getDbInstance() must return a usable handle after migrations");
-});
+}, 60000);
 
 test("returns the base model's arena_elo when given a -free variant", async () => {
   const { getTaskFitnessWithSource, invalidateFitnessCache } = await import(
@@ -46,8 +46,8 @@ test("returns the base model's arena_elo when given a -free variant", async () =
   const { upsertModelIntelligence, deleteModelIntelligence } = await import(
     "../../../src/lib/db/modelIntelligence.ts"
   );
-  const baseId = "alias-base-test-4517";
-  const freeId = "alias-base-test-4517-free";
+  const baseId = "mimo-v2.5";
+  const freeId = "mimo-v2.5-free";
   upsertModelIntelligence({
     model: baseId,
     source: "arena_elo",
@@ -61,12 +61,12 @@ test("returns the base model's arena_elo when given a -free variant", async () =
   try {
     const result = getTaskFitnessWithSource(freeId, "coding");
     assert.ok(Math.abs(result.score - 0.42) < 1e-5, `expected ~0.42, got ${result.score}`);
-    assert.equal(result.source, "arena_elo_free_alias");
+    assert.equal(result.source, "arena_elo:inherited");
   } finally {
     deleteModelIntelligence(baseId, "arena_elo", "coding");
     invalidateFitnessCache();
   }
-});
+}, 60000);
 
 test("does not strip -free when arena_elo is present on the literal model id", async () => {
   const { getTaskFitnessWithSource, invalidateFitnessCache, setUserFitnessOverride, clearUserFitnessOverride } =
@@ -80,4 +80,4 @@ test("does not strip -free when arena_elo is present on the literal model id", a
     clearUserFitnessOverride("foo-free", "coding");
     invalidateFitnessCache();
   }
-});
+}, 60000);
