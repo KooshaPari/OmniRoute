@@ -303,7 +303,7 @@ export async function runServe(opts = {}) {
   );
 }
 
-function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
+export async function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
@@ -321,9 +321,15 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
       detached: true,
     }
   );
+  await new Promise((resolve, reject) => {
+    server.once("spawn", resolve);
+    server.once("error", reject);
+  });
   writePidFile("server", server.pid);
   server.unref();
-  console.log(`\x1b[32m✔ OmniRoute started in background (PID: ${server.pid})\x1b[0m`);
+  console.log(
+    `OmniRoute process spawned in background (PID: ${server.pid}); readiness is unverified.`
+  );
   console.log(`  \x1b[1mDashboard:\x1b[0m  ${urlScheme}://localhost:${dashboardPort}`);
   console.log(`  \x1b[1mAPI Base:\x1b[0m   ${urlScheme}://localhost:${apiPort}/v1`);
 }
