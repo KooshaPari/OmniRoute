@@ -128,8 +128,84 @@ export function runWorkspaceDependencyCheck(options = {}) {
   }
 }
 
+/**
+ * pnpm-lock.yaml policy (lockfile-lint has no pnpm support). Same policy as the
+ * npm path: https only, sha512 integrity on every registry package, and the
+ * only registry host is registry.npmjs.org. Returns a list of violation strings.
+ *
+ * @param {string} text contents of pnpm-lock.yaml
+ * @param {{ parse: (s: string) => any }} yaml parser exposing parse()
+ * @returns {string[]}
+ */
+export function validatePnpmLockfile(text, yaml) {
+  const doc = yaml.parse(text) || {};
+  const problems = [];
+  const packages = doc.packages || {};
+  for (const [key, entry] of Object.entries(packages)) {
+    const res = (entry && entry.resolution) || {};
+    if (res.type === "git" || res.repo) {
+      problems.push(`${key}: git resolution is not allowed`);
+      continue;
+    }
+    if (res.directory) continue; // workspace/local link, not fetched from a registry
+    if (typeof res.integrity !== "string" || !res.integrity.startsWith("sha512-")) {
+      problems.push(`${key}: missing sha512 integrity`);
+    }
+    if (res.tarball) {
+      let u;
+      try {
+        u = new URL(res.tarball);
+      } catch {
+        problems.push(`${key}: invalid tarball URL`);
+        continue;
+      }
+      if (u.protocol !== "https:") problems.push(`${key}: tarball is not https (${u.protocol})`);
+      if (u.hostname !== "registry.npmjs.org") {
+        problems.push(`${key}: tarball host ${u.hostname} is not registry.npmjs.org`);
+      }
+    }
+  }
+  return problems;
+}
+
+async function mainPnpm(lockPath) {
+  const yaml = await import("js-yaml");
+  const problems = validatePnpmLockfile(fs.readFileSync(lockPath, "utf8"), { parse: yaml.load });
+  if (problems.length) {
+    console.error(`[check-lockfile] FAIL - ${problems.length} pnpm-lock.yaml policy violation(s):`);
+    for (const p of problems.slice(0, 50)) console.error(`  - ${p}`);
+    process.exit(1);
+  }
+  console.log(
+    "[check-lockfile] OK - pnpm-lock.yaml: https, sha512 integrity, registry.npmjs.org only"
+  );
+  // --frozen-lockfile fails when the lock is out of sync, but pnpm may still rewrite
+  // the file's formatting, so snapshot and restore it to keep the gate read-only.
+  const snapshot = fs.readFileSync(lockPath);
+  try {
+    execFileSync("pnpm", ["install", "--frozen-lockfile", "--lockfile-only", "--ignore-scripts"], {
+      cwd: ROOT,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    console.log("[check-lockfile] OK - pnpm-lock.yaml is in sync with all workspace manifests");
+  } catch (err) {
+    console.error("[check-lockfile] FAIL - pnpm-lock.yaml is out of sync with the manifests:");
+    console.error(`${err.stdout ?? ""}${err.stderr ?? ""}`);
+    fs.writeFileSync(lockPath, snapshot);
+    process.exit(1);
+  }
+  fs.writeFileSync(lockPath, snapshot);
+}
+
 function main() {
   const cfg = getLockfileLintConfig();
+
+  const pnpmLock = path.join(ROOT, "pnpm-lock.yaml");
+  if (!fs.existsSync(cfg.lockfilePath) && fs.existsSync(pnpmLock)) {
+    mainPnpm(pnpmLock);
+    return;
+  }
 
   if (!fs.existsSync(cfg.lockfilePath)) {
     console.error(
