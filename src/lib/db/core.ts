@@ -12,7 +12,7 @@ import {
   preInitSqlJs,
   getSqlJsPreInitError,
   openDatabaseAsync,
-} from "./adapters/driverFactory";
+} from "./adapters/driverFactory.ts";
 import path from "path";
 import { retryProbeIfTransient } from "./probeUtils";
 import fs from "fs";
