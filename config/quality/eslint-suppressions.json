@@ -3091,14 +3091,6 @@
       "count": 6
     }
   },
-  "tests/unit/chatgpt-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 6
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "tests/unit/check-docs-symbols.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 3
