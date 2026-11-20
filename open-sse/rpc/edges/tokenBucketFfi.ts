@@ -9,8 +9,8 @@
  * @see docs/TECH_DEBT.md DEBT-001
  * @see crates/omniroute-ffi/crates/token-bucket/src/lib.rs
  */
-import { loadFfiBinding } from "../ffi";
-import { DispatchEdgeError } from "../errors";
+import { loadFfiCrate } from "../ffi.ts";
+import { DispatchEdgeError } from "../errors.ts";
 
 /** JS shim for token-bucket consume */
 export interface TokenBucketFfi {

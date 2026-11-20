@@ -16,7 +16,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-import { consumeTokenBucketTs } from "../../open-sse/rpc/edges/tokenBucketFfi";
+import { consumeTokenBucketTs } from "../../open-sse/rpc/edges/tokenBucketFfi.ts";
 // Note: tokenBucketEdges.ts auto-registers on module load, so importing it
 // triggers `registerEdge("ratelimit.token.consume", ...)`.
 
