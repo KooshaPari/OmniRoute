@@ -81,10 +81,12 @@ test("waitForServer returns false when the port accepts TCP but never answers a 
 
 test("waitForServer detects IPv6 loopback health endpoint when IPv4 is unavailable (#11766)", async () => {
   const port = await freePort();
+  let healthRequests = 0;
   const server = net.createServer((socket) => {
     socket.on("data", (data) => {
       const request = data.toString();
       if (request.includes("GET /api/monitoring/health")) {
+        healthRequests++;
         socket.end("HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok");
       }
     });
@@ -103,7 +105,23 @@ test("waitForServer detects IPv6 loopback health endpoint when IPv4 is unavailab
       true,
       "expected waitForServer to detect health endpoint on IPv6 loopback even when IPv4 is unavailable"
     );
+    assert.ok(healthRequests > 0, "expected an IPv6 health request");
   } finally {
     await new Promise((resolve) => server.close(() => resolve()));
+  }
+});
+
+
+test("waitForServer does not report ready for a hung IPv6-only server", async () => {
+  const server = net.createServer((socket) => socket.on("data", () => {}));
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "::1", resolve);
+  });
+
+  try {
+    assert.equal(await waitForServer(server.address().port, 6000), false);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
   }
 });
