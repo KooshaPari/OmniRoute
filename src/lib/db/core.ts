@@ -18,7 +18,7 @@ import { retryProbeIfTransient } from "./probeUtils";
 import fs from "fs";
 import { resolveWritableDataDir, getLegacyDotDataDir } from "../dataPaths";
 import { isNextBuildPhase } from "../buildPhase";
-import { runMigrations } from "./migrationRunner";
+import { assertStartupMigrationPreflight, runMigrations } from "./migrationRunner";
 import { runDbHealthCheck } from "./healthCheck";
 import { resetAllDbModuleState } from "./stateReset";
 import { parseStoredPayload } from "../logPayloads";
@@ -938,6 +938,20 @@ export function getDbInstance(): SqliteDatabase {
   }
   const jsonDbFile = JSON_DB_FILE;
   const probeFailureBackups = listProbeFailureBackups(sqliteFile);
+  // Opt-in strict audit before recovery can rename a database or schema initialization writes.
+  // A recovered backup is checked at its current path before the existing restore path runs.
+  if (process.env.OMNIROUTE_STRICT_MIGRATION_IDENTITIES === "1") {
+    const auditPath = fs.existsSync(sqliteFile) ? sqliteFile : probeFailureBackups[0];
+    if (auditPath) {
+      const auditDb = tryOpenSync(auditPath, { readonly: true, fileMustExist: true });
+      if (!auditDb) throw new Error("[Migration] Startup identity preflight requires a read-only native SQLite adapter.");
+      try {
+        assertStartupMigrationPreflight(auditDb);
+      } finally {
+        closeProbeIfSafe(auditDb);
+      }
+    }
+  }
   if (!fs.existsSync(sqliteFile) && probeFailureBackups.length > 0) {
     // Cycle-breaker: a previous probe failure renamed the DB to
     // `storage.sqlite.probe-failed-<ts>` and the next caller auto-restored it.
