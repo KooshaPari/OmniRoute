@@ -113,16 +113,23 @@ export function getCurrentWindowUsage(
   // DB point-read (authoritative for the window).
   let dbUsage = getWindowUsage(limit, now);
 
-  // Cold window: no counter row yet → seed from usage_history and PERSIST the
-  // seed to the counter row so a subsequent recordTokenUsage increment does not
-  // forget the existing historical usage in this window (force-fresh read then
-  // first record must accumulate on top of history, not restart from 0).
-  if (dbUsage === 0 && (!cached || cached.windowStart !== windowStart)) {
-    const seeded = seedWindowUsageFromHistory(limit, now);
-    if (seeded > 0) {
-      // UPSERT creates the row at `seeded`; safe because there is no row yet
-      // (dbUsage === 0). Returns the new authoritative total.
-      dbUsage = incrementWindowTokens(limit.id, windowStart, seeded);
+  // Seed only a genuinely absent row. INSERT OR IGNORE prevents competing
+  // processes from adding the same historical seed twice.
+  if (dbUsage === 0) {
+    const db = getDbInstance();
+    const row = db.prepare(
+      "SELECT tokens_used FROM api_key_token_counters WHERE limit_id = ? AND window_start = ?"
+    ).get(limit.id, windowStart);
+    if (row) {
+      dbUsage = Number((row as { tokens_used: number }).tokens_used);
+    } else {
+      const seeded = seedWindowUsageFromHistory(limit, now);
+      if (seeded > 0) {
+        db.prepare(
+          "INSERT OR IGNORE INTO api_key_token_counters (limit_id, window_start, tokens_used) VALUES (?, ?, ?)"
+        ).run(limit.id, windowStart, seeded);
+        dbUsage = getWindowUsage(limit, now);
+      }
     }
   }
 
