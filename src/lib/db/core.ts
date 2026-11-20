@@ -238,7 +238,7 @@ function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown
   );
 }
 
-// Ensure data directory exists — with fallback for restricted home directories (#133)
+// Ensure the resolved data directory exists.
 if (!isCloud && !fs.existsSync(DATA_DIR)) {
   try {
     fs.mkdirSync(DATA_DIR, { recursive: true });
