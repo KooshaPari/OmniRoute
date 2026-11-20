@@ -39,8 +39,6 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -97,26 +95,13 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
-      # Audit with the package manager that owns the lockfile. `npm run audit:deps`
-      # cannot work in this job: dependencies are installed by pnpm (npm-ci-retry
-      # runs `pnpm install --frozen-lockfile`), and npm's Arborist requires
-      # node_modules/.package-lock.json, which pnpm never writes. The step died on
-      # every run with `ENOLOCK / loadVirtual requires existing shrinkwrap file`
-      # before auditing anything, so the security check was silently not running.
-      # Semantics preserved from the old audit:deps script: critical severities
-      # fail the job (bash -e on the first line), high severities only warn.
-      - name: Audit dependencies (pnpm-native)
-        run: |
-          pnpm audit --audit-level critical
-          pnpm audit --audit-level high || echo '::warning::high-severity advisories present (non-blocking)'
+      - run: npm run audit:deps
       - name: Restore ESLint file cache
         uses: actions/cache@v6
         with:
@@ -216,12 +201,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - name: Restore ESLint file cache
         uses: actions/cache@v6
@@ -330,12 +313,10 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       # Dead-code, cognitive-complexity, type-coverage foram promovidos ao job
       # quality-gate (bloqueante) na Fase 7 INT — não rodam aqui para evitar duplo custo.
@@ -343,7 +324,7 @@ jobs:
         continue-on-error: true
         run: npm run check:circular-deps
       # BLOCKING ratchet (Etapa 2): bundleSize must not regress vs the baseline
-      # (gzip via @size-limit/file, installed by `pnpm install --frozen-lockfile`). --ratchet exits 1 on a
+      # (gzip via @size-limit/file, installed by `npm ci`). --ratchet exits 1 on a
       # measured regression; it SKIPs (exit 0) when the size-limit plugin/build is
       # absent (a non-comparable measurement never blocks).
       - name: Bundle size (ratchet, blocking)
@@ -448,12 +429,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:docs-all
       # Previously-orphaned contract gates (existed as files, never wired anywhere).
@@ -486,12 +465,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - name: markdownlint (docs + root, advisory)
         run: npx --yes markdownlint-cli2 "docs/**/*.md" "*.md" "!docs/i18n" "!docs/research" || true
       - name: Vale prose lint (Microsoft style, advisory)
@@ -520,12 +497,10 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
       # Real-translation ratchet: a leaf copied verbatim from en.json passes key
@@ -555,12 +530,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-CN
       - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-TW
@@ -621,8 +594,6 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
@@ -673,12 +644,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       # NOTE: the webpack `.build/next/cache` actions/cache step was removed with the
@@ -690,9 +659,9 @@ jobs:
       # Turbopack production build (Next 16, stable): benchmarked 1.9× faster than the
       # webpack pass (9min0s vs 17min15s on a 32-core box; multi-core Rust vs webpack's
       # single-threaded compile). Standalone output smoke-validated (server boots,
-      # /api/monitoring/health 200). Downstream jobs (e2e ×9, package-artifact)
-      # consume this artifact, so a green run here validates the Turbopack
-      # artifact end-to-end.
+      # /api/monitoring/health 200). Downstream jobs (e2e ×9, package-artifact,
+      # electron-package-smoke) consume this artifact, so a green run here validates
+      # the Turbopack artifact end-to-end.
       - run: npm run build
         env:
           OMNIROUTE_USE_TURBOPACK: "1"
@@ -700,8 +669,8 @@ jobs:
         # Use tar so the archive preserves paths relative to CWD (.build/next/...).
         # upload-artifact path-stripping is ambiguous when exclude patterns are used;
         # an explicit tar avoids the double-nesting issue (.build/next/next/...).
-        # Keep standalone/node_modules intact: the package-artifact job consumes
-        # the Next-traced standalone tree and must not replace it with root node_modules.
+        # Keep standalone/node_modules intact: package/electron jobs consume the
+        # Next-traced standalone tree and must not replace it with root node_modules.
         run: |
           tar -czf "$RUNNER_TEMP/e2e-build.tar.gz" \
             --exclude='.build/next/cache' \
@@ -723,12 +692,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Download Next.js build artifact
@@ -737,7 +704,7 @@ jobs:
           name: next-build
           # Workspace-relative on purpose: the matrix below includes windows-latest, whose
           # default shell is pwsh, where $RUNNER_TEMP is empty (it is $env:RUNNER_TEMP) —
-          # #11896's first cut broke a packaged-app smoke job on exactly that. A relative path
+          # #11896's first cut broke the Electron smoke on exactly that. A relative path
           # works in bash and pwsh alike; hosted workspaces are ephemeral.
           path: next-build-artifact
       - name: Extract Next.js build artifact
@@ -798,6 +765,69 @@ jobs:
       - name: Boot-smoke the packed tarball
         run: npm run check:pack-boot
 
+  electron-package-smoke:
+    name: Electron Package Smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    needs: build
+    # WS1.5 (v3.8.49 plan): the Electron native-module path previously executed for
+    # the FIRST time on the release tag — the v3.8.48 Windows bug (npx.cmd spawned
+    # without shell, CVE-2024-27980 behavior change) could only surface at release.
+    # windows-latest runs prepare:bundle (better-sqlite3 prebuild verification since
+    # v13 — the node-gyp rebuild is gone) per release PR; ubuntu keeps the full
+    # pack + headless smoke.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    env:
+      JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run check:node-runtime
+      - name: Download Next.js build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: next-build
+          # Workspace-relative on purpose: the matrix below includes windows-latest, whose
+          # default shell is pwsh, where $RUNNER_TEMP is empty (it is $env:RUNNER_TEMP) —
+          # #11896's first cut broke the Electron smoke on exactly that. A relative path
+          # works in bash and pwsh alike; hosted workspaces are ephemeral.
+          path: next-build-artifact
+      - name: Extract Next.js build artifact
+        run: |
+          tar -xzf next-build-artifact/e2e-build.tar.gz
+      - name: Install Electron dependencies
+        working-directory: electron
+        run: npm install --no-audit --no-fund
+      - name: Pack Electron app
+        if: runner.os == 'Linux'
+        working-directory: electron
+        run: npm run pack
+      # ADVISORY while the new Windows leg matures (repo convention, dast-smoke
+      # precedent): its first-ever real run (2026-07-15, run 29457533565) died in
+      # 0.7s with the error swallowed by pwsh — bash shell captures stderr and
+      # continue-on-error keeps the heavy gate green while we harden it (#7336).
+      - name: Prepare Electron standalone (Windows prebuild verification)
+        if: runner.os == 'Windows'
+        working-directory: electron
+        continue-on-error: true
+        shell: bash
+        run: npm run prepare:bundle 2>&1
+      - name: Smoke packaged Electron app
+        if: runner.os == 'Linux'
+        env:
+          ELECTRON_SMOKE_TIMEOUT_MS: 60000
+        run: xvfb-run -a npm run electron:smoke:packaged
+
   test-unit:
     name: Unit Tests (${{ matrix.shard }}/8)
     # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).
@@ -811,8 +841,9 @@ jobs:
     timeout-minutes: 25
     # needs: changes (not build) — this job never downloads the next-build artifact;
     # gating it on Build only serialized ~20min of wall-clock for nothing. Jobs that
-    # DO consume the artifact (e2e, package-artifact) keep needs: build. The `if` mirrors
-    # Build's own skip condition so docs-only PRs still skip the suite.
+    # DO consume the artifact (e2e, package-artifact, electron-package-smoke) keep
+    # needs: build. The `if` mirrors Build's own skip condition so docs-only PRs
+    # still skip the suite.
     needs: changes
     if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
     strategy:
@@ -827,12 +858,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       # QW-d (plano mestre): fonte única — o MESMO npm script dos runs locais (adiciona o
@@ -889,12 +918,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - name: Install Bun (Windows)
         if: runner.os == 'Windows'
@@ -905,11 +932,6 @@ jobs:
       - name: Install Bun (non-Windows)
         if: runner.os != 'Windows'
         run: npm install -g bun
-      # .npmrc sets ignore-scripts=true, which skips bun's postinstall binary
-      # download; run it explicitly or bun is a stub without the platform binary.
-      - name: Fetch bun binary (ignore-scripts workaround)
-        if: runner.os != 'Windows'
-        run: node "$(npm root -g)/bun/install.js"
       - run: npm run test:bun:db
 
   test-vitest:
@@ -934,12 +956,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       # The second test runner (CLAUDE.md: "Both test runners must pass") — was never
       # wired into CI until the 2026-06-09 quality audit (Fase 6A.2).
@@ -985,12 +1005,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - name: Download all shard coverage
         uses: actions/download-artifact@v8
@@ -1173,7 +1191,7 @@ jobs:
               echo ""
               echo "## PR Test Policy"
               echo ""
-              echo "This PR changes production code in \`src/\`, \`open-sse/\`, or \`bin/\` without accompanying automated tests."
+              echo "This PR changes production code in \`src/\`, \`open-sse/\`, \`electron/\`, or \`bin/\` without accompanying automated tests."
             fi
           } > .artifacts/pr-coverage-comment.md
       - uses: actions/github-script@v9
@@ -1237,12 +1255,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Cache Playwright browsers
@@ -1258,7 +1274,7 @@ jobs:
           name: next-build
           # Workspace-relative on purpose: the matrix below includes windows-latest, whose
           # default shell is pwsh, where $RUNNER_TEMP is empty (it is $env:RUNNER_TEMP) —
-          # #11896's first cut broke a packaged-app smoke job on exactly that. A relative path
+          # #11896's first cut broke the Electron smoke on exactly that. A relative path
           # works in bash and pwsh alike; hosted workspaces are ephemeral.
           path: next-build-artifact
       - name: Extract Next.js build artifact
@@ -1314,12 +1330,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - name: Integration tests (shard ${{ matrix.shard }}/2)
@@ -1341,12 +1355,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run test:security
@@ -1371,12 +1383,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run test:ecosystem
@@ -1402,12 +1412,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-          cache: pnpm
+          cache: npm
       - uses: ./.github/actions/npm-ci-retry
       - run: npm run check:node-runtime
       - run: npm run test:protocols:e2e
@@ -1426,6 +1434,7 @@ jobs:
       - pr-test-policy
       - build
       - package-artifact
+      - electron-package-smoke
       - test-unit
       - test-coverage
       - sonarqube
@@ -1503,6 +1512,7 @@ jobs:
           echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Build Matrix | $(status '${{ needs.build.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Package Artifact | $(status '${{ needs.package-artifact.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Electron Package Smoke | $(status '${{ needs.electron-package-smoke.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "## 🧪 Tests" >> "$GITHUB_STEP_SUMMARY"

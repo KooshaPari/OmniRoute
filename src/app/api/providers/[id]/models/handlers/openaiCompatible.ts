@@ -13,12 +13,8 @@ import {
   enrichOllamaLocalModels,
 } from "../discovery/helpers";
 import { normalizeOpenAiLikeModelsResponse } from "../discovery/normalizers";
-import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import { isNamedOpenAIStyleProvider } from "../discovery/providerSets";
-import {
-  buildProviderModelsUrl,
-  getDiscoveryClientVersionOptions,
-} from "../discoveryClientVersion";
+import { buildProviderModelsUrl, getDiscoveryClientVersionOptions } from "../discoveryClientVersion";
 import type { HandlerContext, HandlerHelpers, HandlerResult } from "./context";
 
 /**
@@ -45,8 +41,7 @@ export async function handleOpenAICompatible(
   const autoFetchDisabledResponse = h.maybeReturnAutoFetchDisabled();
   if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
-  const { isOpenAICompatibleProvider: isOpenAICompat } =
-    await import("@/shared/constants/providers");
+  const { isOpenAICompatibleProvider: isOpenAICompat } = await import("@/shared/constants/providers");
 
   const registryEntry =
     isLocalOpenAIStyleProvider(ctx.provider) || isNamedOpenAIStyleProvider(ctx.provider)

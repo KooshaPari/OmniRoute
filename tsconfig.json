@@ -45,6 +45,8 @@
   ],
   "exclude": [
     "node_modules",
+    "electron/node_modules",
+    "electron/dist-electron",
     ".build",
     "open-sse",
     "dist",

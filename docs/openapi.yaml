@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.53
+  version: 3.8.51
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -11316,6 +11316,36 @@ paths:
       tags:
         - Settings
       summary: "POST settings › obsidian › webdav"
+      responses:
+        "200":
+          description: OK
+  /api/settings/oneproxy:
+    delete:
+      tags:
+        - Settings
+      summary: "DELETE settings › oneproxy"
+      responses:
+        "200":
+          description: OK
+    get:
+      tags:
+        - Settings
+      summary: "GET settings › oneproxy"
+      responses:
+        "200":
+          description: OK
+    post:
+      tags:
+        - Settings
+      summary: "POST settings › oneproxy"
+      responses:
+        "200":
+          description: OK
+  /api/settings/oneproxy/rotate:
+    post:
+      tags:
+        - Settings
+      summary: "POST settings › oneproxy › rotate"
       responses:
         "200":
           description: OK

@@ -402,7 +402,6 @@ const LOBE_PROVIDER_ALIASES = {
   "meta-llama": "Meta",
   minimax: "Minimax",
   "minimax-cn": "Minimax",
-  mimocode: "XiaomiMiMo",
   mistral: "Mistral",
   mistralai: "Mistral",
   moonshot: "Moonshot",

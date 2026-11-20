@@ -12,7 +12,10 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
+  id-token: write
+  packages: write
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -27,19 +30,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          persist-credentials: false
           fetch-depth: 0
 
       - name: Validate version format
         id: validate
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          DISPATCH_VERSION: ${{ inputs.version }}
         run: |
-          if [[ "$EVENT_NAME" == "push" ]]; then
+          if [[ "${{ github.event_name }}" == "push" ]]; then
             VERSION="${GITHUB_REF#refs/tags/v}"
           else
-            VERSION="$DISPATCH_VERSION"
+            VERSION="${{ inputs.version }}"
             VERSION="${VERSION#v}"
           fi
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
@@ -59,13 +58,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          persist-credentials: false
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate changelog
         id: cliff
-        uses: orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5 # v4.8.0
+        uses: orhun/git-cliff-action@f50e11560dce63f7c33227798f90b924471a88b5  # v4.8.0
         env:
           OUTPUT: CHANGELOG.md
           CONFIG: cliff.toml
@@ -87,13 +85,10 @@ jobs:
     name: Create GitHub release
     needs: [validate, changelog]
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          persist-credentials: false
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -107,7 +102,7 @@ jobs:
         continue-on-error: true
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2.6.2
         with:
           name: "v${{ needs.validate.outputs.version }}"
           tag_name: "v${{ needs.validate.outputs.version }}"

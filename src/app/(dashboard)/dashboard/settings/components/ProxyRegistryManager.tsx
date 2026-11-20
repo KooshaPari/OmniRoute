@@ -1148,6 +1148,7 @@ export default function ProxyRegistryManager({
         </div>
       </Modal>
 
+      {/* Proxy Pool / Rotation Modal (#6365) */}
       <Modal
         isOpen={poolOpen}
         onClose={() => {

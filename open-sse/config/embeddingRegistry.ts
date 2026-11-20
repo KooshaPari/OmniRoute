@@ -64,15 +64,11 @@ export function buildDynamicEmbeddingProvider(node: EmbeddingProviderNodeRow): E
     throw new Error(`Invalid provider_node prefix "${node.prefix}": must not contain / or spaces`);
   }
   const baseUrl = node.baseUrl.replace(/\/+$/, "");
-  // Default to apikey/bearer auth — matches deriveEmbeddingProviderForChatProvider
-  // and ensures custom OpenAI-compatible providers forward their configured API key
-  // on outbound requests. Truly keyless local providers (ollama, lmstudio) are
-  // resolved through dedicated code paths before this fallback is reached.
   return {
     id: node.prefix,
     baseUrl: `${baseUrl}/embeddings`,
-    authType: "apikey",
-    authHeader: "bearer",
+    authType: "none",
+    authHeader: "none",
     models: [],
   };
 }

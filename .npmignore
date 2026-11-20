@@ -81,6 +81,8 @@ bun.lock
 *.AppImage
 *.deb
 *.rpm
+electron/
+app/electron/
 app/vscode-extension/
 
 # Subprojects

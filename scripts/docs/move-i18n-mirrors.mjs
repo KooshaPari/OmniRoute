@@ -37,6 +37,7 @@ const DOC_TO_SUBFOLDER = {
   "SETUP_GUIDE.md": "guides",
   "USER_GUIDE.md": "guides",
   "DOCKER_GUIDE.md": "guides",
+  "ELECTRON_GUIDE.md": "guides",
   "TERMUX_GUIDE.md": "guides",
   "PWA_GUIDE.md": "guides",
   "TROUBLESHOOTING.md": "guides",

@@ -90,7 +90,6 @@ function maskSensitiveHeaders(headers: HeaderInput): Record<string, unknown> {
   const sensitiveKeys = [
     "authorization",
     "x-api-key",
-    "apikey",
     "cookie",
     "token",
     "runtimekey",
@@ -110,8 +109,7 @@ function maskSensitiveHeaders(headers: HeaderInput): Record<string, unknown> {
       masked[key] = "[REDACTED]";
       continue;
     }
-    const compactedKey = lowerKey.replace(/-/g, "");
-    if (!sensitiveKeys.some((candidate) => compactedKey.includes(candidate.replace(/-/g, "")))) {
+    if (!sensitiveKeys.some((candidate) => lowerKey.includes(candidate))) {
       continue;
     }
 

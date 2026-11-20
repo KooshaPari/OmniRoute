@@ -31,24 +31,20 @@ permissions:
 
 jobs:
   qgate:
-    timeout-minutes: 45 # bound npm/coverage/Rust stalls; preserve a terminal gate result
+    timeout-minutes: 45       # bound npm/coverage/Rust stalls; preserve a terminal gate result
 
-    runs-on: ubuntu-latest # Linux standard only — no billed runners
+    runs-on: ubuntu-latest   # Linux standard only — no billed runners
 
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          persist-credentials: false
 
-      - name: Enable corepack (pnpm via packageManager pin)
-        run: corepack enable
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v4.0.0
         with:
-          node-version: "24"
-          cache: pnpm
+          node-version: '24'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       # qgate invokes stack-native tools directly. npm does not add the local
       # binary directory to PATH outside lifecycle scripts, so expose the

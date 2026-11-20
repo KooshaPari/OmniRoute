@@ -9,20 +9,29 @@ import { extractAliasBackedModels } from "./aliasBackedModels";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { mergeCustomModelMetadata } from "@/lib/providers/modelMetadataPrecedence";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
-import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
-import { isNoAuthProviderBlocked, isNoAuthProviderKey } from "@/shared/utils/noAuthProviders";
+import {
+  providerUsesCuratedModelsOnly,
+} from "@/lib/providers/modelListingCapability";
+import {
+  isNoAuthProviderBlocked,
+  isNoAuthProviderKey,
+} from "@/shared/utils/noAuthProviders";
 import { getCustomVisionCapabilityFields } from "./catalogVision";
 import { getVisionCapabilityFields } from "./catalogVision";
 import { classifyModelSupportedEndpoints } from "@/shared/constants/modelSupportedEndpoints";
 import { isUnifiedChatSourceModelSelectable } from "./catalogModelPolicy";
 import { prefixRoutesToProvider } from "./catalogProviderMaps";
 import type { CustomModelEntry } from "./catalogHelpers";
-import type { CatalogConnection } from "./catalogBuildTypes";
 
 type CustomModelContext = {
   models: Array<Record<string, unknown>>;
   timestamp: number;
-  connections: CatalogConnection[];
+  connections: Array<{
+    id: string;
+    provider: string;
+    isActive?: boolean;
+    [key: string]: unknown;
+  }>;
   providerIdToPrefix: Record<string, string>;
   providerIdToAlias: Record<string, string>;
   nodeIdToProviderType: Record<string, string>;
@@ -48,7 +57,9 @@ type CustomModelContext = {
     isFree?: boolean
   ) => boolean;
   shouldHideByExposure: (providerKey: string, modelId: string) => boolean;
-  getConnectionsForProvider: (...keys: Array<string | null | undefined>) => CatalogConnection[];
+  getConnectionsForProvider: (
+    ...keys: Array<string | null | undefined>
+  ) => Array<{ id: string; [key: string]: unknown }>;
   maybeYieldCatalogBuild: () => Promise<void>;
 };
 
@@ -328,7 +339,8 @@ export async function addCustomModels(ctx: CustomModelContext): Promise<void> {
         continue;
       }
 
-      const nodePrefix = providerIdToPrefix[providerKey] || providerIdToPrefix[canonicalProviderId];
+      const nodePrefix =
+        providerIdToPrefix[providerKey] || providerIdToPrefix[canonicalProviderId];
       const alias = nodePrefix || providerIdToAlias[canonicalProviderId] || providerKey;
       if (
         !activeAliases.has(alias) &&
@@ -353,7 +365,8 @@ export async function addCustomModels(ctx: CustomModelContext): Promise<void> {
         continue;
       }
 
-      const visionFields = getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
+      const visionFields =
+        getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
 
       const selfAliased = canonicalProviderId === alias;
       if (includeAlias || Boolean(nodePrefix) || selfAliased) {
@@ -424,7 +437,8 @@ export async function addCustomModels(ctx: CustomModelContext): Promise<void> {
       const aliasId = `${alias}/${modelId}`;
       if (models.some((m) => m.id === aliasId)) continue;
 
-      const visionFields = getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
+      const visionFields =
+        getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
       const contextLength =
         typeof model.contextLength === "number" ? model.contextLength : undefined;
 

@@ -67,10 +67,6 @@ import {
   bindCoreDeps as bindHealthSchedulerDeps,
   bindEnv as bindHealthSchedulerEnv,
 } from "./dbHealthScheduler";
-// Re-exported so call sites that pull DB health helpers off the core module keep working:
-// src/app/api/db/health/route.ts (GET/POST) and
-// open-sse/mcp-server/tools/advancedTools.ts (db-health tool) both destructure it from core.
-export { runManagedDbHealthCheck } from "./dbHealthScheduler";
 
 type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
@@ -257,11 +253,7 @@ bindHealthSchedulerEnv({
   isCloud,
   isBuildPhase,
   dataDir: DATA_DIR,
-  // DB_BACKUPS_DIR is null in cloud (see the const above). dbHealthScheduler keeps its own
-  // `_dbBackupsDir` with "" as the "derive from dataDir" sentinel and resolves it with
-  // `_dbBackupsDir || path.join(_dataDir, "db_backups")`, so null maps onto that sentinel.
-  // Same contract as src/lib/db/backup.ts:101 and the other DB_BACKUPS_DIR consumers.
-  dbBackupsDir: DB_BACKUPS_DIR ?? "",
+  dbBackupsDir: DB_BACKUPS_DIR,
 });
 bindHealthSchedulerDeps(getDbInstance);
 
@@ -1246,21 +1238,12 @@ export function getDbInstance(): SqliteDatabase {
     if (skipIntegrityCheck) {
       console.log("[DB] Health check skipped (OMNIROUTE_SKIP_DB_HEALTHCHECK=1)");
     }
-    const healthResult = runDbHealthCheck(db, {
+    runDbHealthCheck(db, {
       autoRepair: true,
       expectedSchemaVersion: "1",
       skipIntegrityCheck,
       createBackupBeforeRepair: () => createHealthCheckBackup(db),
     });
-    // #13308: prune old backups after creating a new one so db_backups/ does not
-    // grow without bound. The health-check-repair path creates a snapshot on every
-    // startup even for a healthy database, and without pruning each restart adds a
-    // full-sized copy. Dynamic import avoids a circular dependency with backup.ts.
-    if (healthResult.backupCreated && DB_BACKUPS_DIR) {
-      import("./backup")
-        .then(({ cleanupDbBackups }) => cleanupDbBackups({ backupDir: DB_BACKUPS_DIR }))
-        .catch(() => {});
-    }
   }
 
   setDb(db);

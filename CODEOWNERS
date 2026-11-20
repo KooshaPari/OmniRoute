@@ -11,6 +11,8 @@
 
 # Workspace / sub-packages
 /open-sse/*           @KooshaPari
+/electron/*           @KooshaPari
+/desktop-electrobun/* @KooshaPari
 
 # CI/CD and repository automation
 /.github/*            @KooshaPari

@@ -22,7 +22,6 @@ export const FREE_PROVIDERS = {};
 
 export const FREE_APIKEY_PROVIDER_IDS = new Set([
   "qoder",
-  "mimocode",
   "opencode",
   "dahl",
   // auggie is a fully local, credential-less CLI passthrough (auth handled by

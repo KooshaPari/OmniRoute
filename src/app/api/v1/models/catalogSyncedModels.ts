@@ -26,6 +26,7 @@ type SyncedModelContext = {
   nodeIdToProviderType: Record<string, string>;
   activeAliases: Set<string>;
   blockedProviders: Set<string>;
+  hidePaid: boolean;
   includeAlias: boolean;
   includeCanonical: boolean;
   resolveCanonicalProviderId: (aliasOrProviderId: string, fallbackProviderId?: string) => string;
@@ -155,12 +156,11 @@ export async function addSyncedModels(ctx: SyncedModelContext): Promise<void> {
 
         const existingAliasModel = models.find((model) => model.id === aliasId);
         if (existingAliasModel) {
-          const existingCaps =
-            typeof existingAliasModel.capabilities === "object" &&
-            existingAliasModel.capabilities !== null
-              ? (existingAliasModel.capabilities as Record<string, unknown>)
-              : undefined;
-          const mergedCapabilities = mergeSyncedCapabilities(existingCaps, sm, syncedOwnedBy);
+          const mergedCapabilities = mergeSyncedCapabilities(
+            existingAliasModel.capabilities,
+            sm,
+            syncedOwnedBy
+          );
           Object.assign(existingAliasModel, syncedFields);
           if (mergedCapabilities) existingAliasModel.capabilities = mergedCapabilities;
           continue;

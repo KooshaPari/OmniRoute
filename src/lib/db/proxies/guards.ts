@@ -22,18 +22,8 @@ export function isGlobalProxyEnabled(db: ReturnType<typeof getDbInstance>): bool
 /**
  * #6246 fail-closed guard for a connection with an assigned dead proxy pool.
  * Explicitly disabling proxying globally or for the connection allows direct egress.
- *
- * #13469: `comboName` scopes the guard to the combo a request is actually
- * routed under. A combo-scoped assignment must only block when that same combo
- * is in play — otherwise a dead pool pinned to one combo would take down every
- * other combo and non-combo request on the same connection. When `comboName` is
- * omitted the combo scope is simply not considered.
  */
-export function hasBlockingProxyAssignment(
-  connectionId: string,
-  providerId?: string,
-  comboName?: string
-): boolean {
+export function hasBlockingProxyAssignment(connectionId: string, providerId?: string): boolean {
   try {
     const db = getDbInstance();
     if (!isGlobalProxyEnabled(db)) return false;
@@ -43,21 +33,16 @@ export function hasBlockingProxyAssignment(
       .get(connectionId) as { provider?: string | null; proxy_enabled?: number } | undefined;
     if (conn && conn.proxy_enabled === 0) return false;
     const provider = conn?.provider ?? providerId ?? null;
-    // A combo-scoped assignment only applies to the combo it was pinned to.
-    // `comboName` null/undefined means this is not a combo request, so the
-    // combo scope must not match anything.
-    const combo = comboName || "__no_combo__";
     const dead = db
       .prepare(
         `SELECT 1 FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id
            WHERE ((a.scope = 'account' AND a.scope_id = ?)
                OR (a.scope = 'provider' AND a.scope_id = ?)
-               OR (a.scope = 'combo' AND a.scope_id = ?)
                OR (a.scope = 'global'))
              AND NOT ${PROXY_ALIVE_PREDICATE}
            LIMIT 1`
       )
-      .get(connectionId, provider, combo);
+      .get(connectionId, provider);
     return !!dead;
   } catch {
     return false;

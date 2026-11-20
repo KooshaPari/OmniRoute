@@ -1,16 +1,15 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "OmniRoute",
-  "version": "3.8.51",
+  "version": "3.8.38",
   "identifier": "online.omniroute.desktop",
   "build": {
-    "beforeDevCommand": "cd ../web && bun install && bun run dev",
+    "beforeDevCommand": "bun --cwd ../web dev",
     "devUrl": "http://localhost:4321",
-    "beforeBuildCommand": "cd ../web && bun install && TAURI_BUILD=1 bun run build",
+    "beforeBuildCommand": "cd ../web && TAURI_BUILD=1 bun run build",
     "frontendDist": "../../web/build"
   },
   "app": {
-    "withGlobalTauri": true,
     "windows": [
       {
         "title": "OmniRoute",

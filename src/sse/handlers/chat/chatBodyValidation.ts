@@ -8,6 +8,7 @@
 
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import type { Response as NodeResponse } from "node-fetch";
 
 /**
  * Validate the messages array, model type, and common scalar params on a
@@ -17,7 +18,7 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 export function validateChatRequestBody(
   body: Record<string, unknown>,
   sourceFormat: string
-): Response | null {
+): NodeResponse | Response | null {
   // Early guard: an invalid `messages` field is rejected here with a clear
   // OmniRoute-level 400 before any routing or upstream call (#5110, #6402).
   const msgBody = body as { messages?: unknown; input?: unknown };

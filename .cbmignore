@@ -25,12 +25,15 @@
 node_modules/
 node_modules
 
-# Builds e artefatos reproduziveis (Layer 1 Next.js)
+# Builds e artefatos reproduziveis (Layer 1 Next.js / Electron)
 .build/
 dist/
 .next/
 out/
 
+# Electron especifico
+electron/dist-electron/
+electron/node_modules/
 icon.iconset/
 
 # Workspaces internos que tem proprio node_modules
