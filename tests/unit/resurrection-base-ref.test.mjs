@@ -1,0 +1,35 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
+test("PR scan uses the supplied base history without a local main branch", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "resurrection-base-"));
+  const git = (...args) => execFileSync("git", args, { cwd: dir, stdio: "pipe" });
+  git("init", "-b", "fixture");
+  git("config", "user.email", "fixture@example.invalid");
+  git("config", "user.name", "Fixture");
+  writeFileSync(path.join(dir, "old.txt"), "preserved content\n");
+  git("add", "old.txt");
+  git("commit", "-m", "add old");
+  git("rm", "old.txt");
+  git("commit", "-m", "delete old");
+  git("update-ref", "refs/remotes/origin/main", "HEAD");
+  writeFileSync(path.join(dir, "new.txt"), "preserved content\n");
+  git("add", "new.txt");
+  git("commit", "-m", "resurrect content");
+  const script = path.resolve("scripts/check/check-resurrection-patterns.mjs");
+  const run = spawnSync(process.execPath, [script, "--pr-base", "origin/main", "--json"], { cwd: dir, encoding: "utf8" });
+  assert.equal(run.status, 1, run.stderr);
+  const report = JSON.parse(run.stdout);
+  assert.equal(report.matchesReal, 1);
+  assert.equal(report.matches[0].newPath, "new.txt");
+  writeFileSync(path.join(dir, "new.txt"), "different content\n");
+  const clean = spawnSync(process.execPath, [script, "--pr-base", "origin/main", "--json"], { cwd: dir, encoding: "utf8" });
+  assert.equal(clean.status, 0, clean.stderr);
+  assert.equal(JSON.parse(clean.stdout).matchesReal, 0);
+  const missing = spawnSync(process.execPath, [script, "--pr-base", "origin/missing", "--json"], { cwd: dir, encoding: "utf8" });
+  assert.notEqual(missing.status, 0);
+});
