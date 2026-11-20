@@ -900,17 +900,29 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          powershell -c "iwr bun.sh/install.ps1 -useb | iex"
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).devDependencies.bun
+          & ([scriptblock]::Create((Invoke-WebRequest bun.sh/install.ps1 -UseBasicParsing).Content)) -Version $version
+          if ((& "$env:USERPROFILE\.bun\bin\bun.exe" --version) -ne $version) { throw "Bun version mismatch" }
           echo "$env:USERPROFILE\.bun\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
       - name: Install Bun (non-Windows)
         if: runner.os != 'Windows'
-        run: npm install -g bun
-      # .npmrc sets ignore-scripts=true, which skips bun's postinstall binary
-      # download; run it explicitly or bun is a stub without the platform binary.
-      - name: Fetch bun binary (ignore-scripts workaround)
+        shell: bash
+        run: |
+          set -o pipefail
+          version=$(node -p "require('./package.json').devDependencies.bun")
+          test "$(node -p "require('./.github/bun-ci/package.json').dependencies['@oven/bun-linux-x64']")" = "$version"
+          test "$(uname -m)" = x86_64
+          npm ci --prefix .github/bun-ci --ignore-scripts --no-audit --no-fund
+          test "$(.github/bun-ci/node_modules/@oven/bun-linux-x64/bin/bun --version)" = "$version"
+      - name: Test Bun SQLite (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          & "$env:USERPROFILE\.bun\bin\bun.exe" run --bun test:bun:db
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Test Bun SQLite (non-Windows)
         if: runner.os != 'Windows'
-        run: node "$(npm root -g)/bun/install.js"
-      - run: npm run test:bun:db
+        run: .github/bun-ci/node_modules/@oven/bun-linux-x64/bin/bun run --bun test:bun:db
 
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
