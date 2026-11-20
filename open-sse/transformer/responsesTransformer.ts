@@ -156,7 +156,7 @@ function normalizeResponsesUsage(previous: unknown, raw: unknown): UsageRecord |
 
   return Object.keys(cacheCounters).length > 0
     ? { ...source, ...normalized, ...cacheCounters }
-    : normalized;
+    : { ...source, ...normalized };
 }
 
 // Create log directory for responses (Node.js only)
