@@ -103,9 +103,67 @@ function fsyncReusableSnapshot(snapshotPath: string): void {
 
 type SqlJsSnapshotClone = {
   run(sql: string): void;
+  exec(sql: string): Array<{ values: unknown[][] }>;
   export(): Uint8Array;
   close(): void;
 };
+
+function runWithCheckedClose(check: () => void, close: () => void): void {
+  let validationError: unknown;
+  let validationFailed = false;
+  try {
+    check();
+  } catch (error) {
+    validationFailed = true;
+    validationError = error;
+  }
+  try {
+    close();
+  } catch (closeError) {
+    if (validationFailed) {
+      throw new AggregateError([validationError, closeError], "SQLite validation and close both failed");
+    }
+    throw closeError;
+  }
+  if (validationFailed) throw validationError;
+}
+
+function validateSnapshot(db: SqliteAdapter, snapshotPath: string): void {
+  if (db.driver === "sql.js") {
+    const raw = db.raw as { constructor: new (data: Uint8Array) => SqlJsSnapshotClone } | null;
+    if (!raw) throw new Error("sql.js snapshot validator is unavailable");
+    const clone = new raw.constructor(fs.readFileSync(snapshotPath));
+    runWithCheckedClose(() => {
+      const result = clone.exec("PRAGMA integrity_check");
+      if (result.length !== 1 || result[0].values.length !== 1 || result[0].values[0]?.[0] !== "ok") {
+        throw new Error("SQLite snapshot integrity check failed");
+      }
+    }, () => clone.close());
+    return;
+  }
+  const snapshot = tryOpenSync(snapshotPath, { readonly: true, fileMustExist: true });
+  if (!snapshot) throw new Error("no synchronous read-only SQLite validator is available");
+  if (snapshot.driver === "node:sqlite") {
+    const raw = snapshot.raw as { prepare(sql: string): { all(): unknown[] }; close(): void } | null;
+    if (!raw || typeof raw.prepare !== "function" || typeof raw.close !== "function") {
+      snapshot.close();
+      throw new Error("node:sqlite snapshot validator is unavailable");
+    }
+    runWithCheckedClose(() => {
+      const rows = raw.prepare("PRAGMA integrity_check").all() as Array<Record<string, unknown>>;
+      if (rows.length !== 1 || Object.values(rows[0]).length !== 1 || Object.values(rows[0])[0] !== "ok") {
+        throw new Error("SQLite snapshot integrity check failed");
+      }
+    }, () => raw.close());
+    return;
+  }
+  runWithCheckedClose(() => {
+    const rows = snapshot.prepare("PRAGMA integrity_check").all() as Array<Record<string, unknown>>;
+    if (rows.length !== 1 || Object.values(rows[0]).length !== 1 || Object.values(rows[0])[0] !== "ok") {
+      throw new Error("SQLite snapshot integrity check failed");
+    }
+  }, () => snapshot.close());
+}
 
 const SQLITE_HEADER_MIN_BYTES = 100;
 const SQLITE_HEADER_MAGIC = "SQLite format 3\0";
@@ -243,6 +301,7 @@ export function createPreMigrationBackup(db: SqliteAdapter): PreMigrationBackupR
       }
     }
 
+    validateSnapshot(db, tempPath);
     const sha256 = hashFileSync(tempPath);
     backupPath = path.join(backupDir, `db_state-${sha256}_pre-migration.sqlite`);
     const reusable = getReusablePreMigrationBackup(backupPath, sha256);
